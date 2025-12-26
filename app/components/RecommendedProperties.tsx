@@ -105,90 +105,12 @@ export default function RecommendedProperties() {
         {/* Properties Grid */}
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {recommendedProperties.map((property) => (
-            <div
+            <PropertyCard
               key={property.id}
-              onClick={() => setSelectedProperty(selectedProperty === property.id ? null : property.id)}
-              className="bg-white rounded-2xl shadow-md border border-gray-100 overflow-hidden hover:shadow-xl hover:border-blue-200 transition cursor-pointer group"
-            >
-              {/* Property Image */}
-              <div className="h-56 bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center relative overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-                <svg className="w-24 h-24 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
-                </svg>
-                <span className={`absolute top-4 right-4 px-4 py-2 rounded-full text-sm font-semibold ${property.badgeColor}`}>
-                  {property.badge}
-                </span>
-              </div>
-
-              {/* Property Details */}
-              <div className="p-6">
-                {/* Price and Config */}
-                <div className="flex justify-between items-start mb-3">
-                  <div>
-                    <p className="text-2xl font-bold text-gray-900">{property.price}</p>
-                    <p className="text-gray-600 font-medium">{property.config}, {property.location}</p>
-                  </div>
-                </div>
-
-                {/* Specs */}
-                <div className="flex gap-4 text-sm text-gray-600 mb-4 pb-4 border-b border-gray-100">
-                  <span className="flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M10.5 1.5H3.75A2.25 2.25 0 001.5 3.75v12.5A2.25 2.25 0 003.75 18.5h12.5a2.25 2.25 0 002.25-2.25V9.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    {property.area}
-                  </span>
-                  <span>•</span>
-                  <span className="flex items-center gap-1">
-                    <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M4 4a2 2 0 00-2 2v4a1 1 0 001 1h12a1 1 0 001-1V6a2 2 0 00-2-2H4zm0 6a1 1 0 001 1h6a1 1 0 001-1v-1a1 1 0 00-1-1H5a1 1 0 00-1 1v1z" clipRule="evenodd"/>
-                    </svg>
-                    {property.age}
-                  </span>
-                </div>
-
-                {/* Reason Section */}
-                <div className="mb-4">
-                  <p className="text-sm font-semibold text-gray-900 mb-2">Why we recommend this:</p>
-                  <p className="text-gray-600 text-sm leading-relaxed">
-                    {property.reason}
-                  </p>
-                </div>
-
-                {/* Highlights */}
-                <div className="mb-4 p-3 bg-blue-50 rounded-lg">
-                  <div className="space-y-2">
-                    {property.highlights.map((highlight, idx) => (
-                      <div key={idx} className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-blue-600 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd"/>
-                        </svg>
-                        <span className="text-sm text-gray-700 font-medium">{highlight}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Expandable Consultant Note */}
-                {selectedProperty === property.id && (
-                  <div className="mb-4 p-4 bg-green-50 border border-green-200 rounded-lg animate-in">
-                    <p className="text-sm font-semibold text-green-900 mb-2">💬 Consultant's Note:</p>
-                    <p className="text-sm text-green-800">{property.consultantNote}</p>
-                  </div>
-                )}
-
-                {/* CTA Button */}
-                <button className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 font-semibold transition">
-                  Schedule Site Visit
-                </button>
-
-                {/* Expand Hint */}
-                <p className="text-center text-xs text-gray-400 mt-3">
-                  Click to see consultant's note
-                </p>
-              </div>
-            </div>
+              property={property}
+              isExpanded={selectedProperty === property.id}
+              onToggleExpand={(id) => setSelectedProperty(selectedProperty === id ? null : id)}
+            />
           ))}
         </div>
 
