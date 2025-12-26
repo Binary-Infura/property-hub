@@ -1,4 +1,5 @@
 import Image from "next/image";
+import LeadCaptureForm from "./components/LeadCaptureForm";
 
 export default function Home() {
   return (
