@@ -273,6 +273,9 @@ export default function Home() {
       {/* Consultant Profile Section */}
       <ConsultantProfile />
 
+      {/* Recommended Properties */}
+      <RecommendedProperties />
+
       {/* Testimonials */}
       <section className="py-20 md:py-32 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
