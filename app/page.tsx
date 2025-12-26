@@ -16,7 +16,7 @@ export default function Home() {
               <a href="#how" className="text-gray-600 hover:text-gray-900">How It Works</a>
               <a href="#why" className="text-gray-600 hover:text-gray-900">Why Us</a>
               <a href="#properties" className="text-gray-600 hover:text-gray-900">Properties</a>
-              <a href="#contact" className="text-gray-600 hover:text-gray-900">Contact</a>
+              <a href="#lead-capture" className="text-gray-600 hover:text-gray-900">Get Advice</a>
             </div>
             <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium">
               Free Consultation
