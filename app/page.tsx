@@ -16,8 +16,8 @@ export default function Home() {
             <div className="hidden md:flex gap-8">
               <a href="#how" className="text-gray-600 hover:text-gray-900">How It Works</a>
               <a href="#why" className="text-gray-600 hover:text-gray-900">Why Us</a>
+              <a href="#consultants" className="text-gray-600 hover:text-gray-900">Consultants</a>
               <a href="#properties" className="text-gray-600 hover:text-gray-900">Properties</a>
-              <a href="#lead-capture" className="text-gray-600 hover:text-gray-900">Get Advice</a>
             </div>
             <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium">
               Free Consultation
