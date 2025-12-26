@@ -21,8 +21,8 @@ export default function Home() {
               <a href="#recommended" className="text-gray-600 hover:text-gray-900">Properties</a>
             </div>
             <div className="flex gap-3">
-              <a href="/dashboard/builder" className="text-gray-600 hover:text-gray-900 px-4 py-2 text-sm font-medium">
-                Builder Portal
+              <a href="/dashboard" className="text-gray-600 hover:text-gray-900 px-4 py-2 text-sm font-medium">
+                Dashboards
               </a>
               <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium">
                 Free Consultation
