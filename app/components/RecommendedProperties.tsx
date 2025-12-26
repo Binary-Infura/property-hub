@@ -64,7 +64,6 @@ export default function RecommendedProperties() {
       config: "2 BHK",
       location: "Malad, Mumbai",
       area: "1100 sqft",
-      area: "1100 sqft",
       age: "4-year old",
       badge: "Compact Smart",
       badgeColor: "bg-rose-100 text-rose-700",
