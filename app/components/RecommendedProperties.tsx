@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import PropertyCard from './PropertyCard';
 
 export default function RecommendedProperties() {
   const [selectedProperty, setSelectedProperty] = useState<number | null>(null);
@@ -15,9 +16,11 @@ export default function RecommendedProperties() {
       age: "5-year old",
       badge: "Perfect Match",
       badgeColor: "bg-green-100 text-green-700",
-      reason: "Matches your ₹40-60L budget with excellent school connectivity for families. High appreciation potential in this locality.",
-      highlights: ["Family-friendly location", "Good resale value", "Modern amenities"],
-      consultantNote: "This property checks all your boxes—budget, location, and family needs."
+      bestFor: "Growing families seeking top schools and community",
+      budgetRange: "₹40L - ₹60L",
+      reason: "Matches your budget with excellent school connectivity for families. High appreciation potential in this locality.",
+      highlights: ["Family-friendly location", "Top-rated schools nearby", "Good resale value", "Modern amenities"],
+      consultantNote: "This property checks all your boxes—budget, location, and family needs. The area has strong appreciation with excellent community infrastructure."
     },
     {
       id: 2,
@@ -28,9 +31,11 @@ export default function RecommendedProperties() {
       age: "3-year old",
       badge: "High Demand",
       badgeColor: "bg-blue-100 text-blue-700",
-      reason: "Premium location with investment potential. Strong rental yield of 4.5% annually. Strategic for investors.",
-      highlights: ["High rental yield", "Prime location", "Investment-grade"],
-      consultantNote: "As an investment property, this shows strong growth trajectory in an upmarket area."
+      bestFor: "Investors looking for premium rental yields",
+      budgetRange: "₹50L - ₹60L",
+      reason: "Premium location with strong investment potential. Delivers 4.5% annual rental yield with capital appreciation.",
+      highlights: ["4.5% annual rental yield", "Prime investment location", "High demand area", "Strong appreciation"],
+      consultantNote: "As an investment property, this shows strong growth trajectory in an upmarket area. Excellent for long-term wealth creation."
     },
     {
       id: 3,
@@ -41,9 +46,11 @@ export default function RecommendedProperties() {
       age: "7-year old",
       badge: "Value Deal",
       badgeColor: "bg-amber-100 text-amber-700",
-      reason: "Within budget with spacious layout. Emerging neighborhood with excellent connectivity and future growth prospects.",
-      highlights: ["Within budget", "Spacious living", "Growth locality"],
-      consultantNote: "Great value for money. This area is seeing rapid development with new metro connectivity."
+      bestFor: "Budget-conscious buyers wanting space",
+      budgetRange: "₹35L - ₹45L",
+      reason: "Spacious layout within budget. Emerging neighborhood with excellent metro connectivity and strong future growth prospects.",
+      highlights: ["Best value for space", "Upcoming metro connectivity", "Growth locality", "Modern amenities"],
+      consultantNote: "Great value for money. This area is seeing rapid development. You get more space for less, with excellent future appreciation potential."
     },
     {
       id: 4,
@@ -54,9 +61,11 @@ export default function RecommendedProperties() {
       age: "2-year old",
       badge: "Spacious",
       badgeColor: "bg-purple-100 text-purple-700",
-      reason: "Extra space for the same budget. Thane offers better land value and is ideal for growing families looking for room to expand.",
-      highlights: ["Extra space", "Better value", "Family-oriented"],
-      consultantNote: "If space is a priority, this gives you an extra bedroom compared to other options in your budget."
+      bestFor: "Large families wanting maximum space and comfort",
+      budgetRange: "₹50L - ₹65L",
+      reason: "Extra space and room to grow. Thane offers superior land value—get an additional bedroom in your budget.",
+      highlights: ["Extra bedroom included", "Better land value", "Growing family-oriented area", "New developments"],
+      consultantNote: "If space is a priority, this gives you an extra bedroom compared to other options in your budget range. Ideal for expanding families."
     },
     {
       id: 5,
@@ -67,9 +76,11 @@ export default function RecommendedProperties() {
       age: "4-year old",
       badge: "Compact Smart",
       badgeColor: "bg-rose-100 text-rose-700",
-      reason: "Ideal for first-time buyers. Lower maintenance, quick appreciation, and excellent community amenities nearby.",
-      highlights: ["First-time buyer friendly", "Easy maintenance", "Community amenities"],
-      consultantNote: "Perfect starter home. Lower EMI commitment with strong property fundamentals."
+      bestFor: "First-time buyers and young couples",
+      budgetRange: "₹40L - ₹55L",
+      reason: "Perfect starter home with lower maintenance. Quick appreciation expected with excellent community amenities.",
+      highlights: ["First-time buyer friendly", "Lower maintenance cost", "Community amenities", "Strong fundamentals"],
+      consultantNote: "Perfect starter home. Lower EMI commitment with strong property fundamentals. Great for building wealth over time."
     }
   ];
 
