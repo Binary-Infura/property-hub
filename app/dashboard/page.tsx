@@ -17,7 +17,7 @@ export default function DashboardIndex() {
         </div>
 
         {/* Portal Cards */}
-        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
           {/* Builder Portal */}
           <Link
             href="/dashboard/builder"
