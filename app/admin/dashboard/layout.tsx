@@ -1,44 +1,76 @@
+'use client';
+
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
-export const metadata = {
-  title: 'Admin Dashboard - PropertyHub',
-  description: 'Admin dashboard for reviewing and managing property submissions',
-};
-
-/**
- * Admin Dashboard Layout
- * 
- * This layout enforces that /admin/dashboard is exclusively for admins.
- * When authentication is implemented, this layout should redirect
- * non-admin users to their appropriate role dashboard.
- */
 export default function AdminDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
+  const navigation = [
+    { name: 'Dashboard', href: '/admin/dashboard', icon: '📊' },
+    { name: 'Builders', href: '/admin/dashboard/builders', icon: '🏗️' },
+    { name: 'Consultants', href: '/admin/dashboard/consultants', icon: '👤' },
+  ];
+
+  const isActive = (href: string) => {
+    if (href === '/admin/dashboard') {
+      return pathname === href;
+    }
+    return pathname?.startsWith(href);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Top Navigation */}
-      <nav className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+        <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-900 hover:text-blue-600">
               <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
-              PropertyHub
+              PropertyHub Admin
             </Link>
             <div className="flex items-center gap-6">
-              <a href="/" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
+              <Link href="/" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
                 Back to Home
-              </a>
+              </Link>
             </div>
           </div>
         </div>
       </nav>
 
-      {/* Main Content */}
-      {children}
+      <div className="flex">
+        {/* Left Sidebar */}
+        <aside className="w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-4rem)] sticky top-16">
+          <nav className="p-4 space-y-2">
+            {navigation.map((item) => {
+              const active = isActive(item.href);
+              return (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
+                    active
+                      ? 'bg-blue-50 text-blue-700 font-semibold border-l-4 border-blue-600'
+                      : 'text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <span className="text-xl">{item.icon}</span>
+                  <span>{item.name}</span>
+                </Link>
+              );
+            })}
+          </nav>
+        </aside>
+
+        {/* Main Content */}
+        <main className="flex-1">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
-
