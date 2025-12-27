@@ -4,6 +4,26 @@ import { useState } from 'react';
 import PropertyDraftForm from '@/app/components/PropertyDraftForm';
 import PropertyDraftsList from '@/app/components/PropertyDraftsList';
 
+// PropertyDraft from form (id optional)
+interface PropertyDraftFormData {
+  id?: string;
+  title: string;
+  config: string;
+  location: string;
+  price: string;
+  area: string;
+  age: string;
+  description: string;
+  amenities: string[];
+  images: File[];
+  brochure: File | null;
+  status?: 'draft' | 'submitted' | 'approved' | 'rejected';
+  createdAt?: Date;
+  submittedAt?: Date;
+  feedback?: string;
+}
+
+// PropertyDraft for state (id required, matches PropertyDraftsList)
 interface PropertyDraft {
   id: string;
   title: string;
@@ -38,11 +58,38 @@ export default function BuilderDashboard() {
     setShowForm(true);
   };
 
-  const handleSaveProperty = (property: PropertyDraft) => {
+  const handleSaveProperty = (property: PropertyDraftFormData) => {
     if (editingId) {
-      setDrafts(drafts.map(d => d.id === editingId ? { ...property, id: editingId } : d));
+      const existingDraft = drafts.find(d => d.id === editingId);
+      setDrafts(drafts.map(d => 
+        d.id === editingId 
+          ? { 
+              ...property, 
+              id: editingId, 
+              createdAt: existingDraft?.createdAt || new Date(),
+              status: existingDraft?.status || 'draft',
+              area: property.area,
+              age: property.age,
+              description: property.description,
+              amenities: property.amenities,
+              images: property.images,
+              brochure: property.brochure,
+            } as PropertyDraft
+          : d
+      ));
     } else {
-      setDrafts([...drafts, { ...property, id: Date.now().toString(), createdAt: new Date() }]);
+      setDrafts([...drafts, { 
+        ...property, 
+        id: Date.now().toString(), 
+        createdAt: new Date(), 
+        status: 'draft',
+        area: property.area,
+        age: property.age,
+        description: property.description,
+        amenities: property.amenities,
+        images: property.images,
+        brochure: property.brochure,
+      } as PropertyDraft]);
     }
     setShowForm(false);
     setEditingId(null);
@@ -58,7 +105,7 @@ export default function BuilderDashboard() {
     setDrafts(drafts.filter(d => d.id !== id));
   };
 
-  const draftsList = drafts.filter(d => d.status === 'draft');
+  const draftsList = drafts.filter(d => d.status === 'draft' || !d.status);
   const submittedList = drafts.filter(d => d.status === 'submitted');
   const approvedList = drafts.filter(d => d.status === 'approved' || d.status === 'rejected');
 
@@ -193,3 +240,4 @@ export default function BuilderDashboard() {
     </div>
   );
 }
+

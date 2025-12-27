@@ -1,19 +1,18 @@
 import Link from 'next/link';
-import { getRoleFromPath } from '@/app/lib/routing';
 
 export const metadata = {
-  title: 'Dashboard - PropertyHub',
-  description: 'Buyer dashboard for managing your property search',
+  title: 'Builder Dashboard - PropertyHub',
+  description: 'Builder dashboard for managing property submissions',
 };
 
 /**
- * Buyer Dashboard Layout
+ * Builder Dashboard Layout
  * 
- * This layout enforces that /dashboard is exclusively for buyers.
+ * This layout enforces that /builder/dashboard is exclusively for builders.
  * When authentication is implemented, this layout should redirect
- * non-buyer users to their appropriate role dashboard.
+ * non-builder users to their appropriate role dashboard.
  */
-export default function DashboardLayout({
+export default function BuilderDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -42,3 +41,4 @@ export default function DashboardLayout({
     </div>
   );
 }
+
