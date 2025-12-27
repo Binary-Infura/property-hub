@@ -1,5 +1,4 @@
 import Image from "next/image";
-import LeadCaptureForm from "./components/LeadCaptureForm";
 import ConsultantProfile from "./components/ConsultantProfile";
 import RecommendedProperties from "./components/RecommendedProperties";
 
@@ -27,9 +26,9 @@ export default function Home() {
               <a href="/dashboard" className="text-gray-600 hover:text-gray-900 px-4 py-2 text-sm font-medium">
                 My Dashboard
               </a>
-              <button className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium">
+              <a href="/consultation" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium">
                 Free Consultation
-              </button>
+              </a>
             </div>
           </div>
         </div>
@@ -55,9 +54,9 @@ export default function Home() {
                 Stop browsing endless listings. Get matched with curated properties by our experienced consultants who understand your needs, budget, and dreams.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
-                <button className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 font-semibold text-lg transition">
+                <a href="/consultation" className="bg-blue-600 text-white px-8 py-4 rounded-lg hover:bg-blue-700 font-semibold text-lg transition text-center">
                   Start Free Consultation
-                </button>
+                </a>
                 <button className="border-2 border-gray-300 text-gray-900 px-8 py-4 rounded-lg hover:border-gray-400 font-semibold text-lg transition">
                   Watch Demo
                 </button>
@@ -268,15 +267,12 @@ export default function Home() {
             <p className="text-gray-600 mb-4">
               Want to see properties matched specifically for your needs?
             </p>
-            <button className="bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-semibold">
+            <a href="/consultation" className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-semibold">
               Get Your Personalized List
-            </button>
+            </a>
           </div>
         </div>
       </section>
-
-      {/* Lead Capture Form */}
-      <LeadCaptureForm />
 
       {/* Consultant Profile Section */}
       <ConsultantProfile />
@@ -341,9 +337,9 @@ export default function Home() {
             Schedule a free consultation with our experts today. No commitments, no pressure—just honest advice.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <button className="bg-white text-blue-600 px-8 py-4 rounded-lg hover:bg-blue-50 font-semibold text-lg transition">
+            <a href="/consultation" className="bg-white text-blue-600 px-8 py-4 rounded-lg hover:bg-blue-50 font-semibold text-lg transition text-center">
               Book Free Consultation
-            </button>
+            </a>
             <button className="border-2 border-white text-white px-8 py-4 rounded-lg hover:bg-white/10 font-semibold text-lg transition">
               Call us: +91 80008 12345
             </button>
