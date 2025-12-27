@@ -119,6 +119,57 @@ export default function DashboardIndex() {
               Go to Admin Panel →
             </div>
           </Link>
+
+          {/* Consultant Portal */}
+          <Link
+            href="/dashboard/consultant"
+            className="group bg-white rounded-2xl shadow-lg hover:shadow-2xl transition p-8 border-2 border-transparent hover:border-indigo-600"
+          >
+            <div className="flex items-center justify-center w-16 h-16 bg-indigo-100 rounded-full group-hover:bg-indigo-200 transition mb-6">
+              <svg
+                className="w-8 h-8 text-indigo-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0zM9 20H4v-2a6 6 0 0112 0v2H9z"
+                />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-bold text-gray-900 mb-3 group-hover:text-indigo-600 transition">
+              Consultant Dashboard
+            </h2>
+            <p className="text-gray-600 mb-6 leading-relaxed">
+              Manage your assigned clients, track consultations, monitor properties, and track deal progress.
+            </p>
+            <ul className="space-y-2 text-gray-600 text-sm mb-8">
+              <li className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Manage assigned clients
+              </li>
+              <li className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Track consultations & site visits
+              </li>
+              <li className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                </svg>
+                Monitor deal progress
+              </li>
+            </ul>
+            <div className="inline-block bg-indigo-600 text-white px-6 py-2 rounded-lg group-hover:bg-indigo-700 transition font-semibold">
+              Go to Consultant Dashboard →
+            </div>
+          </Link>
         </div>
 
         {/* Info Section */}
