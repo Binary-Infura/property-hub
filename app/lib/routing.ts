@@ -59,6 +59,9 @@ export function getRoleFromPath(pathname: string): UserRole | null {
   if (pathname.startsWith('/commission-manager/dashboard')) {
     return 'commission-manager';
   }
+  if (pathname.startsWith('/channel-partner/dashboard')) {
+    return 'channel-partner';
+  }
   return null;
 }
 
