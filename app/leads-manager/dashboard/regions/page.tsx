@@ -13,6 +13,9 @@ interface RegionalData {
 }
 
 export default function RegionalAssignmentPage() {
+  // Use fixed reference date to avoid hydration mismatches
+  const REFERENCE_DATE = new Date('2024-12-29T10:00:00Z');
+
   const [leads] = useState<Lead[]>([
     {
       id: '1',
@@ -27,7 +30,7 @@ export default function RegionalAssignmentPage() {
       source: 'Google Ads',
       status: 'qualified',
       qualityScore: 85,
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      createdAt: new Date(REFERENCE_DATE.getTime() - 2 * 24 * 60 * 60 * 1000),
       tags: ['High Budget', 'Verified Phone'],
     },
     {
@@ -43,7 +46,7 @@ export default function RegionalAssignmentPage() {
       source: 'Facebook Ads',
       status: 'pending-review',
       qualityScore: 65,
-      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      createdAt: new Date(REFERENCE_DATE.getTime() - 5 * 24 * 60 * 60 * 1000),
       tags: ['Young Professional'],
     },
     {
@@ -58,11 +61,11 @@ export default function RegionalAssignmentPage() {
       source: 'Organic Search',
       status: 'qualified',
       qualityScore: 78,
-      createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+      createdAt: new Date(REFERENCE_DATE.getTime() - 1 * 24 * 60 * 60 * 1000),
       region: 'West',
       assignedTo: {
         region: 'West',
-        assignedAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
+        assignedAt: new Date(REFERENCE_DATE.getTime() - 12 * 60 * 60 * 1000),
       },
     },
     {
@@ -78,7 +81,7 @@ export default function RegionalAssignmentPage() {
       source: 'Referral',
       status: 'qualified',
       qualityScore: 88,
-      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
+      createdAt: new Date(REFERENCE_DATE.getTime() - 3 * 24 * 60 * 60 * 1000),
     },
     {
       id: '6',
@@ -93,7 +96,7 @@ export default function RegionalAssignmentPage() {
       source: 'Google Ads',
       status: 'qualified',
       qualityScore: 82,
-      createdAt: new Date(Date.now() - 4 * 24 * 60 * 60 * 1000),
+      createdAt: new Date(REFERENCE_DATE.getTime() - 4 * 24 * 60 * 60 * 1000),
       tags: ['Investor', 'Flexible'],
     },
   ]);
