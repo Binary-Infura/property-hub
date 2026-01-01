@@ -10,7 +10,7 @@
  * - One role = one dashboard route (no shared dashboards)
  */
 
-export type UserRole = 'buyer' | 'consultant' | 'builder' | 'admin' | 'loan-adviser';
+export type UserRole = 'buyer' | 'consultant' | 'builder' | 'admin' | 'loan-adviser' | 'leads-manager';
 
 /**
  * Canonical dashboard routes for each role
@@ -21,6 +21,7 @@ export const DASHBOARD_ROUTES = {
   builder: '/builder/dashboard',
   admin: '/admin/dashboard',
   'loan-adviser': '/loan-adviser/dashboard',
+  'leads-manager': '/leads-manager/dashboard',
 } as const;
 
 /**
@@ -86,4 +87,3 @@ export function getRedirectTarget(
  * All dashboard routes (for reference/validation)
  */
 export const ALL_DASHBOARD_ROUTES = Object.values(DASHBOARD_ROUTES);
-
