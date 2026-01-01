@@ -10,7 +10,7 @@
  * - One role = one dashboard route (no shared dashboards)
  */
 
-export type UserRole = 'buyer' | 'consultant' | 'builder' | 'admin' | 'loan-adviser' | 'leads-manager' | 'commission-manager';
+export type UserRole = 'buyer' | 'consultant' | 'builder' | 'admin' | 'loan-adviser' | 'leads-manager' | 'commission-manager' | 'channel-partner';
 
 /**
  * Canonical dashboard routes for each role
@@ -23,6 +23,7 @@ export const DASHBOARD_ROUTES = {
   'loan-adviser': '/loan-adviser/dashboard',
   'leads-manager': '/leads-manager/dashboard',
   'commission-manager': '/commission-manager/dashboard',
+  'channel-partner': '/channel-partner/dashboard',
 } as const;
 
 /**
