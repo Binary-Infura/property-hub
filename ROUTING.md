@@ -15,6 +15,7 @@ PropertyHub uses a **buyer-first, role-based routing architecture** where:
 | Consultant | `/consultant/dashboard` | Consultant-only route |
 | Builder / Developer | `/builder/dashboard` | Builder-only route |
 | Admin | `/admin/dashboard` | Admin-only route |
+| Loan Adviser | `/loan-adviser/dashboard` | Loan Adviser-only route |
 
 ## Routing Rules
 
@@ -35,6 +36,10 @@ PropertyHub uses a **buyer-first, role-based routing architecture** where:
 - **Admin-only route**
 - Admins review and approve property submissions
 
+### 5. `/loan-adviser/dashboard`
+- **Loan Adviser-only route**
+- Loan Advisers manage loan applications, guide users through loan journey, validate documents, and coordinate with banks
+
 ## Forbidden Routes
 
 The following route patterns are **NOT allowed**:
@@ -53,6 +58,7 @@ When authentication is implemented, if a user accesses a dashboard route that do
 - **Consultant** → `/dashboard` → redirect to `/consultant/dashboard`
 - **Builder** → `/admin/dashboard` → redirect to `/builder/dashboard`
 - **Buyer** → `/consultant/dashboard` → redirect to `/dashboard`
+- **Loan Adviser** → `/dashboard` → redirect to `/loan-adviser/dashboard`
 
 ## Implementation
 
@@ -66,6 +72,7 @@ import { getDashboardRoute, getRoleFromPath, getRedirectTarget } from '@/app/lib
 // Get the canonical route for a role
 const buyerRoute = getDashboardRoute('buyer'); // '/dashboard'
 const consultantRoute = getDashboardRoute('consultant'); // '/consultant/dashboard'
+const loanAdviserRoute = getDashboardRoute('loan-adviser'); // '/loan-adviser/dashboard'
 
 // Get role from a path
 const role = getRoleFromPath('/dashboard'); // 'buyer'
@@ -91,6 +98,10 @@ const redirect = getRedirectTarget('/dashboard', 'consultant'); // '/consultant/
       /page.tsx
   /admin
     /dashboard               (admin dashboard)
+      /layout.tsx
+      /page.tsx
+  /loan-adviser
+    /dashboard                 (loan adviser dashboard)
       /layout.tsx
       /page.tsx
   /lib
