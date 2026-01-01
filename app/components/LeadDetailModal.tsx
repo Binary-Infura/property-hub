@@ -1,0 +1,364 @@
+'use client';
+
+import { useState } from 'react';
+import { Lead } from '@/app/types/lead';
+
+interface LeadDetailModalProps {
+  lead: Lead | null;
+  onClose: () => void;
+  onQualify?: (leadId: string) => void;
+  onRejectAsSpam?: (leadId: string) => void;
+  onAssignRegion?: (leadId: string, region: string) => void;
+  onAddNote?: (leadId: string, note: string) => void;
+}
+
+const REGIONS = ['North', 'South', 'East', 'West', 'Central'];
+
+export default function LeadDetailModal({
+  lead,
+  onClose,
+  onQualify,
+  onRejectAsSpam,
+  onAssignRegion,
+  onAddNote,
+}: LeadDetailModalProps) {
+  const [newNote, setNewNote] = useState('');
+  const [selectedRegion, setSelectedRegion] = useState('');
+  const [activeTab, setActiveTab] = useState<'details' | 'notes' | 'assign'>('details');
+
+  if (!lead) return null;
+
+  const handleQualify = () => {
+    onQualify?.(lead.id);
+  };
+
+  const handleRejectAsSpam = () => {
+    if (confirm('Are you sure you want to mark this lead as spam?')) {
+      onRejectAsSpam?.(lead.id);
+    }
+  };
+
+  const handleAssignRegion = () => {
+    if (selectedRegion) {
+      onAssignRegion?.(lead.id, selectedRegion);
+      setSelectedRegion('');
+    }
+  };
+
+  const handleAddNote = () => {
+    if (newNote.trim()) {
+      onAddNote?.(lead.id, newNote);
+      setNewNote('');
+    }
+  };
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'qualified':
+        return 'text-green-700 bg-green-50';
+      case 'pending-review':
+        return 'text-yellow-700 bg-yellow-50';
+      case 'spam':
+        return 'text-red-700 bg-red-50';
+      case 'assigned':
+        return 'text-blue-700 bg-blue-50';
+      default:
+        return 'text-gray-700 bg-gray-50';
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg shadow-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        {/* Header */}
+        <div className="sticky top-0 bg-white border-b border-gray-200 px-6 py-4 flex justify-between items-start">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">{lead.name}</h2>
+            <p className="text-gray-600 text-sm mt-1">{lead.phone}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-500 hover:text-gray-700 font-bold text-2xl"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Tabs */}
+        <div className="border-b border-gray-200 flex">
+          <button
+            onClick={() => setActiveTab('details')}
+            className={`flex-1 px-6 py-3 font-medium border-b-2 transition ${
+              activeTab === 'details'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Details
+          </button>
+          <button
+            onClick={() => setActiveTab('notes')}
+            className={`flex-1 px-6 py-3 font-medium border-b-2 transition ${
+              activeTab === 'notes'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Internal Notes
+          </button>
+          <button
+            onClick={() => setActiveTab('assign')}
+            className={`flex-1 px-6 py-3 font-medium border-b-2 transition ${
+              activeTab === 'assign'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            Assign Region
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="px-6 py-6">
+          {activeTab === 'details' && (
+            <div className="space-y-6">
+              {/* Status Section */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-600 font-medium">Current Status</p>
+                    <span className={`inline-block mt-2 px-4 py-2 rounded-full font-semibold text-sm ${getStatusColor(lead.status)}`}>
+                      {lead.status === 'pending-review' ? 'Pending Review' : lead.status.charAt(0).toUpperCase() + lead.status.slice(1)}
+                    </span>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm text-gray-600 font-medium">Quality Score</p>
+                    <p className="text-3xl font-bold text-blue-600 mt-1">{lead.qualityScore}%</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Lead Information Grid */}
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Contact Information */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Contact Information</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-600 font-medium">Phone</p>
+                      <p className="text-gray-900">{lead.phone}</p>
+                    </div>
+                    {lead.email && (
+                      <div>
+                        <p className="text-sm text-gray-600 font-medium">Email</p>
+                        <p className="text-gray-900">{lead.email}</p>
+                      </div>
+                    )}
+                    <div>
+                      <p className="text-sm text-gray-600 font-medium">Received Date</p>
+                      <p className="text-gray-900">
+                        {new Date(lead.createdAt).toLocaleDateString('en-US', {
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Property Preferences */}
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Property Preferences</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-600 font-medium">Location</p>
+                      <p className="text-gray-900">{lead.location}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 font-medium">Budget</p>
+                      <p className="text-gray-900">{lead.budget}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 font-medium">Property Type</p>
+                      <p className="text-gray-900">{lead.propertyType}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-600 font-medium">Buying Intent</p>
+                      <p className="text-gray-900 capitalize">{lead.buyerIntent}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Lead Source and Classification */}
+              <div className="grid md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 mb-4">Lead Source & Classification</h3>
+                  <div className="space-y-3">
+                    <div>
+                      <p className="text-sm text-gray-600 font-medium">Source</p>
+                      <p className="text-gray-900">{lead.source}</p>
+                    </div>
+                    {lead.city && (
+                      <div>
+                        <p className="text-sm text-gray-600 font-medium">City</p>
+                        <p className="text-gray-900">{lead.city}</p>
+                      </div>
+                    )}
+                    {lead.region && (
+                      <div>
+                        <p className="text-sm text-gray-600 font-medium">Assigned Region</p>
+                        <p className="text-gray-900">{lead.region}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Tags */}
+                {lead.tags && lead.tags.length > 0 && (
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">Tags</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {lead.tags.map((tag, idx) => (
+                        <span
+                          key={idx}
+                          className="px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm font-medium"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="bg-blue-50 rounded-lg p-4 flex gap-3">
+                <button
+                  onClick={handleQualify}
+                  disabled={lead.status === 'qualified'}
+                  className="flex-1 px-4 py-2 bg-green-600 text-white rounded font-medium hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+                >
+                  ✓ Qualify Lead
+                </button>
+                <button
+                  onClick={handleRejectAsSpam}
+                  className="flex-1 px-4 py-2 bg-red-600 text-white rounded font-medium hover:bg-red-700 transition"
+                >
+                  🚫 Mark as Spam
+                </button>
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'notes' && (
+            <div className="space-y-6">
+              {/* Add Note Form */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Add Internal Note</h3>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={newNote}
+                    onChange={(e) => setNewNote(e.target.value)}
+                    placeholder="Add a note about this lead..."
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                  <button
+                    onClick={handleAddNote}
+                    className="px-6 py-2 bg-blue-600 text-white rounded font-medium hover:bg-blue-700 transition"
+                  >
+                    Add
+                  </button>
+                </div>
+              </div>
+
+              {/* Notes List */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Notes History</h3>
+                {lead.notes ? (
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-gray-700">{lead.notes}</p>
+                  </div>
+                ) : (
+                  <p className="text-gray-600 text-center py-8">No notes added yet</p>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'assign' && (
+            <div className="space-y-6">
+              {lead.assignedTo ? (
+                <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+                  <p className="text-sm text-green-700 font-medium">This lead is already assigned</p>
+                  <p className="text-gray-900 mt-2">
+                    <strong>Region:</strong> {lead.assignedTo.region}
+                  </p>
+                  <p className="text-gray-600 text-sm mt-1">
+                    Assigned on: {new Date(lead.assignedTo.assignedAt).toLocaleDateString()}
+                  </p>
+                  <p className="text-xs text-gray-600 mt-3">
+                    Note: Regional assignments cannot be modified once set.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-900 mb-4">
+                      Select Region for Assignment
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {REGIONS.map((region) => (
+                        <button
+                          key={region}
+                          onClick={() => setSelectedRegion(region)}
+                          className={`p-4 rounded-lg border-2 font-medium transition text-center ${
+                            selectedRegion === region
+                              ? 'border-blue-600 bg-blue-50 text-blue-700'
+                              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                          }`}
+                        >
+                          {region}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {selectedRegion && (
+                    <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                      <p className="text-sm text-blue-700">
+                        Lead will be assigned to <strong>{selectedRegion} Region</strong>
+                      </p>
+                      <p className="text-xs text-blue-600 mt-2">
+                        Once assigned, this lead cannot be moved to another region.
+                      </p>
+                    </div>
+                  )}
+
+                  <button
+                    onClick={handleAssignRegion}
+                    disabled={!selectedRegion}
+                    className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
+                  >
+                    Confirm Assignment
+                  </button>
+
+                  <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
+                    <p className="text-sm text-yellow-800 font-medium">⚠️ Important Restriction</p>
+                    <p className="text-xs text-yellow-700 mt-2">
+                      Once a lead is assigned to a region, the assignment cannot be modified. Ensure the lead is properly qualified before assigning.
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
