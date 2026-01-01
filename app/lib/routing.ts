@@ -51,6 +51,9 @@ export function getRoleFromPath(pathname: string): UserRole | null {
   if (pathname.startsWith('/loan-adviser/dashboard')) {
     return 'loan-adviser';
   }
+  if (pathname.startsWith('/leads-manager/dashboard')) {
+    return 'leads-manager';
+  }
   return null;
 }
 
