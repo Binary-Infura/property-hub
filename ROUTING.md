@@ -64,6 +64,7 @@ When authentication is implemented, if a user accesses a dashboard route that do
 - **Builder** → `/admin/dashboard` → redirect to `/builder/dashboard`
 - **Buyer** → `/consultant/dashboard` → redirect to `/dashboard`
 - **Loan Adviser** → `/dashboard` → redirect to `/loan-adviser/dashboard`
+- **Channel Partner** → `/admin/dashboard` → redirect to `/channel-partner/dashboard`
 
 ## Implementation
 
