@@ -16,6 +16,7 @@ PropertyHub uses a **buyer-first, role-based routing architecture** where:
 | Builder / Developer | `/builder/dashboard` | Builder-only route |
 | Admin | `/admin/dashboard` | Admin-only route |
 | Loan Adviser | `/loan-adviser/dashboard` | Loan Adviser-only route |
+| Channel Partner | `/channel-partner/dashboard` | Channel Partner-only route |
 
 ## Routing Rules
 
@@ -40,6 +41,10 @@ PropertyHub uses a **buyer-first, role-based routing architecture** where:
 - **Loan Adviser-only route**
 - Loan Advisers manage loan applications, guide users through loan journey, validate documents, and coordinate with banks
 
+### 6. `/channel-partner/dashboard`
+- **Channel Partner-only route**
+- Channel Partners submit leads, promote properties, track commissions, and manage their performance metrics
+
 ## Forbidden Routes
 
 The following route patterns are **NOT allowed**:
@@ -59,6 +64,7 @@ When authentication is implemented, if a user accesses a dashboard route that do
 - **Builder** → `/admin/dashboard` → redirect to `/builder/dashboard`
 - **Buyer** → `/consultant/dashboard` → redirect to `/dashboard`
 - **Loan Adviser** → `/dashboard` → redirect to `/loan-adviser/dashboard`
+- **Channel Partner** → `/admin/dashboard` → redirect to `/channel-partner/dashboard`
 
 ## Implementation
 
@@ -73,12 +79,13 @@ import { getDashboardRoute, getRoleFromPath, getRedirectTarget } from '@/app/lib
 const buyerRoute = getDashboardRoute('buyer'); // '/dashboard'
 const consultantRoute = getDashboardRoute('consultant'); // '/consultant/dashboard'
 const loanAdviserRoute = getDashboardRoute('loan-adviser'); // '/loan-adviser/dashboard'
+const channelPartnerRoute = getDashboardRoute('channel-partner'); // '/channel-partner/dashboard'
 
 // Get role from a path
 const role = getRoleFromPath('/dashboard'); // 'buyer'
 
 // Get redirect target if needed
-const redirect = getRedirectTarget('/dashboard', 'consultant'); // '/consultant/dashboard'
+const redirect = getRedirectTarget('/dashboard', 'channel-partner'); // '/channel-partner/dashboard'
 ```
 
 ### Folder Structure
@@ -101,7 +108,11 @@ const redirect = getRedirectTarget('/dashboard', 'consultant'); // '/consultant/
       /layout.tsx
       /page.tsx
   /loan-adviser
-    /dashboard                 (loan adviser dashboard)
+    /dashboard               (loan adviser dashboard)
+      /layout.tsx
+      /page.tsx
+  /channel-partner
+    /dashboard               (channel partner dashboard)
       /layout.tsx
       /page.tsx
   /lib
