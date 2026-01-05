@@ -106,7 +106,11 @@ const redirect = getRedirectTarget('/dashboard', 'consultant'); // '/consultant/
       /layout.tsx
       /page.tsx
   /loan-adviser
-    /dashboard                 (loan adviser dashboard)
+    /dashboard               (loan adviser dashboard)
+      /layout.tsx
+      /page.tsx
+  /channel-partner
+    /dashboard               (channel partner dashboard)
       /layout.tsx
       /page.tsx
   /lib
