@@ -16,6 +16,7 @@ PropertyHub uses a **buyer-first, role-based routing architecture** where:
 | Builder / Developer | `/builder/dashboard` | Builder-only route |
 | Admin | `/admin/dashboard` | Admin-only route |
 | Loan Adviser | `/loan-adviser/dashboard` | Loan Adviser-only route |
+| Channel Partner | `/channel-partner/dashboard` | Channel Partner-only route |
 
 ## Routing Rules
 
