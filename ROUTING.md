@@ -41,6 +41,10 @@ PropertyHub uses a **buyer-first, role-based routing architecture** where:
 - **Loan Adviser-only route**
 - Loan Advisers manage loan applications, guide users through loan journey, validate documents, and coordinate with banks
 
+### 6. `/channel-partner/dashboard`
+- **Channel Partner-only route**
+- Channel Partners submit leads, promote properties, track commissions, and manage their performance metrics
+
 ## Forbidden Routes
 
 The following route patterns are **NOT allowed**:
