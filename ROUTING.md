@@ -78,12 +78,13 @@ import { getDashboardRoute, getRoleFromPath, getRedirectTarget } from '@/app/lib
 const buyerRoute = getDashboardRoute('buyer'); // '/dashboard'
 const consultantRoute = getDashboardRoute('consultant'); // '/consultant/dashboard'
 const loanAdviserRoute = getDashboardRoute('loan-adviser'); // '/loan-adviser/dashboard'
+const channelPartnerRoute = getDashboardRoute('channel-partner'); // '/channel-partner/dashboard'
 
 // Get role from a path
 const role = getRoleFromPath('/dashboard'); // 'buyer'
 
 // Get redirect target if needed
-const redirect = getRedirectTarget('/dashboard', 'consultant'); // '/consultant/dashboard'
+const redirect = getRedirectTarget('/dashboard', 'channel-partner'); // '/channel-partner/dashboard'
 ```
 
 ### Folder Structure
