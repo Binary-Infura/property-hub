@@ -1,5 +1,3 @@
-'use client';
-
 import BuilderSidebar from '@/app/components/builder/BuilderSidebar';
 import BuilderTopNav from '@/app/components/builder/BuilderTopNav';
 
