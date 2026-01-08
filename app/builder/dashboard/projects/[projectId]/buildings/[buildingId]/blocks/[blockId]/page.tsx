@@ -42,14 +42,15 @@ const MOCK_BLOCK: Block = {
 };
 
 interface BlockDetailPageProps {
-  params: {
+  params: Promise<{
     projectId: string;
     buildingId: string;
     blockId: string;
-  };
+  }>;
 }
 
-export default function BlockDetailPage({ params }: BlockDetailPageProps) {
+export default function BlockDetailPage({ params: paramsPromise }: BlockDetailPageProps) {
+  const params = use(paramsPromise);
   const [activeTab, setActiveTab] = useState('overview');
   const [block] = useState<Block>(MOCK_BLOCK);
 
