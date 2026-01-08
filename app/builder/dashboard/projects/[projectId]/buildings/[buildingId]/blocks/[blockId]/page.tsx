@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { use, useState } from 'react';
 import { Block } from '@/app/types/block';
 import TabNavigation from '@/app/components/blocks/TabNavigation';
 import { STATUS_CONFIG, DEMAND_LEVEL_CONFIG } from '@/app/constants/block';
