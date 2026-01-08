@@ -237,7 +237,7 @@ export default function PropertyDetailPage() {
               ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {blocks.map(block => {
-                    const blockStatusConfig = BLOCK_STATUS_CONFIG[block.status];
+                    const blockStatusConfig = STATUS_CONFIG[block.status];
                     const totalUnits = block.floorDetails?.reduce((sum, floor) => sum + floor.totalUnits, 0) || 0;
                     const bookedUnits = block.floorDetails?.reduce((sum, floor) => sum + floor.bookedUnits, 0) || 0;
 
@@ -249,7 +249,7 @@ export default function PropertyDetailPage() {
                       >
                         <div className="flex justify-between items-start mb-3">
                           <h4 className="font-bold text-gray-900">{block.name}</h4>
-                          <span className={`px-2 py-1 rounded text-xs font-semibold ${blockStatusConfig.bgColor} ${blockStatusConfig.color}`}>
+                          <span className={`px-2 py-1 rounded text-xs font-semibold ${blockStatusConfig.color}`}>
                             {blockStatusConfig.label}
                           </span>
                         </div>
