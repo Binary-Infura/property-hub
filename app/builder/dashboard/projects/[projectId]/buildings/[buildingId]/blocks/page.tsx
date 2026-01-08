@@ -113,13 +113,14 @@ const MOCK_BLOCKS: Block[] = [
 ];
 
 interface BlocksPageProps {
-  params: {
+  params: Promise<{
     projectId: string;
     buildingId: string;
-  };
+  }>;
 }
 
-export default function BlocksPage({ params }: BlocksPageProps) {
+export default function BlocksPage({ params: paramsPromise }: BlocksPageProps) {
+  const params = use(paramsPromise);
   const [blocks, setBlocks] = useState<Block[]>(MOCK_BLOCKS);
   const [viewMode, setViewMode] = useState<'table' | 'cards'>('table');
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
