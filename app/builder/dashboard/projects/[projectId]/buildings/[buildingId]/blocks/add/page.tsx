@@ -1,34 +1,36 @@
 'use client';
 
+import { use } from 'react';
 import { useRouter } from 'next/navigation';
 import AddBlockForm from '@/app/components/blocks/AddBlockForm';
 import { BlockFormData } from '@/app/types/block';
 
 interface AddBlockPageProps {
-  params: {
+  params: Promise<{
     projectId: string;
     buildingId: string;
-  };
+  }>;
 }
 
 // Mock data - replace with actual API calls
 const MOCK_PROJECT_NAME = 'Sunset Towers';
 const MOCK_BUILDING_NAME = 'North Wing';
 
-export default function AddBlockPage({ params }: AddBlockPageProps) {
+export default function AddBlockPage({ params: paramsPromise }: AddBlockPageProps) {
+  const params = use(paramsPromise);
   const router = useRouter();
 
   const handleSave = async (formData: BlockFormData) => {
     try {
       // Call API to save block as draft
       console.log('Saving block as draft:', formData);
-      
+
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       // Show success message
       alert('Block saved as draft successfully!');
-      
+
       // Redirect back to blocks listing
       router.push(
         `/builder/dashboard/projects/${params.projectId}/buildings/${params.buildingId}/blocks`
