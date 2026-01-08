@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Property } from '@/app/types/property';
 import { Block } from '@/app/types/block';
 import { PROPERTY_STATUS_CONFIG } from '@/app/constants/property';
-import { BLOCK_STATUS_CONFIG } from '@/app/constants/block';
+import { STATUS_CONFIG } from '@/app/constants/block';
 
 interface TabType {
   id: 'overview' | 'buildings' | 'blocks' | 'settings';
