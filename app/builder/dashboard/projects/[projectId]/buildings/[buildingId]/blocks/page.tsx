@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { use, useState } from 'react';
 import { Block } from '@/app/types/block';
 import BlockTable from '@/app/components/blocks/BlockTable';
 import BlockCard from '@/app/components/blocks/BlockCard';
