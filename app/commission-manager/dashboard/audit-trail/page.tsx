@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 interface AuditEntry {
   id: string;
@@ -16,76 +16,82 @@ interface AuditEntry {
   status: string;
 }
 
+const createAuditLog = (): AuditEntry[] => [
+  {
+    id: '1',
+    timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
+    action: 'approved',
+    personName: 'John Smith',
+    personRole: 'Consultant',
+    commissionAmount: 100000,
+    performedBy: 'Admin User',
+    notes: 'Approved after verification',
+    status: 'completed',
+  },
+  {
+    id: '2',
+    timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
+    action: 'adjusted',
+    personName: 'Sarah Johnson',
+    personRole: 'Regional Manager',
+    commissionAmount: 240000,
+    previousAmount: 220000,
+    adjustmentReason: 'Bonus adjustment for regional performance',
+    performedBy: 'Commission Manager',
+    status: 'completed',
+  },
+  {
+    id: '3',
+    timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
+    action: 'calculated',
+    personName: 'BuildCorp Ltd',
+    personRole: 'Builder',
+    commissionAmount: 180000,
+    performedBy: 'System',
+    notes: 'Auto-calculated from sales data',
+    status: 'completed',
+  },
+  {
+    id: '4',
+    timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
+    action: 'paid',
+    personName: 'Michael Chen',
+    personRole: 'Consultant',
+    commissionAmount: 75000,
+    performedBy: 'Finance User',
+    notes: 'Transferred to bank account HDFC****7890',
+    status: 'completed',
+  },
+  {
+    id: '5',
+    timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+    action: 'queried',
+    personName: 'Priya Patel',
+    personRole: 'Regional Manager',
+    commissionAmount: 150000,
+    performedBy: 'Priya Patel',
+    notes: 'Raised dispute - seems commission is lower than expected',
+    status: 'pending',
+  },
+  {
+    id: '6',
+    timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    action: 'rejected',
+    personName: 'Alex Kumar',
+    personRole: 'Channel Partner',
+    commissionAmount: 45000,
+    performedBy: 'Commission Manager',
+    notes: 'Rejected due to invalid sales documentation',
+    status: 'completed',
+  },
+];
+
 export default function AuditTrailPage() {
-  const [auditLog] = useState<AuditEntry[]>([
-    {
-      id: '1',
-      timestamp: new Date(Date.now() - 1 * 60 * 60 * 1000),
-      action: 'approved',
-      personName: 'John Smith',
-      personRole: 'Consultant',
-      commissionAmount: 100000,
-      performedBy: 'Admin User',
-      notes: 'Approved after verification',
-      status: 'completed',
-    },
-    {
-      id: '2',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      action: 'adjusted',
-      personName: 'Sarah Johnson',
-      personRole: 'Regional Manager',
-      commissionAmount: 240000,
-      previousAmount: 220000,
-      adjustmentReason: 'Bonus adjustment for regional performance',
-      performedBy: 'Commission Manager',
-      status: 'completed',
-    },
-    {
-      id: '3',
-      timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
-      action: 'calculated',
-      personName: 'BuildCorp Ltd',
-      personRole: 'Builder',
-      commissionAmount: 180000,
-      performedBy: 'System',
-      notes: 'Auto-calculated from sales data',
-      status: 'completed',
-    },
-    {
-      id: '4',
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-      action: 'paid',
-      personName: 'Michael Chen',
-      personRole: 'Consultant',
-      commissionAmount: 75000,
-      performedBy: 'Finance User',
-      notes: 'Transferred to bank account HDFC****7890',
-      status: 'completed',
-    },
-    {
-      id: '5',
-      timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      action: 'queried',
-      personName: 'Priya Patel',
-      personRole: 'Regional Manager',
-      commissionAmount: 150000,
-      performedBy: 'Priya Patel',
-      notes: 'Raised dispute - seems commission is lower than expected',
-      status: 'pending',
-    },
-    {
-      id: '6',
-      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      action: 'rejected',
-      personName: 'Alex Kumar',
-      personRole: 'Channel Partner',
-      commissionAmount: 45000,
-      performedBy: 'Commission Manager',
-      notes: 'Rejected due to invalid sales documentation',
-      status: 'completed',
-    },
-  ]);
+  const [auditLog, setAuditLog] = useState<AuditEntry[]>([]);
+
+  useEffect(() => {
+    setAuditLog(createAuditLog());
+  }, []);
 
   const [filterAction, setFilterAction] = useState<string>('all');
   const [filterRole, setFilterRole] = useState<string>('all');
