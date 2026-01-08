@@ -87,7 +87,7 @@ export default function BuilderSidebar() {
     },
     {
       label: 'Blocks',
-      href: '/builder/dashboard/blocks',
+      href: '/builder/dashboard/properties',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m0 0l8 4m-8-4v10l8 4m0-10l8 4m-8-4v10M7 12l8 4m0 0l8-4" />
@@ -95,8 +95,8 @@ export default function BuilderSidebar() {
       ),
       submenu: [
         {
-          label: 'All Blocks',
-          href: '/builder/dashboard/projects/project-001/buildings/building-001/blocks',
+          label: 'View All Blocks',
+          href: '/builder/dashboard/properties',
           icon: (
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m0 0l8 4m-8-4v10l8 4m0-10l8 4m-8-4v10" />
@@ -104,8 +104,8 @@ export default function BuilderSidebar() {
           ),
         },
         {
-          label: 'Add Block',
-          href: '/builder/dashboard/projects/project-001/buildings/building-001/blocks/add',
+          label: 'Add New Block',
+          href: '/builder/dashboard/properties',
           icon: (
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -116,7 +116,7 @@ export default function BuilderSidebar() {
     },
     {
       label: 'Units',
-      href: '/builder/dashboard/units',
+      href: '/builder/dashboard/properties',
       icon: (
         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h4a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h4a2 2 0 012 2v4a2 2 0 01-2 2h-4a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h4a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h4a2 2 0 012 2v4a2 2 0 01-2 2h-4a2 2 0 01-2-2v-4z" />
