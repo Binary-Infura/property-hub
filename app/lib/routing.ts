@@ -10,7 +10,7 @@
  * - One role = one dashboard route (no shared dashboards)
  */
 
-export type UserRole = 'buyer' | 'consultant' | 'builder' | 'regional-manager' | 'loan-adviser' | 'leads-manager' | 'commission-manager' | 'channel-partner';
+export type UserRole = 'buyer' | 'consultant' | 'builder' | 'regional-manager' | 'loan-adviser' | 'leads-manager' | 'commission-manager' | 'channel-partner' | 'visit-executive';
 
 /**
  * Canonical dashboard routes for each role
@@ -24,6 +24,7 @@ export const DASHBOARD_ROUTES = {
   'leads-manager': '/leads-manager/dashboard',
   'commission-manager': '/commission-manager/dashboard',
   'channel-partner': '/channel-partner/dashboard',
+  'visit-executive': '/visit-executive/dashboard',
 } as const;
 
 /**
@@ -62,6 +63,9 @@ export function getRoleFromPath(pathname: string): UserRole | null {
   }
   if (pathname.startsWith('/channel-partner/dashboard')) {
     return 'channel-partner';
+  }
+  if (pathname.startsWith('/visit-executive/dashboard')) {
+    return 'visit-executive';
   }
   return null;
 }

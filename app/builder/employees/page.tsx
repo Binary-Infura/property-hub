@@ -11,7 +11,7 @@ import {
 } from '@/app/types/employee';
 
 // Mock data
-const MOCK_EMPLOYEES: Employee[] = [
+export const MOCK_EMPLOYEES: Employee[] = [
     {
         id: 'emp-001',
         fullName: 'Arjun Mehta',
@@ -262,9 +262,9 @@ export default function EmployeeListingPage() {
                                         <div className="flex justify-between items-start mb-4">
                                             <div className="flex items-center gap-3">
                                                 <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold text-white ${employee.department === 'engineering' ? 'bg-blue-500' :
-                                                        employee.department === 'sales' ? 'bg-green-500' :
-                                                            employee.department === 'crm' ? 'bg-purple-500' :
-                                                                'bg-gray-500'
+                                                    employee.department === 'sales' ? 'bg-green-500' :
+                                                        employee.department === 'crm' ? 'bg-purple-500' :
+                                                            'bg-gray-500'
                                                     }`}>
                                                     {employee.fullName.charAt(0)}
                                                 </div>

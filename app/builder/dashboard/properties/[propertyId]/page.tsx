@@ -122,11 +122,10 @@ export default function PropertyDetailPage() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-6 py-4 font-medium border-b-2 transition whitespace-nowrap ${
-                activeTab === tab.id
+              className={`flex items-center gap-2 px-6 py-4 font-medium border-b-2 transition whitespace-nowrap ${activeTab === tab.id
                   ? 'border-blue-600 text-blue-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               {tab.icon}
               {tab.label}
@@ -238,8 +237,8 @@ export default function PropertyDetailPage() {
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                   {blocks.map(block => {
                     const blockStatusConfig = STATUS_CONFIG[block.status];
-                    const totalUnits = block.floorDetails?.reduce((sum, floor) => sum + floor.totalUnits, 0) || 0;
-                    const bookedUnits = block.floorDetails?.reduce((sum, floor) => sum + floor.bookedUnits, 0) || 0;
+                    const totalUnits = block.floors?.reduce((sum, floor) => sum + floor.totalUnits, 0) || 0;
+                    const bookedUnits = block.floors?.reduce((sum, floor) => sum + floor.bookedUnits, 0) || 0;
 
                     return (
                       <Link

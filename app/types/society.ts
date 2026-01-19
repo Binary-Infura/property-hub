@@ -13,7 +13,7 @@ export type HandoverStatus = 'builder-managed' | 'transitioning' | 'fully-handed
 export type MemberType = 'owner' | 'tenant';
 
 // Role types in society
-export type SocietyRoleType = 'regional-manager' | 'manager' | 'supervisor' | 'member';
+export type SocietyRoleType = 'regional-manager' | 'manager' | 'supervisor' | 'member' | 'admin';
 
 /**
  * Tower/Wing structure within a society

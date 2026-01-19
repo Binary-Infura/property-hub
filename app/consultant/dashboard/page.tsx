@@ -56,6 +56,7 @@ interface SiteVisit {
   scheduledDate: Date;
   status: 'scheduled' | 'completed' | 'cancelled';
   feedback?: string;
+  visitExecutiveId?: string;
 }
 
 interface Deal {
@@ -290,61 +291,55 @@ export default function ConsultantDashboard() {
           <div className="flex border-b border-gray-200 overflow-x-auto">
             <button
               onClick={() => setActiveTab('clients')}
-              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${
-                activeTab === 'clients'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'clients'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
             >
               Assigned Clients
             </button>
             <button
               onClick={() => setActiveTab('status')}
-              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${
-                activeTab === 'status'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'status'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
             >
               Consultation Status
             </button>
             <button
               onClick={() => setActiveTab('notes')}
-              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${
-                activeTab === 'notes'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'notes'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
             >
               Notes
             </button>
             <button
               onClick={() => setActiveTab('properties')}
-              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${
-                activeTab === 'properties'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'properties'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
             >
               Properties
             </button>
             <button
               onClick={() => setActiveTab('visits')}
-              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${
-                activeTab === 'visits'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'visits'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
             >
               Site Visits
             </button>
             <button
               onClick={() => setActiveTab('deals')}
-              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${
-                activeTab === 'deals'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'deals'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
             >
               Deal Progress
             </button>
@@ -389,7 +384,7 @@ export default function ConsultantDashboard() {
                 siteVisits={siteVisits}
                 properties={properties}
                 clients={clients}
-                onScheduleVisit={(clientId, propertyId, date) => {
+                onScheduleVisit={(clientId, propertyId, date, visitExecutiveId) => {
                   setSiteVisits([
                     ...siteVisits,
                     {
@@ -398,6 +393,7 @@ export default function ConsultantDashboard() {
                       propertyId,
                       scheduledDate: date,
                       status: 'scheduled',
+                      visitExecutiveId,
                     },
                   ]);
                 }}

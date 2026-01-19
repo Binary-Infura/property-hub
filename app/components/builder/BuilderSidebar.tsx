@@ -240,7 +240,7 @@ export default function BuilderSidebar() {
               {/* Submenu */}
               {hasSubmenu && isExpanded && (
                 <div className="mt-1 ml-4 space-y-1 border-l border-gray-200">
-                  {item.submenu.map((subitem) => (
+                  {item.submenu?.map((subitem) => (
                     <Link
                       key={subitem.label}
                       href={subitem.href}

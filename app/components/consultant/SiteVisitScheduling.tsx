@@ -21,25 +21,44 @@ interface SiteVisit {
   scheduledDate: Date;
   status: 'scheduled' | 'completed' | 'cancelled';
   feedback?: string;
+  visitExecutiveId?: string;
+}
+
+interface VisitExecutive {
+  id: string;
+  name: string;
+  region: string;
 }
 
 interface SiteVisitSchedulingProps {
   siteVisits: SiteVisit[];
   properties: Property[];
   clients: Client[];
-  onScheduleVisit: (clientId: string, propertyId: string, date: Date) => void;
+  visitExecutives?: VisitExecutive[];
+  onScheduleVisit: (clientId: string, propertyId: string, date: Date, visitExecutiveId?: string) => void;
 }
 
-export default function SiteVisitScheduling({
-  siteVisits,
-  properties,
-  clients,
-  onScheduleVisit,
-}: SiteVisitSchedulingProps) {
+// Mock Visit Executives (fallback if not provided props)
+const MOCK_EXECUTIVES: VisitExecutive[] = [
+  { id: 've1', name: 'Suresh Raina', region: 'Mumbai South' },
+  { id: 've2', name: 'Rohit Sharma', region: 'Mumbai North' },
+  { id: 've3', name: 'Virat Kohli', region: 'Mumbai Central' },
+];
+
+export default function SiteVisitScheduling(props: SiteVisitSchedulingProps) {
+  const {
+    siteVisits,
+    properties,
+    clients,
+    onScheduleVisit,
+  } = props;
   const [selectedClient, setSelectedClient] = useState<string>('');
   const [selectedProperty, setSelectedProperty] = useState<string>('');
   const [visitDate, setVisitDate] = useState<string>('');
   const [visitTime, setVisitTime] = useState<string>('');
+  const [selectedVisitExecutive, setSelectedVisitExecutive] = useState<string>('');
+
+  const executives = props.visitExecutives || MOCK_EXECUTIVES;
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-IN', {
@@ -71,6 +90,11 @@ export default function SiteVisitScheduling({
     return properties.find(p => p.id === propertyId)?.location || '';
   };
 
+  const getExecutiveName = (id?: string) => {
+    if (!id) return 'Unassigned';
+    return executives.find(e => e.id === id)?.name || 'Unknown';
+  };
+
   const getStatusColor = (status: SiteVisit['status']) => {
     switch (status) {
       case 'scheduled':
@@ -86,13 +110,14 @@ export default function SiteVisitScheduling({
 
   const handleScheduleVisit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (selectedClient && selectedProperty && visitDate && visitTime) {
+    if (selectedClient && selectedProperty && visitDate && visitTime && selectedVisitExecutive) {
       const dateTime = new Date(`${visitDate}T${visitTime}`);
-      onScheduleVisit(selectedClient, selectedProperty, dateTime);
+      onScheduleVisit(selectedClient, selectedProperty, dateTime, selectedVisitExecutive);
       setSelectedClient('');
       setSelectedProperty('');
       setVisitDate('');
       setVisitTime('');
+      setSelectedVisitExecutive('');
     }
   };
 
@@ -149,6 +174,12 @@ export default function SiteVisitScheduling({
                 </svg>
                 <span className="text-sm text-gray-700">
                   <strong>Date & Time:</strong> {formatDate(visit.scheduledDate)}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🤵</span>
+                <span className="text-sm text-gray-700">
+                  <strong>Executive:</strong> {getExecutiveName(visit.visitExecutiveId)}
                 </span>
               </div>
             </div>
@@ -239,7 +270,6 @@ export default function SiteVisitScheduling({
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">Visit Time</label>
               <input
                 type="time"
                 value={visitTime}
@@ -248,11 +278,27 @@ export default function SiteVisitScheduling({
                 className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
               />
             </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">Assign Visit Executive <span className="text-red-500">*</span></label>
+              <select
+                value={selectedVisitExecutive}
+                onChange={(e) => setSelectedVisitExecutive(e.target.value)}
+                className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent"
+              >
+                <option value="">Select an executive...</option>
+                {executives.map(exec => (
+                  <option key={exec.id} value={exec.id}>
+                    {exec.name} - {exec.region}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
 
           <button
             type="submit"
-            disabled={!selectedClient || !selectedProperty || !visitDate || !visitTime}
+            disabled={!selectedClient || !selectedProperty || !visitDate || !visitTime || !selectedVisitExecutive}
             className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed font-semibold transition"
           >
             Schedule Visit

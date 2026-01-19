@@ -13,6 +13,8 @@ import {
     PRIORITY_CONFIG
 } from '@/app/types/employee';
 
+import { MOCK_EMPLOYEES } from '../page';
+
 // Mock data
 const MOCK_EMPLOYEE: Employee = {
     id: 'emp-001',
@@ -154,8 +156,8 @@ export default function EmployeeProfile({ params: paramsPromise }: EmployeeProfi
                                 key={tab}
                                 onClick={() => setActiveTab(tab)}
                                 className={`py-4 px-1 border-b-2 font-medium text-sm transition capitalize ${activeTab === tab
-                                        ? 'border-blue-600 text-blue-600'
-                                        : 'border-transparent text-gray-500 hover:text-gray-700'
+                                    ? 'border-blue-600 text-blue-600'
+                                    : 'border-transparent text-gray-500 hover:text-gray-700'
                                     }`}
                             >
                                 {tab}
@@ -316,9 +318,9 @@ export default function EmployeeProfile({ params: paramsPromise }: EmployeeProfi
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`px-2 py-1 rounded text-xs font-medium ${record.status === 'present' ? 'bg-green-100 text-green-700' :
-                                                        record.status === 'absent' ? 'bg-red-100 text-red-700' :
-                                                            record.status === 'half-day' ? 'bg-orange-100 text-orange-700' :
-                                                                'bg-blue-100 text-blue-700'
+                                                    record.status === 'absent' ? 'bg-red-100 text-red-700' :
+                                                        record.status === 'half-day' ? 'bg-orange-100 text-orange-700' :
+                                                            'bg-blue-100 text-blue-700'
                                                     }`}>
                                                     {record.status === 'half-day' ? 'Half Day' :
                                                         record.status.charAt(0).toUpperCase() + record.status.slice(1)}

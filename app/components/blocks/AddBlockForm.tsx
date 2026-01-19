@@ -58,7 +58,7 @@ export default function AddBlockForm({
   onCancel,
 }: AddBlockFormProps) {
   const [currentStep, setCurrentStep] = useState(1);
-  const [formData, setFormData] = useState<BlockFormData>(initialData || INITIAL_FORM_STATE);
+  const [formData, setFormData] = useState<BlockFormData>({ ...INITIAL_FORM_STATE, ...initialData });
   const [errors, setErrors] = useState<BlockFormErrors>({});
   const [completedSteps, setCompletedSteps] = useState<number[]>([]);
   const [isSaving, setIsSaving] = useState(false);
@@ -241,11 +241,10 @@ export default function AddBlockForm({
                 value={formData.name}
                 onChange={handleInputChange}
                 placeholder="e.g., Block A, North Tower"
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${
-                  errors.name
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${errors.name
                     ? 'border-red-300 focus:ring-red-500'
                     : 'border-gray-300 focus:ring-blue-500'
-                }`}
+                  }`}
               />
               {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
             </div>
@@ -262,11 +261,10 @@ export default function AddBlockForm({
                   onChange={handleInputChange}
                   maxLength={10}
                   placeholder="e.g., A, BLK-A"
-                  className={`flex-1 px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 font-mono transition ${
-                    errors.code
+                  className={`flex-1 px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 font-mono transition ${errors.code
                       ? 'border-red-300 focus:ring-red-500'
                       : 'border-gray-300 focus:ring-blue-500'
-                  }`}
+                    }`}
                 />
                 <button
                   type="button"
@@ -294,11 +292,10 @@ export default function AddBlockForm({
                   name="type"
                   value={formData.type}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 bg-white transition ${
-                    errors.type
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 bg-white transition ${errors.type
                       ? 'border-red-300 focus:ring-red-500'
                       : 'border-gray-300 focus:ring-blue-500'
-                  }`}
+                    }`}
                 >
                   <option value="residential">Residential</option>
                   <option value="commercial">Commercial</option>
@@ -314,11 +311,10 @@ export default function AddBlockForm({
                   name="status"
                   value={formData.status}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 bg-white transition ${
-                    errors.status
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 bg-white transition ${errors.status
                       ? 'border-red-300 focus:ring-red-500'
                       : 'border-gray-300 focus:ring-blue-500'
-                  }`}
+                    }`}
                 >
                   <option value="pre-launch">Pre-Launch</option>
                   <option value="active">Active</option>
@@ -338,11 +334,10 @@ export default function AddBlockForm({
                 name="possessionDate"
                 value={formData.possessionDate}
                 onChange={handleInputChange}
-                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${
-                  errors.possessionDate
+                className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${errors.possessionDate
                     ? 'border-red-300 focus:ring-red-500'
                     : 'border-gray-300 focus:ring-blue-500'
-                }`}
+                  }`}
               />
               {errors.possessionDate && (
                 <p className="text-red-500 text-sm mt-1">{errors.possessionDate}</p>
@@ -367,11 +362,10 @@ export default function AddBlockForm({
                   placeholder="e.g., 20"
                   min="1"
                   max="100"
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${
-                    errors.totalFloors
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${errors.totalFloors
                       ? 'border-red-300 focus:ring-red-500'
                       : 'border-gray-300 focus:ring-blue-500'
-                  }`}
+                    }`}
                 />
                 {errors.totalFloors && (
                   <p className="text-red-500 text-sm mt-1">{errors.totalFloors}</p>
@@ -390,11 +384,10 @@ export default function AddBlockForm({
                   placeholder="e.g., 4"
                   min="1"
                   max="50"
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${
-                    errors.unitsPerFloor
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${errors.unitsPerFloor
                       ? 'border-red-300 focus:ring-red-500'
                       : 'border-gray-300 focus:ring-blue-500'
-                  }`}
+                    }`}
                 />
                 {errors.unitsPerFloor && (
                   <p className="text-red-500 text-sm mt-1">{errors.unitsPerFloor}</p>
@@ -421,11 +414,10 @@ export default function AddBlockForm({
                   placeholder="e.g., 2"
                   min="0"
                   max="20"
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${
-                    errors.liftCount
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${errors.liftCount
                       ? 'border-red-300 focus:ring-red-500'
                       : 'border-gray-300 focus:ring-blue-500'
-                  }`}
+                    }`}
                 />
                 {errors.liftCount && (
                   <p className="text-red-500 text-sm mt-1">{errors.liftCount}</p>
@@ -444,11 +436,10 @@ export default function AddBlockForm({
                   placeholder="e.g., 2"
                   min="0"
                   max="10"
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${
-                    errors.fireExitCount
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${errors.fireExitCount
                       ? 'border-red-300 focus:ring-red-500'
                       : 'border-gray-300 focus:ring-blue-500'
-                  }`}
+                    }`}
                 />
                 {errors.fireExitCount && (
                   <p className="text-red-500 text-sm mt-1">{errors.fireExitCount}</p>
@@ -474,11 +465,10 @@ export default function AddBlockForm({
                   placeholder="e.g., 5000"
                   min="0"
                   step="100"
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${
-                    errors.basePricePerSqft
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${errors.basePricePerSqft
                       ? 'border-red-300 focus:ring-red-500'
                       : 'border-gray-300 focus:ring-blue-500'
-                  }`}
+                    }`}
                 />
                 {errors.basePricePerSqft && (
                   <p className="text-red-500 text-sm mt-1">{errors.basePricePerSqft}</p>
@@ -497,11 +487,10 @@ export default function AddBlockForm({
                   placeholder="e.g., 50000"
                   min="0"
                   step="1000"
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${
-                    errors.floorRisePricePerFloor
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${errors.floorRisePricePerFloor
                       ? 'border-red-300 focus:ring-red-500'
                       : 'border-gray-300 focus:ring-blue-500'
-                  }`}
+                    }`}
                 />
                 {errors.floorRisePricePerFloor && (
                   <p className="text-red-500 text-sm mt-1">{errors.floorRisePricePerFloor}</p>
@@ -620,11 +609,10 @@ export default function AddBlockForm({
                     onChange={handleInputChange}
                     placeholder="e.g., 10% early bird discount for bookings in Q1 2024"
                     rows={3}
-                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${
-                      errors.offerDescription
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 transition ${errors.offerDescription
                         ? 'border-red-300 focus:ring-red-500'
                         : 'border-gray-300 focus:ring-blue-500'
-                    }`}
+                      }`}
                   />
                   {errors.offerDescription && (
                     <p className="text-red-500 text-sm mt-1">{errors.offerDescription}</p>
@@ -762,11 +750,10 @@ export default function AddBlockForm({
           <button
             onClick={handlePreviousStep}
             disabled={currentStep === 1}
-            className={`px-6 py-3 rounded-lg font-semibold transition ${
-              currentStep === 1
+            className={`px-6 py-3 rounded-lg font-semibold transition ${currentStep === 1
                 ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
                 : 'bg-white text-gray-900 border border-gray-300 hover:bg-gray-50'
-            }`}
+              }`}
           >
             Previous
           </button>
