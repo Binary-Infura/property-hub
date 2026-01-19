@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
-export default function AdminDashboardLayout({
+export default function RegionalManagerDashboardLayout({
   children,
 }: {
   children: React.ReactNode;
@@ -11,13 +11,17 @@ export default function AdminDashboardLayout({
   const pathname = usePathname();
 
   const navigation = [
-    { name: 'Dashboard', href: '/admin/dashboard', icon: '📊' },
-    { name: 'Builders', href: '/admin/dashboard/builders', icon: '🏗️' },
-    { name: 'Consultants', href: '/admin/dashboard/consultants', icon: '👤' },
+    { name: 'Dashboard', href: '/regional-manager/dashboard', icon: '📊' },
+    { name: 'Builders', href: '/regional-manager/dashboard/builders', icon: '🏗️' },
+    { name: 'Consultants', href: '/regional-manager/dashboard/consultants', icon: '👤' },
+    { name: 'Loan Advisers', href: '/regional-manager/dashboard/loan-advisers', icon: '🏦' },
+    { name: 'Leads Managers', href: '/regional-manager/dashboard/leads-managers', icon: '👥' },
+    { name: 'Commission Managers', href: '/regional-manager/dashboard/commission-managers', icon: '💰' },
+    { name: 'Channel Partners', href: '/regional-manager/dashboard/channel-partners', icon: '🤝' },
   ];
 
   const isActive = (href: string) => {
-    if (href === '/admin/dashboard') {
+    if (href === '/regional-manager/dashboard') {
       return pathname === href;
     }
     return pathname?.startsWith(href);
@@ -31,7 +35,7 @@ export default function AdminDashboardLayout({
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-900 hover:text-blue-600">
               <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
-              PropertyHub Admin
+              PropertyHub Regional Manager
             </Link>
             <div className="flex items-center gap-6">
               <Link href="/" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
@@ -52,11 +56,10 @@ export default function AdminDashboardLayout({
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${
-                    active
-                      ? 'bg-blue-50 text-blue-700 font-semibold border-l-4 border-blue-600'
-                      : 'text-gray-700 hover:bg-gray-50'
-                  }`}
+                  className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${active
+                    ? 'bg-blue-50 text-blue-700 font-semibold border-l-4 border-blue-600'
+                    : 'text-gray-700 hover:bg-gray-50'
+                    }`}
                 >
                   <span className="text-xl">{item.icon}</span>
                   <span>{item.name}</span>

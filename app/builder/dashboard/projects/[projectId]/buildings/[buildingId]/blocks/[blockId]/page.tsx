@@ -4,7 +4,8 @@ import { use, useState } from 'react';
 import { Block } from '@/app/types/block';
 import TabNavigation from '@/app/components/blocks/TabNavigation';
 import { STATUS_CONFIG, DEMAND_LEVEL_CONFIG } from '@/app/constants/block';
-import { calculateBookingPercentage, calculateDemandLevel, formatPriceWithCommas } from '@/app/utils/blockPricing';
+import { calculateBookingPercentage, calculateDemandLevel } from '@/app/utils/blockPricing';
+import { formatPriceWithCommas } from '@/app/utils/blockValidation';
 
 // Mock data - replace with actual API call based on blockId
 const MOCK_BLOCK: Block = {
@@ -346,11 +347,10 @@ export default function BlockDetailPage({ params: paramsPromise }: BlockDetailPa
                     {Array.from({ length: block.unitsPerFloor }).map((_, unit) => (
                       <div
                         key={unit}
-                        className={`p-3 rounded text-center text-sm font-medium transition ${
-                          Math.random() > 0.6
+                        className={`p-3 rounded text-center text-sm font-medium transition ${Math.random() > 0.6
                             ? 'bg-orange-100 text-orange-800 border border-orange-300'
                             : 'bg-green-100 text-green-800 border border-green-300'
-                        }`}
+                          }`}
                       >
                         {floor * block.unitsPerFloor + unit + 1}
                       </div>
@@ -458,13 +458,12 @@ export default function BlockDetailPage({ params: paramsPromise }: BlockDetailPa
                         <td className="px-4 py-3 text-gray-600">{lead.date}</td>
                         <td className="px-4 py-3">
                           <span
-                            className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${
-                              lead.status === 'Booked'
+                            className={`inline-block px-3 py-1 rounded-full text-xs font-semibold ${lead.status === 'Booked'
                                 ? 'bg-green-100 text-green-800'
                                 : lead.status === 'Negotiating'
                                   ? 'bg-amber-100 text-amber-800'
                                   : 'bg-blue-100 text-blue-800'
-                            }`}
+                              }`}
                           >
                             {lead.status}
                           </span>
@@ -490,14 +489,12 @@ export default function BlockDetailPage({ params: paramsPromise }: BlockDetailPa
                     <p className="text-sm text-gray-600 mt-1">Make this block visible to buyers</p>
                   </div>
                   <div
-                    className={`w-12 h-6 rounded-full transition ${
-                      block.showOnPortal ? 'bg-green-500' : 'bg-gray-300'
-                    }`}
+                    className={`w-12 h-6 rounded-full transition ${block.showOnPortal ? 'bg-green-500' : 'bg-gray-300'
+                      }`}
                   >
                     <div
-                      className={`w-5 h-5 bg-white rounded-full shadow-sm transition absolute top-1 ${
-                        block.showOnPortal ? 'right-1' : 'left-1'
-                      }`}
+                      className={`w-5 h-5 bg-white rounded-full shadow-sm transition absolute top-1 ${block.showOnPortal ? 'right-1' : 'left-1'
+                        }`}
                     />
                   </div>
                 </div>
@@ -508,14 +505,12 @@ export default function BlockDetailPage({ params: paramsPromise }: BlockDetailPa
                     <p className="text-sm text-gray-600 mt-1">Enable sales through channel partners</p>
                   </div>
                   <div
-                    className={`w-12 h-6 rounded-full transition ${
-                      block.allowChannelPartners ? 'bg-green-500' : 'bg-gray-300'
-                    }`}
+                    className={`w-12 h-6 rounded-full transition ${block.allowChannelPartners ? 'bg-green-500' : 'bg-gray-300'
+                      }`}
                   >
                     <div
-                      className={`w-5 h-5 bg-white rounded-full shadow-sm transition absolute top-1 ${
-                        block.allowChannelPartners ? 'right-1' : 'left-1'
-                      }`}
+                      className={`w-5 h-5 bg-white rounded-full shadow-sm transition absolute top-1 ${block.allowChannelPartners ? 'right-1' : 'left-1'
+                        }`}
                     />
                   </div>
                 </div>
@@ -526,14 +521,12 @@ export default function BlockDetailPage({ params: paramsPromise }: BlockDetailPa
                     <p className="text-sm text-gray-600 mt-1">Allow consultants to recommend this block</p>
                   </div>
                   <div
-                    className={`w-12 h-6 rounded-full transition ${
-                      block.allowConsultants ? 'bg-green-500' : 'bg-gray-300'
-                    }`}
+                    className={`w-12 h-6 rounded-full transition ${block.allowConsultants ? 'bg-green-500' : 'bg-gray-300'
+                      }`}
                   >
                     <div
-                      className={`w-5 h-5 bg-white rounded-full shadow-sm transition absolute top-1 ${
-                        block.allowConsultants ? 'right-1' : 'left-1'
-                      }`}
+                      className={`w-5 h-5 bg-white rounded-full shadow-sm transition absolute top-1 ${block.allowConsultants ? 'right-1' : 'left-1'
+                        }`}
                     />
                   </div>
                 </div>
@@ -544,14 +537,12 @@ export default function BlockDetailPage({ params: paramsPromise }: BlockDetailPa
                     <p className="text-sm text-gray-600 mt-1">Allow paid promotional campaigns</p>
                   </div>
                   <div
-                    className={`w-12 h-6 rounded-full transition ${
-                      block.eligibleForBoostCampaigns ? 'bg-green-500' : 'bg-gray-300'
-                    }`}
+                    className={`w-12 h-6 rounded-full transition ${block.eligibleForBoostCampaigns ? 'bg-green-500' : 'bg-gray-300'
+                      }`}
                   >
                     <div
-                      className={`w-5 h-5 bg-white rounded-full shadow-sm transition absolute top-1 ${
-                        block.eligibleForBoostCampaigns ? 'right-1' : 'left-1'
-                      }`}
+                      className={`w-5 h-5 bg-white rounded-full shadow-sm transition absolute top-1 ${block.eligibleForBoostCampaigns ? 'right-1' : 'left-1'
+                        }`}
                     />
                   </div>
                 </div>

@@ -1,4 +1,4 @@
-import BuilderLayoutWrapper from '@/app/components/builder/BuilderLayoutWrapper';
+
 
 export const metadata = {
   title: 'Builder Dashboard - PropertyHub',
@@ -26,5 +26,5 @@ export default function BuilderDashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <BuilderLayoutWrapper>{children}</BuilderLayoutWrapper>;
+  return <>{children}</>;
 }

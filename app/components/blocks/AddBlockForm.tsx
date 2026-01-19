@@ -8,6 +8,7 @@ import {
   validateStep,
   suggestBlockCode,
   formatIndianPrice,
+  formatPriceWithCommas,
 } from '@/app/utils/blockValidation';
 import { calculateTotalUnits } from '@/app/utils/blockPricing';
 

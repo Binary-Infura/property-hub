@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { Block } from '@/app/types/block';
 import { STATUS_CONFIG, ACTION_TOOLTIPS } from '@/app/constants/block';
-import { calculateBookingPercentage, formatPriceWithCommas } from '@/app/utils/blockPricing';
+import { calculateBookingPercentage } from '@/app/utils/blockPricing';
+import { formatPriceWithCommas } from '@/app/utils/blockValidation';
 
 interface BlockTableProps {
   blocks: Block[];
@@ -84,9 +85,8 @@ export default function BlockTable({
                 key={block.id}
                 onMouseEnter={() => setHoveredRowId(block.id)}
                 onMouseLeave={() => setHoveredRowId(null)}
-                className={`border-b border-gray-200 transition-colors ${
-                  isHovered ? 'bg-blue-50' : 'hover:bg-gray-50'
-                }`}
+                className={`border-b border-gray-200 transition-colors ${isHovered ? 'bg-blue-50' : 'hover:bg-gray-50'
+                  }`}
               >
                 {/* Block Name */}
                 <td className="px-6 py-4">
@@ -123,13 +123,12 @@ export default function BlockTable({
                     </div>
                     <div className="w-16 h-2 bg-gray-200 rounded-full overflow-hidden mx-auto">
                       <div
-                        className={`h-full transition-all ${
-                          bookingPercentage >= 80
+                        className={`h-full transition-all ${bookingPercentage >= 80
                             ? 'bg-red-500'
                             : bookingPercentage >= 50
                               ? 'bg-amber-500'
                               : 'bg-green-500'
-                        }`}
+                          }`}
                         style={{ width: `${bookingPercentage}%` }}
                       />
                     </div>
@@ -223,11 +222,10 @@ export default function BlockTable({
                     <button
                       onClick={() => onToggleVisibility(block.id, block.showOnPortal)}
                       title={ACTION_TOOLTIPS.visibility}
-                      className={`p-2 rounded-lg transition-colors ${
-                        block.showOnPortal
+                      className={`p-2 rounded-lg transition-colors ${block.showOnPortal
                           ? 'hover:bg-purple-100 text-purple-600'
                           : 'hover:bg-gray-200 text-gray-400'
-                      }`}
+                        }`}
                     >
                       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path

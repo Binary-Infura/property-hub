@@ -33,7 +33,7 @@ interface PropertySubmission {
   liveDate?: Date;
 }
 
-export default function AdminDashboard() {
+export default function RegionalManagerDashboard() {
   const [properties, setProperties] = useState<PropertySubmission[]>([
     {
       id: '1',
@@ -79,11 +79,11 @@ export default function AdminDashboard() {
     setProperties(properties.map(p =>
       p.id === id
         ? {
-            ...p,
-            status: goLive ? 'live' : 'approved',
-            approvalDate: new Date(),
-            liveDate: goLive ? new Date() : undefined,
-          }
+          ...p,
+          status: goLive ? 'live' : 'approved',
+          approvalDate: new Date(),
+          liveDate: goLive ? new Date() : undefined,
+        }
         : p
     ));
     setShowModal(false);
@@ -93,10 +93,10 @@ export default function AdminDashboard() {
     setProperties(properties.map(p =>
       p.id === id
         ? {
-            ...p,
-            status: 'rejected',
-            rejectionReason: reason,
-          }
+          ...p,
+          status: 'rejected',
+          rejectionReason: reason,
+        }
         : p
     ));
     setShowModal(false);
@@ -106,17 +106,17 @@ export default function AdminDashboard() {
     setProperties(properties.map(p =>
       p.id === id
         ? {
-            ...p,
-            internalNotes: [
-              ...p.internalNotes,
-              {
-                id: Date.now().toString(),
-                text: note,
-                author: 'Admin User',
-                timestamp: new Date(),
-              },
-            ],
-          }
+          ...p,
+          internalNotes: [
+            ...p.internalNotes,
+            {
+              id: Date.now().toString(),
+              text: note,
+              author: 'Regional Manager',
+              timestamp: new Date(),
+            },
+          ],
+        }
         : p
     ));
   };
@@ -125,10 +125,10 @@ export default function AdminDashboard() {
     setProperties(properties.map(p =>
       p.id === id
         ? {
-            ...p,
-            status: 'live',
-            liveDate: new Date(),
-          }
+          ...p,
+          status: 'live',
+          liveDate: new Date(),
+        }
         : p
     ));
     setShowModal(false);
@@ -189,11 +189,10 @@ export default function AdminDashboard() {
           <div className="flex border-b border-gray-200">
             <button
               onClick={() => setActiveTab('pending')}
-              className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${
-                activeTab === 'pending'
+              className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${activeTab === 'pending'
                   ? 'border-yellow-500 text-yellow-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               <span className="flex items-center justify-center gap-2">
                 Pending ({pendingCount})
@@ -201,11 +200,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('approved')}
-              className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${
-                activeTab === 'approved'
+              className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${activeTab === 'approved'
                   ? 'border-green-500 text-green-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               <span className="flex items-center justify-center gap-2">
                 Approved ({approvedCount})
@@ -213,11 +211,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('live')}
-              className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${
-                activeTab === 'live'
+              className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${activeTab === 'live'
                   ? 'border-blue-500 text-blue-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               <span className="flex items-center justify-center gap-2">
                 Live ({liveCount})
@@ -225,11 +222,10 @@ export default function AdminDashboard() {
             </button>
             <button
               onClick={() => setActiveTab('rejected')}
-              className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${
-                activeTab === 'rejected'
+              className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${activeTab === 'rejected'
                   ? 'border-red-500 text-red-600'
                   : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+                }`}
             >
               <span className="flex items-center justify-center gap-2">
                 Rejected ({rejectedCount})

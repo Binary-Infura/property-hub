@@ -10,7 +10,7 @@
  * - One role = one dashboard route (no shared dashboards)
  */
 
-export type UserRole = 'buyer' | 'consultant' | 'builder' | 'admin' | 'loan-adviser' | 'leads-manager' | 'commission-manager' | 'channel-partner';
+export type UserRole = 'buyer' | 'consultant' | 'builder' | 'regional-manager' | 'loan-adviser' | 'leads-manager' | 'commission-manager' | 'channel-partner';
 
 /**
  * Canonical dashboard routes for each role
@@ -19,7 +19,7 @@ export const DASHBOARD_ROUTES = {
   buyer: '/dashboard',
   consultant: '/consultant/dashboard',
   builder: '/builder/dashboard',
-  admin: '/admin/dashboard',
+  'regional-manager': '/regional-manager/dashboard',
   'loan-adviser': '/loan-adviser/dashboard',
   'leads-manager': '/leads-manager/dashboard',
   'commission-manager': '/commission-manager/dashboard',
@@ -30,6 +30,7 @@ export const DASHBOARD_ROUTES = {
  * Get the canonical dashboard route for a given role
  */
 export function getDashboardRoute(role: UserRole): string {
+  // @ts-ignore
   return DASHBOARD_ROUTES[role];
 }
 
@@ -47,8 +48,8 @@ export function getRoleFromPath(pathname: string): UserRole | null {
   if (pathname.startsWith('/builder/dashboard')) {
     return 'builder';
   }
-  if (pathname.startsWith('/admin/dashboard')) {
-    return 'admin';
+  if (pathname.startsWith('/regional-manager/dashboard')) {
+    return 'regional-manager';
   }
   if (pathname.startsWith('/loan-adviser/dashboard')) {
     return 'loan-adviser';

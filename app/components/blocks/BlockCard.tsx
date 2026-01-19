@@ -2,7 +2,8 @@
 
 import { Block } from '@/app/types/block';
 import { STATUS_CONFIG, ACTION_TOOLTIPS } from '@/app/constants/block';
-import { calculateBookingPercentage, formatPriceWithCommas } from '@/app/utils/blockPricing';
+import { calculateBookingPercentage } from '@/app/utils/blockPricing';
+import { formatPriceWithCommas } from '@/app/utils/blockValidation';
 
 interface BlockCardProps {
   block: Block;
@@ -90,13 +91,12 @@ export default function BlockCard({
           </div>
           <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
             <div
-              className={`h-full transition-all ${
-                bookingPercentage >= 80
+              className={`h-full transition-all ${bookingPercentage >= 80
                   ? 'bg-red-500'
                   : bookingPercentage >= 50
                     ? 'bg-amber-500'
                     : 'bg-green-500'
-              }`}
+                }`}
               style={{ width: `${bookingPercentage}%` }}
             />
           </div>
@@ -184,11 +184,10 @@ export default function BlockCard({
           <button
             onClick={() => onToggleVisibility(block.id, block.showOnPortal)}
             title={ACTION_TOOLTIPS.visibility}
-            className={`p-2 rounded-lg transition-colors ${
-              block.showOnPortal
+            className={`p-2 rounded-lg transition-colors ${block.showOnPortal
                 ? 'hover:bg-purple-100 text-purple-600'
                 : 'hover:bg-gray-200 text-gray-400'
-            }`}
+              }`}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path
