@@ -19,6 +19,8 @@ export default function RegionalManagerDashboardLayout({
     { name: 'Commission Managers', href: '/regional-manager/dashboard/commission-managers', icon: '💰' },
     { name: 'Channel Partners', href: '/regional-manager/dashboard/channel-partners', icon: '🤝' },
     { name: 'Visit Executives', href: '/regional-manager/dashboard/visit-executives', icon: '📍' },
+    { name: 'Onboarding Managers', href: '/regional-manager/dashboard/onboarding-managers', icon: '👔' },
+    { name: 'Property Partners', href: '/regional-manager/dashboard/property-partners', icon: '🤝' },
   ];
 
   const isActive = (href: string) => {
