@@ -15,6 +15,7 @@ export default function PropertyOnboardingManagerLayout({
         { name: 'Properties', href: '/property-onboarding-manager/dashboard/properties', icon: '🏢' },
         { name: 'Builders', href: '/property-onboarding-manager/dashboard/builders', icon: '🏗️' },
         { name: 'Property Partners', href: '/property-onboarding-manager/dashboard/property-partners', icon: '🤝' },
+        { name: 'Service Providers', href: '/property-onboarding-manager/dashboard/service-providers', icon: '🛠️' },
     ];
 
     const isActive = (href: string) => {
