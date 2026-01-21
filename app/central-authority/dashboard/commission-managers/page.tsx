@@ -154,8 +154,8 @@ export default function CommissionManagersPage() {
                                         <td className="py-4 px-4 text-gray-700">{manager.phone}</td>
                                         <td className="py-4 px-4">
                                             <span className={`px-3 py-1 rounded-full text-xs font-medium ${manager.status === 'active'
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : 'bg-gray-100 text-gray-700'
+                                                ? 'bg-green-100 text-green-700'
+                                                : 'bg-gray-100 text-gray-700'
                                                 }`}>
                                                 {manager.status === 'active' ? 'Active' : 'Inactive'}
                                             </span>
@@ -171,8 +171,8 @@ export default function CommissionManagersPage() {
                                                 <button
                                                     onClick={() => handleToggleStatus(manager.id)}
                                                     className={`px-3 py-1 rounded text-sm font-medium ${manager.status === 'active'
-                                                            ? 'text-red-600 hover:bg-red-50'
-                                                            : 'text-green-600 hover:bg-green-50'
+                                                        ? 'text-red-600 hover:bg-red-50'
+                                                        : 'text-green-600 hover:bg-green-50'
                                                         }`}
                                                 >
                                                     {manager.status === 'active' ? 'Deactivate' : 'Activate'}

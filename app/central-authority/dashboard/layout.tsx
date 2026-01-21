@@ -15,6 +15,7 @@ export default function CentralAuthorityDashboardLayout({
         { name: 'Regions', href: '/central-authority/dashboard/regions', icon: '🌍' },
         { name: 'Regional Managers', href: '/central-authority/dashboard/regional-managers', icon: '👔' },
         { name: 'Marketing Managers', href: '/central-authority/dashboard/marketing-managers', icon: '📢' },
+        { name: 'Commission Managers', href: '/central-authority/dashboard/commission-managers', icon: '💰' },
         { name: 'Global Users', href: '/central-authority/dashboard/users', icon: '👥' },
         { name: 'Settings', href: '/central-authority/dashboard/settings', icon: '⚙️' },
     ];
