@@ -5,7 +5,7 @@ import { useState } from 'react';
 interface Dispute {
   id: string;
   personName: string;
-  personRole: 'consultant' | 'regional-manager' | 'builder' | 'channel-partner';
+  personRole: 'consultant' | 'regional-manager' | 'property-partner' | 'channel-partner';
   commissionAmount: number;
   raisedAt: Date;
   status: 'open' | 'under-review' | 'resolved' | 'rejected';
@@ -43,7 +43,7 @@ export default function DisputesPage() {
     {
       id: '3',
       personName: 'BuildCorp Ltd',
-      personRole: 'builder',
+      personRole: 'property-partner',
       commissionAmount: 180000,
       raisedAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
       status: 'rejected',
@@ -81,12 +81,12 @@ export default function DisputesPage() {
         disputes.map(d =>
           d.id === selectedId
             ? {
-                ...d,
-                status: newStatus,
-                resolution: resolutionText,
-                resolvedAt: new Date(),
-                resolvedBy: 'Commission Manager',
-              }
+              ...d,
+              status: newStatus,
+              resolution: resolutionText,
+              resolvedAt: new Date(),
+              resolvedBy: 'Commission Manager',
+            }
             : d
         )
       );
@@ -174,41 +174,37 @@ export default function DisputesPage() {
         <div className="flex border-b border-gray-200">
           <button
             onClick={() => setActiveTab('open')}
-            className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${
-              activeTab === 'open'
-                ? 'border-red-500 text-red-600'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
-            }`}
+            className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${activeTab === 'open'
+              ? 'border-red-500 text-red-600'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
           >
             Open ({disputes.filter(d => d.status === 'open').length})
           </button>
           <button
             onClick={() => setActiveTab('under-review')}
-            className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${
-              activeTab === 'under-review'
-                ? 'border-yellow-500 text-yellow-600'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
-            }`}
+            className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${activeTab === 'under-review'
+              ? 'border-yellow-500 text-yellow-600'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
           >
             Under Review ({disputes.filter(d => d.status === 'under-review').length})
           </button>
           <button
             onClick={() => setActiveTab('resolved')}
-            className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${
-              activeTab === 'resolved'
-                ? 'border-green-500 text-green-600'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
-            }`}
+            className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${activeTab === 'resolved'
+              ? 'border-green-500 text-green-600'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
           >
             Resolved ({disputes.filter(d => d.status === 'resolved').length})
           </button>
           <button
             onClick={() => setActiveTab('rejected')}
-            className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${
-              activeTab === 'rejected'
-                ? 'border-gray-500 text-gray-600'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
-            }`}
+            className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${activeTab === 'rejected'
+              ? 'border-gray-500 text-gray-600'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
+              }`}
           >
             Rejected ({disputes.filter(d => d.status === 'rejected').length})
           </button>

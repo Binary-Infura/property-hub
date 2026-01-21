@@ -118,7 +118,7 @@ export default function RegionalManagersPage() {
                                     Leads
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Builders
+                                    Property Partners
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Consultants
@@ -256,7 +256,7 @@ export default function RegionalManagersPage() {
                                         <p className="font-medium mb-1">Regional Manager Permissions:</p>
                                         <ul className="list-disc list-inside space-y-1 text-xs">
                                             <li>Manage properties and users within assigned region</li>
-                                            <li>Can create Builders, Consultants, Loan Advisers, etc.</li>
+                                            <li>Can create Property Partners, Consultants, Loan Advisers, etc.</li>
                                             <li>Approve properties and manage leads</li>
                                             <li>Access limited to assigned region only</li>
                                         </ul>

@@ -45,7 +45,7 @@ const createAuditLog = (): AuditEntry[] => [
     timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000),
     action: 'calculated',
     personName: 'BuildCorp Ltd',
-    personRole: 'Builder',
+    personRole: 'Property Partner',
     commissionAmount: 180000,
     performedBy: 'System',
     notes: 'Auto-calculated from sales data',

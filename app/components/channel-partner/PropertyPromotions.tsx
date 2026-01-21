@@ -43,7 +43,7 @@ export default function PropertyPromotions({ properties }: PropertyPromotionsPro
       {properties.length === 0 ? (
         <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
           <p className="text-gray-600 font-medium">No properties assigned yet</p>
-          <p className="text-gray-500 text-sm mt-1">Builders will assign properties for you to promote</p>
+          <p className="text-gray-500 text-sm mt-1">Property Partners will assign properties for you to promote</p>
         </div>
       ) : (
         <div className="grid md:grid-cols-2 gap-4">

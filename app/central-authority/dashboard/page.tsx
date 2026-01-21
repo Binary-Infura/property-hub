@@ -36,7 +36,7 @@ export default function CentralAuthorityDashboardPage() {
                         {stats.users.builders + stats.users.consultants + stats.users.partners}
                     </p>
                     <div className="text-xs text-gray-500 mt-1 flex gap-2">
-                        <span>{stats.users.builders} Builder</span>
+                        <span>{stats.users.builders} Property Partner</span>
                         <span>•</span>
                         <span>{stats.users.consultants} Cons</span>
                         <span>•</span>

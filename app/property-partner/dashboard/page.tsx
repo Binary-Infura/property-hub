@@ -1,93 +1,252 @@
 'use client';
 
 export default function PropertyPartnerDashboard() {
-    // Mock Stats
-    const stats = [
-        { label: 'Assigned Properties', value: '5', change: '+1 this week', icon: '🏢', color: 'bg-blue-50 text-blue-600' },
-        { label: 'Active Leads', value: '24', change: '+5 today', icon: '👥', color: 'bg-green-50 text-green-600' },
-        { label: 'Scheduled Visits', value: '8', change: 'Upcoming', icon: '📅', color: 'bg-yellow-50 text-yellow-600' },
-        { label: 'Closures (YTD)', value: '12', change: 'Excellent', icon: '🏆', color: 'bg-purple-50 text-purple-600' },
-    ];
+  // Mock analytics data - replace with actual API calls
+  const analyticsData = {
+    totalProperties: 12,
+    activeProperties: 8,
+    totalUnits: 840,
+    bookedUnits: 547,
+    totalRevenue: 4250000000,
+    monthlyLeads: 156,
+    conversionRate: 42.8,
+    avgDaysToClose: 28,
+  };
 
-    const assignedProperties = [
-        { id: 1, title: 'Sunset Heights', location: 'Andheri West', price: '₹2.5 Cr', status: 'Active' },
-        { id: 2, title: 'Marina Bay', location: 'Worli', price: '₹4.2 Cr', status: 'Active' },
-        { id: 3, title: 'Green Meadows', location: 'Thane', price: '₹1.1 Cr', status: 'Pending' },
-    ];
+  const recentActivity = [
+    { type: 'booking', message: 'New booking for Unit 1204, Block A - Sunset Towers', time: '2 hours ago' },
+    { type: 'inquiry', message: 'New inquiry from Rajesh Kumar for 3BHK', time: '4 hours ago' },
+    { type: 'visit', message: 'Site visit scheduled - Green Valley, Block B', time: '5 hours ago' },
+    { type: 'approval', message: 'Property "Metro Heights" approved and published', time: '1 day ago' },
+    { type: 'booking', message: 'Booking confirmed for Unit 503, City Square', time: '1 day ago' },
+  ];
 
-    return (
-        <div className="space-y-8">
-            {/* Welcome Section */}
-            <div className="bg-gradient-to-r from-orange-500 to-red-600 rounded-2xl p-8 text-white shadow-lg">
-                <h1 className="text-3xl font-bold mb-2">Welcome, Suresh Homes! 🤝</h1>
-                <p className="text-orange-50 text-lg">Manage your assigned properties and track your performance.</p>
-            </div>
+  const topProperties = [
+    { name: 'Sunset Towers', location: 'Bandra, Mumbai', bookingRate: 78, units: 240 },
+    { name: 'Green Valley', location: 'Powai, Mumbai', bookingRate: 70, units: 400 },
+    { name: 'City Square', location: 'Andheri, Mumbai', bookingRate: 38, units: 120 },
+  ];
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {stats.map((stat, index) => (
-                    <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-                        <div className="flex justify-between items-start mb-4">
-                            <div className={`p-3 rounded-lg ${stat.color} text-2xl`}>
-                                {stat.icon}
-                            </div>
-                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${stat.change.includes('+') ? 'bg-green-100 text-green-700' :
-                                    stat.change.includes('Upcoming') ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600'
-                                }`}>
-                                {stat.change}
-                            </span>
-                        </div>
-                        <h3 className="text-gray-500 text-sm font-medium">{stat.label}</h3>
-                        <p className="text-3xl font-bold text-gray-900 mt-1">{stat.value}</p>
-                    </div>
-                ))}
-            </div>
+  const formatCurrency = (value: number) => {
+    if (value >= 10000000) {
+      return `₹${(value / 10000000).toFixed(1)}Cr`;
+    }
+    if (value >= 100000) {
+      return `₹${(value / 100000).toFixed(1)}L`;
+    }
+    return `₹${value.toLocaleString('en-IN')}`;
+  };
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Assigned Properties Preview */}
-                <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <div className="flex justify-between items-center mb-4">
-                        <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
-                            <span>🏢</span> Your Top Properties
-                        </h2>
-                        <button className="text-sm text-blue-600 font-medium hover:text-blue-700">View All</button>
-                    </div>
-                    <div className="space-y-4">
-                        {assignedProperties.map((prop) => (
-                            <div key={prop.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-lg hover:border-blue-200 transition hover:shadow-sm">
-                                <div>
-                                    <h3 className="font-bold text-gray-900">{prop.title}</h3>
-                                    <p className="text-sm text-gray-500">📍 {prop.location}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="font-bold text-gray-900">{prop.price}</p>
-                                    <span className={`text-xs px-2 py-0.5 rounded-full ${prop.status === 'Active' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>
-                                        {prop.status}
-                                    </span>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
+  const bookingPercentage = Math.round((analyticsData.bookedUnits / analyticsData.totalUnits) * 100);
 
-                {/* Notifications / Tasks */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <span>📝</span> Tasks & Alerts
-                    </h2>
-                    <div className="space-y-3">
-                        <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm border border-red-100">
-                            <strong>Urgent:</strong> Doc verification pending for Sunset Heights unit 402.
-                        </div>
-                        <div className="p-3 bg-blue-50 text-blue-700 rounded-lg text-sm border border-blue-100">
-                            <strong>Visit:</strong> Mr. Kapoor visiting Marina Bay at 4 PM.
-                        </div>
-                        <div className="p-3 bg-gray-50 text-gray-700 rounded-lg text-sm border border-gray-100">
-                            <strong>Reminder:</strong> Update property availability status by EOD.
-                        </div>
-                    </div>
-                </div>
-            </div>
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
+            <p className="text-gray-600 mt-1">Overview of your property portfolio</p>
+          </div>
         </div>
-    );
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Key Metrics */}
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">Total Properties</p>
+                <p className="text-3xl font-bold text-gray-900 mt-2">{analyticsData.totalProperties}</p>
+              </div>
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+            </div>
+            <p className="text-sm text-green-600 mt-2">
+              <span className="font-medium">{analyticsData.activeProperties}</span> active
+            </p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">Total Units</p>
+                <p className="text-3xl font-bold text-blue-600 mt-2">{analyticsData.totalUnits}</p>
+              </div>
+              <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                </svg>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mt-2">
+              <span className="font-medium text-green-600">{analyticsData.bookedUnits}</span> booked ({bookingPercentage}%)
+            </p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">Total Revenue</p>
+                <p className="text-3xl font-bold text-green-600 mt-2">{formatCurrency(analyticsData.totalRevenue)}</p>
+              </div>
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mt-2">From all bookings</p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">Monthly Leads</p>
+                <p className="text-3xl font-bold text-orange-600 mt-2">{analyticsData.monthlyLeads}</p>
+              </div>
+              <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
+                <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mt-2">
+              <span className="font-medium text-green-600">{analyticsData.conversionRate}%</span> conversion rate
+            </p>
+          </div>
+        </div>
+
+        {/* Charts Row */}
+        <div className="grid lg:grid-cols-2 gap-6 mb-8">
+          {/* Booking Progress */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-6">Overall Booking Progress</h2>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <span className="text-gray-600">Units Booked</span>
+                <span className="text-2xl font-bold text-gray-900">{analyticsData.bookedUnits} / {analyticsData.totalUnits}</span>
+              </div>
+              <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all"
+                  style={{ width: `${bookingPercentage}%` }}
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-4 mt-6">
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <p className="text-2xl font-bold text-green-600">{analyticsData.bookedUnits}</p>
+                  <p className="text-sm text-gray-600">Booked</p>
+                </div>
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <p className="text-2xl font-bold text-blue-600">{analyticsData.totalUnits - analyticsData.bookedUnits}</p>
+                  <p className="text-sm text-gray-600">Available</p>
+                </div>
+                <div className="text-center p-4 bg-purple-50 rounded-lg">
+                  <p className="text-2xl font-bold text-purple-600">{bookingPercentage}%</p>
+                  <p className="text-sm text-gray-600">Booking Rate</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Top Properties */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-6">Top Performing Properties</h2>
+            <div className="space-y-4">
+              {topProperties.map((property, idx) => (
+                <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold ${idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : 'bg-amber-600'
+                      }`}>
+                      {idx + 1}
+                    </div>
+                    <div>
+                      <p className="font-semibold text-gray-900">{property.name}</p>
+                      <p className="text-sm text-gray-600">{property.location}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-bold text-gray-900">{property.bookingRate}%</p>
+                    <p className="text-sm text-gray-500">{property.units} units</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Recent Activity & Quick Stats */}
+        <div className="grid lg:grid-cols-3 gap-6">
+          {/* Recent Activity */}
+          <div className="lg:col-span-2 bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-6">Recent Activity</h2>
+            <div className="space-y-4">
+              {recentActivity.map((activity, idx) => (
+                <div key={idx} className="flex items-start gap-4 p-3 hover:bg-gray-50 rounded-lg transition">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${activity.type === 'booking' ? 'bg-green-100' :
+                    activity.type === 'inquiry' ? 'bg-blue-100' :
+                      activity.type === 'visit' ? 'bg-purple-100' :
+                        'bg-amber-100'
+                    }`}>
+                    {activity.type === 'booking' && (
+                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    )}
+                    {activity.type === 'inquiry' && (
+                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                      </svg>
+                    )}
+                    {activity.type === 'visit' && (
+                      <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    )}
+                    {activity.type === 'approval' && (
+                      <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-gray-900">{activity.message}</p>
+                    <p className="text-sm text-gray-500 mt-1">{activity.time}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Stats */}
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <h2 className="text-lg font-bold text-gray-900 mb-6">Quick Stats</h2>
+            <div className="space-y-4">
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
+                <p className="text-sm text-blue-700 font-medium">Avg. Days to Close</p>
+                <p className="text-2xl font-bold text-blue-900">{analyticsData.avgDaysToClose} days</p>
+              </div>
+              <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg">
+                <p className="text-sm text-green-700 font-medium">Conversion Rate</p>
+                <p className="text-2xl font-bold text-green-900">{analyticsData.conversionRate}%</p>
+              </div>
+              <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg">
+                <p className="text-sm text-purple-700 font-medium">Active Properties</p>
+                <p className="text-2xl font-bold text-purple-900">{analyticsData.activeProperties}</p>
+              </div>
+              <div className="p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg">
+                <p className="text-sm text-orange-700 font-medium">This Month&apos;s Leads</p>
+                <p className="text-2xl font-bold text-orange-900">{analyticsData.monthlyLeads}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }

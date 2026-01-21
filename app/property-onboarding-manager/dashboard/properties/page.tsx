@@ -9,7 +9,7 @@ interface Property {
     type: string;
     status: 'active' | 'pending' | 'sold';
     managedByPartner: string | null; // Partner ID or null
-    onboardedBy: { name: string; role: 'Builder' | 'Onboarding Manager' | 'Property Partner' };
+    onboardedBy: { name: string; role: 'Property Partner' | 'Onboarding Manager' | 'Property Partner' };
 }
 
 export default function MyPropertiesPage() {
@@ -31,7 +31,7 @@ export default function MyPropertiesPage() {
             type: '4BHK Villa',
             status: 'pending',
             managedByPartner: null,
-            onboardedBy: { name: 'Sunrise Developers', role: 'Builder' },
+            onboardedBy: { name: 'Sunrise Developers', role: 'Property Partner' },
         },
         {
             id: 'p3',

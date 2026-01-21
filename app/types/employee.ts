@@ -1,6 +1,6 @@
 /**
  * Employee Management Types
- * Defines interfaces for Employee management in PropertyHub Builder Module
+ * Defines interfaces for Employee management in PropertyHub Property Partner Module
  */
 
 // Department types

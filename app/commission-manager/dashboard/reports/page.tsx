@@ -47,7 +47,7 @@ export default function ReportsPage() {
       topPerformers: [
         { name: 'John Smith', role: 'Consultant', commission: 150000 },
         { name: 'Sarah Johnson', role: 'Regional Manager', commission: 240000 },
-        { name: 'BuildCorp Ltd', role: 'Builder', commission: 180000 },
+        { name: 'BuildCorp Ltd', role: 'Property Partner', commission: 180000 },
       ],
     };
   };

@@ -2,7 +2,7 @@ export type UserRole =
     | 'central-authority'
     | 'super-admin'
     | 'regional-manager'
-    | 'builder'
+    | 'property-partner'
     | 'consultant'
     | 'channel-partner'
     | 'commission-manager'
@@ -51,10 +51,10 @@ export const ROLES: Record<UserRole, RoleDefinition> = {
             { resource: 'users', actions: ['read', 'create', 'update'] } // Limited to region
         ]
     },
-    'builder': {
-        role: 'builder',
-        label: 'Builder',
-        description: 'Property developer',
+    'property-partner': {
+        role: 'property-partner',
+        label: 'Property Partner',
+        description: 'Property developer and partner',
         permissions: []
     },
     'consultant': {

@@ -10,7 +10,7 @@
  * - One role = one dashboard route (no shared dashboards)
  */
 
-export type UserRole = 'buyer' | 'consultant' | 'builder' | 'regional-manager' | 'loan-adviser' | 'commission-manager' | 'channel-partner' | 'visit-executive' | 'property-onboarding-manager' | 'property-partner';
+export type UserRole = 'buyer' | 'consultant' | 'property-partner' | 'regional-manager' | 'loan-adviser' | 'commission-manager' | 'channel-partner' | 'visit-executive' | 'property-onboarding-manager';
 
 /**
  * Canonical dashboard routes for each role
@@ -18,14 +18,13 @@ export type UserRole = 'buyer' | 'consultant' | 'builder' | 'regional-manager' |
 export const DASHBOARD_ROUTES = {
   buyer: '/dashboard',
   consultant: '/consultant/dashboard',
-  builder: '/builder/dashboard',
+  'property-partner': '/property-partner/dashboard',
   'regional-manager': '/regional-manager/dashboard',
   'loan-adviser': '/loan-adviser/dashboard',
   'commission-manager': '/commission-manager/dashboard',
   'channel-partner': '/channel-partner/dashboard',
   'visit-executive': '/visit-executive/dashboard',
   'property-onboarding-manager': '/property-onboarding-manager/dashboard',
-  'property-partner': '/property-partner/dashboard',
 } as const;
 
 /**
@@ -47,8 +46,8 @@ export function getRoleFromPath(pathname: string): UserRole | null {
   if (pathname.startsWith('/consultant/dashboard')) {
     return 'consultant';
   }
-  if (pathname.startsWith('/builder/dashboard')) {
-    return 'builder';
+  if (pathname.startsWith('/property-partner/dashboard')) {
+    return 'property-partner';
   }
   if (pathname.startsWith('/regional-manager/dashboard')) {
     return 'regional-manager';
@@ -69,9 +68,7 @@ export function getRoleFromPath(pathname: string): UserRole | null {
   if (pathname.startsWith('/property-onboarding-manager/dashboard')) {
     return 'property-onboarding-manager';
   }
-  if (pathname.startsWith('/property-partner/dashboard')) {
-    return 'property-partner';
-  }
+
   return null;
 }
 

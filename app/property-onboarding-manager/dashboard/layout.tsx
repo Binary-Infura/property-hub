@@ -13,7 +13,7 @@ export default function PropertyOnboardingManagerLayout({
     const navigation = [
         { name: 'Dashboard', href: '/property-onboarding-manager/dashboard', icon: '📊' },
         { name: 'Properties', href: '/property-onboarding-manager/dashboard/properties', icon: '🏢' },
-        { name: 'Builders', href: '/property-onboarding-manager/dashboard/builders', icon: '🏗️' },
+
         { name: 'Property Partners', href: '/property-onboarding-manager/dashboard/property-partners', icon: '🤝' },
         { name: 'Service Providers', href: '/property-onboarding-manager/dashboard/service-providers', icon: '🛠️' },
     ];

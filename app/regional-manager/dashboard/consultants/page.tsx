@@ -15,7 +15,7 @@ interface Consultant {
   createdAt: string;
 }
 
-interface Builder {
+interface PropertyPartner {
   id: string;
   name: string;
   company: string;
@@ -68,10 +68,10 @@ export default function ConsultantsPage() {
     },
   ]);
 
-  const [allBuilders] = useState<Builder[]>([
-    { id: '1', name: 'Rajesh Kumar', company: 'Builder A' },
-    { id: '2', name: 'Priya Sharma', company: 'Builder B' },
-    { id: '3', name: 'Arun Patel', company: 'Builder C' },
+  const [allPropertyPartners] = useState<PropertyPartner[]>([
+    { id: '1', name: 'Rajesh Kumar', company: 'Property Partner A' },
+    { id: '2', name: 'Priya Sharma', company: 'Property Partner B' },
+    { id: '3', name: 'Arun Patel', company: 'Property Partner C' },
   ]);
 
   const [allProperties] = useState<Property[]>([
@@ -204,7 +204,7 @@ export default function ConsultantsPage() {
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Contact</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Experience</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Clients</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Builders</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Property Partners</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Properties</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
                   <th className="text-right py-3 px-4 font-semibold text-gray-700">Actions</th>
@@ -237,11 +237,10 @@ export default function ConsultantsPage() {
                       </span>
                     </td>
                     <td className="py-4 px-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${
-                        consultant.status === 'active'
-                          ? 'bg-green-100 text-green-700'
-                          : 'bg-gray-100 text-gray-700'
-                      }`}>
+                      <span className={`px-3 py-1 rounded-full text-xs font-medium ${consultant.status === 'active'
+                        ? 'bg-green-100 text-green-700'
+                        : 'bg-gray-100 text-gray-700'
+                        }`}>
                         {consultant.status === 'active' ? 'Active' : 'Inactive'}
                       </span>
                     </td>
@@ -255,11 +254,10 @@ export default function ConsultantsPage() {
                         </button>
                         <button
                           onClick={() => handleToggleStatus(consultant.id)}
-                          className={`px-3 py-1 rounded text-sm font-medium ${
-                            consultant.status === 'active'
-                              ? 'text-red-600 hover:bg-red-50'
-                              : 'text-green-600 hover:bg-green-50'
-                          }`}
+                          className={`px-3 py-1 rounded text-sm font-medium ${consultant.status === 'active'
+                            ? 'text-red-600 hover:bg-red-50'
+                            : 'text-green-600 hover:bg-green-50'
+                            }`}
                         >
                           {consultant.status === 'active' ? 'Deactivate' : 'Activate'}
                         </button>
@@ -414,21 +412,21 @@ export default function ConsultantsPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full p-6 max-h-[80vh] overflow-y-auto">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Assign Builders & Properties to {selectedConsultant.name}
+              Assign Property Partners & Properties to {selectedConsultant.name}
             </h2>
-            
-            {/* Assign Builders Section */}
+
+            {/* Assign Property Partners Section */}
             <div className="mb-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Assign Builders</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-4">Assign Property Partners</h3>
               <div className="space-y-3">
-                {allBuilders.map((builder) => (
+                {allPropertyPartners.map((builder) => (
                   <div key={builder.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
                     <div>
                       <p className="font-semibold text-gray-900">{builder.name}</p>
                       <p className="text-sm text-gray-600">{builder.company}</p>
                     </div>
                     <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium">
-                      Assign Builder
+                      Assign Property Partner
                     </button>
                   </div>
                 ))}
