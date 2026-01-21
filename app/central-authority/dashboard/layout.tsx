@@ -13,6 +13,8 @@ export default function CentralAuthorityDashboardLayout({
     const navigation = [
         { name: 'Dashboard', href: '/central-authority/dashboard', icon: '📊' },
         { name: 'Regions', href: '/central-authority/dashboard/regions', icon: '🌍' },
+        { name: 'Regional Managers', href: '/central-authority/dashboard/regional-managers', icon: '👔' },
+        { name: 'Marketing Managers', href: '/central-authority/dashboard/marketing-managers', icon: '📢' },
         { name: 'Global Users', href: '/central-authority/dashboard/users', icon: '👥' },
         { name: 'Settings', href: '/central-authority/dashboard/settings', icon: '⚙️' },
     ];
