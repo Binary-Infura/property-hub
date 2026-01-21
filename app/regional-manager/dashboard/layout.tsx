@@ -15,7 +15,6 @@ export default function RegionalManagerDashboardLayout({
     { name: 'Builders', href: '/regional-manager/dashboard/builders', icon: '🏗️' },
     { name: 'Consultants', href: '/regional-manager/dashboard/consultants', icon: '👤' },
     { name: 'Loan Advisers', href: '/regional-manager/dashboard/loan-advisers', icon: '🏦' },
-    { name: 'Leads Managers', href: '/regional-manager/dashboard/leads-managers', icon: '👥' },
     { name: 'Commission Managers', href: '/regional-manager/dashboard/commission-managers', icon: '💰' },
     { name: 'Channel Partners', href: '/regional-manager/dashboard/channel-partners', icon: '🤝' },
     { name: 'Visit Executives', href: '/regional-manager/dashboard/visit-executives', icon: '📍' },

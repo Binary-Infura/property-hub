@@ -5,7 +5,6 @@ export type UserRole =
     | 'builder'
     | 'consultant'
     | 'channel-partner'
-    | 'lead-manager'
     | 'commission-manager'
     | 'marketing-manager'
     | 'ads-executive'
@@ -68,12 +67,6 @@ export const ROLES: Record<UserRole, RoleDefinition> = {
         role: 'channel-partner',
         label: 'Channel Partner',
         description: 'External partner',
-        permissions: []
-    },
-    'lead-manager': {
-        role: 'lead-manager',
-        label: 'Lead Manager',
-        description: 'Manages leads',
         permissions: []
     },
     'commission-manager': {
