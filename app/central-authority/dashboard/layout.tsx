@@ -17,7 +17,6 @@ export default function CentralAuthorityDashboardLayout({
         { name: 'Marketing Managers', href: '/central-authority/dashboard/marketing-managers', icon: '📢' },
         { name: 'Commission Managers', href: '/central-authority/dashboard/commission-managers', icon: '💰' },
         { name: 'Global Users', href: '/central-authority/dashboard/users', icon: '👥' },
-        { name: 'Settings', href: '/central-authority/dashboard/settings', icon: '⚙️' },
     ];
 
     const isActive = (href: string) => {
