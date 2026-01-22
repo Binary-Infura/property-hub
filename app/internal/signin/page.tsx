@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function InternalSignIn() {
+    const { loginWithCredentials, authenticated, roles } = useAuth();
     const router = useRouter();
     const [formData, setFormData] = useState({
         identifier: '',
@@ -13,45 +15,30 @@ export default function InternalSignIn() {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    // Mock checking of internal users
-    const checkCredentials = async (identifier: string, password: string) => {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        const email = identifier.toLowerCase();
+    useEffect(() => {
+        if (authenticated) {
+            // Check for any internal role
+            const internalRoles = [
+                'central-authority',
+                'regional-manager',
+                'consultant',
+                'property-onboarding-manager',
+                'loan-adviser',
+                'marketing-manager',
+                'visit-executive',
+                'commission-manager',
+                'channel-partner'
+            ];
 
-        if (password === 'password') {
-            if (email === 'admin@propertyhub.com') {
-                return { success: true, role: 'central-authority', redirect: '/central-authority/dashboard' };
-            }
-            if (email === 'regional@propertyhub.com') {
-                return { success: true, role: 'regional-manager', redirect: '/regional-manager/dashboard' };
-            }
-            if (email === 'consultant@propertyhub.com') {
-                return { success: true, role: 'consultant', redirect: '/consultant/dashboard' };
-            }
-            if (email === 'onboarding@propertyhub.com') {
-                return { success: true, role: 'property-onboarding-manager', redirect: '/property-onboarding-manager/dashboard' };
-            }
-            if (email === 'loan@propertyhub.com') {
-                return { success: true, role: 'loan-adviser', redirect: '/loan-adviser/dashboard' };
-            }
-            if (email === 'marketing@propertyhub.com') {
-                return { success: true, role: 'marketing-manager', redirect: '/marketing-manager/dashboard' };
-            }
-            if (email === 'visit@propertyhub.com') {
-                return { success: true, role: 'visit-executive', redirect: '/visit-executive/dashboard' };
-            }
-            if (email === 'commission@propertyhub.com') {
-                return { success: true, role: 'commission-manager', redirect: '/commission-manager/dashboard' };
-            }
-            if (email === 'channel@propertyhub.com') {
-                return { success: true, role: 'channel-partner', redirect: '/channel-partner/dashboard' };
-            }
+            const userRole = internalRoles.find(role => roles.includes(role));
 
-            return { success: false, error: 'Access Denied: You are not an invited internal user.' };
+            if (userRole) {
+                router.push(`/${userRole}/dashboard`);
+            } else {
+                router.push('/');
+            }
         }
-
-        return { success: false, error: 'Invalid credentials' };
-    };
+    }, [authenticated, roles, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -63,10 +50,10 @@ export default function InternalSignIn() {
                 throw new Error('Please fill in all fields');
             }
 
-            const result = await checkCredentials(formData.identifier, formData.password);
+            const result = await loginWithCredentials(formData.identifier, formData.password);
 
-            if (result.success && result.redirect) {
-                router.push(result.redirect);
+            if (result.success) {
+                console.log('Internal Login successful');
             } else {
                 setError(result.error || 'Authentication failed');
             }

@@ -2,10 +2,12 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import { useUnifiedApp, UserRole, Region } from '../contexts/UnifiedAppContext';
+import { useAuth } from '../contexts/AuthContext';
 import Image from 'next/image';
 
 export default function UnifiedContextSwitcher() {
     const { currentUser, activeContext, switchContext } = useUnifiedApp();
+    const { logout } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -103,8 +105,8 @@ export default function UnifiedContextSwitcher() {
                                             }
                                         }}
                                         className={`w-full text-left px-3 py-2.5 rounded-md text-sm font-medium transition-all ${selectedRegionId === region.id
-                                                ? 'bg-white text-blue-700 shadow-sm ring-1 ring-gray-200'
-                                                : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                                            ? 'bg-white text-blue-700 shadow-sm ring-1 ring-gray-200'
+                                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
                                             }`}
                                     >
                                         <div className="flex justify-between items-center">
@@ -131,8 +133,8 @@ export default function UnifiedContextSwitcher() {
                                         key={role.id}
                                         onClick={() => setSelectedRoleId(role.id)}
                                         className={`w-full text-left p-3 rounded-lg border transition-all group ${selectedRoleId === role.id
-                                                ? 'border-blue-600 bg-blue-50/50 ring-1 ring-blue-600'
-                                                : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                            ? 'border-blue-600 bg-blue-50/50 ring-1 ring-blue-600'
+                                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                                             }`}
                                     >
                                         <div className="flex items-start gap-3">
@@ -175,12 +177,23 @@ export default function UnifiedContextSwitcher() {
                                 <span>{currentRoleDisplay?.name}</span>
                             </div>
                         </div>
-                        <button
-                            onClick={handleSwitch}
-                            className="bg-blue-600 text-white px-5 py-2 rounded-lg font-medium text-sm hover:bg-blue-700 transition shadow-sm active:transform active:scale-95 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
-                        >
-                            Switch Context
-                        </button>
+                        <div className="flex items-center gap-3">
+                            <button
+                                onClick={logout}
+                                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors group"
+                            >
+                                <svg className="w-4 h-4 text-red-500 group-hover:text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                                </svg>
+                                Sign Out
+                            </button>
+                            <button
+                                onClick={handleSwitch}
+                                className="bg-blue-600 text-white px-5 py-2 rounded-lg font-medium text-sm hover:bg-blue-700 transition shadow-sm active:transform active:scale-95 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
+                            >
+                                Switch Context
+                            </button>
+                        </div>
                     </div>
                 </div>
             )}

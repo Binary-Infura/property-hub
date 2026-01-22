@@ -1,0 +1,166 @@
+{
+    "id": "property-hub",
+    "realm": "property-hub",
+    "displayName": "Property Hub",
+    "enabled": true,
+    "sslRequired": "external",
+    "registrationAllowed": false,
+    "loginWithEmailAllowed": true,
+    "roles": {
+        "realm": [
+            {
+                "name": "central-authority",
+                "description": "Platform-wide administrator"
+            },
+            {
+                "name": "regional-manager",
+                "description": "Manager for a specific region"
+            },
+            {
+                "name": "property-partner",
+                "description": "Property developer and partner"
+            },
+            {
+                "name": "consultant",
+                "description": "Property consultant"
+            },
+            {
+                "name": "marketing-manager",
+                "description": "Head of marketing department"
+            },
+            {
+                "name": "property-onboarding-manager",
+                "description": "Manages property onboarding"
+            },
+            {
+                "name": "loan-adviser",
+                "description": "Loan adviser"
+            },
+            {
+                "name": "visit-executive",
+                "description": "Visit executive"
+            },
+            {
+                "name": "channel-partner",
+                "description": "External partner"
+            },
+            {
+                "name": "commission-manager",
+                "description": "Manages commissions"
+            },
+            {
+                "name": "ads-executive",
+                "description": "Manages advertising campaigns"
+            },
+            {
+                "name": "creative-executive",
+                "description": "Manages creative assets"
+            },
+            {
+                "name": "marketing-lead",
+                "description": "Coordinates marketing team"
+            },
+            {
+                "name": "buyer",
+                "description": "End user / Property buyer"
+            }
+        ]
+    },
+    "clients": [
+        {
+            "clientId": "property-hub-frontend",
+            "enabled": true,
+            "publicClient": true,
+            "standardFlowEnabled": true,
+            "directAccessGrantsEnabled": true,
+            "webOrigins": [
+                "*"
+            ],
+            "redirectUris": [
+                "*"
+            ],
+            "defaultClientScopes": [
+                "web-origins",
+                "role_list",
+                "roles",
+                "profile",
+                "email",
+                "openid"
+            ]
+        }
+    ],
+    "users": [
+        {
+            "username": "admin@propertyhub.com",
+            "email": "admin@propertyhub.com",
+            "enabled": true,
+            "emailVerified": true,
+            "firstName": "Central",
+            "lastName": "Admin",
+            "credentials": [
+                {
+                    "type": "password",
+                    "value": "password",
+                    "temporary": false
+                }
+            ],
+            "realmRoles": [
+                "central-authority"
+            ]
+        },
+        {
+            "username": "regional@propertyhub.com",
+            "email": "regional@propertyhub.com",
+            "enabled": true,
+            "emailVerified": true,
+            "firstName": "Regional",
+            "lastName": "Manager",
+            "credentials": [
+                {
+                    "type": "password",
+                    "value": "password",
+                    "temporary": false
+                }
+            ],
+            "realmRoles": [
+                "regional-manager"
+            ]
+        },
+        {
+            "username": "buyer@propertyhub.com",
+            "email": "buyer@propertyhub.com",
+            "enabled": true,
+            "emailVerified": true,
+            "firstName": "Test",
+            "lastName": "Buyer",
+            "credentials": [
+                {
+                    "type": "password",
+                    "value": "password",
+                    "temporary": false
+                }
+            ],
+            "realmRoles": [
+                "buyer"
+            ]
+        },
+        {
+            "username": "consultant@propertyhub.com",
+            "email": "consultant@propertyhub.com",
+            "enabled": true,
+            "emailVerified": true,
+            "firstName": "Test",
+            "lastName": "Consultant",
+            "credentials": [
+                {
+                    "type": "password",
+                    "value": "password",
+                    "temporary": false
+                }
+            ],
+            "realmRoles": [
+                "consultant"
+            ]
+        }
+    ]
+}

@@ -1,7 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async rewrites() {
+    return [
+      {
+        source: '/auth/:path*',
+        destination: 'http://localhost:8080/realms/property-hub/protocol/openid-connect/:path*',
+      },
+    ];
+  },
 };
 
 export default nextConfig;

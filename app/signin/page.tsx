@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { useAuth } from '../contexts/AuthContext';
 
 export default function BuyerSignIn() {
+    const { loginWithCredentials, authenticated, roles } = useAuth();
     const router = useRouter();
     const [formData, setFormData] = useState({
         identifier: '',
@@ -13,20 +15,15 @@ export default function BuyerSignIn() {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
-    // Mock checking for buyers
-    const checkCredentials = async (identifier: string, password: string) => {
-        await new Promise(resolve => setTimeout(resolve, 800));
-        const email = identifier.toLowerCase();
-
-        if (password === 'password') {
-            if (email === 'buyer@propertyhub.com' || email === 'user@example.com') {
-                return { success: true, role: 'buyer', redirect: '/dashboard' };
+    useEffect(() => {
+        if (authenticated) {
+            if (roles.includes('buyer')) {
+                router.push('/dashboard');
+            } else {
+                router.push('/');
             }
-            return { success: false, error: 'User account not found. Please sign up first.' };
         }
-
-        return { success: false, error: 'Invalid email or password' };
-    };
+    }, [authenticated, roles, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -38,10 +35,11 @@ export default function BuyerSignIn() {
                 throw new Error('Please enter your credentials');
             }
 
-            const result = await checkCredentials(formData.identifier, formData.password);
+            const result = await loginWithCredentials(formData.identifier, formData.password);
 
-            if (result.success && result.redirect) {
-                router.push(result.redirect);
+            if (result.success) {
+                // Success will trigger the useEffect above due to 'authenticated' change
+                console.log('Login successful');
             } else {
                 setError(result.error || 'Authentication failed');
             }
