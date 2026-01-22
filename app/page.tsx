@@ -23,6 +23,9 @@ export default function Home() {
               <a href="/search" className="text-gray-600 hover:text-gray-900 px-4 py-2 text-sm font-medium">
                 Search Properties
               </a>
+              <a href="/signin" className="text-gray-600 hover:text-gray-900 px-4 py-2 text-sm font-medium">
+                Login
+              </a>
               <a href="/dashboard" className="text-gray-600 hover:text-gray-900 px-4 py-2 text-sm font-medium">
                 My Dashboard
               </a>
@@ -38,7 +41,7 @@ export default function Home() {
       <section className="relative bg-gradient-to-br from-blue-50 via-white to-blue-50 py-20 md:py-32 overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-blue-100 rounded-full mix-blend-multiply filter blur-3xl opacity-30"></div>
-        
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>

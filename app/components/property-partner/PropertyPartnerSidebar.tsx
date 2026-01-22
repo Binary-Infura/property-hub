@@ -25,15 +25,10 @@ export default function PropertyPartnerSidebar() {
   return (
     <aside className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col">
       {/* Sidebar Header */}
-      <div className="px-6 py-6 border-b border-gray-200">
-        <Link href="/property-partner/dashboard" className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-blue-700 rounded-lg flex items-center justify-center">
-            <span className="text-xl">🏗️</span>
-          </div>
-          <div>
-            <p className="font-bold text-gray-900">Property Partner</p>
-            <p className="text-xs text-gray-600">Management</p>
-          </div>
+      <div className="h-16 flex items-center px-6 border-b border-gray-200">
+        <Link href="/property-partner/dashboard" className="flex items-center gap-2 font-bold text-xl text-gray-900">
+          <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
+          <span>PropertyHub</span>
         </Link>
       </div>
 

@@ -1,5 +1,6 @@
 'use client';
 
+import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
 import PropertyPartnerSidebar from './PropertyPartnerSidebar';
 import PropertyPartnerTopNav from './PropertyPartnerTopNav';
 
@@ -9,18 +10,21 @@ export default function PropertyPartnerLayoutWrapper({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-gray-50">
-      <PropertyPartnerTopNav />
-      <div className="flex">
-        <aside className="w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-4rem)] sticky top-16">
+    <UnifiedAppProvider>
+      <div className="flex h-screen bg-gray-50 overflow-hidden">
+        <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0">
           <PropertyPartnerSidebar />
         </aside>
 
-        {/* Content Area */}
-        <main className="flex-1 overflow-y-auto">
-          {children}
-        </main>
+        {/* Main Content Area */}
+        <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+          <PropertyPartnerTopNav />
+
+          <main className="flex-1 overflow-y-auto">
+            {children}
+          </main>
+        </div>
       </div>
-    </div>
+    </UnifiedAppProvider>
   );
 }
