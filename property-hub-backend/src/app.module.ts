@@ -5,6 +5,8 @@ import { PropertiesModule } from './modules/properties/properties.module';
 import { LeadsModule } from './modules/leads/leads.module';
 import { CommissionsModule } from './modules/commissions/commissions.module';
 import { UsersModule } from './modules/users/users.module';
+import { RegionsModule } from './modules/regions/regions.module';
+import { KeycloakModule } from './modules/keycloak/keycloak.module';
 import { PrismaService } from './database/prisma.service';
 
 @Module({
@@ -13,11 +15,13 @@ import { PrismaService } from './database/prisma.service';
             isGlobal: true,
             envFilePath: '.env',
         }),
+        KeycloakModule,
         AuthModule,
         PropertiesModule,
         LeadsModule,
         CommissionsModule,
         UsersModule,
+        RegionsModule,
     ],
     providers: [PrismaService],
 })

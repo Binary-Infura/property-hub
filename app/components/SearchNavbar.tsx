@@ -3,9 +3,28 @@
 import React from 'react';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
+import { DASHBOARD_ROUTES } from '../lib/routing';
 
 export default function SearchNavbar() {
-    const { authenticated, initialized } = useAuth();
+    const { authenticated, roles, initialized } = useAuth();
+
+    const getDashboardUrl = () => {
+        const priorityRoles: (keyof typeof DASHBOARD_ROUTES)[] = [
+            'central-authority',
+            'regional-manager',
+            'consultant',
+            'marketing-manager',
+            'property-onboarding-manager',
+            'loan-adviser',
+            'commission-manager',
+            'channel-partner',
+            'visit-executive',
+            'buyer'
+        ];
+
+        const foundRole = priorityRoles.find(role => roles.includes(role));
+        return foundRole ? DASHBOARD_ROUTES[foundRole] : '/dashboard';
+    };
 
     return (
         <nav className="bg-white border-b border-gray-200">
@@ -18,7 +37,7 @@ export default function SearchNavbar() {
                     <div className="flex items-center gap-6">
                         {initialized ? (
                             authenticated ? (
-                                <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
+                                <Link href={getDashboardUrl()} className="text-gray-600 hover:text-gray-900 text-sm font-medium">
                                     My Dashboard
                                 </Link>
                             ) : (

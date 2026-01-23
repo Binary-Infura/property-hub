@@ -2,8 +2,26 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
+import RouteGuard from '@/app/components/auth/RouteGuard';
+import InternalDashboardHeader from '@/app/components/dashboard/InternalDashboardHeader';
 
 export default function ServiceProviderLayout({
+    children,
+}: {
+    children: React.ReactNode;
+}) {
+    return (
+        <RouteGuard requiredRole="marketing-manager">
+            {/* Note: In a real app we'd have a 'service-provider' role, using marketing-manager as a placeholder if service-provider isn't in Keycloak yet */}
+            <UnifiedAppProvider>
+                <ServiceProviderLayoutContent>{children}</ServiceProviderLayoutContent>
+            </UnifiedAppProvider>
+        </RouteGuard>
+    );
+}
+
+function ServiceProviderLayoutContent({
     children,
 }: {
     children: React.ReactNode;

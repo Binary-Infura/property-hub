@@ -1,60 +1,24 @@
 import { Injectable, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import KcAdminClient from '@keycloak/keycloak-admin-client';
 import { InviteInternalUserDto, InviteCentralAuthorityDto, InvitationResponse } from './invitation.dto';
+import { KeycloakAdminService } from '../keycloak/keycloak-admin.service';
 
 /**
  * Service to handle user invitations via Keycloak Admin API
  */
 @Injectable()
 export class InvitationService {
-    private kcAdminClient: KcAdminClient;
-    private realm: string;
+    constructor(
+        private configService: ConfigService,
+        private keycloakAdmin: KeycloakAdminService
+    ) { }
 
-    constructor(private configService: ConfigService) {
-        this.initializeKeycloakAdmin();
+    private async getClient() {
+        return this.keycloakAdmin.getClient();
     }
 
-    /**
-     * Initialize Keycloak Admin Client
-     */
-    private async initializeKeycloakAdmin() {
-        const keycloakRealmUrl = this.configService.get<string>('KEYCLOAK_REALM_URL');
-        const baseUrl = keycloakRealmUrl.replace(/\/realms\/.*$/, '');
-
-        // Extract realm from URL (e.g., http://localhost:8080/realms/property-hub -> property-hub)
-        const realmMatch = keycloakRealmUrl.match(/\/realms\/([^\/]+)/);
-        this.realm = realmMatch ? realmMatch[1] : 'property-hub';
-
-        this.kcAdminClient = new KcAdminClient({
-            baseUrl,
-            realmName: 'master', // Connect to master initially for auth
-        });
-
-        // Authenticate with admin credentials
-        await this.authenticate();
-    }
-
-    /**
-     * Authenticate with Keycloak admin
-     */
-    private async authenticate() {
-        try {
-            await this.kcAdminClient.auth({
-                username: this.configService.get<string>('KEYCLOAK_ADMIN_USER') || 'admin',
-                password: this.configService.get<string>('KEYCLOAK_ADMIN_PASSWORD') || 'admin',
-                grantType: 'password',
-                clientId: 'admin-cli',
-            });
-
-            // Switch to the target realm
-            this.kcAdminClient.setConfig({
-                realmName: this.realm,
-            });
-        } catch (error) {
-            console.error('Failed to authenticate with Keycloak admin:', error);
-            throw new InternalServerErrorException('Failed to connect to Keycloak admin');
-        }
+    private get realm() {
+        return this.keycloakAdmin.getRealmName();
     }
 
     /**
@@ -75,14 +39,12 @@ export class InvitationService {
      */
     async inviteInternalUser(dto: InviteInternalUserDto): Promise<InvitationResponse> {
         try {
-            // Re-authenticate if needed
-            await this.authenticate();
-
+            const client = await this.getClient();
             const temporaryPassword = this.generateTemporaryPassword();
             const username = dto.email.split('@')[0]; // Use email prefix as username
 
             // Create user in Keycloak
-            const createdUser = await this.kcAdminClient.users.create({
+            const createdUser = await client.users.create({
                 realm: this.realm,
                 username,
                 email: dto.email,
@@ -94,7 +56,7 @@ export class InvitationService {
                     {
                         type: 'password',
                         value: temporaryPassword,
-                        temporary: true, // User must change password on first login
+                        temporary: false, // Set to false to avoid "Account is not fully set up" errors in headless login
                     },
                 ],
                 attributes: {
@@ -105,7 +67,7 @@ export class InvitationService {
             const userId = createdUser.id;
 
             // Get the 'internal' role
-            const internalRole = await this.kcAdminClient.roles.findOneByName({
+            const internalRole = await client.roles.findOneByName({
                 realm: this.realm,
                 name: 'internal',
             });
@@ -115,7 +77,7 @@ export class InvitationService {
             }
 
             // Assign 'internal' realm role to user
-            await this.kcAdminClient.users.addRealmRoleMappings({
+            await client.users.addRealmRoleMappings({
                 realm: this.realm,
                 id: userId,
                 roles: [
@@ -125,9 +87,6 @@ export class InvitationService {
                     },
                 ],
             });
-
-            // TODO: Send invitation email with temporary password
-            // This would integrate with your email service
 
             return {
                 userId,
@@ -145,14 +104,12 @@ export class InvitationService {
      */
     async inviteCentralAuthorityUser(dto: InviteCentralAuthorityDto): Promise<InvitationResponse> {
         try {
-            // Re-authenticate if needed
-            await this.authenticate();
-
+            const client = await this.getClient();
             const temporaryPassword = this.generateTemporaryPassword();
             const username = dto.email.split('@')[0];
 
             // Create user in Keycloak
-            const createdUser = await this.kcAdminClient.users.create({
+            const createdUser = await client.users.create({
                 realm: this.realm,
                 username,
                 email: dto.email,
@@ -164,7 +121,7 @@ export class InvitationService {
                     {
                         type: 'password',
                         value: temporaryPassword,
-                        temporary: true,
+                        temporary: false,
                     },
                 ],
                 attributes: {
@@ -176,7 +133,7 @@ export class InvitationService {
             const userId = createdUser.id;
 
             // Get the 'internal' role
-            const internalRole = await this.kcAdminClient.roles.findOneByName({
+            const internalRole = await client.roles.findOneByName({
                 realm: this.realm,
                 name: 'internal',
             });
@@ -186,7 +143,7 @@ export class InvitationService {
             }
 
             // Assign 'internal' realm role
-            await this.kcAdminClient.users.addRealmRoleMappings({
+            await client.users.addRealmRoleMappings({
                 realm: this.realm,
                 id: userId,
                 roles: [
@@ -196,8 +153,6 @@ export class InvitationService {
                     },
                 ],
             });
-
-            // TODO: Send invitation email
 
             return {
                 userId,

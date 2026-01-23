@@ -12,8 +12,10 @@ async function bootstrap() {
 
     // Enable CORS
     app.enableCors({
-        origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+        origin: true, // Allow all origins in development
         credentials: true,
+        methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+        allowedHeaders: 'Content-Type, Accept, Authorization',
     });
 
     // Global validation pipe

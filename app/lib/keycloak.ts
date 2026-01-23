@@ -15,7 +15,7 @@ let keycloak: Keycloak | null = null;
 
 if (typeof window !== 'undefined') {
     keycloak = new Keycloak({
-        url: 'http://localhost:8080',
+        url: `${window.location.origin}/keycloak`,
         realm: 'property-hub',
         clientId: 'property-hub-frontend'
     });

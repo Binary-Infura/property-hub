@@ -4,6 +4,7 @@ import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
 import InternalDashboardHeader from '@/app/components/dashboard/InternalDashboardHeader';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import RouteGuard from '@/app/components/auth/RouteGuard';
 
 function MarketingManagerDashboardLayoutContent({
     children,
@@ -109,8 +110,10 @@ function MarketingManagerDashboardLayoutContent({
 
 export default function MarketingManagerDashboardLayout({ children }: { children: React.ReactNode }) {
     return (
-        <UnifiedAppProvider>
-            <MarketingManagerDashboardLayoutContent>{children}</MarketingManagerDashboardLayoutContent>
-        </UnifiedAppProvider>
+        <RouteGuard requiredRole="marketing-manager">
+            <UnifiedAppProvider>
+                <MarketingManagerDashboardLayoutContent>{children}</MarketingManagerDashboardLayoutContent>
+            </UnifiedAppProvider>
+        </RouteGuard>
     );
 }

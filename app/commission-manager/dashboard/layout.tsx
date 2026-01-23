@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
 import InternalDashboardHeader from '@/app/components/dashboard/InternalDashboardHeader';
 import { usePathname } from 'next/navigation';
+import RouteGuard from '@/app/components/auth/RouteGuard';
 
 function CommissionManagerLayoutContent({
   children,
@@ -70,8 +71,10 @@ function CommissionManagerLayoutContent({
 
 export default function CommissionManagerLayout({ children }: { children: React.ReactNode }) {
   return (
-    <UnifiedAppProvider>
-      <CommissionManagerLayoutContent>{children}</CommissionManagerLayoutContent>
-    </UnifiedAppProvider>
+    <RouteGuard requiredRole="commission-manager">
+      <UnifiedAppProvider>
+        <CommissionManagerLayoutContent>{children}</CommissionManagerLayoutContent>
+      </UnifiedAppProvider>
+    </RouteGuard>
   );
 }

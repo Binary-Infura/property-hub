@@ -3,9 +3,29 @@
 import React from 'react';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
+import { DASHBOARD_ROUTES } from '../lib/routing';
 
 export default function Navbar() {
-    const { authenticated, initialized } = useAuth();
+    const { authenticated, roles, initialized } = useAuth();
+
+    const getDashboardUrl = () => {
+        // Preference order for redirection
+        const priorityRoles: (keyof typeof DASHBOARD_ROUTES)[] = [
+            'central-authority',
+            'regional-manager',
+            'consultant',
+            'marketing-manager',
+            'property-onboarding-manager',
+            'loan-adviser',
+            'commission-manager',
+            'channel-partner',
+            'visit-executive',
+            'buyer'
+        ];
+
+        const foundRole = priorityRoles.find(role => roles.includes(role));
+        return foundRole ? DASHBOARD_ROUTES[foundRole] : '/dashboard';
+    };
 
     return (
         <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
@@ -27,7 +47,7 @@ export default function Navbar() {
                         </Link>
                         {initialized ? (
                             authenticated ? (
-                                <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 px-4 py-2 text-sm font-medium border border-blue-100 rounded-lg bg-blue-50/50">
+                                <Link href={getDashboardUrl()} className="text-gray-600 hover:text-gray-900 px-4 py-2 text-sm font-medium border border-blue-100 rounded-lg bg-blue-50/50">
                                     My Dashboard
                                 </Link>
                             ) : (

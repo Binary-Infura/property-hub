@@ -13,8 +13,44 @@
                 "description": "End user / Property buyer"
             },
             {
-                "name": "internal",
-                "description": "Internal staff member with region-specific roles"
+                "name": "central-authority",
+                "description": "Platform-wide administrator"
+            },
+            {
+                "name": "regional-manager",
+                "description": "Manager for a specific region"
+            },
+            {
+                "name": "property-partner",
+                "description": "Property developer and partner"
+            },
+            {
+                "name": "consultant",
+                "description": "Property consultant"
+            },
+            {
+                "name": "channel-partner",
+                "description": "External partner"
+            },
+            {
+                "name": "commission-manager",
+                "description": "Manages commissions"
+            },
+            {
+                "name": "marketing-manager",
+                "description": "Head of marketing department"
+            },
+            {
+                "name": "ads-executive",
+                "description": "Manages advertising campaigns"
+            },
+            {
+                "name": "creative-executive",
+                "description": "Manages creative assets"
+            },
+            {
+                "name": "marketing-lead",
+                "description": "Coordinates marketing team"
             }
         ]
     },
@@ -41,17 +77,16 @@
             ],
             "protocolMappers": [
                 {
-                    "name": "regions-mapper",
+                    "name": "groups-mapper",
                     "protocol": "openid-connect",
-                    "protocolMapper": "oidc-usermodel-attribute-mapper",
+                    "protocolMapper": "oidc-group-membership-mapper",
                     "consentRequired": false,
                     "config": {
-                        "userinfo.token.claim": "true",
-                        "user.attribute": "regions",
+                        "full.path": "true",
                         "id.token.claim": "true",
                         "access.token.claim": "true",
-                        "claim.name": "regions",
-                        "jsonType.label": "JSON"
+                        "claim.name": "groups",
+                        "userinfo.token.claim": "true"
                     }
                 }
             ]

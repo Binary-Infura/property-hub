@@ -1,12 +1,8 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
-import { ROLES_KEY } from '../../common/decorators/roles.decorator';
+import { ROLES_KEY } from '../../common/decorators/require-roles.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 
-/**
- * Guard to check realm-level roles (buyer or internal)
- * For region-specific roles, use RegionRoleGuard instead
- */
 @Injectable()
 export class RolesGuard implements CanActivate {
     constructor(private reflector: Reflector) { }
@@ -18,31 +14,15 @@ export class RolesGuard implements CanActivate {
         ]);
 
         if (!requiredRoles || requiredRoles.length === 0) {
-            return true; // No roles required, allow access
-        }
-
-        const request = context.switchToHttp().getRequest();
-        const user: AuthenticatedUser = request.user;
-
-        if (!user) {
-            throw new ForbiddenException('User not authenticated');
-        }
-
-        // Central authority bypasses role checks
-        if (user.isCentralAuthority) {
             return true;
         }
 
-        // Check if user has any of the required roles
-        // Note: realmRole is now a single value ('buyer' | 'internal')
-        const hasRole = requiredRoles.includes(user.realmRole);
-
-        if (!hasRole) {
-            throw new ForbiddenException(
-                `Insufficient permissions. Required roles: ${requiredRoles.join(', ')}. You have: ${user.realmRole}`,
-            );
+        const { user } = context.switchToHttp().getRequest<{ user: AuthenticatedUser }>();
+        if (!user || !user.roles) {
+            return false;
         }
 
-        return true;
+        // Grant access if user has ANY of the required roles
+        return requiredRoles.some((role) => user.roles.includes(role));
     }
 }

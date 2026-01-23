@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 
 import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
 import InternalDashboardHeader from '@/app/components/dashboard/InternalDashboardHeader';
+import RouteGuard from '@/app/components/auth/RouteGuard';
 
 function CentralAuthorityDashboardLayoutContent({
     children,
@@ -74,8 +75,10 @@ function CentralAuthorityDashboardLayoutContent({
 
 export default function CentralAuthorityDashboardLayout({ children }: { children: React.ReactNode }) {
     return (
-        <UnifiedAppProvider>
-            <CentralAuthorityDashboardLayoutContent>{children}</CentralAuthorityDashboardLayoutContent>
-        </UnifiedAppProvider>
+        <RouteGuard requiredRole="central-authority">
+            <UnifiedAppProvider>
+                <CentralAuthorityDashboardLayoutContent>{children}</CentralAuthorityDashboardLayoutContent>
+            </UnifiedAppProvider>
+        </RouteGuard>
     );
 }

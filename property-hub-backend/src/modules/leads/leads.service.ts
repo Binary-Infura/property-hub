@@ -9,9 +9,12 @@ export class LeadsService {
     constructor(private prisma: PrismaService) { }
 
     async findAll(user: AuthenticatedUser): Promise<Lead[]> {
-        const where = user.isCentralAuthority
+        const isCentralAuthority = user.roles.includes('central-authority');
+        const userRegions = user.groups.map(g => g.split('/').pop());
+
+        const where = isCentralAuthority
             ? {}
-            : { regionId: { in: user.regions } };
+            : { regionId: { in: userRegions } };
 
         return this.prisma.lead.findMany({
             where,
@@ -39,7 +42,10 @@ export class LeadsService {
             throw new NotFoundException(`Lead with ID ${id} not found`);
         }
 
-        if (!user.isCentralAuthority && !user.regions.includes(lead.regionId)) {
+        const isCentralAuthority = user.roles.includes('central-authority');
+        const userRegions = user.groups.map(g => g.split('/').pop());
+
+        if (!isCentralAuthority && !userRegions.includes(lead.regionId)) {
             throw new NotFoundException(`Lead with ID ${id} not found`);
         }
 

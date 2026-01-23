@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
 
-export default function BuyerSignIn() {
-    const { loginWithCredentials, authenticated, roles } = useAuth();
+export default function SignInPage() {
+    const { loginWithCredentials, authenticated, user, roles } = useAuth();
     const router = useRouter();
     const [formData, setFormData] = useState({
         identifier: '',
@@ -16,14 +16,43 @@ export default function BuyerSignIn() {
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        if (authenticated) {
+        if (authenticated && user) {
+            console.log('User roles for redirection:', roles);
+
+            // 1. Central Authority
+            if (roles.includes('central-authority')) {
+                router.push('/central-authority/dashboard');
+                return;
+            }
+
+            // 2. Internal Staff Roles
+            const internalRoles = [
+                'regional-manager',
+                'consultant',
+                'property-onboarding-manager',
+                'loan-adviser',
+                'marketing-manager',
+                'visit-executive',
+                'commission-manager',
+                'channel-partner'
+            ];
+
+            const foundInternalRole = internalRoles.find(role => roles.includes(role));
+            if (foundInternalRole) {
+                router.push(`/${foundInternalRole}/dashboard`);
+                return;
+            }
+
+            // 3. Consumer/Other Roles
             if (roles.includes('buyer')) {
                 router.push('/dashboard');
-            } else {
-                router.push('/');
+                return;
             }
+
+            // Fallback
+            router.push('/');
         }
-    }, [authenticated, roles, router]);
+    }, [authenticated, user, roles, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -38,7 +67,6 @@ export default function BuyerSignIn() {
             const result = await loginWithCredentials(formData.identifier, formData.password);
 
             if (result.success) {
-                // Success will trigger the useEffect above due to 'authenticated' change
                 console.log('Login successful');
             } else {
                 setError(result.error || 'Authentication failed');
@@ -51,17 +79,17 @@ export default function BuyerSignIn() {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-blue-50 py-12 px-4 sm:px-6 lg:px-8">
-            <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl">
+        <div className="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
+            <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
                 <div className="text-center">
                     <Link href="/" className="inline-block mx-auto h-12 w-12 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl mb-4">
                         PH
                     </Link>
                     <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
-                        Welcome Back
+                        Sign In
                     </h2>
                     <p className="mt-2 text-sm text-gray-500">
-                        Sign in to manage your property journey
+                        Access your PropertyHub workspace
                     </p>
                 </div>
 
@@ -79,7 +107,7 @@ export default function BuyerSignIn() {
                                 value={formData.identifier}
                                 onChange={(e) => setFormData({ ...formData, identifier: e.target.value })}
                                 className="block w-full px-4 py-3 border border-gray-300 rounded-xl shadow-sm placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all sm:text-sm"
-                                placeholder="you@example.com"
+                                placeholder="you@propertyhub.com"
                             />
                         </div>
 
@@ -100,16 +128,8 @@ export default function BuyerSignIn() {
                         </div>
                     </div>
 
-                    <div className="flex items-center justify-between">
-                        <div className="text-sm">
-                            <a href="#" className="font-medium text-blue-600 hover:text-blue-500">
-                                Forgot password?
-                            </a>
-                        </div>
-                    </div>
-
                     {error && (
-                        <div className="p-3 rounded-lg bg-red-50 text-red-700 text-sm border border-red-100 italic">
+                        <div className="p-3 rounded-lg bg-red-50 text-red-700 text-sm border border-red-100">
                             {error}
                         </div>
                     )}
@@ -117,15 +137,15 @@ export default function BuyerSignIn() {
                     <button
                         type="submit"
                         disabled={isLoading}
-                        className="w-full flex justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 shadow-lg shadow-blue-500/30 transition-all active:scale-[0.98]"
+                        className="w-full flex justify-center py-3.5 px-4 border border-transparent text-sm font-bold rounded-xl text-white bg-slate-900 hover:bg-slate-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 shadow-lg transition-all active:scale-[0.98]"
                     >
                         {isLoading ? 'Signing you in...' : 'Sign In'}
                     </button>
                 </form>
 
                 <div className="mt-6 text-center">
-                    <p className="text-sm text-gray-600">
-                        Interested in property? <Link href="/search" className="font-semibold text-blue-600 hover:text-blue-500 underline decoration-2 underline-offset-4">Explore listings</Link>
+                    <p className="text-xs text-gray-400">
+                        Secure internal system. Authorized access only.
                     </p>
                 </div>
             </div>

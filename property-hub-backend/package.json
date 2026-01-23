@@ -24,6 +24,7 @@
     "prisma:studio": "prisma studio"
   },
   "dependencies": {
+    "@fastify/static": "^7.0.4",
     "@keycloak/keycloak-admin-client": "^26.5.1",
     "@nestjs/common": "^10.3.0",
     "@nestjs/config": "^3.1.1",

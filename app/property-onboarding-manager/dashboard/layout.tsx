@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
 import InternalDashboardHeader from '@/app/components/dashboard/InternalDashboardHeader';
+import RouteGuard from '@/app/components/auth/RouteGuard';
 
 function PropertyOnboardingManagerLayoutContent({
     children,
@@ -69,8 +70,10 @@ function PropertyOnboardingManagerLayoutContent({
 
 export default function PropertyOnboardingManagerLayout({ children }: { children: React.ReactNode }) {
     return (
-        <UnifiedAppProvider>
-            <PropertyOnboardingManagerLayoutContent>{children}</PropertyOnboardingManagerLayoutContent>
-        </UnifiedAppProvider>
+        <RouteGuard requiredRole="property-onboarding-manager">
+            <UnifiedAppProvider>
+                <PropertyOnboardingManagerLayoutContent>{children}</PropertyOnboardingManagerLayoutContent>
+            </UnifiedAppProvider>
+        </RouteGuard>
     );
 }

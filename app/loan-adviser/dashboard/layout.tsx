@@ -2,6 +2,7 @@
 
 import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
 import InternalDashboardHeader from '@/app/components/dashboard/InternalDashboardHeader';
+import RouteGuard from '@/app/components/auth/RouteGuard';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -70,9 +71,11 @@ function LoanAdviserDashboardLayoutContent({
 
 export default function LoanAdviserDashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <UnifiedAppProvider>
-      <LoanAdviserDashboardLayoutContent>{children}</LoanAdviserDashboardLayoutContent>
-    </UnifiedAppProvider>
+    <RouteGuard requiredRole="loan-adviser">
+      <UnifiedAppProvider>
+        <LoanAdviserDashboardLayoutContent>{children}</LoanAdviserDashboardLayoutContent>
+      </UnifiedAppProvider>
+    </RouteGuard>
   );
 }
 

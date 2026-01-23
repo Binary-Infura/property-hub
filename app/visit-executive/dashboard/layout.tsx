@@ -2,6 +2,7 @@
 
 import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
 import InternalDashboardHeader from '@/app/components/dashboard/InternalDashboardHeader';
+import RouteGuard from '@/app/components/auth/RouteGuard';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -73,8 +74,10 @@ function VisitExecutiveDashboardLayoutContent({
 
 export default function VisitExecutiveDashboardLayout({ children }: { children: React.ReactNode }) {
     return (
-        <UnifiedAppProvider>
-            <VisitExecutiveDashboardLayoutContent>{children}</VisitExecutiveDashboardLayoutContent>
-        </UnifiedAppProvider>
+        <RouteGuard requiredRole="visit-executive">
+            <UnifiedAppProvider>
+                <VisitExecutiveDashboardLayoutContent>{children}</VisitExecutiveDashboardLayoutContent>
+            </UnifiedAppProvider>
+        </RouteGuard>
     );
 }

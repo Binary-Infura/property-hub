@@ -10,13 +10,12 @@ export interface UserRole {
     id: RoleId;
     name: string;
     permissionHint: string;
-    dashboardUrl: string; // URL to redirect to when this role is active
+    dashboardUrl: string;
 }
 
 export interface Region {
     id: string;
     name: string;
-    roles: UserRole[];
 }
 
 export interface UserContextData {
@@ -29,6 +28,7 @@ export interface UnifiedAppContextType {
         name: string;
         avatar: string;
         availableRegions: Region[];
+        availableRoles: UserRole[];
     };
     activeContext: UserContextData;
     switchContext: (regionId: string, roleId: RoleId) => void;
@@ -36,35 +36,35 @@ export interface UnifiedAppContextType {
 
 // --- Mock Data ---
 const MOCK_REGIONS: Region[] = [
+    { id: 'r_mumbai_west', name: 'West Mumbai' },
+    { id: 'r_mumbai_south', name: 'South Mumbai' },
+    { id: 'r_pune_west', name: 'Pune West' }
+];
+
+const MOCK_ROLES: UserRole[] = [
     {
-        id: 'r_mumbai_west',
-        name: 'West Mumbai',
-        roles: [
-            {
-                id: 'regional-manager',
-                name: 'Regional Manager',
-                permissionHint: 'Full access to West Mumbai region',
-                dashboardUrl: '/regional-manager/dashboard'
-            },
-            {
-                id: 'marketing-manager',
-                name: 'Marketing Manager',
-                permissionHint: 'Manage campaigns & leads for West Mumbai',
-                dashboardUrl: '/marketing-manager/dashboard' // Assuming this exists or will exist
-            }
-        ]
+        id: 'central-authority',
+        name: 'Central Authority',
+        permissionHint: 'Platform-wide administrator',
+        dashboardUrl: '/central-authority/dashboard'
     },
     {
-        id: 'r_pune',
-        name: 'Pune',
-        roles: [
-            {
-                id: 'marketing-manager',
-                name: 'Marketing Manager',
-                permissionHint: 'Manage campaigns & leads for Pune',
-                dashboardUrl: '/marketing-manager/dashboard'
-            }
-        ]
+        id: 'regional-manager',
+        name: 'Regional Manager',
+        permissionHint: 'Full access to selected region',
+        dashboardUrl: '/regional-manager/dashboard'
+    },
+    {
+        id: 'marketing-manager',
+        name: 'Marketing Manager',
+        permissionHint: 'Manage campaigns & leads for region',
+        dashboardUrl: '/marketing-manager/dashboard'
+    },
+    {
+        id: 'property-partner',
+        name: 'Property Partner',
+        permissionHint: 'Manage properties and inventory',
+        dashboardUrl: '/property-partner/dashboard'
     }
 ];
 
@@ -72,11 +72,12 @@ const DEFAULT_CONTEXT: UnifiedAppContextType = {
     currentUser: {
         name: 'Parth Singh',
         avatar: 'https://ui-avatars.com/api/?name=Parth+Singh&background=0D8ABC&color=fff',
-        availableRegions: MOCK_REGIONS
+        availableRegions: MOCK_REGIONS,
+        availableRoles: MOCK_ROLES
     },
     activeContext: {
         activeRegion: MOCK_REGIONS[0],
-        activeRole: MOCK_REGIONS[0].roles[0]
+        activeRole: MOCK_ROLES[0]
     },
     switchContext: () => { }
 };
@@ -88,13 +89,13 @@ const UnifiedAppContext = createContext<UnifiedAppContextType>(DEFAULT_CONTEXT);
 export function UnifiedAppProvider({ children }: { children: ReactNode }) {
     const router = useRouter();
     const [activeRegion, setActiveRegion] = useState<Region>(MOCK_REGIONS[0]);
-    const [activeRole, setActiveRole] = useState<UserRole>(MOCK_REGIONS[0].roles[0]);
+    const [activeRole, setActiveRole] = useState<UserRole>(MOCK_ROLES[0]);
 
     const switchContext = (regionId: string, roleId: RoleId) => {
         const region = MOCK_REGIONS.find(r => r.id === regionId);
         if (!region) return;
 
-        const role = region.roles.find(r => r.id === roleId);
+        const role = MOCK_ROLES.find(r => r.id === roleId);
         if (!role) return;
 
         setActiveRegion(region);

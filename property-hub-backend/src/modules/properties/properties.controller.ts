@@ -12,20 +12,21 @@ import { PropertiesService } from './properties.service';
 import { CreatePropertyDto, UpdatePropertyDto } from './properties.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
-import { RegionRoleGuard } from '../../auth/guards/region-role.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { RequireRegionRole } from '../../common/decorators/region-roles.decorator';
+import { RegionGuard } from '../../auth/guards/region.guard';
+import { RequireRoles } from '../../common/decorators/require-roles.decorator';
+import { RequireRegion } from '../../common/decorators/require-region.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 
 @Controller('api/:region/properties')
-@UseGuards(JwtAuthGuard, RolesGuard, RegionRoleGuard)
-@Roles('internal')
+@UseGuards(JwtAuthGuard, RolesGuard, RegionGuard)
+@RequireRoles('internal')
+@RequireRegion()
 export class PropertiesController {
     constructor(private readonly propertiesService: PropertiesService) { }
 
     @Get()
-    @RequireRegionRole('regional-manager', 'property-onboarding-manager')
+    @RequireRoles('regional-manager', 'property-onboarding-manager')
     findAll(
         @Param('region') region: string,
         @CurrentUser() user: AuthenticatedUser
@@ -34,7 +35,7 @@ export class PropertiesController {
     }
 
     @Get(':id')
-    @RequireRegionRole('regional-manager', 'property-onboarding-manager', 'consultant')
+    @RequireRoles('regional-manager', 'property-onboarding-manager', 'consultant')
     findOne(
         @Param('region') region: string,
         @Param('id') id: string,
@@ -44,7 +45,7 @@ export class PropertiesController {
     }
 
     @Post()
-    @RequireRegionRole('regional-manager', 'property-onboarding-manager')
+    @RequireRoles('regional-manager', 'property-onboarding-manager')
     create(
         @Param('region') region: string,
         @Body() createPropertyDto: CreatePropertyDto
@@ -53,7 +54,7 @@ export class PropertiesController {
     }
 
     @Patch(':id')
-    @RequireRegionRole('regional-manager', 'property-onboarding-manager')
+    @RequireRoles('regional-manager', 'property-onboarding-manager')
     update(
         @Param('region') region: string,
         @Param('id') id: string,
@@ -64,7 +65,7 @@ export class PropertiesController {
     }
 
     @Delete(':id')
-    @RequireRegionRole('regional-manager')
+    @RequireRoles('regional-manager')
     remove(
         @Param('region') region: string,
         @Param('id') id: string,

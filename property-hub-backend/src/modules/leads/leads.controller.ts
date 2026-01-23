@@ -12,20 +12,21 @@ import { LeadsService } from './leads.service';
 import { CreateLeadDto, UpdateLeadDto } from './leads.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
-import { RegionRoleGuard } from '../../auth/guards/region-role.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { RequireRegionRole } from '../../common/decorators/region-roles.decorator';
+import { RegionGuard } from '../../auth/guards/region.guard';
+import { RequireRoles } from '../../common/decorators/require-roles.decorator';
+import { RequireRegion } from '../../common/decorators/require-region.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 
 @Controller('api/:region/leads')
-@UseGuards(JwtAuthGuard, RolesGuard, RegionRoleGuard)
-@Roles('internal')
+@UseGuards(JwtAuthGuard, RolesGuard, RegionGuard)
+@RequireRoles('internal')
+@RequireRegion()
 export class LeadsController {
     constructor(private readonly leadsService: LeadsService) { }
 
     @Get()
-    @RequireRegionRole('regional-manager', 'leads-manager')
+    @RequireRoles('regional-manager', 'leads-manager')
     findAll(
         @Param('region') region: string,
         @CurrentUser() user: AuthenticatedUser
@@ -34,7 +35,7 @@ export class LeadsController {
     }
 
     @Get(':id')
-    @RequireRegionRole('regional-manager', 'leads-manager')
+    @RequireRoles('regional-manager', 'leads-manager')
     findOne(
         @Param('region') region: string,
         @Param('id') id: string,
@@ -44,7 +45,7 @@ export class LeadsController {
     }
 
     @Post()
-    @RequireRegionRole('regional-manager', 'leads-manager')
+    @RequireRoles('regional-manager', 'leads-manager')
     create(
         @Param('region') region: string,
         @Body() createLeadDto: CreateLeadDto
@@ -53,7 +54,7 @@ export class LeadsController {
     }
 
     @Patch(':id')
-    @RequireRegionRole('regional-manager', 'leads-manager')
+    @RequireRoles('regional-manager', 'leads-manager')
     update(
         @Param('region') region: string,
         @Param('id') id: string,
@@ -64,7 +65,7 @@ export class LeadsController {
     }
 
     @Delete(':id')
-    @RequireRegionRole('regional-manager')
+    @RequireRoles('regional-manager')
     remove(
         @Param('region') region: string,
         @Param('id') id: string,

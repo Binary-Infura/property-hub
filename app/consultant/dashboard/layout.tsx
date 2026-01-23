@@ -13,6 +13,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
 import InternalDashboardHeader from '@/app/components/dashboard/InternalDashboardHeader';
+import RouteGuard from '@/app/components/auth/RouteGuard';
 
 function ConsultantDashboardLayoutContent({
   children,
@@ -85,9 +86,11 @@ function ConsultantDashboardLayoutContent({
 
 export default function ConsultantDashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <UnifiedAppProvider>
-      <ConsultantDashboardLayoutContent>{children}</ConsultantDashboardLayoutContent>
-    </UnifiedAppProvider>
+    <RouteGuard requiredRole="consultant">
+      <UnifiedAppProvider>
+        <ConsultantDashboardLayoutContent>{children}</ConsultantDashboardLayoutContent>
+      </UnifiedAppProvider>
+    </RouteGuard>
   );
 }
 

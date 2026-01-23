@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
 import InternalDashboardHeader from '@/app/components/dashboard/InternalDashboardHeader';
+import RouteGuard from '@/app/components/auth/RouteGuard';
 
 function RegionalManagerDashboardLayoutContent({
   children,
@@ -76,8 +77,10 @@ function RegionalManagerDashboardLayoutContent({
 
 export default function RegionalManagerDashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <UnifiedAppProvider>
-      <RegionalManagerDashboardLayoutContent>{children}</RegionalManagerDashboardLayoutContent>
-    </UnifiedAppProvider>
+    <RouteGuard requiredRole="regional-manager">
+      <UnifiedAppProvider>
+        <RegionalManagerDashboardLayoutContent>{children}</RegionalManagerDashboardLayoutContent>
+      </UnifiedAppProvider>
+    </RouteGuard>
   );
 }

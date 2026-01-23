@@ -9,9 +9,13 @@ export class PropertiesService {
     constructor(private prisma: PrismaService) { }
 
     async findAll(user: AuthenticatedUser): Promise<Property[]> {
-        const where = user.isCentralAuthority
+        const isCentralAuthority = user.roles.includes('central-authority');
+        const userRegions = user.groups.map(g => g.split('/').pop());
+
+        const where = isCentralAuthority
             ? {} // Central authority sees all properties
-            : { regionId: { in: user.regions.map(r => r) } }; // Filter by user's regions
+            : { regionId: { in: userRegions } }; // Filter by user's regions
+
 
         return this.prisma.property.findMany({
             where,
@@ -37,8 +41,11 @@ export class PropertiesService {
             throw new NotFoundException(`Property with ID ${id} not found`);
         }
 
+        const isCentralAuthority = user.roles.includes('central-authority');
+        const userRegions = user.groups.map(g => g.split('/').pop());
+
         // Check region access
-        if (!user.isCentralAuthority && !user.regions.includes(property.regionId)) {
+        if (!isCentralAuthority && !userRegions.includes(property.regionId)) {
             throw new NotFoundException(`Property with ID ${id} not found`);
         }
 

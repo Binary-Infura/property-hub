@@ -15,6 +15,7 @@ import { usePathname } from 'next/navigation';
 
 import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
 import InternalDashboardHeader from '@/app/components/dashboard/InternalDashboardHeader';
+import RouteGuard from '@/app/components/auth/RouteGuard';
 
 function ChannelPartnerDashboardLayoutContent({
   children,
@@ -80,8 +81,10 @@ function ChannelPartnerDashboardLayoutContent({
 
 export default function ChannelPartnerDashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <UnifiedAppProvider>
-      <ChannelPartnerDashboardLayoutContent>{children}</ChannelPartnerDashboardLayoutContent>
-    </UnifiedAppProvider>
+    <RouteGuard requiredRole="channel-partner">
+      <UnifiedAppProvider>
+        <ChannelPartnerDashboardLayoutContent>{children}</ChannelPartnerDashboardLayoutContent>
+      </UnifiedAppProvider>
+    </RouteGuard>
   );
 }

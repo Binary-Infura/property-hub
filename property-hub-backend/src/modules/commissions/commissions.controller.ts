@@ -12,20 +12,21 @@ import { CommissionsService } from './commissions.service';
 import { CreateCommissionDto, UpdateCommissionDto } from './commissions.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
-import { RegionRoleGuard } from '../../auth/guards/region-role.guard';
-import { Roles } from '../../common/decorators/roles.decorator';
-import { RequireRegionRole } from '../../common/decorators/region-roles.decorator';
+import { RegionGuard } from '../../auth/guards/region.guard';
+import { RequireRoles } from '../../common/decorators/require-roles.decorator';
+import { RequireRegion } from '../../common/decorators/require-region.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 
 @Controller('api/:region/commissions')
-@UseGuards(JwtAuthGuard, RolesGuard, RegionRoleGuard)
-@Roles('internal')
+@UseGuards(JwtAuthGuard, RolesGuard, RegionGuard)
+@RequireRoles('internal')
+@RequireRegion()
 export class CommissionsController {
     constructor(private readonly commissionsService: CommissionsService) { }
 
     @Get()
-    @RequireRegionRole('commission-manager', 'regional-manager')
+    @RequireRoles('commission-manager', 'regional-manager')
     findAll(
         @Param('region') region: string,
         @CurrentUser() user: AuthenticatedUser
@@ -34,7 +35,7 @@ export class CommissionsController {
     }
 
     @Get(':id')
-    @RequireRegionRole('commission-manager', 'regional-manager')
+    @RequireRoles('commission-manager', 'regional-manager')
     findOne(
         @Param('region') region: string,
         @Param('id') id: string,
@@ -44,7 +45,7 @@ export class CommissionsController {
     }
 
     @Post()
-    @RequireRegionRole('commission-manager')
+    @RequireRoles('commission-manager')
     create(
         @Param('region') region: string,
         @Body() createCommissionDto: CreateCommissionDto,
@@ -54,7 +55,7 @@ export class CommissionsController {
     }
 
     @Patch(':id')
-    @RequireRegionRole('commission-manager')
+    @RequireRoles('commission-manager')
     update(
         @Param('region') region: string,
         @Param('id') id: string,
@@ -65,7 +66,7 @@ export class CommissionsController {
     }
 
     @Delete(':id')
-    @RequireRegionRole('commission-manager')
+    @RequireRoles('commission-manager')
     remove(
         @Param('region') region: string,
         @Param('id') id: string,
