@@ -1,0 +1,52 @@
+'use client';
+
+import React from 'react';
+import Link from 'next/link';
+import { useAuth } from '../contexts/AuthContext';
+
+export default function Navbar() {
+    const { authenticated, initialized } = useAuth();
+
+    return (
+        <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex justify-between items-center h-16">
+                    <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
+                        <Link href="/" className="font-bold text-lg text-gray-900">PropertyHub</Link>
+                    </div>
+                    <div className="hidden md:flex gap-8">
+                        <a href="#how" className="text-gray-600 hover:text-gray-900">How It Works</a>
+                        <a href="#why" className="text-gray-600 hover:text-gray-900">Why Us</a>
+                        <a href="#consultants" className="text-gray-600 hover:text-gray-900">Consultants</a>
+                        <a href="#recommended" className="text-gray-600 hover:text-gray-900">Properties</a>
+                    </div>
+                    <div className="flex gap-3 min-w-[200px] justify-end">
+                        <Link href="/search" className="text-gray-600 hover:text-gray-900 px-4 py-2 text-sm font-medium">
+                            Search Properties
+                        </Link>
+                        {initialized ? (
+                            authenticated ? (
+                                <Link href="/dashboard" className="text-gray-600 hover:text-gray-900 px-4 py-2 text-sm font-medium border border-blue-100 rounded-lg bg-blue-50/50">
+                                    My Dashboard
+                                </Link>
+                            ) : (
+                                <Link
+                                    href="/signin"
+                                    className="text-gray-600 hover:text-gray-900 px-4 py-2 text-sm font-medium"
+                                >
+                                    Login
+                                </Link>
+                            )
+                        ) : (
+                            <div className="w-20 h-8 animate-pulse bg-gray-100 rounded-lg"></div>
+                        )}
+                        <Link href="/consultation" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium whitespace-nowrap">
+                            Free Consultation
+                        </Link>
+                    </div>
+                </div>
+            </div>
+        </nav>
+    );
+}

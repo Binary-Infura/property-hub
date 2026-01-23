@@ -1,41 +1,12 @@
 import Image from "next/image";
 import ConsultantProfile from "./components/ConsultantProfile";
 import RecommendedProperties from "./components/RecommendedProperties";
+import Navbar from "./components/Navbar";
 
 export default function Home() {
   return (
     <div className="bg-white">
-      {/* Navigation */}
-      <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
-              <span className="font-bold text-lg text-gray-900">PropertyHub</span>
-            </div>
-            <div className="hidden md:flex gap-8">
-              <a href="#how" className="text-gray-600 hover:text-gray-900">How It Works</a>
-              <a href="#why" className="text-gray-600 hover:text-gray-900">Why Us</a>
-              <a href="#consultants" className="text-gray-600 hover:text-gray-900">Consultants</a>
-              <a href="#recommended" className="text-gray-600 hover:text-gray-900">Properties</a>
-            </div>
-            <div className="flex gap-3">
-              <a href="/search" className="text-gray-600 hover:text-gray-900 px-4 py-2 text-sm font-medium">
-                Search Properties
-              </a>
-              <a href="/signin" className="text-gray-600 hover:text-gray-900 px-4 py-2 text-sm font-medium">
-                Login
-              </a>
-              <a href="/dashboard" className="text-gray-600 hover:text-gray-900 px-4 py-2 text-sm font-medium">
-                My Dashboard
-              </a>
-              <a href="/consultation" className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium">
-                Free Consultation
-              </a>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Navbar />
 
       {/* Hero Section */}
       <section className="relative bg-gradient-to-br from-blue-50 via-white to-blue-50 py-20 md:py-32 overflow-hidden">

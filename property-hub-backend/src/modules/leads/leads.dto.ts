@@ -1,0 +1,71 @@
+import { IsString, IsOptional, IsEnum, IsUUID, IsEmail } from 'class-validator';
+import { LeadStatus } from '@prisma/client';
+
+export class CreateLeadDto {
+    @IsString()
+    name: string;
+
+    @IsEmail()
+    @IsOptional()
+    email?: string;
+
+    @IsString()
+    phone: string;
+
+    @IsUUID()
+    regionId: string;
+
+    @IsUUID()
+    @IsOptional()
+    propertyId?: string;
+
+    @IsEnum(LeadStatus)
+    @IsOptional()
+    status?: LeadStatus;
+
+    @IsString()
+    @IsOptional()
+    source?: string;
+
+    @IsString()
+    @IsOptional()
+    assignedTo?: string;
+
+    @IsString()
+    @IsOptional()
+    notes?: string;
+}
+
+export class UpdateLeadDto {
+    @IsString()
+    @IsOptional()
+    name?: string;
+
+    @IsEmail()
+    @IsOptional()
+    email?: string;
+
+    @IsString()
+    @IsOptional()
+    phone?: string;
+
+    @IsUUID()
+    @IsOptional()
+    propertyId?: string;
+
+    @IsEnum(LeadStatus)
+    @IsOptional()
+    status?: LeadStatus;
+
+    @IsString()
+    @IsOptional()
+    source?: string;
+
+    @IsString()
+    @IsOptional()
+    assignedTo?: string;
+
+    @IsString()
+    @IsOptional()
+    notes?: string;
+}
