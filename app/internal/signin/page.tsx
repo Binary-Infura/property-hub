@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '../../contexts/AuthContext';
 
 export default function InternalSignIn() {
-    const { loginWithCredentials, authenticated, roles } = useAuth();
+    const { loginWithCredentials, authenticated, user, roles } = useAuth();
     const router = useRouter();
     const [formData, setFormData] = useState({
         identifier: '',
@@ -16,10 +16,20 @@ export default function InternalSignIn() {
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        if (authenticated) {
-            // Check for any internal role
+        if (authenticated && user) {
+            console.log('User object for redirection:', user);
+
+            // Check for central authority first
+            const regions = user.regions || {};
+            const isCentralAuthority = regions['all']?.roles?.includes('central-authority');
+
+            if (isCentralAuthority) {
+                router.push('/central-authority/dashboard');
+                return;
+            }
+
+            // Check for other internal roles in any region
             const internalRoles = [
-                'central-authority',
                 'regional-manager',
                 'consultant',
                 'property-onboarding-manager',
@@ -30,15 +40,24 @@ export default function InternalSignIn() {
                 'channel-partner'
             ];
 
-            const userRole = internalRoles.find(role => roles.includes(role));
+            let foundRole = '';
+            for (const regionId in regions) {
+                const regionRoles = regions[regionId].roles || [];
+                const matchedRole = internalRoles.find(role => regionRoles.includes(role));
+                if (matchedRole) {
+                    foundRole = matchedRole;
+                    break;
+                }
+            }
 
-            if (userRole) {
-                router.push(`/${userRole}/dashboard`);
+            if (foundRole) {
+                router.push(`/${foundRole}/dashboard`);
             } else {
+                console.warn('No matching internal role found in regions:', regions);
                 router.push('/');
             }
         }
-    }, [authenticated, roles, router]);
+    }, [authenticated, user, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
