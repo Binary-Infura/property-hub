@@ -11,6 +11,10 @@ const nextConfig: NextConfig = {
         source: '/keycloak/:path*',
         destination: 'http://localhost:8080/:path*',
       },
+      {
+        source: '/api/:path*',
+        destination: 'http://localhost:3001/api/:path*',
+      },
     ];
   },
 };

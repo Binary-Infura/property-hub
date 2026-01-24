@@ -22,6 +22,7 @@ model Region {
   // Relations
   properties Property[]
   leads      Lead[]
+  managers   User[]
 
   @@map("regions")
 }
@@ -172,3 +173,23 @@ model UserMetadata {
   @@map("user_metadata")
   @@index([keycloakId])
 }
+
+// Unified User model for all roles
+model User {
+  id        String   @id @default(uuid())
+  keycloakId String? @unique
+  name      String
+  email     String   @unique
+  phone     String?
+  role      String   // "regional-manager", "marketing-manager", "central-authority", "super-admin", etc.
+  status    String   @default("active") // "active", "inactive"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Role-specific relations
+  regions   Region[] // For regional managers
+  
+  @@map("users")
+}
+
+

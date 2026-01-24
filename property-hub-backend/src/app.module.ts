@@ -7,6 +7,10 @@ import { CommissionsModule } from './modules/commissions/commissions.module';
 import { UsersModule } from './modules/users/users.module';
 import { RegionsModule } from './modules/regions/regions.module';
 import { KeycloakModule } from './modules/keycloak/keycloak.module';
+import { GlobalUsersModule } from './modules/global-users/global-users.module';
+import { CommissionManagersModule } from './modules/commission-managers/commission-managers.module';
+import { MarketingManagersModule } from './modules/marketing-managers/marketing-managers.module';
+import { RegionalManagersModule } from './modules/regional-managers/regional-managers.module';
 import { PrismaService } from './database/prisma.service';
 
 @Module({
@@ -22,6 +26,10 @@ import { PrismaService } from './database/prisma.service';
         CommissionsModule,
         UsersModule,
         RegionsModule,
+        RegionalManagersModule,
+        MarketingManagersModule,
+        GlobalUsersModule,
+        CommissionManagersModule,
     ],
     providers: [PrismaService],
 })

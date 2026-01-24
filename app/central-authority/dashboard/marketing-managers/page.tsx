@@ -1,24 +1,75 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function MarketingManagersPage() {
     const [showAddForm, setShowAddForm] = useState(false);
 
-    // Mock data - in production, this would come from API
-    const marketingManagers = [
-        {
-            id: '1',
-            name: 'Neha Kapoor',
-            email: 'neha.kapoor@propertyhub.com',
-            status: 'active',
-            teamSize: 15,
-            activeCampaigns: 12,
-            totalLeads: 1250,
-            budgetAllocated: 500000,
-            joinedDate: '2024-01-15',
-        },
-    ];
+    const { token } = useAuth();
+    const [marketingManagers, setMarketingManagers] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+    });
+
+    // Fetch data
+    const fetchData = async () => {
+        if (!token) return;
+        setLoading(true);
+        try {
+            const res = await fetch('/api/marketing-managers', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setMarketingManagers(data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch data', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Initial fetch
+    useEffect(() => {
+        fetchData();
+    }, [token]);
+
+    const handleCreateManager = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!token) return;
+
+        try {
+            const res = await fetch('/api/marketing-managers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    email: formData.email,
+                    phone: formData.phone,
+                }),
+            });
+
+            if (res.ok) {
+                setShowAddForm(false);
+                setFormData({ firstName: '', lastName: '', email: '', phone: '' });
+                fetchData();
+            } else {
+                alert('Failed to create manager');
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     return (
         <div>
@@ -43,14 +94,14 @@ export default function MarketingManagersPage() {
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                     <div className="text-gray-600 text-sm font-medium mb-2">Total Team Members</div>
                     <div className="text-3xl font-bold text-purple-600">
-                        {marketingManagers.reduce((sum, m) => sum + m.teamSize, 0)}
+                        {marketingManagers.reduce((sum, m) => sum + (m.teamSize || 0), 0)}
                     </div>
                 </div>
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                    <div className="text-gray-600 text-sm font-medium mb-2">Active Campaigns</div>
-                    <div className="text-3xl font-bold text-blue-600">
-                        {marketingManagers.reduce((sum, m) => sum + m.activeCampaigns, 0)}
-                    </div>
+            </div>
+            <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                <div className="text-gray-600 text-sm font-medium mb-2">Active Campaigns</div>
+                <div className="text-3xl font-bold text-blue-600">
+                    {marketingManagers.reduce((sum, m) => sum + (m.activeCampaigns || 0), 0)}
                 </div>
             </div>
 
@@ -109,7 +160,13 @@ export default function MarketingManagersPage() {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {marketingManagers.map((manager) => (
+                            {loading ? (
+                                <tr>
+                                    <td colSpan={8} className="px-6 py-4 text-center text-gray-500">
+                                        Loading...
+                                    </td>
+                                </tr>
+                            ) : marketingManagers.map((manager) => (
                                 <tr key={manager.id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center gap-3">
@@ -133,19 +190,19 @@ export default function MarketingManagersPage() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {manager.teamSize} members
+                                        {manager.teamSize || 0} members
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {manager.activeCampaigns}
+                                        {manager.activeCampaigns || 0}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-purple-600">
-                                        {manager.totalLeads.toLocaleString()}
+                                        {(manager.totalLeads || 0).toLocaleString()}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        ₹{manager.budgetAllocated.toLocaleString()}
+                                        ₹{(manager.budgetAllocated || 0).toLocaleString()}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {manager.joinedDate}
+                                        {new Date(manager.createdAt).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                                         <div className="flex gap-2">
@@ -176,19 +233,36 @@ export default function MarketingManagersPage() {
                 <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4">
                         <h2 className="text-2xl font-bold text-gray-900 mb-6">Add Marketing Manager</h2>
-                        <form className="space-y-4">
+                        <form className="space-y-4" onSubmit={handleCreateManager}>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
                                 <input
                                     type="text"
+                                    required
+                                    value={formData.firstName}
+                                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="Enter full name"
+                                    placeholder="Enter first name"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.lastName}
+                                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="Enter last name"
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                                 <input
                                     type="email"
+                                    required
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     placeholder="Enter email address"
                                 />
@@ -197,24 +271,10 @@ export default function MarketingManagersPage() {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
                                 <input
                                     type="tel"
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     placeholder="Enter phone number"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Initial Budget (₹)</label>
-                                <input
-                                    type="number"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="Enter initial budget allocation"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                                <input
-                                    type="password"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="Enter temporary password"
                                 />
                             </div>
 

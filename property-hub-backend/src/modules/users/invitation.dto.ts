@@ -1,4 +1,4 @@
-import { IsEmail, IsString, IsNotEmpty, IsObject, ValidateNested } from 'class-validator';
+import { IsEmail, IsString, IsNotEmpty, IsObject, ValidateNested, IsOptional } from 'class-validator';
 import { Type } from 'class-transformer';
 
 /**
@@ -29,6 +29,10 @@ export class InviteInternalUserDto {
     @ValidateNested()
     @Type(() => Object)
     regions: { [region: string]: RegionRoleDto };
+
+    @IsString()
+    @IsOptional()
+    role?: string;
 }
 
 /**

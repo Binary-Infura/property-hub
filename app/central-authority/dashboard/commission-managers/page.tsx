@@ -1,95 +1,100 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface CommissionManager {
     id: string;
     name: string;
     email: string;
     phone: string;
-    region: string;
     status: 'active' | 'inactive';
     createdAt: string;
 }
 
 export default function CommissionManagersPage() {
-    const [managers, setManagers] = useState<CommissionManager[]>([
-        {
-            id: '1',
-            name: 'Anjali Desai',
-            email: 'anjali.d@propertyhub.com',
-            phone: '+91 98765 22334',
-            region: 'West Zone',
-            status: 'active',
-            createdAt: '2024-01-25',
-        },
-        {
-            id: '2',
-            name: 'Rohan Mehra',
-            email: 'rohan.m@propertyhub.com',
-            phone: '+91 98765 44556',
-            region: 'North Zone',
-            status: 'inactive',
-            createdAt: '2024-03-05',
-        },
-    ]);
+    const { token } = useAuth();
+    const [managers, setManagers] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedManager, setSelectedManager] = useState<CommissionManager | null>(null);
     const [formData, setFormData] = useState({
-        name: '',
+        firstName: '',
+        lastName: '',
         email: '',
         phone: '',
-        region: '',
     });
 
+    // Fetch data
+    const fetchData = async () => {
+        if (!token) return;
+        setLoading(true);
+        try {
+            const res = await fetch('/api/commission-managers', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setManagers(data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch data', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Initial fetch
+    useEffect(() => {
+        fetchData();
+    }, [token]);
+
+
     const handleAddManager = () => {
-        setFormData({ name: '', email: '', phone: '', region: '' });
+        setFormData({ firstName: '', lastName: '', email: '', phone: '' });
         setShowAddModal(true);
     };
 
     const handleEditManager = (manager: CommissionManager) => {
-        setFormData({
-            name: manager.name,
-            email: manager.email,
-            phone: manager.phone,
-            region: manager.region,
-        });
-        setSelectedManager(manager);
-        setShowEditModal(true);
+        alert("Edit functionality not fully implemented yet");
     };
 
-    const handleSaveManager = () => {
-        if (selectedManager) {
-            // Edit existing
-            setManagers(managers.map(m =>
-                m.id === selectedManager.id
-                    ? { ...m, ...formData }
-                    : m
-            ));
-            setShowEditModal(false);
-        } else {
-            // Add new
-            const newManager: CommissionManager = {
-                id: Date.now().toString(),
-                ...formData,
-                status: 'active',
-                createdAt: new Date().toISOString().split('T')[0],
-            };
-            setManagers([...managers, newManager]);
-            setShowAddModal(false);
+    const handleSaveManager = async () => {
+        if (!token) return;
+
+        try {
+            if (!showEditModal) {
+                const res = await fetch('/api/commission-managers', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        firstName: formData.firstName,
+                        lastName: formData.lastName,
+                        email: formData.email,
+                        phone: formData.phone,
+                    }),
+                });
+
+                if (res.ok) {
+                    setShowAddModal(false);
+                    setFormData({ firstName: '', lastName: '', email: '', phone: '' });
+                    fetchData();
+                } else {
+                    alert('Failed to create manager');
+                }
+            }
+        } catch (err) {
+            console.error(err);
         }
-        setFormData({ name: '', email: '', phone: '', region: '' });
-        setSelectedManager(null);
     };
 
     const handleToggleStatus = (id: string) => {
-        setManagers(managers.map(m =>
-            m.id === id
-                ? { ...m, status: m.status === 'active' ? 'inactive' : 'active' }
-                : m
-        ));
+        console.log("Toggle status for", id);
     };
 
     const activeCount = managers.filter(m => m.status === 'active').length;
@@ -134,53 +139,69 @@ export default function CommissionManagersPage() {
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b border-gray-200">
-                                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Name</th>
-                                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Region/Zone</th>
-                                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Contact</th>
+                                    <th className="text-left py-3 px-4 font-semibold text-gray-700">First Name</th>
+                                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Last Name</th>
+                                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Email</th>
+                                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Phone</th>
                                     <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
                                     <th className="text-right py-3 px-4 font-semibold text-gray-700">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {managers.map((manager) => (
-                                    <tr key={manager.id} className="border-b border-gray-100 hover:bg-gray-50">
-                                        <td className="py-4 px-4">
-                                            <div>
-                                                <p className="font-semibold text-gray-900">{manager.name}</p>
-                                                <p className="text-sm text-gray-500">{manager.email}</p>
-                                            </div>
-                                        </td>
-                                        <td className="py-4 px-4 text-gray-700">{manager.region}</td>
-                                        <td className="py-4 px-4 text-gray-700">{manager.phone}</td>
-                                        <td className="py-4 px-4">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${manager.status === 'active'
-                                                ? 'bg-green-100 text-green-700'
-                                                : 'bg-gray-100 text-gray-700'
-                                                }`}>
-                                                {manager.status === 'active' ? 'Active' : 'Inactive'}
-                                            </span>
-                                        </td>
-                                        <td className="py-4 px-4">
-                                            <div className="flex justify-end gap-2">
-                                                <button
-                                                    onClick={() => handleEditManager(manager)}
-                                                    className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded text-sm font-medium"
-                                                >
-                                                    Edit
-                                                </button>
-                                                <button
-                                                    onClick={() => handleToggleStatus(manager.id)}
-                                                    className={`px-3 py-1 rounded text-sm font-medium ${manager.status === 'active'
-                                                        ? 'text-red-600 hover:bg-red-50'
-                                                        : 'text-green-600 hover:bg-green-50'
-                                                        }`}
-                                                >
-                                                    {manager.status === 'active' ? 'Deactivate' : 'Activate'}
-                                                </button>
-                                            </div>
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan={4} className="px-6 py-4 text-center text-gray-500">
+                                            Loading...
                                         </td>
                                     </tr>
-                                ))}
+                                ) : managers.map((manager) => {
+                                    // Split name into first and last for display
+                                    const nameParts = manager.name?.split(' ') || [];
+                                    const firstName = nameParts[0] || '';
+                                    const lastName = nameParts.slice(1).join(' ') || '';
+
+                                    return (
+                                        <tr key={manager.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                            <td className="py-4 px-4">
+                                                <p className="font-semibold text-gray-900">{firstName}</p>
+                                            </td>
+                                            <td className="py-4 px-4">
+                                                <p className="font-semibold text-gray-900">{lastName}</p>
+                                            </td>
+                                            <td className="py-4 px-4">
+                                                <p className="text-sm text-gray-700">{manager.email}</p>
+                                            </td>
+                                            <td className="py-4 px-4 text-gray-700">{manager.phone || '-'}</td>
+                                            <td className="py-4 px-4">
+                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${manager.status === 'active'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : 'bg-gray-100 text-gray-700'
+                                                    }`}>
+                                                    {manager.status === 'active' ? 'Active' : 'Inactive'}
+                                                </span>
+                                            </td>
+                                            <td className="py-4 px-4">
+                                                <div className="flex justify-end gap-2">
+                                                    <button
+                                                        onClick={() => handleEditManager(manager)}
+                                                        className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded text-sm font-medium"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleToggleStatus(manager.id)}
+                                                        className={`px-3 py-1 rounded text-sm font-medium ${manager.status === 'active'
+                                                            ? 'text-red-600 hover:bg-red-50'
+                                                            : 'text-green-600 hover:bg-green-50'
+                                                            }`}
+                                                    >
+                                                        {manager.status === 'active' ? 'Deactivate' : 'Activate'}
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
@@ -196,11 +217,20 @@ export default function CommissionManagersPage() {
                         </h2>
                         <div className="space-y-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
                                 <input
                                     type="text"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    value={formData.firstName}
+                                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                                <input
+                                    type="text"
+                                    value={formData.lastName}
+                                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
@@ -222,22 +252,13 @@ export default function CommissionManagersPage() {
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Region / Zone</label>
-                                <input
-                                    type="text"
-                                    value={formData.region}
-                                    onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
                         </div>
                         <div className="flex gap-3 mt-6">
                             <button
                                 onClick={() => {
                                     setShowAddModal(false);
                                     setShowEditModal(false);
-                                    setFormData({ name: '', email: '', phone: '', region: '' });
+                                    setFormData({ firstName: '', lastName: '', email: '', phone: '' });
                                 }}
                                 className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
                             >

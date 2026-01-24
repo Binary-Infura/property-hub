@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../../contexts/AuthContext';
 
 interface GlobalUser {
     id: string;
@@ -13,26 +14,9 @@ interface GlobalUser {
 }
 
 export default function GlobalUsersPage() {
-    const [users, setUsers] = useState<GlobalUser[]>([
-        {
-            id: '1',
-            name: 'Vikram Singh',
-            email: 'vikram.s@propertyhub.com',
-            phone: '+91 98765 11223',
-            role: 'Super Admin',
-            status: 'active',
-            createdAt: '2024-01-15',
-        },
-        {
-            id: '2',
-            name: 'Sarah Jenkins',
-            email: 'sarah.j@propertyhub.com',
-            phone: '+91 98765 99887',
-            role: 'Compliance Officer',
-            status: 'active',
-            createdAt: '2024-02-20',
-        },
-    ]);
+    const { token } = useAuth();
+    const [users, setUsers] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
 
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -44,52 +28,76 @@ export default function GlobalUsersPage() {
         role: '',
     });
 
+    // Fetch data
+    const fetchData = async () => {
+        if (!token) return;
+        setLoading(true);
+        try {
+            const res = await fetch('/api/global-users', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setUsers(data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch data', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Initial fetch
+    useEffect(() => {
+        fetchData();
+    }, [token]);
+
     const handleAddUser = () => {
         setFormData({ name: '', email: '', phone: '', role: '' });
         setShowAddModal(true);
     };
 
     const handleEditUser = (user: GlobalUser) => {
-        setFormData({
-            name: user.name,
-            email: user.email,
-            phone: user.phone,
-            role: user.role,
-        });
-        setSelectedUser(user);
-        setShowEditModal(true);
+        // Edit implementation can be added later if API supports it
+        alert("Edit functionality not fully implemented yet");
     };
 
-    const handleSaveUser = () => {
-        if (selectedUser) {
-            // Edit existing
-            setUsers(users.map(u =>
-                u.id === selectedUser.id
-                    ? { ...u, ...formData }
-                    : u
-            ));
-            setShowEditModal(false);
-        } else {
-            // Add new
-            const newUser: GlobalUser = {
-                id: Date.now().toString(),
-                ...formData,
-                status: 'active',
-                createdAt: new Date().toISOString().split('T')[0],
-            };
-            setUsers([...users, newUser]);
-            setShowAddModal(false);
+    const handleSaveUser = async () => {
+        if (!token) return;
+
+        try {
+            // Only Create supported for now via this specific flow
+            if (!showEditModal) {
+                const res = await fetch('/api/global-users', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({
+                        name: formData.name,
+                        email: formData.email,
+                        phone: formData.phone,
+                        // Role is handled by backend (central-authority)
+                    }),
+                });
+
+                if (res.ok) {
+                    setShowAddModal(false);
+                    setFormData({ name: '', email: '', phone: '', role: '' });
+                    fetchData();
+                } else {
+                    alert('Failed to create user');
+                }
+            }
+        } catch (err) {
+            console.error(err);
         }
-        setFormData({ name: '', email: '', phone: '', role: '' });
-        setSelectedUser(null);
     };
 
     const handleToggleStatus = (id: string) => {
-        setUsers(users.map(u =>
-            u.id === id
-                ? { ...u, status: u.status === 'active' ? 'inactive' : 'active' }
-                : u
-        ));
+        // Status toggle implementation
+        console.log("Toggle status for", id);
     };
 
     const activeCount = users.filter(u => u.status === 'active').length;
@@ -115,21 +123,7 @@ export default function GlobalUsersPage() {
                 </div>
             </div>
 
-            {/* Mock Data Warning */}
-            <div className="mb-8 p-4 bg-amber-50 border-l-4 border-amber-400 rounded-r-lg flex items-start gap-4 shadow-sm">
-                <div className="text-amber-400">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                </div>
-                <div>
-                    <h3 className="font-bold text-amber-800">Development Mode: Mock Data</h3>
-                    <p className="text-amber-700 text-sm mt-1">
-                        The users listed below are temporary mock data for UI testing. This page is not yet connected to the Keycloak Admin database.
-                        <strong> New users created in Keycloak will not appear here automatically.</strong>
-                    </p>
-                </div>
-            </div>
+
 
             {/* Stats */}
             <div className="grid md:grid-cols-2 gap-6 mb-8">
@@ -150,53 +144,69 @@ export default function GlobalUsersPage() {
                         <table className="w-full">
                             <thead>
                                 <tr className="border-b border-gray-200">
-                                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Name</th>
-                                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Role</th>
-                                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Contact</th>
+                                    <th className="text-left py-3 px-4 font-semibold text-gray-700">First Name</th>
+                                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Last Name</th>
+                                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Email</th>
+                                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Phone</th>
                                     <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
                                     <th className="text-right py-3 px-4 font-semibold text-gray-700">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {users.map((user) => (
-                                    <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
-                                        <td className="py-4 px-4">
-                                            <div>
-                                                <p className="font-semibold text-gray-900">{user.name}</p>
-                                                <p className="text-sm text-gray-500">{user.email}</p>
-                                            </div>
-                                        </td>
-                                        <td className="py-4 px-4 text-gray-700">{user.role}</td>
-                                        <td className="py-4 px-4 text-gray-700">{user.phone}</td>
-                                        <td className="py-4 px-4">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${user.status === 'active'
-                                                ? 'bg-green-100 text-green-700'
-                                                : 'bg-gray-100 text-gray-700'
-                                                }`}>
-                                                {user.status === 'active' ? 'Active' : 'Inactive'}
-                                            </span>
-                                        </td>
-                                        <td className="py-4 px-4">
-                                            <div className="flex justify-end gap-2">
-                                                <button
-                                                    onClick={() => handleEditUser(user)}
-                                                    className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded text-sm font-medium"
-                                                >
-                                                    Edit
-                                                </button>
-                                                <button
-                                                    onClick={() => handleToggleStatus(user.id)}
-                                                    className={`px-3 py-1 rounded text-sm font-medium ${user.status === 'active'
-                                                        ? 'text-red-600 hover:bg-red-50'
-                                                        : 'text-green-600 hover:bg-green-50'
-                                                        }`}
-                                                >
-                                                    {user.status === 'active' ? 'Deactivate' : 'Activate'}
-                                                </button>
-                                            </div>
+                                {loading ? (
+                                    <tr>
+                                        <td colSpan={5} className="px-6 py-4 text-center text-gray-500">
+                                            Loading...
                                         </td>
                                     </tr>
-                                ))}
+                                ) : users.map((user) => {
+                                    // Split name into first and last for display
+                                    const nameParts = user.name?.split(' ') || [];
+                                    const firstName = nameParts[0] || '';
+                                    const lastName = nameParts.slice(1).join(' ') || '';
+
+                                    return (
+                                        <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                            <td className="py-4 px-4">
+                                                <p className="font-semibold text-gray-900">{firstName}</p>
+                                            </td>
+                                            <td className="py-4 px-4">
+                                                <p className="font-semibold text-gray-900">{lastName}</p>
+                                            </td>
+                                            <td className="py-4 px-4">
+                                                <p className="text-sm text-gray-700">{user.email}</p>
+                                            </td>
+                                            <td className="py-4 px-4 text-gray-700">{user.phone || '-'}</td>
+                                            <td className="py-4 px-4">
+                                                <span className={`px-3 py-1 rounded-full text-xs font-medium ${user.status === 'active'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : 'bg-gray-100 text-gray-700'
+                                                    }`}>
+                                                    {user.status || 'Active'}
+                                                </span>
+                                            </td>
+                                            <td className="py-4 px-4">
+                                                <div className="flex justify-end gap-2">
+                                                    <button
+                                                        onClick={() => handleEditUser(user)}
+                                                        className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded text-sm font-medium"
+                                                    >
+                                                        Edit
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleToggleStatus(user.id)}
+                                                        className={`px-3 py-1 rounded text-sm font-medium ${user.status === 'active'
+                                                            ? 'text-red-600 hover:bg-red-50'
+                                                            : 'text-green-600 hover:bg-green-50'
+                                                            }`}
+                                                    >
+                                                        {user.status === 'active' ? 'Deactivate' : 'Activate'}
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>
@@ -238,15 +248,7 @@ export default function GlobalUsersPage() {
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
-                                <input
-                                    type="text"
-                                    value={formData.role}
-                                    onChange={(e) => setFormData({ ...formData, role: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
+                            {/* Role field removed as per requirement */}
                         </div>
                         <div className="flex gap-3 mt-6">
                             <button

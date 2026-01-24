@@ -1,40 +1,82 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../../contexts/AuthContext';
 
 export default function RegionalManagersPage() {
     const [showAddForm, setShowAddForm] = useState(false);
 
-    // Mock data - in production, this would come from API
-    const regionalManagers = [
-        {
-            id: '1',
-            name: 'Rajesh Kumar',
-            email: 'rajesh.kumar@propertyhub.com',
-            status: 'active',
-            region: 'Mumbai South',
-            properties: 450,
-            leads: 1200,
-            builders: 25,
-            consultants: 18,
-            joinedDate: '2024-01-10',
-        },
-        {
-            id: '2',
-            name: 'Simran Kaur',
-            email: 'simran.kaur@propertyhub.com',
-            status: 'active',
-            region: 'Pune West',
-            properties: 320,
-            leads: 850,
-            builders: 18,
-            consultants: 12,
-            joinedDate: '2024-02-15',
-        },
-    ];
+    const { token } = useAuth();
+    const [regionalManagers, setRegionalManagers] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+    });
+    const [tempPassword, setTempPassword] = useState<string | null>(null);
+
+    // Fetch data
+    const fetchData = async () => {
+        if (!token) return;
+        setLoading(true);
+        try {
+            // Fetch Managers
+            const managersRes = await fetch('/api/regional-managers', {
+                headers: { Authorization: `Bearer ${token}` },
+            });
+            if (managersRes.ok) {
+                const data = await managersRes.json();
+                setRegionalManagers(data);
+            }
+        } catch (err) {
+            console.error('Failed to fetch data', err);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // Initial fetch
+    useState(() => {
+        fetchData();
+    });
+
+    const handleCreateManager = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!token) return;
+
+        try {
+            const res = await fetch('/api/regional-managers', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({
+                    firstName: formData.firstName,
+                    lastName: formData.lastName,
+                    email: formData.email,
+                    phone: formData.phone,
+                    regionIds: [],
+                }),
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setShowAddForm(false);
+                setFormData({ firstName: '', lastName: '', email: '', phone: '' });
+                fetchData();
+            } else {
+                alert('Failed to create manager');
+            }
+        } catch (err) {
+            console.error(err);
+        }
+    };
 
     return (
-        <div>
+        <div className="p-8">
             {/* Header */}
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900">Regional Managers</h1>
@@ -56,13 +98,13 @@ export default function RegionalManagersPage() {
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                     <div className="text-gray-600 text-sm font-medium mb-2">Total Properties</div>
                     <div className="text-3xl font-bold text-blue-600">
-                        {regionalManagers.reduce((sum, m) => sum + m.properties, 0)}
+                        {regionalManagers.reduce((sum, m) => sum + (m.stats?.propertiesCount || 0), 0)}
                     </div>
                 </div>
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
+                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
                     <div className="text-gray-600 text-sm font-medium mb-2">Total Leads</div>
                     <div className="text-3xl font-bold text-purple-600">
-                        {regionalManagers.reduce((sum, m) => sum + m.leads, 0).toLocaleString()}
+                        {regionalManagers.reduce((sum, m) => sum + (m.stats?.leadsCount || 0), 0).toLocaleString()}
                     </div>
                 </div>
             </div>
@@ -90,14 +132,17 @@ export default function RegionalManagersPage() {
                 </div>
                 <button
                     onClick={() => setShowAddForm(true)}
-                    className="px-6 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition font-medium"
+                    className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium flex items-center gap-2"
                 >
-                    + Add Regional Manager
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Regional Manager
                 </button>
             </div>
 
             {/* Regional Managers List */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100">
                 <div className="overflow-x-auto">
                     <table className="w-full">
                         <thead className="bg-gray-50">
@@ -109,7 +154,7 @@ export default function RegionalManagersPage() {
                                     Status
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Region
+                                    Regions
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Properties
@@ -132,7 +177,13 @@ export default function RegionalManagersPage() {
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
-                            {regionalManagers.map((manager) => (
+                            {loading ? (
+                                <tr>
+                                    <td colSpan={9} className="px-6 py-4 text-center text-gray-500">
+                                        Loading...
+                                    </td>
+                                </tr>
+                            ) : regionalManagers.map((manager) => (
                                 <tr key={manager.id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center gap-3">
@@ -156,24 +207,28 @@ export default function RegionalManagersPage() {
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
-                                            {manager.region}
-                                        </span>
+                                        <div className="flex flex-wrap gap-1">
+                                            {manager.regions?.map((r: any) => (
+                                                <span key={r.id} className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium">
+                                                    {r.name}
+                                                </span>
+                                            ))}
+                                        </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {manager.properties}
+                                        {manager.stats?.propertiesCount || 0}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-purple-600">
-                                        {manager.leads.toLocaleString()}
+                                        {(manager.stats?.leadsCount || 0).toLocaleString()}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {manager.builders}
+                                        -
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {manager.consultants}
+                                        -
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {manager.joinedDate}
+                                        {new Date(manager.createdAt).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                                         <div className="flex gap-2">
@@ -201,22 +256,39 @@ export default function RegionalManagersPage() {
 
             {/* Add Regional Manager Modal */}
             {showAddForm && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4">
+                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
                         <h2 className="text-2xl font-bold text-gray-900 mb-6">Add Regional Manager</h2>
-                        <form className="space-y-4">
+                        <form className="space-y-4" onSubmit={handleCreateManager}>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">First Name</label>
                                 <input
                                     type="text"
+                                    required
+                                    value={formData.firstName}
+                                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="Enter full name"
+                                    placeholder="Enter first name"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Last Name</label>
+                                <input
+                                    type="text"
+                                    required
+                                    value={formData.lastName}
+                                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                    placeholder="Enter last name"
                                 />
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                                 <input
                                     type="email"
+                                    required
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     placeholder="Enter email address"
                                 />
@@ -225,27 +297,10 @@ export default function RegionalManagersPage() {
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
                                 <input
                                     type="tel"
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                                     placeholder="Enter phone number"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Assign Region</label>
-                                <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
-                                    <option value="">Select region</option>
-                                    <option value="mumbai-south">Mumbai South</option>
-                                    <option value="pune-west">Pune West</option>
-                                    <option value="bangalore-north">Bangalore North</option>
-                                    <option value="hyderabad-tech">Hyderabad Tech City</option>
-                                    <option value="delhi-ncr">Delhi NCR</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Password</label>
-                                <input
-                                    type="password"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                    placeholder="Enter temporary password"
                                 />
                             </div>
 
@@ -268,13 +323,13 @@ export default function RegionalManagersPage() {
                                 <button
                                     type="button"
                                     onClick={() => setShowAddForm(false)}
-                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium"
+                                    className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition font-medium"
+                                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
                                 >
                                     Create Regional Manager
                                 </button>

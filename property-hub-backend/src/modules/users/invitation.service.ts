@@ -41,7 +41,7 @@ export class InvitationService {
         try {
             const client = await this.getClient();
             const temporaryPassword = this.generateTemporaryPassword();
-            const username = dto.email.split('@')[0]; // Use email prefix as username
+            const username = dto.email; // Use email as username to avoid collisions
 
             // Create user in Keycloak
             const createdUser = await client.users.create({
@@ -66,24 +66,32 @@ export class InvitationService {
 
             const userId = createdUser.id;
 
-            // Get the 'internal' role
-            const internalRole = await client.roles.findOneByName({
+
+
+            // Get the realm role (default to 'internal' if not provided, though it might not exist)
+            // Ideally, we should enforce providing a role if 'internal' is deprecated.
+            // For now, let's allow passing the role name.
+            const roleName = dto.role || 'internal';
+            const realmRole = await client.roles.findOneByName({
                 realm: this.realm,
-                name: 'internal',
+                name: roleName,
             });
 
-            if (!internalRole) {
-                throw new BadRequestException('Internal role not found in Keycloak');
+            if (!realmRole) {
+                // If the specified role is missing, we simply log a warning or throw.
+                // Given the user said "internal" is missing, we should probably not fail hard if default is used?
+                // No, we should fail if we can't assign the intended role.
+                throw new BadRequestException(`Role '${roleName}' not found in Keycloak`);
             }
 
-            // Assign 'internal' realm role to user
+            // Assign realm role to user
             await client.users.addRealmRoleMappings({
                 realm: this.realm,
                 id: userId,
                 roles: [
                     {
-                        id: internalRole.id,
-                        name: internalRole.name,
+                        id: realmRole.id,
+                        name: realmRole.name,
                     },
                 ],
             });
@@ -93,9 +101,10 @@ export class InvitationService {
                 email: dto.email,
                 temporaryPassword,
             };
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error inviting internal user:', error);
-            throw new InternalServerErrorException('Failed to invite user');
+            const errorMessage = error.response?.data?.errorMessage || error.message || 'Failed to invite user';
+            throw new InternalServerErrorException(errorMessage);
         }
     }
 
