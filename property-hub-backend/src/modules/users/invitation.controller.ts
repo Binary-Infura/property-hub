@@ -1,6 +1,6 @@
 import { Controller, Post, Body, UseGuards, Param } from '@nestjs/common';
 import { InvitationService } from './invitation.service';
-import { InviteInternalUserDto, InviteCentralAuthorityDto, InvitationResponse } from './invitation.dto';
+import { InviteUserDto, InviteCentralAuthorityDto, InvitationResponse } from './invitation.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { RegionGuard } from '../../auth/guards/region.guard';
@@ -13,12 +13,12 @@ import { RequireRegion } from '../../common/decorators/require-region.decorator'
  */
 @Controller('api')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RequireRoles('internal')
+@RequireRoles('central-authority', 'regional-manager', 'marketing-manager', 'commission-manager', 'property-onboarding-manager', 'property-partner', 'channel-partner', 'consultant', 'ads-executive', 'creative-executive', 'marketing-lead')
 export class InvitationController {
     constructor(private readonly invitationService: InvitationService) { }
 
     /**
-     * Invite an internal user to a specific region with roles
+     * Invite a user to a specific region with roles
      * Requires regional-manager role in the target region
      */
     @Post(':region/users/invite')
@@ -27,9 +27,9 @@ export class InvitationController {
     @RequireRoles('regional-manager')
     async inviteUserToRegion(
         @Param('region') region: string,
-        @Body() dto: InviteInternalUserDto,
+        @Body() dto: InviteUserDto,
     ): Promise<InvitationResponse> {
-        return this.invitationService.inviteInternalUser(dto);
+        return this.invitationService.inviteUser(dto);
     }
 
     /**

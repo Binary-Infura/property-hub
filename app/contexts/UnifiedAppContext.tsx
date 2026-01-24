@@ -5,7 +5,22 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from './AuthContext';
 
 // --- Types ---
-export type RoleId = 'regional-manager' | 'marketing-manager' | 'central-authority' | 'property-partner' | 'buyer';
+export type RoleId =
+    | 'central-authority'
+    | 'regional-manager'
+    | 'marketing-manager'
+    | 'marketing-lead'
+    | 'ads-executive'
+    | 'creative-executive'
+    | 'commission-manager'
+    | 'property-onboarding-manager'
+    | 'property-partner'
+    | 'channel-partner'
+    | 'consultant'
+    | 'loan-adviser'
+    | 'visit-executive'
+    | 'service-provider'
+    | 'buyer';
 
 export interface UserRole {
     id: RoleId;
@@ -17,6 +32,7 @@ export interface UserRole {
 export interface Region {
     id: string;
     name: string;
+    code: string;
 }
 
 export interface UserContextData {
@@ -35,14 +51,8 @@ export interface UnifiedAppContextType {
     switchContext: (regionId: string, roleId: RoleId) => void;
 }
 
-// --- Mock Data ---
-const MOCK_REGIONS: Region[] = [
-    { id: 'r_mumbai_west', name: 'West Mumbai' },
-    { id: 'r_mumbai_south', name: 'South Mumbai' },
-    { id: 'r_pune_west', name: 'Pune West' }
-];
-
-const MOCK_ROLES: UserRole[] = [
+// --- Application Configuration (Static) ---
+const KNOWN_ROLES: UserRole[] = [
     {
         id: 'central-authority',
         name: 'Central Authority',
@@ -62,23 +72,91 @@ const MOCK_ROLES: UserRole[] = [
         dashboardUrl: '/marketing-manager/dashboard'
     },
     {
+        id: 'marketing-lead',
+        name: 'Marketing Lead',
+        permissionHint: 'Strategic marketing leadership',
+        dashboardUrl: '/marketing-manager/dashboard'
+    },
+    {
+        id: 'ads-executive',
+        name: 'Ads Executive',
+        permissionHint: 'Manage paid advertising campaigns',
+        dashboardUrl: '/marketing-manager/dashboard'
+    },
+    {
+        id: 'creative-executive',
+        name: 'Creative Executive',
+        permissionHint: 'Design and creative asset management',
+        dashboardUrl: '/marketing-manager/dashboard'
+    },
+    {
+        id: 'commission-manager',
+        name: 'Commission Manager',
+        permissionHint: 'Oversee regional commissions',
+        dashboardUrl: '/commission-manager/dashboard'
+    },
+    {
+        id: 'property-onboarding-manager',
+        name: 'Onboarding Manager',
+        permissionHint: 'Property intake and verification',
+        dashboardUrl: '/property-onboarding-manager/dashboard'
+    },
+    {
         id: 'property-partner',
         name: 'Property Partner',
         permissionHint: 'Manage properties and inventory',
         dashboardUrl: '/property-partner/dashboard'
+    },
+    {
+        id: 'channel-partner',
+        name: 'Channel Partner',
+        permissionHint: 'Referral and lead management',
+        dashboardUrl: '/channel-partner/dashboard'
+    },
+    {
+        id: 'consultant',
+        name: 'Sales Consultant',
+        permissionHint: 'Direct sales and client guidance',
+        dashboardUrl: '/consultant/dashboard'
+    },
+    {
+        id: 'loan-adviser',
+        name: 'Loan Adviser',
+        permissionHint: 'Financial and loan facilitation',
+        dashboardUrl: '/loan-adviser/dashboard'
+    },
+    {
+        id: 'visit-executive',
+        name: 'Visit Executive',
+        permissionHint: 'Property site visits and viewings',
+        dashboardUrl: '/visit-executive/dashboard'
+    },
+    {
+        id: 'service-provider',
+        name: 'Service Provider',
+        permissionHint: 'Maintenance and vendor operations',
+        dashboardUrl: '/service-provider/dashboard'
+    },
+    {
+        id: 'buyer',
+        name: 'Buyer',
+        permissionHint: 'Property search and purchase',
+        dashboardUrl: '/dashboard'
     }
 ];
 
+const NO_REGION: Region = { id: 'no-region', name: 'No Region Allocated', code: 'no-region' };
+
 const DEFAULT_CONTEXT: UnifiedAppContextType = {
     currentUser: {
-        name: 'Parth Singh',
-        avatar: 'https://ui-avatars.com/api/?name=Parth+Singh&background=0D8ABC&color=fff',
-        availableRegions: MOCK_REGIONS,
-        availableRoles: MOCK_ROLES
+        name: 'Guest',
+        avatar: 'https://ui-avatars.com/api/?name=Guest&background=0D8ABC&color=fff',
+        availableRegions: [NO_REGION],
+        availableRoles: []
     },
     activeContext: {
-        activeRegion: MOCK_REGIONS[0],
-        activeRole: MOCK_ROLES[0]
+        activeRegion: NO_REGION,
+        activeRole: KNOWN_ROLES[KNOWN_ROLES.length - 1] // Default to buyer
     },
     switchContext: () => { }
 };
@@ -88,79 +166,97 @@ const UnifiedAppContext = createContext<UnifiedAppContextType>(DEFAULT_CONTEXT);
 
 // --- Provider ---
 export function UnifiedAppProvider({ children }: { children: ReactNode }) {
-    const { user, roles, authenticated, initialized } = useAuth();
+    const { user, roles, authenticated, initialized, token } = useAuth();
     const router = useRouter();
 
-    const [activeRegion, setActiveRegion] = useState<Region>(MOCK_REGIONS[0]);
-    const [activeRole, setActiveRole] = useState<UserRole>(MOCK_ROLES[0]);
-    const [availableRegions, setAvailableRegions] = useState<Region[]>(MOCK_REGIONS);
-    const [availableRoles, setAvailableRoles] = useState<UserRole[]>(MOCK_ROLES);
+    const [activeRegion, setActiveRegion] = useState<Region>(NO_REGION);
+    const [activeRole, setActiveRole] = useState<UserRole>(KNOWN_ROLES[KNOWN_ROLES.length - 1]);
+    const [availableRegions, setAvailableRegions] = useState<Region[]>([NO_REGION]);
+    const [availableRoles, setAvailableRoles] = useState<UserRole[]>([]);
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
     // Sync context with Auth state
     useEffect(() => {
         if (!initialized || !authenticated || !user) return;
 
         // 1. Map roles from AuthContext to UserRole objects
-        const userRoles = MOCK_ROLES.filter(mockRole =>
-            roles.includes(mockRole.id as string)
+        const userRoles = KNOWN_ROLES.filter(knownRole =>
+            roles.includes(knownRole.id)
         );
         if (userRoles.length > 0) {
             setAvailableRoles(userRoles);
         }
 
-        // 2. Map regions from user attributes
-        let userRegions: Region[] = [];
+        // 2. Map regions
         const isCentralAuthority = roles.includes('central-authority');
 
-        if (isCentralAuthority) {
-            userRegions = MOCK_REGIONS;
-        } else {
-            try {
-                // Keycloak attributes come as string arrays in idTokenParsed
-                const regionsAttr = user.regions;
-                if (regionsAttr) {
-                    const rawData = Array.isArray(regionsAttr) ? regionsAttr[0] : regionsAttr;
-                    const regionsData = typeof rawData === 'string' ? JSON.parse(rawData) : rawData;
+        const updateRegions = async () => {
+            let allRegions: Region[] = [];
+            let userRegions: Region[] = [];
 
-                    if (typeof regionsData === 'object' && regionsData !== null) {
-                        userRegions = Object.keys(regionsData).map(id => {
-                            const mock = MOCK_REGIONS.find(r => r.id === id);
-                            return mock || {
-                                id,
-                                name: id.replace('r_', '').split('_').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ')
-                            };
-                        });
-                    }
+            // 1. Fetch all operational regions from Global API (Required for all users to resolve names/codes)
+            try {
+                const response = await fetch(`${API_URL}/api/regions`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    allRegions = data.map((r: any) => ({
+                        id: r.id,
+                        name: r.name,
+                        code: r.code
+                    }));
                 }
             } catch (e) {
-                console.error("Failed to parse regions from user token:", e);
+                console.error("Failed to fetch regions from API:", e);
             }
-        }
 
-        // Handle case where user has no regions
-        if (userRegions.length === 0) {
-            userRegions = [{ id: 'no-region', name: 'No Region Allocated' }];
-        }
-        setAvailableRegions(userRegions);
+            if (isCentralAuthority) {
+                userRegions = allRegions;
+            } else {
+                try {
+                    // 2. Filter available regions based on Keycloak groups
+                    const groups = (user.groups || []) as string[];
+                    const userRegionCodes = groups
+                        .map(g => g.startsWith('/regions/') ? g.replace('/regions/', '') : g)
+                        .filter(g => g !== 'regions');
 
-        // 3. Set Active Context Defaults
-        // If current active role is not in the user's available roles, switch to the first available
-        if (userRoles.length > 0 && !userRoles.find(r => r.id === activeRole.id)) {
-            setActiveRole(userRoles[0]);
-        }
+                    userRegions = allRegions.filter(region =>
+                        userRegionCodes.includes(region.code)
+                    );
+                } catch (e) {
+                    console.error("Failed to solve regions from user groups:", e);
+                }
+            }
 
-        // If current active region is not in available regions, switch to the first available
-        if (userRegions.length > 0 && !userRegions.find(r => r.id === activeRegion.id)) {
-            setActiveRegion(userRegions[0]);
-        }
-    }, [initialized, authenticated, user, roles]);
+            if (userRegions.length === 0) {
+                userRegions = [NO_REGION];
+            }
+
+            setAvailableRegions(userRegions);
+
+            // 3. Set Active Context Defaults
+            // Set role
+            if (userRoles.length > 0 && !userRoles.find(r => r.id === activeRole.id)) {
+                setActiveRole(userRoles[0]);
+            }
+
+            // Set region
+            if (userRegions.length > 0 && !userRegions.find(r => r.id === activeRegion.id)) {
+                setActiveRegion(userRegions[0]);
+            }
+        };
+
+        updateRegions();
+
+    }, [initialized, authenticated, user, roles, token]);
 
     const switchContext = (regionId: string, roleId: RoleId) => {
-        // Look up in all known regions/roles to allow switching
-        const region = [...MOCK_REGIONS, { id: 'no-region', name: 'No Region Allocated' }].find(r => r.id === regionId);
+        const region = availableRegions.find(r => r.id === regionId);
         if (!region) return;
 
-        const role = MOCK_ROLES.find(r => r.id === roleId);
+        const role = availableRoles.find(r => r.id === roleId);
         if (!role) return;
 
         setActiveRegion(region);

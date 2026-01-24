@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -10,48 +7,128 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Region model - minimal metadata for regions
 model Region {
-  id        String   @id @default(uuid())
-  code      String   @unique // e.g., "mumbai_south", "pune_west"
-  name      String   // e.g., "Mumbai South", "Pune West"
-  active    Boolean  @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  properties Property[]
+  id         String     @id @default(uuid())
+  code       String     @unique
+  name       String
+  active     Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
   leads      Lead[]
-  managers   User[]
+  properties Property[]
+  managers   User[]     @relation("RegionToUser")
 
   @@map("regions")
 }
 
-// Property model - real estate properties
 model Property {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  location    String
-  address     String?
-  regionId    String
-  status      PropertyStatus @default(AVAILABLE)
-  price       Decimal  @db.Decimal(15, 2)
-  area        Decimal? @db.Decimal(10, 2) // in sq ft
-  bedrooms    Int?
-  bathrooms   Int?
+  id           String         @id @default(uuid())
+  name         String
+  description  String?
+  location     String
+  address      String?
+  regionId     String
+  status       PropertyStatus @default(AVAILABLE)
+  price        Decimal        @db.Decimal(15, 2)
+  area         Decimal?       @db.Decimal(10, 2)
+  bedrooms     Int?
+  bathrooms    Int?
   propertyType PropertyType
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  commissions  Commission[]
+  leads        Lead[]
+  region       Region         @relation(fields: [regionId], references: [id])
 
-  // Relations
-  region      Region   @relation(fields: [regionId], references: [id])
-  commissions Commission[]
-  leads       Lead[]
-
-  @@map("properties")
   @@index([regionId])
   @@index([status])
+  @@map("properties")
+}
+
+model Lead {
+  id         String     @id @default(uuid())
+  name       String
+  email      String?
+  phone      String
+  regionId   String
+  propertyId String?
+  status     LeadStatus @default(NEW)
+  source     String?
+  assignedTo String?
+  notes      String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  property   Property?  @relation(fields: [propertyId], references: [id])
+  region     Region     @relation(fields: [regionId], references: [id])
+  visits     Visit[]
+
+  @@index([regionId])
+  @@index([status])
+  @@index([assignedTo])
+  @@map("leads")
+}
+
+model Visit {
+  id          String      @id @default(uuid())
+  leadId      String
+  scheduledAt DateTime
+  completedAt DateTime?
+  status      VisitStatus @default(SCHEDULED)
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  lead        Lead        @relation(fields: [leadId], references: [id])
+
+  @@index([leadId])
+  @@map("visits")
+}
+
+model Commission {
+  id         String           @id @default(uuid())
+  amount     Decimal          @db.Decimal(15, 2)
+  percentage Decimal?         @db.Decimal(5, 2)
+  agentId    String
+  propertyId String
+  status     CommissionStatus @default(PENDING)
+  paidAt     DateTime?
+  notes      String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  property   Property         @relation(fields: [propertyId], references: [id])
+
+  @@index([agentId])
+  @@index([propertyId])
+  @@index([status])
+  @@map("commissions")
+}
+
+model UserMetadata {
+  id               String   @id @default(uuid())
+  keycloakId       String   @unique
+  firstName        String?
+  lastName         String?
+  phone            String?
+  regionPreference String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@index([keycloakId])
+  @@map("user_metadata")
+}
+
+model User {
+  id         String   @id @default(uuid())
+  keycloakId String?  @unique
+  name       String
+  email      String   @unique
+  phone      String?
+  role       String
+  status     String   @default("active")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  regions    Region[] @relation("RegionToUser")
+
+  @@map("users")
 }
 
 enum PropertyStatus {
@@ -69,32 +146,6 @@ enum PropertyType {
   INDUSTRIAL
 }
 
-// Lead model - potential buyers/clients
-model Lead {
-  id          String   @id @default(uuid())
-  name        String
-  email       String?
-  phone       String
-  regionId    String
-  propertyId  String?
-  status      LeadStatus @default(NEW)
-  source      String?  // e.g., "website", "referral", "walk-in"
-  assignedTo  String?  // user ID from Keycloak (for reference only)
-  notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  region      Region   @relation(fields: [regionId], references: [id])
-  property    Property? @relation(fields: [propertyId], references: [id])
-  visits      Visit[]
-
-  @@map("leads")
-  @@index([regionId])
-  @@index([status])
-  @@index([assignedTo])
-}
-
 enum LeadStatus {
   NEW
   CONTACTED
@@ -105,51 +156,11 @@ enum LeadStatus {
   LOST
 }
 
-// Visit model - property visits by leads
-model Visit {
-  id         String   @id @default(uuid())
-  leadId     String
-  scheduledAt DateTime
-  completedAt DateTime?
-  status     VisitStatus @default(SCHEDULED)
-  notes      String?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  // Relations
-  lead       Lead     @relation(fields: [leadId], references: [id])
-
-  @@map("visits")
-  @@index([leadId])
-}
-
 enum VisitStatus {
   SCHEDULED
   COMPLETED
   CANCELLED
   NO_SHOW
-}
-
-// Commission model - track commissions for agents
-model Commission {
-  id          String   @id @default(uuid())
-  amount      Decimal  @db.Decimal(15, 2)
-  percentage  Decimal? @db.Decimal(5, 2)
-  agentId     String   // user ID from Keycloak (for reference only)
-  propertyId  String
-  status      CommissionStatus @default(PENDING)
-  paidAt      DateTime?
-  notes       String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  // Relations
-  property    Property @relation(fields: [propertyId], references: [id])
-
-  @@map("commissions")
-  @@index([agentId])
-  @@index([propertyId])
-  @@index([status])
 }
 
 enum CommissionStatus {
@@ -158,38 +169,3 @@ enum CommissionStatus {
   PAID
   REJECTED
 }
-
-// User metadata model - minimal non-auth user data
-model UserMetadata {
-  id        String   @id @default(uuid())
-  keycloakId String  @unique // Reference to Keycloak user ID
-  firstName String?
-  lastName  String?
-  phone     String?
-  regionPreference String? // Last selected region
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("user_metadata")
-  @@index([keycloakId])
-}
-
-// Unified User model for all roles
-model User {
-  id        String   @id @default(uuid())
-  keycloakId String? @unique
-  name      String
-  email     String   @unique
-  phone     String?
-  role      String   // "regional-manager", "marketing-manager", "central-authority", "super-admin", etc.
-  status    String   @default("active") // "active", "inactive"
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Role-specific relations
-  regions   Region[] // For regional managers
-  
-  @@map("users")
-}
-
-

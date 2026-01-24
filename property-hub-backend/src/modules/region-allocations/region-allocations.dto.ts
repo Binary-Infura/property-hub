@@ -1,10 +1,17 @@
 import { IsString, IsArray, IsOptional, IsEnum } from 'class-validator';
 
-// Enum for role types
+// Enum for role types that are assignable to regions
 export enum ManagerRole {
     REGIONAL = 'regional-manager',
     MARKETING = 'marketing-manager',
+    MARKETING_LEAD = 'marketing-lead',
+    ADS_EXECUTIVE = 'ads-executive',
+    CREATIVE_EXECUTIVE = 'creative-executive',
     COMMISSION = 'commission-manager',
+    ONBOARDING = 'property-onboarding-manager',
+    PROPERTY_PARTNER = 'property-partner',
+    CHANNEL_PARTNER = 'channel-partner',
+    CONSULTANT = 'consultant',
 }
 
 // Query DTO for filtering region allocations

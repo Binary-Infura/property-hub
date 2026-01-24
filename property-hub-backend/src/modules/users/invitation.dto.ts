@@ -11,9 +11,9 @@ class RegionRoleDto {
 }
 
 /**
- * DTO for inviting an internal user
+ * DTO for inviting a user
  */
-export class InviteInternalUserDto {
+export class InviteUserDto {
     @IsEmail()
     email: string;
 

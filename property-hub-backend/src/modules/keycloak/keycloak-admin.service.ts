@@ -123,6 +123,83 @@ export class KeycloakAdminService implements OnModuleInit {
     }
 
     /**
+     * Add a user to a specific region group
+     */
+    async addUserToRegionGroup(email: string, regionCode: string) {
+        const client = await this.getClient();
+        try {
+            const users = await client.users.find({ realm: this.realm, email });
+            if (users.length === 0) return;
+            const user = users[0];
+
+            // 1. Find the group
+            const groups = await client.groups.find({ realm: this.realm });
+            const regionsParent = groups.find(g => g.name === 'regions');
+            if (!regionsParent) return;
+
+            const regionGroup = (await client.groups.listSubGroups({
+                parentId: regionsParent.id,
+                realm: this.realm
+            })).find(g => g.name === regionCode);
+
+            if (!regionGroup) {
+                console.warn(`Region group ${regionCode} not found in Keycloak`);
+                return;
+            }
+
+            // 2. Add user to group
+            await client.users.addToGroup({
+                realm: this.realm,
+                id: user.id,
+                groupId: regionGroup.id
+            });
+            console.log(`Successfully added ${email} to Keycloak group: /regions/${regionCode}`);
+        } catch (error) {
+            console.error(`Failed to add user ${email} to region group ${regionCode}:`, error);
+        }
+    }
+
+    /**
+     * Remove a user from all region groups they currently belong to
+     */
+    async removeUserFromAllRegionGroups(email: string) {
+        const client = await this.getClient();
+        try {
+            const users = await client.users.find({ realm: this.realm, email });
+            if (users.length === 0) return;
+            const user = users[0];
+
+            const userGroups = await client.users.listGroups({
+                realm: this.realm,
+                id: user.id
+            });
+
+            // Find groups that are under /regions
+            const groups = await client.groups.find({ realm: this.realm });
+            const regionsParent = groups.find(g => g.name === 'regions');
+            if (!regionsParent) return;
+
+            const regionGroups = await client.groups.listSubGroups({
+                parentId: regionsParent.id,
+                realm: this.realm
+            });
+            const regionGroupIds = regionGroups.map(g => g.id);
+
+            for (const group of userGroups) {
+                if (regionGroupIds.includes(group.id)) {
+                    await client.users.delFromGroup({
+                        realm: this.realm,
+                        id: user.id,
+                        groupId: group.id
+                    });
+                }
+            }
+        } catch (error) {
+            console.error(`Failed to remove user ${email} from region groups:`, error);
+        }
+    }
+
+    /**
      * Ensure a user has a permanent password
      */
     async ensurePermanentPassword(email: string, password: string) {

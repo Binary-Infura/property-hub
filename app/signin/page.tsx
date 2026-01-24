@@ -25,21 +25,34 @@ export default function SignInPage() {
                 return;
             }
 
-            // 2. Internal Staff Roles
-            const internalRoles = [
+            // 2. Staff Roles
+            const staffRoles = [
                 'regional-manager',
                 'consultant',
                 'property-onboarding-manager',
                 'loan-adviser',
                 'marketing-manager',
+                'marketing-lead',
+                'ads-executive',
+                'creative-executive',
                 'visit-executive',
                 'commission-manager',
-                'channel-partner'
+                'channel-partner',
+                'service-provider',
+                'property-partner'
             ];
 
-            const foundInternalRole = internalRoles.find(role => roles.includes(role));
-            if (foundInternalRole) {
-                router.push(`/${foundInternalRole}/dashboard`);
+            const foundRole = staffRoles.find(role => roles.includes(role));
+            if (foundRole) {
+                // Map specific team roles to their parent dashboard if needed, 
+                // or just redirect to their specific path if it exists.
+                const redirectPath = [
+                    'marketing-lead',
+                    'ads-executive',
+                    'creative-executive'
+                ].includes(foundRole) ? 'marketing-manager' : foundRole;
+
+                router.push(`/${redirectPath}/dashboard`);
                 return;
             }
 
@@ -145,7 +158,7 @@ export default function SignInPage() {
 
                 <div className="mt-6 text-center">
                     <p className="text-xs text-gray-400">
-                        Secure internal system. Authorized access only.
+                        Secure system. Authorized access only.
                     </p>
                 </div>
             </div>

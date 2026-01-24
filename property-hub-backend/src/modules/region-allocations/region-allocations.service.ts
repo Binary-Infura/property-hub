@@ -7,10 +7,39 @@ import {
     RegionAllocationResponseDto,
     ManagerRole,
 } from './region-allocations.dto';
+import { KeycloakAdminService } from '../keycloak/keycloak-admin.service';
 
 @Injectable()
 export class RegionAllocationsService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private keycloakAdmin: KeycloakAdminService
+    ) { }
+
+    /**
+     * Sync user regions to Keycloak groups
+     */
+    private async syncToKeycloak(userId: string) {
+        try {
+            const user = await this.prisma.user.findUnique({
+                where: { id: userId },
+                include: { regions: true }
+            });
+
+            if (!user) return;
+
+            // Sync groups
+            // First remove from all region groups to ensure fresh state
+            await this.keycloakAdmin.removeUserFromAllRegionGroups(user.email);
+
+            // Add to new region groups
+            for (const region of user.regions) {
+                await this.keycloakAdmin.addUserToRegionGroup(user.email, region.code);
+            }
+        } catch (error) {
+            console.error(`Failed to sync user ${userId} to Keycloak:`, error);
+        }
+    }
 
     /**
      * Get all regions with their assigned users, with optional filtering
@@ -22,9 +51,9 @@ export class RegionAllocationsService {
         if (filters.role) {
             userWhere.role = filters.role;
         } else {
-            // If no role filter, get all manager roles
+            // If no role filter, get all assignable roles
             userWhere.role = {
-                in: [ManagerRole.REGIONAL, ManagerRole.MARKETING, ManagerRole.COMMISSION]
+                in: Object.values(ManagerRole)
             };
         }
 
@@ -42,7 +71,7 @@ export class RegionAllocationsService {
         }
 
         // Fetch regions with assigned users
-        const regions = await this.prisma.region.findMany({
+        const regions = await (this.prisma.region as any).findMany({
             where: regionWhere,
             include: {
                 managers: {
@@ -109,6 +138,9 @@ export class RegionAllocationsService {
             },
         });
 
+        // Sync to Keycloak
+        await this.syncToKeycloak(dto.userId);
+
         return updatedUser;
     }
 
@@ -150,6 +182,9 @@ export class RegionAllocationsService {
             },
         });
 
+        // Sync to Keycloak
+        await this.syncToKeycloak(userId);
+
         return updatedUser;
     }
 
@@ -185,6 +220,9 @@ export class RegionAllocationsService {
                 regions: true,
             },
         });
+
+        // Sync to Keycloak
+        await this.syncToKeycloak(userId);
 
         return updatedUser;
     }

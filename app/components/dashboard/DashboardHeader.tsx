@@ -18,7 +18,7 @@ interface DashboardHeaderProps {
 }
 
 /**
- * Common Header for all Internal Roles
+ * Common Header for all Roles
  * Provides a consistent layout with Page Title/Breadcrumbs and Context Switcher
  */
 export default function DashboardHeader({

@@ -12,7 +12,7 @@ export class MarketingManagersService {
 
     async create(dto: CreateMarketingManagerDto) {
         // 1. Invite user in Keycloak
-        const invitation = await this.invitationService.inviteInternalUser({
+        const invitation = await this.invitationService.inviteUser({
             email: dto.email,
             firstName: dto.firstName,
             lastName: dto.lastName,

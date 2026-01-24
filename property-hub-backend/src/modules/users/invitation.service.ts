@@ -1,6 +1,6 @@
 import { Injectable, InternalServerErrorException, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { InviteInternalUserDto, InviteCentralAuthorityDto, InvitationResponse } from './invitation.dto';
+import { InviteUserDto, InviteCentralAuthorityDto, InvitationResponse } from './invitation.dto';
 import { KeycloakAdminService } from '../keycloak/keycloak-admin.service';
 
 /**
@@ -35,9 +35,9 @@ export class InvitationService {
     }
 
     /**
-     * Invite an internal user with region-specific roles
+     * Invite a user with region-specific roles
      */
-    async inviteInternalUser(dto: InviteInternalUserDto): Promise<InvitationResponse> {
+    async inviteUser(dto: InviteUserDto): Promise<InvitationResponse> {
         try {
             const client = await this.getClient();
             const temporaryPassword = this.generateTemporaryPassword();
@@ -59,12 +59,16 @@ export class InvitationService {
                         temporary: false, // Set to false to avoid "Account is not fully set up" errors in headless login
                     },
                 ],
-                attributes: {
-                    regions: [JSON.stringify(dto.regions)],
-                },
+                attributes: {},
             });
 
             const userId = createdUser.id;
+
+            // Add to region groups
+            const regionCodes = Object.keys(dto.regions || {});
+            for (const code of regionCodes) {
+                await this.keycloakAdmin.addUserToRegionGroup(dto.email, code);
+            }
 
 
 
@@ -87,8 +91,6 @@ export class InvitationService {
 
             if (!realmRole) {
                 // If the specified role is missing, we simply log a warning or throw.
-                // Given the user said "internal" is missing, we should probably not fail hard if default is used?
-                // No, we should fail if we can't assign the intended role.
                 throw new BadRequestException(`Role '${roleName}' not found in Keycloak`);
             }
 
@@ -110,7 +112,7 @@ export class InvitationService {
                 temporaryPassword,
             };
         } catch (error: any) {
-            console.error('Error inviting internal user:', error);
+            console.error('Error inviting user:', error);
             const errorMessage = error.response?.data?.errorMessage || error.message || 'Failed to invite user';
             throw new InternalServerErrorException(errorMessage);
         }
@@ -141,10 +143,7 @@ export class InvitationService {
                         temporary: false,
                     },
                 ],
-                attributes: {
-                    // Central authority has 'all' region with 'central-authority' role
-                    regions: [JSON.stringify({ all: { roles: ['central-authority'] } })],
-                },
+                attributes: {},
             });
 
             const userId = createdUser.id;

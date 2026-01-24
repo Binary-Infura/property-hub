@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { RoleId } from '@/app/contexts/UnifiedAppContext';
 
 interface AssignRoleModalProps {
     isOpen: boolean;
@@ -24,7 +25,7 @@ interface Region {
 
 export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRoleModalProps) {
     const { token } = useAuth();
-    const [role, setRole] = useState<'regional-manager' | 'marketing-manager' | 'commission-manager'>('regional-manager');
+    const [role, setRole] = useState<RoleId>('regional-manager');
     const [selectedUserId, setSelectedUserId] = useState('');
     const [selectedRegionIds, setSelectedRegionIds] = useState<string[]>([]);
     const [users, setUsers] = useState<User[]>([]);
@@ -34,6 +35,19 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRo
     const [submitting, setSubmitting] = useState(false);
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+    const ASSIGNABLE_ROLES: RoleId[] = [
+        'regional-manager',
+        'marketing-manager',
+        'marketing-lead',
+        'ads-executive',
+        'creative-executive',
+        'commission-manager',
+        'property-onboarding-manager',
+        'property-partner',
+        'channel-partner',
+        'consultant'
+    ];
 
     useEffect(() => {
         if (isOpen) {
@@ -146,7 +160,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRo
 
     return (
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden transform transition-all animate-in zoom-in-95 duration-200 flex flex-col">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden transform transition-all animate-in zoom-in-95 duration-200 flex flex-col">
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                     <div>
                         <h2 className="text-xl font-bold text-gray-900 leading-tight">Assign Manager to Regions</h2>
@@ -163,17 +177,17 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRo
                     {/* Role Selection */}
                     <div className="space-y-3">
                         <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] ml-1">1. Select Strategic Role</label>
-                        <div className="grid grid-cols-3 gap-3">
-                            {(['regional-manager', 'marketing-manager', 'commission-manager'] as const).map((r) => (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+                            {ASSIGNABLE_ROLES.map((r) => (
                                 <button
                                     key={r}
                                     onClick={() => setRole(r)}
-                                    className={`px-4 py-3 rounded-xl border text-[11px] font-bold uppercase tracking-wider transition-all ${role === r
+                                    className={`px-3 py-2 rounded-xl border text-[9px] font-bold uppercase tracking-wider transition-all h-12 flex items-center justify-center text-center ${role === r
                                         ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200'
                                         : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'
                                         }`}
                                 >
-                                    {r.replace('-', ' ')}
+                                    {r.replace(/-/g, ' ').replace('property ', '')}
                                 </button>
                             ))}
                         </div>
