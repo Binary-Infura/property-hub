@@ -24,12 +24,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     async validate(payload: JwtPayload): Promise<AuthenticatedUser> {
-        if (!payload || !payload.sub) {
-            throw new UnauthorizedException('Invalid token payload');
+        const userId = payload.sub || payload.email || payload.preferred_username;
+
+        if (!userId) {
+            throw new UnauthorizedException('Invalid token payload: missing sub, email, or preferred_username');
         }
 
         return {
-            userId: payload.sub,
+            userId: userId,
             email: payload.email,
             username: payload.preferred_username,
             roles: payload.realm_access?.roles || [],

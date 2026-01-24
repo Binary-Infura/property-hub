@@ -1,7 +1,7 @@
 // No longer using region-specific roles in JWT interface
 
 export interface JwtPayload {
-    sub: string; // Subject (user ID)
+    sub?: string; // Subject (user ID)
     email?: string;
     preferred_username?: string;
 

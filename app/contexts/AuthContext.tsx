@@ -178,6 +178,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
             if (response.ok) {
                 console.log('Login request successful');
+                console.log('Received tokens:', {
+                    access: !!data.access_token,
+                    refresh: !!data.refresh_token,
+                    id: !!data.id_token
+                });
+
+                if (!data.refresh_token) {
+                    console.warn('WARNING: No refresh token received! Session will not auto-refresh.');
+                }
 
                 if (keycloak) {
                     keycloak.token = data.access_token;

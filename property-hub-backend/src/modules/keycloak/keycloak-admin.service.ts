@@ -55,7 +55,17 @@ export class KeycloakAdminService implements OnModuleInit {
             });
         } catch (error: any) {
             console.error('Failed to authenticate with Keycloak admin:', error.responseData || error.message);
-            throw new InternalServerErrorException('Failed to connect to Keycloak admin');
+            console.error('Config used:', {
+                realmUrl: this.configService.get('KEYCLOAK_REALM_URL'),
+                adminUser: this.configService.get('KEYCLOAK_ADMIN_USER') || 'admin (fallback)',
+            });
+            if (error.response) {
+                console.error('Error status:', error.response.status);
+            }
+            // THROW DETAILED ERROR FOR DEBUGGING
+            throw new InternalServerErrorException(
+                `Keycloak Auth Failed: ${error.message} (Status: ${error.response?.status})`
+            );
         }
     }
 
