@@ -145,99 +145,145 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRo
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                <div className="p-6 border-b border-gray-200">
-                    <h2 className="text-2xl font-bold text-gray-900">Assign Role to Regions</h2>
-                    <p className="text-gray-600 mt-1 text-sm">Select a user and assign them to one or more regions</p>
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden transform transition-all animate-in zoom-in-95 duration-200 flex flex-col">
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-900 leading-tight">Assign Manager to Regions</h2>
+                        <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-1">Assignment Orchestrator</p>
+                    </div>
+                    <button onClick={handleClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
+                        <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
                 </div>
 
-                <div className="p-6 space-y-6">
+                <div className="p-8 space-y-8 overflow-y-auto flex-1">
                     {/* Role Selection */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Select Role</label>
-                        <select
-                            value={role}
-                            onChange={(e) => setRole(e.target.value as any)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            <option value="regional-manager">Regional Manager</option>
-                            <option value="marketing-manager">Marketing Manager</option>
-                            <option value="commission-manager">Commission Manager</option>
-                        </select>
+                    <div className="space-y-3">
+                        <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] ml-1">1. Select Strategic Role</label>
+                        <div className="grid grid-cols-3 gap-3">
+                            {(['regional-manager', 'marketing-manager', 'commission-manager'] as const).map((r) => (
+                                <button
+                                    key={r}
+                                    onClick={() => setRole(r)}
+                                    className={`px-4 py-3 rounded-xl border text-[11px] font-bold uppercase tracking-wider transition-all ${role === r
+                                        ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200'
+                                        : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'
+                                        }`}
+                                >
+                                    {r.replace('-', ' ')}
+                                </button>
+                            ))}
+                        </div>
                     </div>
 
                     {/* User Search */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Search User</label>
-                        <input
-                            type="text"
-                            placeholder="Type to search users by name or email..."
-                            value={userSearch}
-                            onChange={(e) => setUserSearch(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
+                    <div className="space-y-4">
+                        <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] ml-1">2. Identify Manager</label>
+                        <div className="relative">
+                            <input
+                                type="text"
+                                placeholder="Search by name or verified email..."
+                                value={userSearch}
+                                onChange={(e) => setUserSearch(e.target.value)}
+                                className="w-full pl-12 pr-4 py-3.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-medium"
+                            />
+                            <svg className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+
                         {loading && (
-                            <p className="text-sm text-gray-500 mt-2">Searching...</p>
+                            <div className="flex items-center justify-center py-4">
+                                <div className="w-5 h-5 border-2 border-blue-500/20 border-t-blue-500 rounded-full animate-spin"></div>
+                            </div>
                         )}
+
                         {users.length > 0 && (
-                            <div className="mt-2 border border-gray-200 rounded-lg max-h-48 overflow-y-auto">
+                            <div className="border border-gray-100 rounded-xl overflow-hidden shadow-sm bg-gray-50/30">
                                 {users.map((user) => (
                                     <div
                                         key={user.id}
                                         onClick={() => setSelectedUserId(user.id)}
-                                        className={`p-3 cursor-pointer hover:bg-gray-50 border-b border-gray-100 last:border-b-0 ${selectedUserId === user.id ? 'bg-blue-50' : ''
+                                        className={`p-4 cursor-pointer transition-all border-b border-gray-100 last:border-b-0 group ${selectedUserId === user.id ? 'bg-blue-50/50' : 'hover:bg-white'
                                             }`}
                                     >
-                                        <p className="font-medium text-gray-900">{user.name}</p>
-                                        <p className="text-sm text-gray-600">{user.email}</p>
+                                        <div className="flex items-center justify-between">
+                                            <div>
+                                                <p className={`text-sm font-bold transition-colors ${selectedUserId === user.id ? 'text-blue-600' : 'text-gray-900'}`}>{user.name}</p>
+                                                <p className="text-[11px] font-medium text-gray-400 uppercase mt-0.5">{user.email}</p>
+                                            </div>
+                                            {selectedUserId === user.id && (
+                                                <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center animate-in zoom-in-50 duration-200">
+                                                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 ))}
                             </div>
                         )}
+                        {userSearch.length >= 2 && users.length === 0 && !loading && (
+                            <p className="text-center text-[11px] font-bold text-gray-400 uppercase tracking-widest py-2 italic">No compatible managers found</p>
+                        )}
                     </div>
 
                     {/* Region Selection */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Select Regions ({selectedRegionIds.length} selected)
-                        </label>
-                        <div className="border border-gray-200 rounded-lg max-h-64 overflow-y-auto">
+                    <div className="space-y-4">
+                        <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] ml-1">3. Scope Selection ({selectedRegionIds.length} Jurisdictions)</label>
+                        <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-200">
                             {regions.map((region) => (
-                                <label
+                                <div
                                     key={region.id}
-                                    className="flex items-center p-3 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0"
+                                    onClick={() => handleRegionToggle(region.id)}
+                                    className={`p-4 rounded-xl border transition-all cursor-pointer group flex items-start gap-3 ${selectedRegionIds.includes(region.id)
+                                        ? 'bg-blue-50/50 border-blue-500/20 shadow-sm'
+                                        : 'bg-white border-gray-100 hover:border-gray-200 hover:bg-gray-50/50'
+                                        }`}
                                 >
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedRegionIds.includes(region.id)}
-                                        onChange={() => handleRegionToggle(region.id)}
-                                        className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                    />
-                                    <div className="ml-3">
-                                        <p className="font-medium text-gray-900">{region.name}</p>
-                                        <p className="text-xs text-gray-500 font-mono">{region.code}</p>
+                                    <div className={`mt-0.5 w-4 h-4 rounded border flex-shrink-0 transition-all flex items-center justify-center ${selectedRegionIds.includes(region.id)
+                                        ? 'bg-blue-600 border-blue-600 shadow-sm shadow-blue-200'
+                                        : 'bg-gray-50 border-gray-200 group-hover:border-gray-300'
+                                        }`}>
+                                        {selectedRegionIds.includes(region.id) && (
+                                            <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        )}
                                     </div>
-                                </label>
+                                    <div className="min-w-0">
+                                        <p className={`text-sm font-bold transition-colors ${selectedRegionIds.includes(region.id) ? 'text-blue-600' : 'text-gray-900'}`}>{region.name}</p>
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter mt-1">{region.code}</p>
+                                    </div>
+                                </div>
                             ))}
                         </div>
                     </div>
                 </div>
 
-                <div className="p-6 border-t border-gray-200 flex justify-end gap-3">
+                <div className="p-6 border-t border-gray-100 flex justify-end gap-3 bg-gray-50/30">
                     <button
                         onClick={handleClose}
                         disabled={submitting}
-                        className="px-6 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium disabled:opacity-50"
+                        className="px-6 py-2.5 text-sm font-bold text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all disabled:opacity-50"
                     >
                         Cancel
                     </button>
                     <button
                         onClick={handleSubmit}
                         disabled={submitting || !selectedUserId || selectedRegionIds.length === 0}
-                        className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="px-8 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-200 transform active:scale-95"
                     >
-                        {submitting ? 'Assigning...' : 'Assign Regions'}
+                        {submitting ? (
+                            <div className="flex items-center gap-2">
+                                <div className="w-3.5 h-3.5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>
+                                Finalizing...
+                            </div>
+                        ) : 'Confirm Allocation'}
                     </button>
                 </div>
             </div>

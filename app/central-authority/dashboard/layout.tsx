@@ -35,8 +35,8 @@ function CentralAuthorityDashboardLayoutContent({
         <div className="flex h-screen bg-gray-50 overflow-hidden">
             {/* Sidebar */}
             <aside className="w-64 bg-slate-900 border-r border-gray-800 flex flex-col shrink-0">
-                <div className="h-16 flex items-center px-6 border-b border-gray-100">
-                    <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-900">
+                <div className="h-16 flex items-center px-6 border-b border-gray-800">
+                    <Link href="/" className="flex items-center gap-2 font-bold text-xl text-white">
                         <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
                         <span>PropertyHub</span>
                     </Link>
