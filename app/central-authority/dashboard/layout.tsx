@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
 import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
-import InternalDashboardHeader from '@/app/components/dashboard/InternalDashboardHeader';
+import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
 import RouteGuard from '@/app/components/auth/RouteGuard';
 
 function CentralAuthorityDashboardLayoutContent({
@@ -64,7 +64,7 @@ function CentralAuthorityDashboardLayoutContent({
 
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                <InternalDashboardHeader title="Central Authority Dashboard" />
+                <DashboardHeader title="Central Authority Dashboard" />
 
                 <main className="flex-1 overflow-y-auto p-8">
                     {children}
@@ -77,9 +77,7 @@ function CentralAuthorityDashboardLayoutContent({
 export default function CentralAuthorityDashboardLayout({ children }: { children: React.ReactNode }) {
     return (
         <RouteGuard requiredRole="central-authority">
-            <UnifiedAppProvider>
-                <CentralAuthorityDashboardLayoutContent>{children}</CentralAuthorityDashboardLayoutContent>
-            </UnifiedAppProvider>
+            <CentralAuthorityDashboardLayoutContent>{children}</CentralAuthorityDashboardLayoutContent>
         </RouteGuard>
     );
 }

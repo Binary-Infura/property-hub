@@ -1,5 +1,6 @@
 'use client';
 
+import Link from 'next/link';
 import UnifiedContextSwitcher from '@/app/components/UnifiedContextSwitcher';
 
 interface BreadcrumbItem {
@@ -7,11 +8,12 @@ interface BreadcrumbItem {
     href?: string;
 }
 
-interface InternalDashboardHeaderProps {
+interface DashboardHeaderProps {
     title?: string;
     breadcrumbs?: BreadcrumbItem[];
     showSearch?: boolean;
     showNotifications?: boolean;
+    showLogo?: boolean;
     children?: React.ReactNode;
 }
 
@@ -19,41 +21,52 @@ interface InternalDashboardHeaderProps {
  * Common Header for all Internal Roles
  * Provides a consistent layout with Page Title/Breadcrumbs and Context Switcher
  */
-export default function InternalDashboardHeader({
+export default function DashboardHeader({
     title,
     breadcrumbs = [],
     showSearch = false,
     showNotifications = false,
+    showLogo = false,
     children
-}: InternalDashboardHeaderProps) {
+}: DashboardHeaderProps) {
     return (
         <header className="bg-white border-b border-gray-200 sticky top-0 z-40 h-16 shrink-0">
             <div className="h-full px-8 flex items-center justify-between">
-                <div className="flex items-center gap-4 flex-1 min-w-0">
-                    {/* Breadcrumbs or Title */}
-                    {breadcrumbs.length > 0 ? (
-                        <nav className="flex items-center gap-2 text-sm text-gray-600 truncate">
-                            {breadcrumbs.map((item, idx) => (
-                                <div key={idx} className="flex items-center gap-2 min-w-0">
-                                    {idx > 0 && <span className="text-gray-400">/</span>}
-                                    {item.href ? (
-                                        <a href={item.href} className="text-gray-600 hover:text-gray-900 transition truncate">
-                                            {item.label}
-                                        </a>
-                                    ) : (
-                                        <span className="text-gray-900 font-semibold truncate">{item.label}</span>
-                                    )}
-                                </div>
-                            ))}
-                        </nav>
-                    ) : (
-                        title && (
-                            <h2 className="text-xl font-semibold text-gray-800 tracking-tight truncate">
-                                {title}
-                            </h2>
-                        )
+                <div className="flex items-center gap-6 flex-1 min-w-0">
+                    {/* Logo for states without sidebar */}
+                    {showLogo && (
+                        <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-900 mr-2 shrink-0">
+                            <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
+                            <span className="hidden sm:inline">PropertyHub</span>
+                        </Link>
                     )}
-                    {children}
+
+                    <div className="flex items-center gap-4 flex-1 min-w-0">
+                        {/* Breadcrumbs or Title */}
+                        {breadcrumbs.length > 0 ? (
+                            <nav className="flex items-center gap-2 text-sm text-gray-600 truncate">
+                                {breadcrumbs.map((item, idx) => (
+                                    <div key={idx} className="flex items-center gap-2 min-w-0">
+                                        {idx > 0 && <span className="text-gray-400">/</span>}
+                                        {item.href ? (
+                                            <a href={item.href} className="text-gray-600 hover:text-gray-900 transition truncate">
+                                                {item.label}
+                                            </a>
+                                        ) : (
+                                            <span className="text-gray-900 font-semibold truncate">{item.label}</span>
+                                        )}
+                                    </div>
+                                ))}
+                            </nav>
+                        ) : (
+                            title && (
+                                <h2 className="text-xl font-semibold text-gray-800 tracking-tight truncate">
+                                    {title}
+                                </h2>
+                            )
+                        )}
+                        {children}
+                    </div>
                 </div>
 
                 <div className="flex items-center gap-6">

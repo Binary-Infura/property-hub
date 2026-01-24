@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { usePathname } from 'next/navigation';
-import InternalDashboardHeader from '@/app/components/dashboard/InternalDashboardHeader';
+import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
 
 interface BreadcrumbItem {
   label: string;
@@ -12,9 +12,10 @@ interface BreadcrumbItem {
 interface PropertyPartnerTopNavProps {
   breadcrumbs?: BreadcrumbItem[];
   title?: string;
+  showLogo?: boolean;
 }
 
-export default function PropertyPartnerTopNav({ breadcrumbs = [], title }: PropertyPartnerTopNavProps) {
+export default function PropertyPartnerTopNav({ breadcrumbs = [], title, showLogo = false }: PropertyPartnerTopNavProps) {
   const pathname = usePathname();
 
   // Generate default breadcrumbs from pathname if not provided
@@ -37,11 +38,12 @@ export default function PropertyPartnerTopNav({ breadcrumbs = [], title }: Prope
   const finalBreadcrumbs = breadcrumbs.length > 0 ? breadcrumbs : defaultBreadcrumbs;
 
   return (
-    <InternalDashboardHeader
+    <DashboardHeader
       breadcrumbs={finalBreadcrumbs}
       title={title}
       showSearch={true}
       showNotifications={true}
+      showLogo={showLogo}
     />
   );
 }
