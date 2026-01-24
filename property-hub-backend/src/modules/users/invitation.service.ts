@@ -68,10 +68,18 @@ export class InvitationService {
 
 
 
-            // Get the realm role (default to 'internal' if not provided, though it might not exist)
-            // Ideally, we should enforce providing a role if 'internal' is deprecated.
-            // For now, let's allow passing the role name.
-            const roleName = dto.role || 'internal';
+            const roleName = dto.role;
+            if (!roleName) {
+                // If no role is provided, we skip realm role mapping.
+                // Log for visibility.
+                console.log(`No role provided for user ${dto.email}, skipping realm role mapping.`);
+                return {
+                    userId,
+                    email: dto.email,
+                    temporaryPassword,
+                };
+            }
+
             const realmRole = await client.roles.findOneByName({
                 realm: this.realm,
                 name: roleName,
@@ -141,36 +149,20 @@ export class InvitationService {
 
             const userId = createdUser.id;
 
-            // Get the 'internal' role
-            const internalRole = await client.roles.findOneByName({
-                realm: this.realm,
-                name: 'internal',
-            });
-
-            if (!internalRole) {
-                throw new BadRequestException('Internal role not found in Keycloak');
-            }
-
-            // Assign 'internal' realm role
-            await client.users.addRealmRoleMappings({
-                realm: this.realm,
-                id: userId,
-                roles: [
-                    {
-                        id: internalRole.id,
-                        name: internalRole.name,
-                    },
-                ],
-            });
-
             return {
                 userId,
                 email: dto.email,
                 temporaryPassword,
             };
-        } catch (error) {
+        } catch (error: any) {
             console.error('Error inviting central authority user:', error);
-            throw new InternalServerErrorException('Failed to invite central authority user');
+            const errorMessage = error.responseData?.errorMessage || error.message || 'Failed to invite central authority user';
+
+            if (errorMessage.includes('User exists')) {
+                throw new BadRequestException('A user with this email already exists');
+            }
+
+            throw new InternalServerErrorException(errorMessage);
         }
     }
 }

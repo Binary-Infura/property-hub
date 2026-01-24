@@ -11,23 +11,18 @@ export class GlobalUsersService {
     ) { }
 
     async create(dto: CreateGlobalUserDto) {
-        // Split name for Keycloak (assuming First Last)
-        const nameParts = dto.name.split(' ');
-        const firstName = nameParts[0];
-        const lastName = nameParts.slice(1).join(' ') || '';
-
         // 1. Invite user in Keycloak
         const invitation = await this.invitationService.inviteCentralAuthorityUser({
             email: dto.email,
-            firstName: firstName,
-            lastName: lastName,
+            firstName: dto.firstName,
+            lastName: dto.lastName,
         });
 
         // 2. Create in Database
         const globalUser = await this.prisma.user.create({
             data: {
                 keycloakId: invitation.userId,
-                name: dto.name,
+                name: `${dto.firstName} ${dto.lastName}`.trim(),
                 email: dto.email,
                 phone: dto.phone,
                 role: 'central-authority', // Default role for now

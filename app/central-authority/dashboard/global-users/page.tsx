@@ -22,7 +22,8 @@ export default function GlobalUsersPage() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedUser, setSelectedUser] = useState<GlobalUser | null>(null);
     const [formData, setFormData] = useState({
-        name: '',
+        firstName: '',
+        lastName: '',
         email: '',
         phone: '',
         role: '',
@@ -53,7 +54,7 @@ export default function GlobalUsersPage() {
     }, [token]);
 
     const handleAddUser = () => {
-        setFormData({ name: '', email: '', phone: '', role: '' });
+        setFormData({ firstName: '', lastName: '', email: '', phone: '', role: '' });
         setShowAddModal(true);
     };
 
@@ -75,7 +76,8 @@ export default function GlobalUsersPage() {
                         Authorization: `Bearer ${token}`,
                     },
                     body: JSON.stringify({
-                        name: formData.name,
+                        firstName: formData.firstName,
+                        lastName: formData.lastName,
                         email: formData.email,
                         phone: formData.phone,
                         // Role is handled by backend (central-authority)
@@ -84,7 +86,7 @@ export default function GlobalUsersPage() {
 
                 if (res.ok) {
                     setShowAddModal(false);
-                    setFormData({ name: '', email: '', phone: '', role: '' });
+                    setFormData({ firstName: '', lastName: '', email: '', phone: '', role: '' });
                     fetchData();
                 } else {
                     alert('Failed to create user');
@@ -221,14 +223,27 @@ export default function GlobalUsersPage() {
                             {showEditModal ? 'Edit Global User' : 'Add Global User'}
                         </h2>
                         <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
-                                <input
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                                    <input
+                                        type="text"
+                                        value={formData.firstName}
+                                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                        placeholder="John"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                                    <input
+                                        type="text"
+                                        value={formData.lastName}
+                                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Doe"
+                                    />
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
@@ -255,7 +270,7 @@ export default function GlobalUsersPage() {
                                 onClick={() => {
                                     setShowAddModal(false);
                                     setShowEditModal(false);
-                                    setFormData({ name: '', email: '', phone: '', role: '' });
+                                    setFormData({ firstName: '', lastName: '', email: '', phone: '', role: '' });
                                 }}
                                 className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
                             >

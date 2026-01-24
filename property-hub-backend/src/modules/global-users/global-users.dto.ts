@@ -6,7 +6,11 @@ export class CreateGlobalUserDto {
 
     @IsString()
     @IsNotEmpty()
-    name: string; // Providing direct name instead of first/last split in UI? UI shows Name field.
+    firstName: string;
+
+    @IsString()
+    @IsNotEmpty()
+    lastName: string;
 
     @IsString()
     @IsOptional()
