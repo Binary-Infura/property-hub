@@ -11,6 +11,7 @@ import { GlobalUsersModule } from './modules/global-users/global-users.module';
 import { CommissionManagersModule } from './modules/commission-managers/commission-managers.module';
 import { MarketingManagersModule } from './modules/marketing-managers/marketing-managers.module';
 import { RegionalManagersModule } from './modules/regional-managers/regional-managers.module';
+import { RegionAllocationsModule } from './modules/region-allocations/region-allocations.module';
 import { PrismaService } from './database/prisma.service';
 
 @Module({
@@ -26,6 +27,7 @@ import { PrismaService } from './database/prisma.service';
         CommissionsModule,
         UsersModule,
         RegionsModule,
+        RegionAllocationsModule,
         RegionalManagersModule,
         MarketingManagersModule,
         GlobalUsersModule,
