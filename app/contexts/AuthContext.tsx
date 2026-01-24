@@ -72,8 +72,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
         console.log('--- KEYCLOAK INIT START ---');
 
+        // Use different init strategy based on whether we have stored tokens
+        // When tokens are present, we skip SSO check and trust the stored tokens
+        const hasStoredTokens = !!(storedToken && storedRefreshToken);
+
         const initOptions: any = {
             onLoad: 'check-sso',
+            checkLoginIframe: false, // Disable iframe check for credential-based login
             silentCheckSsoRedirectUri: typeof window !== 'undefined' ? window.location.origin + '/silent-check-sso.html' : '',
             pkceMethod: 'S256',
             token: storedToken || undefined,
@@ -89,10 +94,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 console.log('Init result (auth):', auth);
 
                 const kc = keycloak;
-                const hasValidToken = !!(kc && kc.token);
-                console.log('KC Token present after init:', hasValidToken);
+                if (!kc) return;
 
-                if (auth || hasValidToken) {
+                // For Direct Grant logins, Keycloak may not set cookies, so 'auth' might be false
+                // but if we have valid tokens in storage (and kc has processed them), we consider it authenticated
+                const isActuallyAuthenticated = auth || (hasStoredTokens && !!kc.token);
+
+                if (isActuallyAuthenticated) {
                     console.log('Verification successful.');
                     handleAuthSuccess();
                 } else {
@@ -103,8 +111,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             })
             .catch((err) => {
                 console.error('--- KEYCLOAK RECOVERY FAILED ---', err);
-                // On error, we trust our pre-flight check if it was already successful
-                setInitialized(true);
+
+                // If initialization fails but we have tokens and were previously authenticated (pre-flight)
+                // we try to maintain the session if tokens are still valid
+                if (hasStoredTokens && authenticated) {
+                    console.log('Init failed but tokens present - maintaining session');
+                    setInitialized(true);
+                } else {
+                    handleAuthFailure();
+                    setInitialized(true);
+                }
             });
     }, []);
 
@@ -124,19 +140,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (kc.refreshToken) localStorage.setItem('kc_refreshToken', kc.refreshToken);
         if (kc.idToken) localStorage.setItem('kc_idToken', kc.idToken);
 
+        // Ensure timeskew is calculated for proper token expiration detection
+        if (kc.tokenParsed && typeof kc.timeSkew === 'undefined') {
+            const now = Math.floor(Date.now() / 1000);
+            const iat = kc.tokenParsed.iat || now;
+            kc.timeSkew = Math.floor(now - iat);
+            console.log('Timeskew initialized:', kc.timeSkew);
+        }
+
         // Setup refresh interval (clear existing first)
         if (refreshIntervalRef.current) clearInterval(refreshIntervalRef.current);
         refreshIntervalRef.current = setInterval(() => {
+            // Check if we have a refresh token before attempting refresh
+            if (!kc.refreshToken) {
+                console.warn('No refresh token available, skipping refresh');
+                return;
+            }
+
             kc.updateToken(70).then((refreshed) => {
                 if (refreshed) {
-                    console.log('Token refreshed naturally');
+                    console.log('Token refreshed successfully');
                     setToken(kc.token);
                     if (kc.token) localStorage.setItem('kc_token', kc.token);
                     if (kc.refreshToken) localStorage.setItem('kc_refreshToken', kc.refreshToken);
                     if (kc.idToken) localStorage.setItem('kc_idToken', kc.idToken);
+                } else {
+                    console.log('Token still valid, no refresh needed');
                 }
-            }).catch(() => {
-                console.error('Failed to refresh token during interval');
+            }).catch((error) => {
+                console.error('Failed to refresh token during interval:', error);
+                // If refresh fails, the session is likely invalid - clean up
+                console.warn('Session appears invalid, cleaning up...');
+                handleAuthFailure();
             });
         }, 60000);
     };
@@ -207,6 +242,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     keycloak.tokenParsed = parseJwt(data.access_token);
                     keycloak.idTokenParsed = parseJwt(data.id_token);
                     keycloak.realmAccess = keycloak.tokenParsed?.realm_access;
+
+                    // Initialize timeskew to prevent "Unable to determine if token is expired" errors
+                    if (keycloak.tokenParsed) {
+                        const now = Math.floor(Date.now() / 1000);
+                        const iat = keycloak.tokenParsed.iat || now;
+                        keycloak.timeSkew = Math.floor(now - iat);
+                        console.log('Timeskew set after login:', keycloak.timeSkew);
+                    }
                 }
 
                 // Use the centralized success handler to set state and persist
