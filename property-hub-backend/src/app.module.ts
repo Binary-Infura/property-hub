@@ -8,6 +8,7 @@ import { CommissionsModule } from './modules/commissions/commissions.module';
 import { UsersModule } from './modules/users/users.module';
 import { RegionsModule } from './modules/regions/regions.module';
 import { KeycloakModule } from './common/services/keycloak/keycloak.module';
+import { MattermostModule } from './common/services/mattermost/mattermost.module';
 import { CommissionManagersModule } from './modules/roles/commission-managers/commission-managers.module';
 import { MarketingManagersModule } from './modules/roles/marketing-managers/marketing-managers.module';
 import { RegionalManagersModule } from './modules/roles/regional-managers/regional-managers.module';
@@ -19,6 +20,7 @@ import { MarketingLeadsModule } from './modules/roles/marketing-leads/marketing-
 import { AdsExecutivesModule } from './modules/roles/ads-executives/ads-executives.module';
 import { CreativeExecutivesModule } from './modules/roles/creative-executives/creative-executives.module';
 import { CentralAuthorityModule } from './modules/roles/central-authority/central-authority.module';
+import { ChatModule } from './modules/chat/chat.module';
 import { PrismaService } from './database/prisma.service';
 
 @Module({
@@ -29,6 +31,7 @@ import { PrismaService } from './database/prisma.service';
         }),
         CommonModule,
         KeycloakModule,
+        MattermostModule,
         AuthModule,
         PropertiesModule,
         LeadsModule,
@@ -46,6 +49,7 @@ import { PrismaService } from './database/prisma.service';
         AdsExecutivesModule,
         CreativeExecutivesModule,
         CentralAuthorityModule,
+        ChatModule,
     ],
 })
 export class AppModule { }

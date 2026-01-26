@@ -294,3 +294,44 @@ model BuyerProfile {
 
   @@map("buyer_profiles")
 }
+
+model ChatSession {
+  id                  String            @id @default(uuid())
+  mattermostChannelId String            @unique
+  channelType         String            @default("DIRECT") // DIRECT or GROUP
+  contextType         String?           // PROPERTY, LEAD, GENERAL
+  contextId           String?           // propertyId or leadId
+  status              String            @default("active")
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  participants        ChatParticipant[]
+
+  @@index([contextType, contextId])
+  @@map("chat_sessions")
+}
+
+model ChatParticipant {
+  id            String       @id @default(uuid())
+  chatSessionId String
+  userId        String
+  role          String
+  joinedAt      DateTime     @default(now())
+  lastReadAt    DateTime?
+  chatSession   ChatSession  @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
+
+  @@unique([chatSessionId, userId])
+  @@index([userId])
+  @@map("chat_participants")
+}
+
+model MattermostUserMapping {
+  id                 String   @id @default(uuid())
+  propertyHubUserId  String   @unique
+  mattermostUserId   String   @unique
+  mattermostUsername String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@index([mattermostUserId])
+  @@map("mattermost_user_mappings")
+}

@@ -1,0 +1,178 @@
+import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
+import { PrismaService } from '../../database/prisma.service';
+
+/**
+ * Permission rules for chat access
+ * 
+ * Rules:
+ * - Buyers can chat with: consultants, property-partners, channel-partners
+ * - Consultants can chat with: buyers, regional-managers
+ * - Regional Managers can chat with: all roles in their region
+ * - Property Partners can chat with: buyers, regional-managers
+ * - Channel Partners can chat with: buyers, regional-managers
+ */
+
+interface ChatPermissionRule {
+    canChatWith: string[];
+    canViewChatsOf: 'self' | 'all-in-region' | 'all';
+}
+
+const CHAT_PERMISSION_RULES: Record<string, ChatPermissionRule> = {
+    'buyer': {
+        canChatWith: ['consultant', 'property-partner', 'channel-partner'],
+        canViewChatsOf: 'self'
+    },
+    'consultant': {
+        canChatWith: ['buyer', 'regional-manager'],
+        canViewChatsOf: 'self'
+    },
+    'regional-manager': {
+        canChatWith: ['buyer', 'consultant', 'property-partner', 'channel-partner', 'marketing-manager', 'commission-manager'],
+        canViewChatsOf: 'all-in-region'
+    },
+    'property-partner': {
+        canChatWith: ['buyer', 'regional-manager'],
+        canViewChatsOf: 'self'
+    },
+    'channel-partner': {
+        canChatWith: ['buyer', 'regional-manager'],
+        canViewChatsOf: 'self'
+    },
+    'marketing-manager': {
+        canChatWith: ['regional-manager'],
+        canViewChatsOf: 'self'
+    },
+    'commission-manager': {
+        canChatWith: ['regional-manager'],
+        canViewChatsOf: 'self'
+    },
+};
+
+@Injectable()
+export class ChatPermissionsService {
+    private readonly logger = new Logger(ChatPermissionsService.name);
+
+    constructor(private prisma: PrismaService) { }
+
+    /**
+     * Check if a user can start a chat with another user
+     */
+    async canStartChatWith(userId: string, targetUserId: string): Promise<boolean> {
+        try {
+            const user = await this.prisma.user.findUnique({ where: { id: userId } });
+            const targetUser = await this.prisma.user.findUnique({ where: { id: targetUserId } });
+
+            if (!user || !targetUser) {
+                return false;
+            }
+
+            const rules = CHAT_PERMISSION_RULES[user.role];
+            if (!rules) {
+                this.logger.warn(`No chat permission rules for role: ${user.role}`);
+                return false;
+            }
+
+            // Check if target role is in allowed list
+            const canChat = rules.canChatWith.includes(targetUser.role);
+
+            this.logger.log(`User ${userId} (${user.role}) can chat with ${targetUserId} (${targetUser.role}): ${canChat}`);
+            return canChat;
+        } catch (error) {
+            this.logger.error('Error checking chat permissions', error);
+            return false;
+        }
+    }
+
+    /**
+     * Check if a user can access a specific chat session
+     */
+    async canAccessChatSession(userId: string, chatSessionId: string): Promise<boolean> {
+        try {
+            const user = await this.prisma.user.findUnique({
+                where: { id: userId },
+                include: { regions: true }
+            });
+
+            if (!user) {
+                return false;
+            }
+
+            const chatSession = await this.prisma.chatSession.findUnique({
+                where: { id: chatSessionId },
+                include: {
+                    participants: {
+                        include: {
+                            chatSession: true
+                        }
+                    }
+                }
+            });
+
+            if (!chatSession) {
+                return false;
+            }
+
+            // Check if user is a participant
+            const isParticipant = chatSession.participants.some(p => p.userId === userId);
+            if (isParticipant) {
+                return true;
+            }
+
+            // Check regional manager override
+            if (user.role === 'regional-manager') {
+                // Get all participant user IDs
+                const participantUserIds = chatSession.participants.map(p => p.userId);
+
+                // Get all participants
+                const participants = await this.prisma.user.findMany({
+                    where: { id: { in: participantUserIds } },
+                    include: { regions: true }
+                });
+
+                // Check if all participants are in the regional manager's regions
+                const managerRegionIds = user.regions.map(r => r.id);
+                const allParticipantsInRegion = participants.every(participant => {
+                    const participantRegionIds = participant.regions.map(r => r.id);
+                    return participantRegionIds.some(id => managerRegionIds.includes(id));
+                });
+
+                if (allParticipantsInRegion) {
+                    this.logger.log(`Regional manager ${userId} granted access to chat ${chatSessionId}`);
+                    return true;
+                }
+            }
+
+            return false;
+        } catch (error) {
+            this.logger.error('Error checking chat session access', error);
+            return false;
+        }
+    }
+
+    /**
+     * Validate and throw exception if cannot start chat
+     */
+    async validateCanStartChat(userId: string, targetUserId: string): Promise<void> {
+        const canChat = await this.canStartChatWith(userId, targetUserId);
+        if (!canChat) {
+            throw new ForbiddenException('You do not have permission to start a chat with this user');
+        }
+    }
+
+    /**
+     * Validate and throw exception if cannot access chat session
+     */
+    async validateCanAccessChat(userId: string, chatSessionId: string): Promise<void> {
+        const canAccess = await this.canAccessChatSession(userId, chatSessionId);
+        if (!canAccess) {
+            throw new ForbiddenException('You do not have permission to access this chat');
+        }
+    }
+
+    /**
+     * Get permission rule for a role
+     */
+    getPermissionRule(role: string): ChatPermissionRule | undefined {
+        return CHAT_PERMISSION_RULES[role];
+    }
+}
