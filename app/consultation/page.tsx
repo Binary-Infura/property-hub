@@ -71,7 +71,7 @@ export default function ConsultationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
@@ -79,31 +79,29 @@ export default function ConsultationPage() {
     setIsSubmitting(true);
 
     try {
-      // Simulate API call for signup
-      // In a real app, this would be an actual API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/public/buyers/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
 
-      // Store user data (in a real app, this would be handled by auth system)
-      const userData = {
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone,
-        budget: formData.budget,
-        location: formData.location,
-        intent: formData.intent,
-        signedUpAt: new Date().toISOString(),
-      };
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.message || 'Signup failed');
+      }
 
-      // Store in localStorage for demo purposes
-      // In production, this would be handled by your auth system
-      localStorage.setItem('user', JSON.stringify(userData));
-      localStorage.setItem('isAuthenticated', 'true');
+      // Login the user automatically or redirect to login?
+      // Since we don't return a token on signup (usually), we redirect to login or dashboard if we implement auto-login
+      // For now, redirect to login with a message? Or just signin page.
+      // Or we can try to login immediately if we knew the password, but we generated a temp one.
 
-      // Redirect to dashboard
-      router.push('/dashboard');
-    } catch (error) {
+      // Let's redirect to signin for now
+      router.push('/signin?registered=true');
+    } catch (error: any) {
       console.error('Signup error:', error);
-      setErrors({ submit: 'Something went wrong. Please try again.' });
+      setErrors({ submit: error.message || 'Something went wrong. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }
@@ -157,9 +155,8 @@ export default function ConsultationPage() {
                   value={formData.name}
                   onChange={handleChange}
                   placeholder="Enter your full name"
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.name ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.name ? 'border-red-300' : 'border-gray-300'
+                    }`}
                 />
                 {errors.name && (
                   <p className="mt-1 text-sm text-red-600">{errors.name}</p>
@@ -177,9 +174,8 @@ export default function ConsultationPage() {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="Enter your email address"
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.email ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.email ? 'border-red-300' : 'border-gray-300'
+                    }`}
                 />
                 {errors.email && (
                   <p className="mt-1 text-sm text-red-600">{errors.email}</p>
@@ -198,9 +194,8 @@ export default function ConsultationPage() {
                   onChange={handleChange}
                   placeholder="Enter your 10-digit number"
                   maxLength={10}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.phone ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.phone ? 'border-red-300' : 'border-gray-300'
+                    }`}
                 />
                 {errors.phone && (
                   <p className="mt-1 text-sm text-red-600">{errors.phone}</p>
@@ -216,9 +211,8 @@ export default function ConsultationPage() {
                   name="budget"
                   value={formData.budget}
                   onChange={handleChange}
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white ${
-                    errors.budget ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white ${errors.budget ? 'border-red-300' : 'border-gray-300'
+                    }`}
                 >
                   <option value="">Select your budget range</option>
                   <option value="20-40">₹20L - ₹40L</option>
@@ -244,9 +238,8 @@ export default function ConsultationPage() {
                   value={formData.location}
                   onChange={handleChange}
                   placeholder="e.g., Andheri, Bandra, Powai, etc."
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-                    errors.location ? 'border-red-300' : 'border-gray-300'
-                  }`}
+                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.location ? 'border-red-300' : 'border-gray-300'
+                    }`}
                 />
                 {errors.location && (
                   <p className="mt-1 text-sm text-red-600">{errors.location}</p>
@@ -259,13 +252,12 @@ export default function ConsultationPage() {
                   Buying Intent <span className="text-red-500">*</span>
                 </label>
                 <div className="grid grid-cols-2 gap-4">
-                  <label className={`flex items-center p-3 border rounded-lg cursor-pointer transition ${
-                    formData.intent === 'end-use'
+                  <label className={`flex items-center p-3 border rounded-lg cursor-pointer transition ${formData.intent === 'end-use'
                       ? 'border-blue-600 bg-blue-50'
                       : errors.intent
-                      ? 'border-red-300 hover:bg-red-50'
-                      : 'border-gray-300 hover:bg-blue-50'
-                  }`}>
+                        ? 'border-red-300 hover:bg-red-50'
+                        : 'border-gray-300 hover:bg-blue-50'
+                    }`}>
                     <input
                       type="radio"
                       name="intent"
@@ -276,13 +268,12 @@ export default function ConsultationPage() {
                     />
                     <span className="ml-3 font-medium text-gray-900">End-Use (Self)</span>
                   </label>
-                  <label className={`flex items-center p-3 border rounded-lg cursor-pointer transition ${
-                    formData.intent === 'investment'
+                  <label className={`flex items-center p-3 border rounded-lg cursor-pointer transition ${formData.intent === 'investment'
                       ? 'border-blue-600 bg-blue-50'
                       : errors.intent
-                      ? 'border-red-300 hover:bg-red-50'
-                      : 'border-gray-300 hover:bg-blue-50'
-                  }`}>
+                        ? 'border-red-300 hover:bg-red-50'
+                        : 'border-gray-300 hover:bg-blue-50'
+                    }`}>
                     <input
                       type="radio"
                       name="intent"

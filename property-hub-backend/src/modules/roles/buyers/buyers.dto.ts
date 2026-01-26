@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsNumber, IsArray } from 'class-validator';
+import { IsString, IsOptional, IsNumber, IsArray, IsEmail } from 'class-validator';
 
 export class UpdateBuyerProfileDto {
     @IsNumber()
@@ -13,4 +13,25 @@ export class UpdateBuyerProfileDto {
     @IsString({ each: true })
     @IsOptional()
     preferredLocations?: string[];
+}
+
+export class RegisterBuyerDto {
+    @IsString()
+    name: string;
+
+    @IsString() // Changed from IsEmail to IsString because phone is not email, wait. The field is email.
+    @IsEmail()
+    email: string;
+
+    @IsString()
+    phone: string;
+
+    @IsString()
+    budget: string; // e.g. "20-40"
+
+    @IsString()
+    location: string;
+
+    @IsString()
+    intent: string;
 }
