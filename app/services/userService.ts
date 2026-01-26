@@ -13,6 +13,7 @@ export interface User {
     rating?: number;
     visitsConducted?: number;
     regions?: any[];
+    regionIds?: string[];
     createdAt: string;
 }
 
