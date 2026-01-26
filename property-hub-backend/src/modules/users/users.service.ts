@@ -34,6 +34,12 @@ export class UsersService {
             const temporaryPassword = this.generateTemporaryPassword();
             const username = dto.email; // Use email as username to avoid collisions
 
+            // Check if user already exists
+            const existingUsers = await client.users.find({ realm: this.realm, email: dto.email });
+            if (existingUsers.length > 0) {
+                throw new BadRequestException('User with this email already exists');
+            }
+
             // Create user in Keycloak
             const createdUser = await client.users.create({
                 realm: this.realm,
