@@ -95,12 +95,13 @@ export default function SignInPage() {
         <div className="min-h-screen flex items-center justify-center bg-slate-50 py-12 px-4 sm:px-6 lg:px-8">
             <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
                 <div className="text-center">
-                    <Link href="/" className="inline-block mx-auto h-12 w-12 bg-blue-600 rounded-xl flex items-center justify-center text-white font-bold text-xl mb-4">
-                        PH
-                    </Link>
-                    <h2 className="text-3xl font-bold text-gray-900 tracking-tight">
-                        Sign In
-                    </h2>
+                    <div className="flex flex-col items-center">
+                        <div className="flex items-center gap-2 mb-4">
+                            <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
+                            <span className="font-bold text-2xl text-gray-900">PropertyHub</span>
+                        </div>
+                    </div>
+
                     <p className="mt-2 text-sm text-gray-500">
                         Access your PropertyHub workspace
                     </p>

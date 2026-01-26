@@ -301,7 +301,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.removeItem('kc_token');
         localStorage.removeItem('kc_refreshToken');
         localStorage.removeItem('kc_idToken');
-        keycloak?.logout({ redirectUri: window.location.origin });
+
+        const redirectUri = typeof window !== 'undefined' ? `${window.location.origin}/signin` : '';
+        keycloak?.logout({ redirectUri });
     };
 
     return (
