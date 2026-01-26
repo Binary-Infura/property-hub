@@ -13,13 +13,13 @@ export class MarketingManagersController {
     constructor(private readonly marketingManagersService: MarketingManagersService) { }
 
     @Post()
-    @RequireRoles('central-authority', 'super-admin')
+    @RequireRoles('central-authority')
     create(@Body() dto: CreateMarketingManagerDto) {
         return this.marketingManagersService.create(dto);
     }
 
     @Get()
-    @RequireRoles('central-authority', 'super-admin')
+    @RequireRoles('central-authority')
     findAll() {
         return this.marketingManagersService.findAll();
     }

@@ -1,6 +1,6 @@
 export type UserRole =
     | 'central-authority'
-    | 'super-admin'
+
     | 'regional-manager'
     | 'property-partner'
     | 'consultant'
@@ -34,14 +34,7 @@ export const ROLES: Record<UserRole, RoleDefinition> = {
         ],
         canCreateRoles: ['marketing-manager', 'regional-manager']
     },
-    'super-admin': {
-        role: 'super-admin',
-        label: 'Super Admin',
-        description: 'Platform-wide administrator with full access',
-        permissions: [
-            { resource: '*', actions: ['create', 'read', 'update', 'delete', 'approve', 'override'] }
-        ]
-    },
+
     'regional-manager': {
         role: 'regional-manager',
         label: 'Regional Manager',

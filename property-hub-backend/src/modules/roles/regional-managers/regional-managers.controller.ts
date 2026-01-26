@@ -13,13 +13,13 @@ export class RegionalManagersController {
     constructor(private readonly regionalManagersService: RegionalManagersService) { }
 
     @Post()
-    @RequireRoles('central-authority', 'super-admin')
+    @RequireRoles('central-authority')
     create(@Body() createRegionalManagerDto: CreateRegionalManagerDto) {
         return this.regionalManagersService.create(createRegionalManagerDto);
     }
 
     @Get()
-    @RequireRoles('central-authority', 'super-admin')
+    @RequireRoles('central-authority')
     findAll() {
         return this.regionalManagersService.findAll();
     }

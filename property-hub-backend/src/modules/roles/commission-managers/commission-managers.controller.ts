@@ -13,13 +13,13 @@ export class CommissionManagersController {
     constructor(private readonly commissionManagersService: CommissionManagersService) { }
 
     @Post()
-    @RequireRoles('central-authority', 'super-admin')
+    @RequireRoles('central-authority')
     create(@Body() dto: CreateCommissionManagerDto) {
         return this.commissionManagersService.create(dto);
     }
 
     @Get()
-    @RequireRoles('central-authority', 'super-admin')
+    @RequireRoles('central-authority')
     findAll() {
         return this.commissionManagersService.findAll();
     }

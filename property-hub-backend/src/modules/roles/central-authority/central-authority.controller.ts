@@ -27,13 +27,13 @@ export class CentralAuthorityController {
     }
 
     @Post('users')
-    @RequireRoles('central-authority', 'super-admin')
+    @RequireRoles('central-authority')
     create(@Body() dto: CreateCentralAuthorityUserDto) {
         return this.centralAuthorityService.create(dto);
     }
 
     @Get('users')
-    @RequireRoles('central-authority', 'super-admin')
+    @RequireRoles('central-authority')
     findAll() {
         return this.centralAuthorityService.findAll();
     }

@@ -55,7 +55,7 @@ export default function CentralAuthorityDashboardPage() {
                 <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="p-6 border-b border-gray-100 flex justify-between items-center">
                         <h2 className="text-lg font-semibold text-gray-900">Regional Performance</h2>
-                        <Link href="/super-admin/dashboard/regions" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                        <Link href="/central-authority/dashboard/regions" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
                             View All
                         </Link>
                     </div>

@@ -1,6 +1,6 @@
 export enum UserRole {
     CENTRAL_AUTHORITY = 'central-authority',
-    SUPER_ADMIN = 'super-admin',
+
     REGIONAL_MANAGER = 'regional-manager',
     MARKETING_MANAGER = 'marketing-manager',
     COMMISSION_MANAGER = 'commission-manager',
