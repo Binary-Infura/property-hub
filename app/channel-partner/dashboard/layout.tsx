@@ -17,6 +17,7 @@ import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import NoRegionAllocated from '@/app/components/dashboard/NoRegionAllocated';
 import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
 import RouteGuard from '@/app/components/auth/RouteGuard';
+import ProfileCompletionPrompt from '@/app/components/ProfileCompletionPrompt';
 
 function ChannelPartnerDashboardLayoutContent({
   children,
@@ -78,6 +79,7 @@ function ChannelPartnerDashboardLayoutContent({
         <DashboardHeader title="Channel Partner Dashboard" showLogo={isNoRegion} />
 
         <main className={`flex-1 overflow-y-auto ${isNoRegion ? 'flex items-center justify-center p-8' : 'p-8'}`}>
+          <ProfileCompletionPrompt />
           {isNoRegion ? <NoRegionAllocated /> : children}
         </main>
       </div>

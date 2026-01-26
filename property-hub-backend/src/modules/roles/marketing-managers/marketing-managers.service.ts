@@ -1,0 +1,71 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from '../../../database/prisma.service';
+import { UsersService } from '../../users/users.service';
+import { CreateMarketingManagerDto, MarketingManagerDto, UpdateMarketingManagerProfileDto } from './marketing-managers.dto';
+
+@Injectable()
+export class MarketingManagersService {
+    constructor(
+        private prisma: PrismaService,
+        private usersService: UsersService,
+    ) { }
+
+    async create(dto: CreateMarketingManagerDto) {
+        // 1. Invite user in Keycloak
+        const invitation = await this.usersService.inviteUser({
+            email: dto.email,
+            firstName: dto.firstName,
+            lastName: dto.lastName,
+            regions: {}, // No regions for Marketing Manager
+            role: 'marketing-manager',
+        });
+
+        // 2. Create in Database
+        const marketingManager = await this.prisma.user.create({
+            data: {
+                keycloakId: invitation.userId,
+                name: `${dto.firstName} ${dto.lastName}`,
+                email: dto.email,
+                phone: dto.phone,
+                role: 'marketing-manager',
+            },
+        });
+
+        return marketingManager;
+    }
+
+    async findAll(): Promise<MarketingManagerDto[]> {
+        const users = await this.prisma.user.findMany({
+            where: {
+                role: 'marketing-manager',
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
+        });
+        return users as any;
+    }
+
+    async getProfile(userId: string) {
+        const profile = await this.prisma.marketingManagerProfile.findUnique({
+            where: { userId },
+        });
+        if (!profile) {
+            return null; // Return null instead of throwing if profile is missing
+        }
+        return profile;
+    }
+
+    async upsertProfile(userId: string, dto: UpdateMarketingManagerProfileDto) {
+        return this.prisma.marketingManagerProfile.upsert({
+            where: { userId },
+            update: {
+                campaignBudgetLimit: dto.campaignBudgetLimit,
+            },
+            create: {
+                userId,
+                campaignBudgetLimit: dto.campaignBudgetLimit,
+            },
+        });
+    }
+}

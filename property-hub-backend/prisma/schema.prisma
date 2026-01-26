@@ -117,16 +117,21 @@ model UserMetadata {
 }
 
 model User {
-  id         String   @id @default(uuid())
-  keycloakId String?  @unique
-  name       String
-  email      String   @unique
-  phone      String?
-  role       String
-  status     String   @default("active")
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  regions    Region[] @relation("RegionToUser")
+  id               String   @id @default(uuid())
+  keycloakId       String?  @unique
+  name             String
+  email            String   @unique
+  phone            String?
+  role             String
+  status           String   @default("active")
+  agencyName       String?
+  reraId           String?
+  rating           Float?
+  visitsConducted  Int?     @default(0)
+  metadata         Json?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  regions          Region[] @relation("RegionToUser")
 
   @@map("users")
 }
@@ -168,4 +173,124 @@ enum CommissionStatus {
   APPROVED
   PAID
   REJECTED
+}
+
+model CentralAuthorityProfile {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  department  String?
+  accessLevel String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("central_authority_profiles")
+}
+
+model PropertyPartnerProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  companyName    String
+  companyAddress String?
+  taxId          String?
+  licenseNumber  String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("property_partner_profiles")
+}
+
+model ChannelPartnerProfile {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  agencyBusinessName String
+  reraNumber         String?
+  officeAddress      String?
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("channel_partner_profiles")
+}
+
+model RegionalManagerProfile {
+  id         String   @id @default(uuid())
+  userId     String   @unique
+  territory  String?
+  kpiTargets Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("regional_manager_profiles")
+}
+
+model CommissionManagerProfile {
+  id                    String   @id @default(uuid())
+  userId                String   @unique
+  paymentAuthorityLimit Decimal? @db.Decimal(15, 2)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  @@map("commission_manager_profiles")
+}
+
+model MarketingManagerProfile {
+  id                  String   @id @default(uuid())
+  userId              String   @unique
+  campaignBudgetLimit Decimal? @db.Decimal(15, 2)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  @@map("marketing_manager_profiles")
+}
+
+model MarketingLeadProfile {
+  id             String   @id @default(uuid())
+  userId         String   @unique
+  specialization String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@map("marketing_lead_profiles")
+}
+
+model AdsExecutiveProfile {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  platformSpecialty String[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("ads_executive_profiles")
+}
+
+model CreativeExecutiveProfile {
+  id           String   @id @default(uuid())
+  userId       String   @unique
+  portfolioUrl String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("creative_executive_profiles")
+}
+
+model ConsultantProfile {
+  id              String   @id @default(uuid())
+  userId          String   @unique
+  specialization  String[]
+  experienceYears Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@map("consultant_profiles")
+}
+
+model BuyerProfile {
+  id                 String   @id @default(uuid())
+  userId             String   @unique
+  budgetMin          Decimal? @db.Decimal(15, 2)
+  budgetMax          Decimal? @db.Decimal(15, 2)
+  preferredLocations String[]
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+
+  @@map("buyer_profiles")
 }

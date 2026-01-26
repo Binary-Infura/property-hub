@@ -46,7 +46,7 @@ export default function EditAssignmentModal({ isOpen, user, onClose, onSuccess }
             }
 
             // Fetch user's current regions (we'll get them from allocations)
-            const allocationsResponse = await fetch(`${API_URL}/api/region-allocations`, {
+            const allocationsResponse = await fetch(`${API_URL}/api/regions/allocations/all`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (allocationsResponse.ok) {
@@ -81,7 +81,7 @@ export default function EditAssignmentModal({ isOpen, user, onClose, onSuccess }
 
         setSubmitting(true);
         try {
-            const response = await fetch(`${API_URL}/api/region-allocations/${user.id}`, {
+            const response = await fetch(`${API_URL}/api/regions/allocations/${user.id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

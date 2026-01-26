@@ -1,17 +1,24 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AuthModule } from './auth/auth.module';
+import { CommonModule } from './common/common.module';
 import { PropertiesModule } from './modules/properties/properties.module';
 import { LeadsModule } from './modules/leads/leads.module';
 import { CommissionsModule } from './modules/commissions/commissions.module';
 import { UsersModule } from './modules/users/users.module';
 import { RegionsModule } from './modules/regions/regions.module';
-import { KeycloakModule } from './modules/keycloak/keycloak.module';
-import { GlobalUsersModule } from './modules/global-users/global-users.module';
-import { CommissionManagersModule } from './modules/commission-managers/commission-managers.module';
-import { MarketingManagersModule } from './modules/marketing-managers/marketing-managers.module';
-import { RegionalManagersModule } from './modules/regional-managers/regional-managers.module';
-import { RegionAllocationsModule } from './modules/region-allocations/region-allocations.module';
+import { KeycloakModule } from './common/services/keycloak/keycloak.module';
+import { CommissionManagersModule } from './modules/roles/commission-managers/commission-managers.module';
+import { MarketingManagersModule } from './modules/roles/marketing-managers/marketing-managers.module';
+import { RegionalManagersModule } from './modules/roles/regional-managers/regional-managers.module';
+import { BuyersModule } from './modules/roles/buyers/buyers.module';
+import { ConsultantsModule } from './modules/roles/consultants/consultants.module';
+import { PropertyPartnersModule } from './modules/roles/property-partners/property-partners.module';
+import { ChannelPartnersModule } from './modules/roles/channel-partners/channel-partners.module';
+import { MarketingLeadsModule } from './modules/roles/marketing-leads/marketing-leads.module';
+import { AdsExecutivesModule } from './modules/roles/ads-executives/ads-executives.module';
+import { CreativeExecutivesModule } from './modules/roles/creative-executives/creative-executives.module';
+import { CentralAuthorityModule } from './modules/roles/central-authority/central-authority.module';
 import { PrismaService } from './database/prisma.service';
 
 @Module({
@@ -20,6 +27,7 @@ import { PrismaService } from './database/prisma.service';
             isGlobal: true,
             envFilePath: '.env',
         }),
+        CommonModule,
         KeycloakModule,
         AuthModule,
         PropertiesModule,
@@ -27,12 +35,17 @@ import { PrismaService } from './database/prisma.service';
         CommissionsModule,
         UsersModule,
         RegionsModule,
-        RegionAllocationsModule,
         RegionalManagersModule,
         MarketingManagersModule,
-        GlobalUsersModule,
         CommissionManagersModule,
+        BuyersModule,
+        ConsultantsModule,
+        PropertyPartnersModule,
+        ChannelPartnersModule,
+        MarketingLeadsModule,
+        AdsExecutivesModule,
+        CreativeExecutivesModule,
+        CentralAuthorityModule,
     ],
-    providers: [PrismaService],
 })
 export class AppModule { }

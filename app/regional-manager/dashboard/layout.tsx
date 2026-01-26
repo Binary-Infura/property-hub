@@ -8,6 +8,7 @@ import RouteGuard from '@/app/components/auth/RouteGuard';
 
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import NoRegionAllocated from '@/app/components/dashboard/NoRegionAllocated';
+import ProfileCompletionPrompt from '@/app/components/ProfileCompletionPrompt';
 
 function RegionalManagerDashboardLayoutContent({
   children,
@@ -76,6 +77,7 @@ function RegionalManagerDashboardLayoutContent({
         <DashboardHeader title="Regional Manager Dashboard" showLogo={isNoRegion} />
 
         <main className={`flex-1 overflow-y-auto ${isNoRegion ? 'flex items-center justify-center p-8' : 'p-8'}`}>
+          <ProfileCompletionPrompt />
           {isNoRegion ? <NoRegionAllocated /> : children}
         </main>
       </div>

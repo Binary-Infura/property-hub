@@ -1,77 +1,103 @@
 'use client';
 
-import { useState } from 'react';
-import { ServiceProvider } from '@/app/types/service-provider';
-import AddServiceProviderForm from '@/app/components/service-provider/AddServiceProviderForm';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+import { userService, User } from '@/app/services/userService';
 
 export default function ServiceProvidersPage() {
-    const [serviceProviders, setServiceProviders] = useState<ServiceProvider[]>([
-        {
-            id: '1',
-            name: 'Ramesh Gupta',
-            businessName: 'Gupta Painting Services',
-            email: 'ramesh@example.com',
-            phone: '+91 98765 43210',
-            category: 'painting',
-            serviceArea: 'Mumbai, Bandra',
-            availability: { days: ['Mon-Sat'], hours: '09:00 AM - 07:00 PM' },
-            rates: '₹300/sqft',
-            rating: 4.5,
-            jobsCompleted: 12,
-            status: 'active',
-            joinedAt: new Date('2024-01-10'),
-        },
-        {
-            id: '2',
-            name: 'Suresh Electricals',
-            email: 'suresh@example.com',
-            phone: '+91 98765 12345',
-            category: 'electrical',
-            serviceArea: 'Mumbai, Andheri',
-            availability: { days: ['Mon-Sat'], hours: '10:00 AM - 08:00 PM' },
-            rates: 'Visit Charge ₹500',
-            rating: 4.8,
-            jobsCompleted: 35,
-            status: 'pending-approval',
-            joinedAt: new Date('2024-02-15'),
-        },
-    ]);
+    const { token } = useAuth();
+    const { activeContext } = useUnifiedApp();
+    const [providers, setProviders] = useState<User[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     const [showAddModal, setShowAddModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [selectedProvider, setSelectedProvider] = useState<User | null>(null);
+    const [formData, setFormData] = useState({
+        name: '',
+        email: '',
+        phone: '',
+        agencyName: '', // Mapping businessName to agencyName
+    });
 
-    const handleAddSubmit = (data: any) => {
-        const newProvider: ServiceProvider = {
-            id: Date.now().toString(),
-            ...data,
-            availability: { days: data.availabilityDays || [], hours: data.availabilityHours || '' },
-            rating: 0,
-            jobsCompleted: 0,
-            status: 'active', // Auto-active for now or 'pending-approval' per requirement
-            joinedAt: new Date(),
-        };
-        setServiceProviders([...serviceProviders, newProvider]);
-        setShowAddModal(false);
+    const fetchProviders = async () => {
+        if (!token) return;
+        try {
+            setLoading(true);
+            const data = await userService.getAllByRole('service-provider', token);
+            setProviders(data);
+            setError(null);
+        } catch (err: any) {
+            setError(err.message || 'Failed to fetch providers');
+        } finally {
+            setLoading(false);
+        }
     };
 
-    const handleToggleStatus = (id: string) => {
-        setServiceProviders(serviceProviders.map(sp =>
-            sp.id === id
-                ? { ...sp, status: sp.status === 'active' ? 'inactive' : 'active' }
-                : sp
-        ));
+    useEffect(() => {
+        fetchProviders();
+    }, [token]);
+
+    const handleAddProvider = () => {
+        setFormData({ name: '', email: '', phone: '', agencyName: '' });
+        setShowAddModal(true);
     };
 
-    const handleApprove = (id: string) => {
-        setServiceProviders(serviceProviders.map(sp =>
-            sp.id === id
-                ? { ...sp, status: 'active' }
-                : sp
-        ));
+    const handleEditProvider = (provider: User) => {
+        setFormData({
+            name: provider.name,
+            email: provider.email,
+            phone: provider.phone || '',
+            agencyName: provider.agencyName || '',
+        });
+        setSelectedProvider(provider);
+        setShowEditModal(true);
     };
+
+    const handleSaveProvider = async () => {
+        if (!token) return;
+        try {
+            if (selectedProvider) {
+                const updated = await userService.update(selectedProvider.id, {
+                    ...formData,
+                    regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : []
+                }, token);
+                setProviders(providers.map(p => p.id === selectedProvider.id ? updated : p));
+                setShowEditModal(false);
+            } else {
+                const created = await userService.create({
+                    ...formData,
+                    role: 'service-provider',
+                    regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : []
+                }, token);
+                setProviders([created, ...providers]);
+                setShowAddModal(false);
+            }
+            setFormData({ name: '', email: '', phone: '', agencyName: '' });
+            setSelectedProvider(null);
+        } catch (err: any) {
+            alert(err.message || 'Failed to save provider');
+        }
+    };
+
+    const handleToggleStatus = async (id: string) => {
+        if (!token) return;
+        try {
+            const updated = await userService.toggleStatus(id, token);
+            setProviders(providers.map(p => p.id === id ? updated : p));
+        } catch (err: any) {
+            alert(err.message || 'Failed to toggle status');
+        }
+    };
+
+    if (loading && providers.length === 0) {
+        return <div className="p-8">Loading service providers...</div>;
+    }
 
     return (
         <div className="p-8">
-            {/* Header */}
             <div className="mb-8">
                 <div className="flex justify-between items-center">
                     <div>
@@ -79,7 +105,7 @@ export default function ServiceProvidersPage() {
                         <p className="text-gray-600 mt-1">Manage and onboard service providers in your region</p>
                     </div>
                     <button
-                        onClick={() => setShowAddModal(true)}
+                        onClick={handleAddProvider}
                         className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition flex items-center gap-2"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,23 +116,12 @@ export default function ServiceProvidersPage() {
                 </div>
             </div>
 
-            {/* Stats - Optional but nice */}
-            <div className="grid md:grid-cols-3 gap-6 mb-8">
-                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                    <p className="text-gray-600 text-sm font-medium">Total Providers</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-2">{serviceProviders.length}</p>
+            {error && (
+                <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg border border-red-100">
+                    {error}
                 </div>
-                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                    <p className="text-gray-600 text-sm font-medium">Active</p>
-                    <p className="text-3xl font-bold text-green-600 mt-2">{serviceProviders.filter(sp => sp.status === 'active').length}</p>
-                </div>
-                <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                    <p className="text-gray-600 text-sm font-medium">Pending Approval</p>
-                    <p className="text-3xl font-bold text-yellow-600 mt-2">{serviceProviders.filter(sp => sp.status === 'pending-approval').length}</p>
-                </div>
-            </div>
+            )}
 
-            {/* List */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-100">
                 <div className="p-6">
                     <div className="overflow-x-auto">
@@ -122,46 +137,42 @@ export default function ServiceProvidersPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {serviceProviders.map((sp) => (
+                                {providers.map((sp) => (
                                     <tr key={sp.id} className="border-b border-gray-100 hover:bg-gray-50">
                                         <td className="py-4 px-4">
                                             <div>
-                                                <p className="font-semibold text-gray-900">{sp.businessName || sp.name}</p>
-                                                <p className="text-sm text-gray-500">{sp.phone}</p>
+                                                <p className="font-semibold text-gray-900">{sp.agencyName || sp.name}</p>
+                                                <p className="text-sm text-gray-500">{sp.phone || sp.email}</p>
                                             </div>
                                         </td>
-                                        <td className="py-4 px-4 capitalize text-gray-700">{sp.category}</td>
-                                        <td className="py-4 px-4 text-gray-700">{sp.serviceArea}</td>
+                                        <td className="py-4 px-4 capitalize text-gray-700">N/A</td>
+                                        <td className="py-4 px-4 text-gray-700">
+                                            {sp.regions?.map(r => r.name).join(', ') || 'N/A'}
+                                        </td>
                                         <td className="py-4 px-4">
                                             <div className="text-sm">
-                                                <p className="text-gray-900 font-medium tracking-wide">⭐ {sp.rating}</p>
-                                                <p className="text-gray-500 text-xs">{sp.jobsCompleted} jobs</p>
+                                                <p className="text-gray-900 font-medium tracking-wide">⭐ {sp.rating || 0}</p>
+                                                <p className="text-gray-500 text-xs">{sp.visitsConducted || 0} jobs</p>
                                             </div>
                                         </td>
                                         <td className="py-4 px-4">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${sp.status === 'active' ? 'bg-green-100 text-green-700' :
-                                                    sp.status === 'inactive' ? 'bg-red-100 text-red-700' :
-                                                        'bg-yellow-100 text-yellow-700'
-                                                }`}>
-                                                {sp.status === 'active' ? 'Active' : sp.status === 'inactive' ? 'Inactive' : 'Pending'}
+                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${sp.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                                                {sp.status === 'active' ? 'Active' : 'Inactive'}
                                             </span>
                                         </td>
                                         <td className="py-4 px-4 text-right">
                                             <div className="flex justify-end gap-2">
-                                                {sp.status === 'pending-approval' && (
-                                                    <button
-                                                        onClick={() => handleApprove(sp.id)}
-                                                        className="px-3 py-1 bg-green-50 text-green-700 hover:bg-green-100 rounded text-sm font-medium"
-                                                    >
-                                                        Approve
-                                                    </button>
-                                                )}
+                                                <button
+                                                    onClick={() => handleEditProvider(sp)}
+                                                    className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded text-sm font-medium"
+                                                >
+                                                    Edit
+                                                </button>
                                                 <button
                                                     onClick={() => handleToggleStatus(sp.id)}
-                                                    className={`px-3 py-1 rounded text-sm font-medium ${sp.status === 'active' ? 'text-red-600 hover:bg-red-50' : 'text-gray-600 hover:bg-gray-50'
-                                                        }`}
+                                                    className={`px-3 py-1 rounded text-sm font-medium ${sp.status === 'active' ? 'text-red-600 hover:bg-red-50' : 'text-green-600 hover:bg-green-50'}`}
                                                 >
-                                                    {sp.status === 'active' ? 'Deactivate' : sp.status === 'inactive' ? 'Activate' : 'Reject'}
+                                                    {sp.status === 'active' ? 'Deactivate' : 'Activate'}
                                                 </button>
                                             </div>
                                         </td>
@@ -173,21 +184,69 @@ export default function ServiceProvidersPage() {
                 </div>
             </div>
 
-            {/* Add Modal */}
-            {showAddModal && (
+            {(showAddModal || showEditModal) && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-6 max-h-[90vh] overflow-y-auto">
-                        <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-2xl font-bold text-gray-900">Add New Service Provider</h2>
-                            <button onClick={() => setShowAddModal(false)} className="text-gray-500 hover:text-gray-700">
-                                ✕
+                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                            {showEditModal ? 'Edit Service Provider' : 'Add New Service Provider'}
+                        </h2>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
+                                <input
+                                    type="text"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                                <input
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    disabled={showEditModal}
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
+                                <input
+                                    type="tel"
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-2">Business Name</label>
+                                <input
+                                    type="text"
+                                    value={formData.agencyName}
+                                    onChange={(e) => setFormData({ ...formData, agencyName: e.target.value })}
+                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                />
+                            </div>
+                        </div>
+                        <div className="flex gap-3 mt-6">
+                            <button
+                                onClick={() => {
+                                    setShowAddModal(false);
+                                    setShowEditModal(false);
+                                    setFormData({ name: '', email: '', phone: '', agencyName: '' });
+                                }}
+                                className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleSaveProvider}
+                                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
+                            >
+                                {showEditModal ? 'Save Changes' : 'Add Provider'}
                             </button>
                         </div>
-
-                        <AddServiceProviderForm
-                            onCancel={() => setShowAddModal(false)}
-                            onSubmit={handleAddSubmit}
-                        />
                     </div>
                 </div>
             )}

@@ -1,122 +1,105 @@
 'use client';
 
-import { useState } from 'react';
-
-interface LoanAdviser {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    agency: string;
-    experience: string;
-    activeLoans: number;
-    status: 'active' | 'inactive';
-    createdAt: string;
-}
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+import { userService, User } from '@/app/services/userService';
 
 export default function LoanAdvisersPage() {
-    const [advisers, setAdvisers] = useState<LoanAdviser[]>([
-        {
-            id: '1',
-            name: 'Amit Verma',
-            email: 'amit.v@finance.com',
-            phone: '+91 98765 12345',
-            agency: 'HDFC Bank',
-            experience: '7 years',
-            activeLoans: 12,
-            status: 'active',
-            createdAt: '2024-01-20',
-        },
-        {
-            id: '2',
-            name: 'Sarah Khan',
-            email: 'sarah.k@finance.com',
-            phone: '+91 98765 54321',
-            agency: 'SBI Home Loans',
-            experience: '4 years',
-            activeLoans: 8,
-            status: 'active',
-            createdAt: '2024-02-15',
-        },
-        {
-            id: '3',
-            name: 'Rahul Singh',
-            email: 'rahul.s@finance.com',
-            phone: '+91 99887 76655',
-            agency: 'ICICI Bank',
-            experience: '2 years',
-            activeLoans: 3,
-            status: 'inactive',
-            createdAt: '2024-03-10',
-        },
-    ]);
+    const { token } = useAuth();
+    const { activeContext } = useUnifiedApp();
+    const [advisers, setAdvisers] = useState<User[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [selectedAdviser, setSelectedAdviser] = useState<LoanAdviser | null>(null);
+    const [selectedAdviser, setSelectedAdviser] = useState<User | null>(null);
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         phone: '',
-        agency: '',
-        experience: '',
+        agencyName: '',
     });
 
+    const fetchAdvisers = async () => {
+        if (!token) return;
+        try {
+            setLoading(true);
+            const data = await userService.getAllByRole('loan-adviser', token);
+            setAdvisers(data);
+            setError(null);
+        } catch (err: any) {
+            setError(err.message || 'Failed to fetch advisers');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchAdvisers();
+    }, [token]);
+
     const handleAddAdviser = () => {
-        setFormData({ name: '', email: '', phone: '', agency: '', experience: '' });
+        setFormData({ name: '', email: '', phone: '', agencyName: '' });
         setShowAddModal(true);
     };
 
-    const handleEditAdviser = (adviser: LoanAdviser) => {
+    const handleEditAdviser = (adviser: User) => {
         setFormData({
             name: adviser.name,
             email: adviser.email,
-            phone: adviser.phone,
-            agency: adviser.agency,
-            experience: adviser.experience,
+            phone: adviser.phone || '',
+            agencyName: adviser.agencyName || '',
         });
         setSelectedAdviser(adviser);
         setShowEditModal(true);
     };
 
-    const handleSaveAdviser = () => {
-        if (selectedAdviser) {
-            // Edit existing
-            setAdvisers(advisers.map(a =>
-                a.id === selectedAdviser.id
-                    ? { ...a, ...formData }
-                    : a
-            ));
-            setShowEditModal(false);
-        } else {
-            // Add new
-            const newAdviser: LoanAdviser = {
-                id: Date.now().toString(),
-                ...formData,
-                activeLoans: 0,
-                status: 'active',
-                createdAt: new Date().toISOString().split('T')[0],
-            };
-            setAdvisers([...advisers, newAdviser]);
-            setShowAddModal(false);
+    const handleSaveAdviser = async () => {
+        if (!token) return;
+        try {
+            if (selectedAdviser) {
+                const updated = await userService.update(selectedAdviser.id, {
+                    ...formData,
+                    regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : []
+                }, token);
+                setAdvisers(advisers.map(a => a.id === selectedAdviser.id ? updated : a));
+                setShowEditModal(false);
+            } else {
+                const created = await userService.create({
+                    ...formData,
+                    role: 'loan-adviser',
+                    regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : []
+                }, token);
+                setAdvisers([created, ...advisers]);
+                setShowAddModal(false);
+            }
+            setFormData({ name: '', email: '', phone: '', agencyName: '' });
+            setSelectedAdviser(null);
+        } catch (err: any) {
+            alert(err.message || 'Failed to save adviser');
         }
-        setFormData({ name: '', email: '', phone: '', agency: '', experience: '' });
-        setSelectedAdviser(null);
     };
 
-    const handleToggleStatus = (id: string) => {
-        setAdvisers(advisers.map(a =>
-            a.id === id
-                ? { ...a, status: a.status === 'active' ? 'inactive' : 'active' }
-                : a
-        ));
+    const handleToggleStatus = async (id: string) => {
+        if (!token) return;
+        try {
+            const updated = await userService.toggleStatus(id, token);
+            setAdvisers(advisers.map(a => a.id === id ? updated : a));
+        } catch (err: any) {
+            alert(err.message || 'Failed to toggle status');
+        }
     };
 
     const activeCount = advisers.filter(a => a.status === 'active').length;
 
+    if (loading && advisers.length === 0) {
+        return <div className="p-8">Loading loan advisers...</div>;
+    }
+
     return (
         <div className="p-8">
-            {/* Header */}
             <div className="mb-8">
                 <div className="flex justify-between items-center">
                     <div>
@@ -135,7 +118,12 @@ export default function LoanAdvisersPage() {
                 </div>
             </div>
 
-            {/* Stats */}
+            {error && (
+                <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg border border-red-100">
+                    {error}
+                </div>
+            )}
+
             <div className="grid md:grid-cols-3 gap-6 mb-8">
                 <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                     <p className="text-gray-600 text-sm font-medium">Total Advisers</p>
@@ -147,13 +135,10 @@ export default function LoanAdvisersPage() {
                 </div>
                 <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                     <p className="text-gray-600 text-sm font-medium">Total Active Loans</p>
-                    <p className="text-3xl font-bold text-blue-600 mt-2">
-                        {advisers.reduce((sum, a) => sum + a.activeLoans, 0)}
-                    </p>
+                    <p className="text-3xl font-bold text-blue-600 mt-2">N/A</p>
                 </div>
             </div>
 
-            {/* List */}
             <div className="bg-white rounded-lg shadow-sm border border-gray-100">
                 <div className="p-6">
                     <div className="overflow-x-auto">
@@ -163,8 +148,6 @@ export default function LoanAdvisersPage() {
                                     <th className="text-left py-3 px-4 font-semibold text-gray-700">Name</th>
                                     <th className="text-left py-3 px-4 font-semibold text-gray-700">Agency/Bank</th>
                                     <th className="text-left py-3 px-4 font-semibold text-gray-700">Contact</th>
-                                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Experience</th>
-                                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Active Loans</th>
                                     <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
                                     <th className="text-right py-3 px-4 font-semibold text-gray-700">Actions</th>
                                 </tr>
@@ -178,18 +161,12 @@ export default function LoanAdvisersPage() {
                                                 <p className="text-sm text-gray-500">{adviser.email}</p>
                                             </div>
                                         </td>
-                                        <td className="py-4 px-4 text-gray-700">{adviser.agency}</td>
-                                        <td className="py-4 px-4 text-gray-700">{adviser.phone}</td>
-                                        <td className="py-4 px-4 text-gray-700">{adviser.experience}</td>
-                                        <td className="py-4 px-4">
-                                            <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                                                {adviser.activeLoans}
-                                            </span>
-                                        </td>
+                                        <td className="py-4 px-4 text-gray-700">{adviser.agencyName || 'N/A'}</td>
+                                        <td className="py-4 px-4 text-gray-700">{adviser.phone || 'N/A'}</td>
                                         <td className="py-4 px-4">
                                             <span className={`px-3 py-1 rounded-full text-xs font-medium ${adviser.status === 'active'
-                                                    ? 'bg-green-100 text-green-700'
-                                                    : 'bg-gray-100 text-gray-700'
+                                                ? 'bg-green-100 text-green-700'
+                                                : 'bg-gray-100 text-gray-700'
                                                 }`}>
                                                 {adviser.status === 'active' ? 'Active' : 'Inactive'}
                                             </span>
@@ -205,8 +182,8 @@ export default function LoanAdvisersPage() {
                                                 <button
                                                     onClick={() => handleToggleStatus(adviser.id)}
                                                     className={`px-3 py-1 rounded text-sm font-medium ${adviser.status === 'active'
-                                                            ? 'text-red-600 hover:bg-red-50'
-                                                            : 'text-green-600 hover:bg-green-50'
+                                                        ? 'text-red-600 hover:bg-red-50'
+                                                        : 'text-green-600 hover:bg-green-50'
                                                         }`}
                                                 >
                                                     {adviser.status === 'active' ? 'Deactivate' : 'Activate'}
@@ -221,7 +198,6 @@ export default function LoanAdvisersPage() {
                 </div>
             </div>
 
-            {/* Modal (Shared for Add/Edit) */}
             {(showAddModal || showEditModal) && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
@@ -245,6 +221,7 @@ export default function LoanAdvisersPage() {
                                     value={formData.email}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    disabled={showEditModal}
                                 />
                             </div>
                             <div>
@@ -260,18 +237,8 @@ export default function LoanAdvisersPage() {
                                 <label className="block text-sm font-medium text-gray-700 mb-2">Agency / Bank</label>
                                 <input
                                     type="text"
-                                    value={formData.agency}
-                                    onChange={(e) => setFormData({ ...formData, agency: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Experience</label>
-                                <input
-                                    type="text"
-                                    value={formData.experience}
-                                    onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
-                                    placeholder="e.g. 5 years"
+                                    value={formData.agencyName}
+                                    onChange={(e) => setFormData({ ...formData, agencyName: e.target.value })}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
@@ -281,7 +248,7 @@ export default function LoanAdvisersPage() {
                                 onClick={() => {
                                     setShowAddModal(false);
                                     setShowEditModal(false);
-                                    setFormData({ name: '', email: '', phone: '', agency: '', experience: '' });
+                                    setFormData({ name: '', email: '', phone: '', agencyName: '' });
                                 }}
                                 className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
                             >

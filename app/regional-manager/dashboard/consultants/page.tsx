@@ -1,163 +1,108 @@
 'use client';
 
-import { useState } from 'react';
-
-interface Consultant {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  experience: string;
-  status: 'active' | 'inactive';
-  clientsCount: number;
-  buildersCount: number;
-  propertiesCount: number;
-  createdAt: string;
-}
-
-interface PropertyPartner {
-  id: string;
-  name: string;
-  company: string;
-}
-
-interface Property {
-  id: string;
-  title: string;
-  location: string;
-  price: string;
-}
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+import { userService, User } from '@/app/services/userService';
 
 export default function ConsultantsPage() {
-  const [consultants, setConsultants] = useState<Consultant[]>([
-    {
-      id: '1',
-      name: 'Rajesh Sharma',
-      email: 'rajesh@propertyhub.com',
-      phone: '+91 98765 43210',
-      experience: '10+ years',
-      status: 'active',
-      clientsCount: 15,
-      buildersCount: 3,
-      propertiesCount: 8,
-      createdAt: '2024-01-10',
-    },
-    {
-      id: '2',
-      name: 'Priya Patel',
-      email: 'priya@propertyhub.com',
-      phone: '+91 97654 32109',
-      experience: '8+ years',
-      status: 'active',
-      clientsCount: 12,
-      buildersCount: 2,
-      propertiesCount: 6,
-      createdAt: '2024-02-15',
-    },
-    {
-      id: '3',
-      name: 'Arun Kumar',
-      email: 'arun@propertyhub.com',
-      phone: '+91 96543 21098',
-      experience: '5+ years',
-      status: 'inactive',
-      clientsCount: 0,
-      buildersCount: 0,
-      propertiesCount: 0,
-      createdAt: '2024-03-20',
-    },
-  ]);
-
-  const [allPropertyPartners] = useState<PropertyPartner[]>([
-    { id: '1', name: 'Rajesh Kumar', company: 'Property Partner A' },
-    { id: '2', name: 'Priya Sharma', company: 'Property Partner B' },
-    { id: '3', name: 'Arun Patel', company: 'Property Partner C' },
-  ]);
-
-  const [allProperties] = useState<Property[]>([
-    { id: '1', title: 'Sunset Towers, Bandra', location: 'Bandra, Mumbai', price: '₹85L' },
-    { id: '2', title: 'Green Valley Homes, Powai', location: 'Powai, Mumbai', price: '₹52L' },
-    { id: '3', title: 'Luxury Heights, Worli', location: 'Worli, Mumbai', price: '₹1.2Cr' },
-  ]);
+  const { token } = useAuth();
+  const { activeContext } = useUnifiedApp();
+  const [consultants, setConsultants] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showAssignModal, setShowAssignModal] = useState(false);
-  const [selectedConsultant, setSelectedConsultant] = useState<Consultant | null>(null);
+  const [selectedConsultant, setSelectedConsultant] = useState<User | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
     phone: '',
-    experience: '',
   });
 
+  const fetchConsultants = async () => {
+    if (!token) return;
+    try {
+      setLoading(true);
+      const data = await userService.getAllByRole('consultant', token);
+      setConsultants(data);
+      setError(null);
+    } catch (err: any) {
+      setError(err.message || 'Failed to fetch consultants');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchConsultants();
+  }, [token]);
+
   const handleAddConsultant = () => {
-    setFormData({ name: '', email: '', phone: '', experience: '' });
+    setFormData({ name: '', email: '', phone: '' });
     setShowAddModal(true);
   };
 
-  const handleEditConsultant = (consultant: Consultant) => {
+  const handleEditConsultant = (consultant: User) => {
     setFormData({
       name: consultant.name,
       email: consultant.email,
-      phone: consultant.phone,
-      experience: consultant.experience,
+      phone: consultant.phone || '',
     });
     setSelectedConsultant(consultant);
     setShowEditModal(true);
   };
 
-  const handleSaveConsultant = () => {
-    if (selectedConsultant) {
-      // Edit existing
-      setConsultants(consultants.map(c =>
-        c.id === selectedConsultant.id
-          ? { ...c, ...formData }
-          : c
-      ));
-      setShowEditModal(false);
-    } else {
-      // Add new
-      const newConsultant: Consultant = {
-        id: Date.now().toString(),
-        ...formData,
-        status: 'active',
-        clientsCount: 0,
-        buildersCount: 0,
-        propertiesCount: 0,
-        createdAt: new Date().toISOString().split('T')[0],
-      };
-      setConsultants([...consultants, newConsultant]);
-      setShowAddModal(false);
+  const handleSaveConsultant = async () => {
+    if (!token) return;
+    try {
+      if (selectedConsultant) {
+        const updated = await userService.update(selectedConsultant.id, {
+          ...formData,
+          regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : []
+        }, token);
+        setConsultants(consultants.map(c => c.id === selectedConsultant.id ? updated : c));
+        setShowEditModal(false);
+      } else {
+        const created = await userService.create({
+          ...formData,
+          role: 'consultant',
+          regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : []
+        }, token);
+        setConsultants([created, ...consultants]);
+        setShowAddModal(false);
+      }
+      setFormData({ name: '', email: '', phone: '' });
+      setSelectedConsultant(null);
+    } catch (err: any) {
+      alert(err.message || 'Failed to save consultant');
     }
-    setFormData({ name: '', email: '', phone: '', experience: '' });
-    setSelectedConsultant(null);
   };
 
-  const handleToggleStatus = (id: string) => {
-    setConsultants(consultants.map(c =>
-      c.id === id
-        ? { ...c, status: c.status === 'active' ? 'inactive' : 'active' }
-        : c
-    ));
-  };
-
-  const handleAssignResources = (consultant: Consultant) => {
-    setSelectedConsultant(consultant);
-    setShowAssignModal(true);
+  const handleToggleStatus = async (id: string) => {
+    if (!token) return;
+    try {
+      const updated = await userService.toggleStatus(id, token);
+      setConsultants(consultants.map(c => c.id === id ? updated : c));
+    } catch (err: any) {
+      alert(err.message || 'Failed to toggle status');
+    }
   };
 
   const activeCount = consultants.filter(c => c.status === 'active').length;
-  const inactiveCount = consultants.filter(c => c.status === 'inactive').length;
+
+  if (loading && consultants.length === 0) {
+    return <div className="p-8">Loading consultants...</div>;
+  }
 
   return (
     <div className="p-8">
-      {/* Header */}
       <div className="mb-8">
         <div className="flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Consultants Management</h1>
-            <p className="text-gray-600 mt-1">Manage consultants and their assignments</p>
+            <p className="text-gray-600 mt-1">Manage consultants and their clients</p>
           </div>
           <button
             onClick={handleAddConsultant}
@@ -171,8 +116,13 @@ export default function ConsultantsPage() {
         </div>
       </div>
 
-      {/* Stats */}
-      <div className="grid md:grid-cols-4 gap-6 mb-8">
+      {error && (
+        <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg border border-red-100">
+          {error}
+        </div>
+      )}
+
+      <div className="grid md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
           <p className="text-gray-600 text-sm font-medium">Total Consultants</p>
           <p className="text-3xl font-bold text-gray-900 mt-2">{consultants.length}</p>
@@ -182,18 +132,11 @@ export default function ConsultantsPage() {
           <p className="text-3xl font-bold text-green-600 mt-2">{activeCount}</p>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-          <p className="text-gray-600 text-sm font-medium">Inactive</p>
-          <p className="text-3xl font-bold text-red-600 mt-2">{inactiveCount}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
           <p className="text-gray-600 text-sm font-medium">Total Clients</p>
-          <p className="text-3xl font-bold text-blue-600 mt-2">
-            {consultants.reduce((sum, c) => sum + c.clientsCount, 0)}
-          </p>
+          <p className="text-3xl font-bold text-blue-600 mt-2">N/A</p>
         </div>
       </div>
 
-      {/* Consultants List */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-100">
         <div className="p-6">
           <div className="overflow-x-auto">
@@ -201,11 +144,8 @@ export default function ConsultantsPage() {
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Name</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Region(s)</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Contact</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Experience</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Clients</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Property Partners</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Properties</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
                   <th className="text-right py-3 px-4 font-semibold text-gray-700">Actions</th>
                 </tr>
@@ -219,23 +159,10 @@ export default function ConsultantsPage() {
                         <p className="text-sm text-gray-500">{consultant.email}</p>
                       </div>
                     </td>
-                    <td className="py-4 px-4 text-gray-700">{consultant.phone}</td>
-                    <td className="py-4 px-4 text-gray-700">{consultant.experience}</td>
-                    <td className="py-4 px-4">
-                      <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                        {consultant.clientsCount}
-                      </span>
+                    <td className="py-4 px-4 text-gray-700">
+                      {consultant.regions?.map(r => r.name).join(', ') || 'N/A'}
                     </td>
-                    <td className="py-4 px-4">
-                      <span className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-sm font-medium">
-                        {consultant.buildersCount}
-                      </span>
-                    </td>
-                    <td className="py-4 px-4">
-                      <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                        {consultant.propertiesCount}
-                      </span>
-                    </td>
+                    <td className="py-4 px-4 text-gray-700">{consultant.phone || 'N/A'}</td>
                     <td className="py-4 px-4">
                       <span className={`px-3 py-1 rounded-full text-xs font-medium ${consultant.status === 'active'
                         ? 'bg-green-100 text-green-700'
@@ -261,12 +188,6 @@ export default function ConsultantsPage() {
                         >
                           {consultant.status === 'active' ? 'Deactivate' : 'Activate'}
                         </button>
-                        <button
-                          onClick={() => handleAssignResources(consultant)}
-                          className="px-3 py-1 text-purple-600 hover:bg-purple-50 rounded text-sm font-medium"
-                        >
-                          Assign
-                        </button>
                       </div>
                     </td>
                   </tr>
@@ -277,11 +198,12 @@ export default function ConsultantsPage() {
         </div>
       </div>
 
-      {/* Add Consultant Modal */}
-      {showAddModal && (
+      {(showAddModal || showEditModal) && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Add New Consultant</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">
+              {showEditModal ? 'Edit Consultant' : 'Add New Consultant'}
+            </h2>
             <div className="space-y-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
@@ -289,7 +211,7 @@ export default function ConsultantsPage() {
                   type="text"
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
               <div>
@@ -298,7 +220,8 @@ export default function ConsultantsPage() {
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                  disabled={showEditModal}
                 />
               </div>
               <div>
@@ -307,17 +230,7 @@ export default function ConsultantsPage() {
                   type="tel"
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Experience</label>
-                <input
-                  type="text"
-                  value={formData.experience}
-                  onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
-                  placeholder="e.g., 10+ years"
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                 />
               </div>
             </div>
@@ -325,72 +238,8 @@ export default function ConsultantsPage() {
               <button
                 onClick={() => {
                   setShowAddModal(false);
-                  setFormData({ name: '', email: '', phone: '', experience: '' });
-                }}
-                className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleSaveConsultant}
-                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
-              >
-                Add Consultant
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Edit Consultant Modal */}
-      {showEditModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">Edit Consultant</h2>
-            <div className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Name</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Email</label>
-                <input
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Phone</label>
-                <input
-                  type="tel"
-                  value={formData.phone}
-                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Experience</label>
-                <input
-                  type="text"
-                  value={formData.experience}
-                  onChange={(e) => setFormData({ ...formData, experience: e.target.value })}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                />
-              </div>
-            </div>
-            <div className="flex gap-3 mt-6">
-              <button
-                onClick={() => {
                   setShowEditModal(false);
-                  setSelectedConsultant(null);
-                  setFormData({ name: '', email: '', phone: '', experience: '' });
+                  setFormData({ name: '', email: '', phone: '' });
                 }}
                 className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
               >
@@ -400,70 +249,12 @@ export default function ConsultantsPage() {
                 onClick={handleSaveConsultant}
                 className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium"
               >
-                Save Changes
+                {showEditModal ? 'Save Changes' : 'Add Consultant'}
               </button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Assign Resources Modal */}
-      {showAssignModal && selectedConsultant && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-3xl w-full p-6 max-h-[80vh] overflow-y-auto">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6">
-              Assign Property Partners & Properties to {selectedConsultant.name}
-            </h2>
-
-            {/* Assign Property Partners Section */}
-            <div className="mb-8">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Assign Property Partners</h3>
-              <div className="space-y-3">
-                {allPropertyPartners.map((builder) => (
-                  <div key={builder.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div>
-                      <p className="font-semibold text-gray-900">{builder.name}</p>
-                      <p className="text-sm text-gray-600">{builder.company}</p>
-                    </div>
-                    <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-sm font-medium">
-                      Assign Property Partner
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Assign Properties Section */}
-            <div className="mb-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Assign Properties</h3>
-              <div className="space-y-3">
-                {allProperties.map((property) => (
-                  <div key={property.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
-                    <div>
-                      <p className="font-semibold text-gray-900">{property.title}</p>
-                      <p className="text-sm text-gray-600">{property.location} • {property.price}</p>
-                    </div>
-                    <button className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium">
-                      Assign Property
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <button
-              onClick={() => {
-                setShowAssignModal(false);
-                setSelectedConsultant(null);
-              }}
-              className="w-full px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 font-medium"
-            >
-              Close
-            </button>
           </div>
         </div>
       )}
     </div>
   );
 }
-

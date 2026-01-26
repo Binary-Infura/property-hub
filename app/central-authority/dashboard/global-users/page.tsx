@@ -26,7 +26,7 @@ export default function GlobalUsersPage() {
         if (!token) return;
         setLoading(true);
         try {
-            const res = await fetch('/api/global-users', {
+            const res = await fetch('/api/central-authority/users', {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (res.ok) {

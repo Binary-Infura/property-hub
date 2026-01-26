@@ -9,10 +9,18 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import { RegionsService } from './regions.service';
-import { CreateRegionDto, UpdateRegionDto } from './regions.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { RequireRoles } from '../../common/decorators/require-roles.decorator';
+import {
+    CreateRegionDto,
+    UpdateRegionDto,
+    GetRegionAllocationsQueryDto,
+    AssignRegionDto,
+    UpdateRegionAssignmentDto,
+    ManagerRole,
+} from './regions.dto';
+import { Query } from '@nestjs/common';
 
 @Controller('api/regions')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -45,5 +53,46 @@ export class RegionsController {
     @RequireRoles('central-authority')
     remove(@Param('id') id: string) {
         return this.regionsService.remove(id);
+    }
+
+    // --- Region Allocation Endpoints ---
+
+    @Get('allocations/all')
+    @RequireRoles('central-authority')
+    getAllocations(@Query() filters: GetRegionAllocationsQueryDto) {
+        return this.regionsService.getAllocations(filters);
+    }
+
+    @Get('allocations/users/search')
+    @RequireRoles('central-authority')
+    searchUsers(
+        @Query('query') query: string,
+        @Query('role') role?: ManagerRole,
+    ) {
+        return this.regionsService.searchUsers(query, role);
+    }
+
+    @Post('allocations/assign')
+    @RequireRoles('central-authority')
+    assignUserToRegions(@Body() dto: AssignRegionDto) {
+        return this.regionsService.assignUserToRegions(dto);
+    }
+
+    @Patch('allocations/:userId')
+    @RequireRoles('central-authority')
+    updateAssignment(
+        @Param('userId') userId: string,
+        @Body() dto: UpdateRegionAssignmentDto,
+    ) {
+        return this.regionsService.updateAssignment(userId, dto);
+    }
+
+    @Delete('allocations/:userId/regions/:regionId')
+    @RequireRoles('central-authority')
+    removeAssignment(
+        @Param('userId') userId: string,
+        @Param('regionId') regionId: string,
+    ) {
+        return this.regionsService.removeAssignment(userId, regionId);
     }
 }

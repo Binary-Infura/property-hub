@@ -51,6 +51,18 @@
             {
                 "name": "marketing-lead",
                 "description": "Coordinates marketing team"
+            },
+            {
+                "name": "property-onboarding-manager",
+                "description": "Manages property onboarding"
+            },
+            {
+                "name": "loan-adviser",
+                "description": "Advises on loans"
+            },
+            {
+                "name": "visit-executive",
+                "description": "Manages property visits"
             }
         ]
     },

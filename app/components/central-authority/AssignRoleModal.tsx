@@ -39,14 +39,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRo
     const ASSIGNABLE_ROLES: RoleId[] = [
         'regional-manager',
         'marketing-manager',
-        'marketing-lead',
-        'ads-executive',
-        'creative-executive',
         'commission-manager',
-        'property-onboarding-manager',
-        'property-partner',
-        'channel-partner',
-        'consultant'
     ];
 
     useEffect(() => {
@@ -83,7 +76,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRo
         setLoading(true);
         try {
             const response = await fetch(
-                `${API_URL}/api/region-allocations/users/search?query=${userSearch}&role=${role}`,
+                `${API_URL}/api/regions/allocations/users/search?query=${userSearch}&role=${role}`,
                 {
                     headers: { Authorization: `Bearer ${token}` },
                 }
@@ -115,7 +108,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRo
 
         setSubmitting(true);
         try {
-            const response = await fetch(`${API_URL}/api/region-allocations/assign`, {
+            const response = await fetch(`${API_URL}/api/regions/allocations/assign`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

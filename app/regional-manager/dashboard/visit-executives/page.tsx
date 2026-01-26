@@ -1,117 +1,100 @@
 'use client';
 
-import { useState } from 'react';
-
-interface VisitExecutive {
-    id: string;
-    name: string;
-    email: string;
-    phone: string;
-    region: string;
-    visitsConducted: number;
-    rating: number;
-    status: 'active' | 'inactive';
-    createdAt: string;
-}
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+import { userService, User } from '@/app/services/userService';
 
 export default function VisitExecutivesPage() {
-    const [executives, setExecutives] = useState<VisitExecutive[]>([
-        {
-            id: '1',
-            name: 'Vikram Singh',
-            email: 'vikram.s@propertyhub.com',
-            phone: '+91 98765 43210',
-            region: 'North Zone',
-            visitsConducted: 45,
-            rating: 4.8,
-            status: 'active',
-            createdAt: '2024-01-15',
-        },
-        {
-            id: '2',
-            name: 'Priya Sharma',
-            email: 'priya.s@propertyhub.com',
-            phone: '+91 98765 09876',
-            region: 'South Zone',
-            visitsConducted: 32,
-            rating: 4.5,
-            status: 'active',
-            createdAt: '2024-02-10',
-        },
-        {
-            id: '3',
-            name: 'Rohan Gupta',
-            email: 'rohan.g@propertyhub.com',
-            phone: '+91 99887 77665',
-            region: 'East Zone',
-            visitsConducted: 12,
-            rating: 4.2,
-            status: 'inactive',
-            createdAt: '2024-03-05',
-        },
-    ]);
+    const { token } = useAuth();
+    const { activeContext } = useUnifiedApp();
+    const [executives, setExecutives] = useState<User[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
 
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
-    const [selectedExecutive, setSelectedExecutive] = useState<VisitExecutive | null>(null);
+    const [selectedExecutive, setSelectedExecutive] = useState<User | null>(null);
     const [formData, setFormData] = useState({
         name: '',
         email: '',
         phone: '',
-        region: '',
     });
 
+    const fetchExecutives = async () => {
+        if (!token) return;
+        try {
+            setLoading(true);
+            const data = await userService.getAllByRole('visit-executive', token);
+            setExecutives(data);
+            setError(null);
+        } catch (err: any) {
+            setError(err.message || 'Failed to fetch executives');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchExecutives();
+    }, [token]);
+
     const handleAddExecutive = () => {
-        setFormData({ name: '', email: '', phone: '', region: '' });
+        setFormData({ name: '', email: '', phone: '' });
         setShowAddModal(true);
     };
 
-    const handleEditExecutive = (executive: VisitExecutive) => {
+    const handleEditExecutive = (executive: User) => {
         setFormData({
             name: executive.name,
             email: executive.email,
-            phone: executive.phone,
-            region: executive.region,
+            phone: executive.phone || '',
         });
         setSelectedExecutive(executive);
         setShowEditModal(true);
     };
 
-    const handleSaveExecutive = () => {
-        if (selectedExecutive) {
-            // Edit existing
-            setExecutives(executives.map(e =>
-                e.id === selectedExecutive.id
-                    ? { ...e, ...formData }
-                    : e
-            ));
-            setShowEditModal(false);
-        } else {
-            // Add new
-            const newExecutive: VisitExecutive = {
-                id: Date.now().toString(),
-                ...formData,
-                visitsConducted: 0,
-                rating: 0,
-                status: 'active',
-                createdAt: new Date().toISOString().split('T')[0],
-            };
-            setExecutives([...executives, newExecutive]);
-            setShowAddModal(false);
+    const handleSaveExecutive = async () => {
+        if (!token) return;
+        try {
+            if (selectedExecutive) {
+                const updated = await userService.update(selectedExecutive.id, {
+                    ...formData,
+                    regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : []
+                }, token);
+                setExecutives(executives.map(e => e.id === selectedExecutive.id ? updated : e));
+                setShowEditModal(false);
+            } else {
+                const created = await userService.create({
+                    ...formData,
+                    role: 'visit-executive',
+                    regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : []
+                }, token);
+                setExecutives([created, ...executives]);
+                setShowAddModal(false);
+            }
+            setFormData({ name: '', email: '', phone: '' });
+            setSelectedExecutive(null);
+        } catch (err: any) {
+            alert(err.message || 'Failed to save executive');
         }
-        setFormData({ name: '', email: '', phone: '', region: '' });
-        setSelectedExecutive(null);
     };
 
-    const handleToggleStatus = (id: string) => {
-        setExecutives(executives.map(e =>
-            e.id === id
-                ? { ...e, status: e.status === 'active' ? 'inactive' : 'active' }
-                : e
-        ));
+    const handleToggleStatus = async (id: string) => {
+        if (!token) return;
+        try {
+            const updated = await userService.toggleStatus(id, token);
+            setExecutives(executives.map(e => e.id === id ? updated : e));
+        } catch (err: any) {
+            alert(err.message || 'Failed to toggle status');
+        }
     };
 
     const activeCount = executives.filter(e => e.status === 'active').length;
+
+    if (loading && executives.length === 0) {
+        return <div className="p-8">Loading visit executives...</div>;
+    }
 
     return (
         <div className="p-8">
@@ -134,6 +117,12 @@ export default function VisitExecutivesPage() {
                 </div>
             </div>
 
+            {error && (
+                <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-lg border border-red-100">
+                    {error}
+                </div>
+            )}
+
             {/* Stats */}
             <div className="grid md:grid-cols-3 gap-6 mb-8">
                 <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
@@ -147,7 +136,7 @@ export default function VisitExecutivesPage() {
                 <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                     <p className="text-gray-600 text-sm font-medium">Total Visits Conducted</p>
                     <p className="text-3xl font-bold text-blue-600 mt-2">
-                        {executives.reduce((sum, e) => sum + e.visitsConducted, 0)}
+                        {executives.reduce((sum, e) => sum + (e.visitsConducted || 0), 0)}
                     </p>
                 </div>
             </div>
@@ -160,7 +149,7 @@ export default function VisitExecutivesPage() {
                             <thead>
                                 <tr className="border-b border-gray-200">
                                     <th className="text-left py-3 px-4 font-semibold text-gray-700">Name</th>
-                                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Region</th>
+                                    <th className="text-left py-3 px-4 font-semibold text-gray-700">Region(s)</th>
                                     <th className="text-left py-3 px-4 font-semibold text-gray-700">Contact</th>
                                     <th className="text-left py-3 px-4 font-semibold text-gray-700">Visits</th>
                                     <th className="text-left py-3 px-4 font-semibold text-gray-700">Rating</th>
@@ -177,17 +166,19 @@ export default function VisitExecutivesPage() {
                                                 <p className="text-sm text-gray-500">{executive.email}</p>
                                             </div>
                                         </td>
-                                        <td className="py-4 px-4 text-gray-700">{executive.region}</td>
-                                        <td className="py-4 px-4 text-gray-700">{executive.phone}</td>
+                                        <td className="py-4 px-4 text-gray-700">
+                                            {executive.regions?.map(r => r.name).join(', ') || 'N/A'}
+                                        </td>
+                                        <td className="py-4 px-4 text-gray-700">{executive.phone || 'N/A'}</td>
                                         <td className="py-4 px-4">
                                             <span className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
-                                                {executive.visitsConducted}
+                                                {executive.visitsConducted || 0}
                                             </span>
                                         </td>
                                         <td className="py-4 px-4">
                                             <div className="flex items-center gap-1">
                                                 <span className="text-yellow-400">★</span>
-                                                <span className="text-gray-700">{executive.rating > 0 ? executive.rating : 'N/A'}</span>
+                                                <span className="text-gray-700">{(executive.rating && executive.rating > 0) ? executive.rating : 'N/A'}</span>
                                             </div>
                                         </td>
                                         <td className="py-4 px-4">
@@ -219,13 +210,20 @@ export default function VisitExecutivesPage() {
                                         </td>
                                     </tr>
                                 ))}
+                                {executives.length === 0 && !loading && (
+                                    <tr>
+                                        <td colSpan={7} className="py-8 text-center text-gray-500">
+                                            No visit executives found.
+                                        </td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            {/* Modal (Shared for Add/Edit) */}
+            {/* Modal */}
             {(showAddModal || showEditModal) && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
@@ -249,6 +247,7 @@ export default function VisitExecutivesPage() {
                                     value={formData.email}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
+                                    disabled={showEditModal}
                                 />
                             </div>
                             <div>
@@ -260,22 +259,13 @@ export default function VisitExecutivesPage() {
                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-2">Region / Area</label>
-                                <input
-                                    type="text"
-                                    value={formData.region}
-                                    onChange={(e) => setFormData({ ...formData, region: e.target.value })}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500"
-                                />
-                            </div>
                         </div>
                         <div className="flex gap-3 mt-6">
                             <button
                                 onClick={() => {
                                     setShowAddModal(false);
                                     setShowEditModal(false);
-                                    setFormData({ name: '', email: '', phone: '', region: '' });
+                                    setFormData({ name: '', email: '', phone: '' });
                                 }}
                                 className="flex-1 px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium"
                             >

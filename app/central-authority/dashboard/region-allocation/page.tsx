@@ -59,7 +59,7 @@ export default function RegionAllocationPage() {
             if (regionFilter) params.append('regionId', regionFilter);
             if (searchQuery) params.append('search', searchQuery);
 
-            const response = await fetch(`${API_URL}/api/region-allocations?${params}`, {
+            const response = await fetch(`${API_URL}/api/regions/allocations/all?${params}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (response.ok) {
@@ -112,7 +112,7 @@ export default function RegionAllocationPage() {
         if (!selectedUser || !selectedRegionId || !token) return;
         try {
             const response = await fetch(
-                `${API_URL}/api/region-allocations/${selectedUser.id}/regions/${selectedRegionId}`,
+                `${API_URL}/api/regions/allocations/${selectedUser.id}/regions/${selectedRegionId}`,
                 {
                     method: 'DELETE',
                     headers: { Authorization: `Bearer ${token}` },

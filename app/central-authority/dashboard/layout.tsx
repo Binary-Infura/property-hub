@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
 import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
 import RouteGuard from '@/app/components/auth/RouteGuard';
+import ProfileCompletionPrompt from '@/app/components/ProfileCompletionPrompt';
 
 function CentralAuthorityDashboardLayoutContent({
     children,
@@ -67,6 +68,7 @@ function CentralAuthorityDashboardLayoutContent({
                 <DashboardHeader title="Central Authority Dashboard" />
 
                 <main className="flex-1 overflow-y-auto p-8">
+                    <ProfileCompletionPrompt />
                     {children}
                 </main>
             </div>

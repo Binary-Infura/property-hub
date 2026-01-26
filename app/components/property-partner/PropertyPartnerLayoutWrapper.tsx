@@ -5,6 +5,7 @@ import NoRegionAllocated from '../dashboard/NoRegionAllocated';
 import PropertyPartnerSidebar from './PropertyPartnerSidebar';
 import PropertyPartnerTopNav from './PropertyPartnerTopNav';
 import RouteGuard from '../auth/RouteGuard';
+import ProfileCompletionPrompt from '../ProfileCompletionPrompt';
 
 export default function PropertyPartnerLayoutWrapper({
   children,
@@ -27,7 +28,8 @@ export default function PropertyPartnerLayoutWrapper({
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <PropertyPartnerTopNav showLogo={isNoRegion} />
 
-          <main className={`flex-1 overflow-y-auto ${isNoRegion ? 'flex items-center justify-center p-8' : ''}`}>
+          <main className={`flex-1 overflow-y-auto ${isNoRegion ? 'flex items-center justify-center p-8' : 'p-8'}`}>
+            <ProfileCompletionPrompt />
             {isNoRegion ? <NoRegionAllocated /> : children}
           </main>
         </div>

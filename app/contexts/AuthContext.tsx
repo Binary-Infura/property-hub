@@ -12,6 +12,8 @@ interface AuthContextType {
     logout: () => void;
     token: string | undefined;
     initialized: boolean;
+    profileStatus: any;
+    refreshProfileStatus: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -23,6 +25,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const [roles, setRoles] = useState<string[]>([]);
     const [token, setToken] = useState<string | undefined>(undefined);
     const [initialized, setInitialized] = useState(false);
+    const [profileStatus, setProfileStatus] = useState<any>(null);
+
+    const refreshProfileStatus = async () => {
+        const storedToken = localStorage.getItem('kc_token') || token;
+        if (!storedToken) return;
+
+        try {
+            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/users/me/profile-status`, {
+                headers: {
+                    'Authorization': `Bearer ${storedToken}`
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setProfileStatus(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch profile status:', error);
+        }
+    };
 
     const refreshIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
 
@@ -135,6 +157,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const userRoles = kc.realmAccess?.roles || [];
         setRoles(userRoles);
 
+        // Fetch profile status
+        refreshProfileStatus();
+
         // Persist tokens
         if (kc.token) localStorage.setItem('kc_token', kc.token);
         if (kc.refreshToken) localStorage.setItem('kc_refreshToken', kc.refreshToken);
@@ -182,6 +207,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setToken(undefined);
         setUser(null);
         setRoles([]);
+        setProfileStatus(null);
         localStorage.removeItem('kc_token');
         localStorage.removeItem('kc_refreshToken');
         localStorage.removeItem('kc_idToken');
@@ -289,6 +315,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 logout,
                 token,
                 initialized,
+                profileStatus,
+                refreshProfileStatus,
             }}
         >
             {children}

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { getRoleFromPath } from '@/app/lib/routing';
 import RouteGuard from '@/app/components/auth/RouteGuard';
+import ProfileCompletionPrompt from '@/app/components/ProfileCompletionPrompt';
 
 
 /**
@@ -38,7 +39,10 @@ export default function DashboardLayout({
         </nav>
 
         {/* Main Content */}
-        {children}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <ProfileCompletionPrompt />
+          {children}
+        </div>
       </div>
     </RouteGuard>
   );

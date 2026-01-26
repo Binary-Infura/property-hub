@@ -14,6 +14,7 @@ import { usePathname } from 'next/navigation';
 import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
 import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
 import RouteGuard from '@/app/components/auth/RouteGuard';
+import ProfileCompletionPrompt from '@/app/components/ProfileCompletionPrompt';
 
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import NoRegionAllocated from '@/app/components/dashboard/NoRegionAllocated';
@@ -85,6 +86,7 @@ function ConsultantDashboardLayoutContent({
         <DashboardHeader title="Consultant Dashboard" showLogo={isNoRegion} />
 
         <main className={`flex-1 overflow-y-auto ${isNoRegion ? 'flex items-center justify-center p-8' : 'p-8'}`}>
+          <ProfileCompletionPrompt />
           {isNoRegion ? <NoRegionAllocated /> : children}
         </main>
       </div>

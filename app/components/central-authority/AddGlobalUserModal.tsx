@@ -28,7 +28,7 @@ export default function AddGlobalUserModal({ isOpen, onClose, onSuccess }: AddGl
         setError(null);
 
         try {
-            const res = await fetch('/api/global-users', {
+            const res = await fetch('/api/central-authority/users', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
