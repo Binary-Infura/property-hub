@@ -34,14 +34,17 @@ model Property {
   bedrooms     Int?
   bathrooms    Int?
   propertyType PropertyType
+  onboardedById String?
   createdAt    DateTime       @default(now())
   updatedAt    DateTime       @updatedAt
   commissions  Commission[]
   leads        Lead[]
   region       Region         @relation(fields: [regionId], references: [id])
+  onboardedBy  User?          @relation("UserOnboardedProperties", fields: [onboardedById], references: [id])
 
   @@index([regionId])
   @@index([status])
+  @@index([onboardedById])
   @@map("properties")
 }
 
@@ -129,9 +132,13 @@ model User {
   rating           Float?
   visitsConducted  Int?     @default(0)
   metadata         Json?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  regions          Region[] @relation("RegionToUser")
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  regions             Region[] @relation("RegionToUser")
+  onboardedProperties Property[] @relation("UserOnboardedProperties")
+  onboardedById       String?
+  onboardedBy         User?    @relation("UserOnboardedUsers", fields: [onboardedById], references: [id])
+  onboardedUsers      User[]   @relation("UserOnboardedUsers")
 
   @@map("users")
 }
@@ -294,6 +301,23 @@ model BuyerProfile {
 
   @@map("buyer_profiles")
 }
+
+model ServiceProviderProfile {
+  id                String   @id @default(uuid())
+  userId            String   @unique
+  businessName      String
+  category          String
+  location          String
+  availabilityDays  String[]
+  availabilityHours String
+  rates             String?
+  portfolio         String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("service_provider_profiles")
+}
+
 
 model ChatSession {
   id                  String            @id @default(uuid())

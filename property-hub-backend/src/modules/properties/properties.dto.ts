@@ -44,6 +44,10 @@ export class CreatePropertyDto {
 
     @IsEnum(PropertyType)
     propertyType: PropertyType;
+
+    @IsUUID()
+    @IsOptional()
+    onboardedById?: string;
 }
 
 export class UpdatePropertyDto {

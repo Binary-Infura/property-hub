@@ -7,6 +7,7 @@ import {
     Param,
     Delete,
     UseGuards,
+    Query,
 } from '@nestjs/common';
 import { PropertiesService } from './properties.service';
 import { CreatePropertyDto, UpdatePropertyDto } from './properties.dto';
@@ -29,9 +30,10 @@ export class PropertiesController {
     @RequireRoles('regional-manager', 'property-onboarding-manager')
     findAll(
         @Param('region') region: string,
-        @CurrentUser() user: AuthenticatedUser
+        @CurrentUser() user: AuthenticatedUser,
+        @Query('myOnly') myOnly?: string
     ) {
-        return this.propertiesService.findAll(user);
+        return this.propertiesService.findAll(user, myOnly === 'true');
     }
 
     @Get(':id')
@@ -48,9 +50,10 @@ export class PropertiesController {
     @RequireRoles('regional-manager', 'property-onboarding-manager')
     create(
         @Param('region') region: string,
-        @Body() createPropertyDto: CreatePropertyDto
+        @Body() createPropertyDto: CreatePropertyDto,
+        @CurrentUser() user: AuthenticatedUser
     ) {
-        return this.propertiesService.create(createPropertyDto);
+        return this.propertiesService.create(createPropertyDto, user);
     }
 
     @Patch(':id')

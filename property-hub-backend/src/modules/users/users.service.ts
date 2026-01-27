@@ -4,6 +4,7 @@ import { UpdateUserMetadataDto, CreateUserDto, UpdateUserDto, InviteUserDto, Inv
 import { UserMetadata, User } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { KeycloakAdminService } from '../../common/services/keycloak/keycloak-admin.service';
+import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class UsersService {
@@ -211,7 +212,7 @@ export class UsersService {
 
     // --- User Management Methods (Admin/Manager) ---
 
-    async createUser(dto: CreateUserDto): Promise<User> {
+    async createUser(dto: CreateUserDto, user?: AuthenticatedUser): Promise<User> {
         // 1. Validate regions if provided
         if (dto.regionIds && dto.regionIds.length > 0) {
             const count = await this.prisma.region.count({
@@ -246,8 +247,19 @@ export class UsersService {
             role: dto.role
         });
 
-        // 4. Save in Local DB
-        return this.prisma.user.create({
+        // 4. Find internal onboarder ID
+        let onboardedById = null;
+        if (user) {
+            const internalUser = await this.prisma.user.findUnique({
+                where: { keycloakId: user.userId },
+            });
+            if (internalUser) {
+                onboardedById = internalUser.id;
+            }
+        }
+
+        // 5. Save in Local DB
+        const createdUser = await this.prisma.user.create({
             data: {
                 keycloakId: invitation.userId,
                 name: dto.name,
@@ -257,6 +269,7 @@ export class UsersService {
                 agencyName: dto.agencyName,
                 reraId: dto.reraId,
                 rating: dto.rating,
+                onboardedById,
                 regions: dto.regionIds ? {
                     connect: dto.regionIds.map(id => ({ id }))
                 } : undefined
@@ -265,9 +278,27 @@ export class UsersService {
                 regions: true
             }
         });
+
+        // 6. Create relevant profile based on role
+        if (dto.role === 'service-provider' && dto.businessName) {
+            await this.prisma.serviceProviderProfile.create({
+                data: {
+                    userId: createdUser.id,
+                    businessName: dto.businessName,
+                    category: dto.category || 'General',
+                    location: dto.location || 'N/A',
+                    availabilityDays: dto.availabilityDays || [],
+                    availabilityHours: dto.availabilityHours || 'N/A',
+                    rates: dto.rates,
+                    portfolio: dto.portfolio,
+                }
+            });
+        }
+
+        return createdUser;
     }
 
-    async findAllByRole(role: string, regionSlug?: string): Promise<User[]> {
+    async findAllByRole(role: string, regionSlug?: string, myOnly: boolean = false, user?: AuthenticatedUser): Promise<User[]> {
         const where: any = { role };
 
         if (regionSlug) {
@@ -276,9 +307,26 @@ export class UsersService {
             };
         }
 
+        if (myOnly && user) {
+            const internalUser = await this.prisma.user.findUnique({
+                where: { keycloakId: user.userId },
+            });
+            if (internalUser) {
+                where.onboardedById = internalUser.id;
+            }
+        }
+
         return this.prisma.user.findMany({
             where,
-            include: { regions: true },
+            include: {
+                regions: true,
+                onboardedBy: {
+                    select: {
+                        name: true,
+                        role: true
+                    }
+                }
+            },
             orderBy: { createdAt: 'desc' }
         });
     }
@@ -367,6 +415,9 @@ export class UsersService {
                     break;
                 case 'buyer':
                     profileData = await this.prisma.buyerProfile.findUnique({ where: { userId } });
+                    break;
+                case 'service-provider':
+                    profileData = await this.prisma.serviceProviderProfile.findUnique({ where: { userId } });
                     break;
             }
 

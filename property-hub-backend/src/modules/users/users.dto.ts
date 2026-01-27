@@ -95,6 +95,35 @@ export class CreateUserDto {
     @IsArray()
     @IsOptional()
     regionIds?: string[];
+
+    // Service Provider Profile Fields
+    @IsString()
+    @IsOptional()
+    businessName?: string;
+
+    @IsString()
+    @IsOptional()
+    category?: string;
+
+    @IsString()
+    @IsOptional()
+    location?: string;
+
+    @IsArray()
+    @IsOptional()
+    availabilityDays?: string[];
+
+    @IsString()
+    @IsOptional()
+    availabilityHours?: string;
+
+    @IsString()
+    @IsOptional()
+    rates?: string;
+
+    @IsString()
+    @IsOptional()
+    portfolio?: string;
 }
 
 export class UpdateUserDto {
@@ -125,4 +154,33 @@ export class UpdateUserDto {
     @IsArray()
     @IsOptional()
     regionIds?: string[];
+
+    // Service Provider Profile Fields
+    @IsString()
+    @IsOptional()
+    businessName?: string;
+
+    @IsString()
+    @IsOptional()
+    category?: string;
+
+    @IsString()
+    @IsOptional()
+    location?: string;
+
+    @IsArray()
+    @IsOptional()
+    availabilityDays?: string[];
+
+    @IsString()
+    @IsOptional()
+    availabilityHours?: string;
+
+    @IsString()
+    @IsOptional()
+    rates?: string;
+
+    @IsString()
+    @IsOptional()
+    portfolio?: string;
 }

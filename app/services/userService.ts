@@ -18,14 +18,17 @@ export interface User {
 }
 
 export const userService = {
-    async getAllByRole(role: string, token: string, regionSlug?: string): Promise<User[]> {
-        let url = `${API_URL}/api/users/role/${role}`;
-        if (regionSlug) {
-            url += `?region=${regionSlug}`;
-        }
+    async getAllByRole(role: string, token: string, regionSlug?: string, myOnly: boolean = false): Promise<any[]> {
+        const params = new URLSearchParams();
+        if (regionSlug) params.append('region', regionSlug);
+        if (myOnly) params.append('myOnly', 'true');
+
+        const queryString = params.toString();
+        const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/users/role/${role}${queryString ? `?${queryString}` : ''}`;
+
         const response = await fetch(url, {
             headers: {
-                Authorization: `Bearer ${token}`,
+                'Authorization': `Bearer ${token}`,
             },
         });
         if (!response.ok) throw new Error('Failed to fetch users');

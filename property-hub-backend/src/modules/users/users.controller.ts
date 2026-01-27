@@ -65,16 +65,22 @@ export class UsersController {
     // Role-based User Management
 
     @Post()
-    async createUser(@Body() dto: CreateUserDto) {
-        return this.usersService.createUser(dto);
+    @UseGuards(JwtAuthGuard)
+    async createUser(
+        @Body() dto: CreateUserDto,
+        @CurrentUser() user: AuthenticatedUser
+    ) {
+        return this.usersService.createUser(dto, user);
     }
 
     @Get('role/:role')
     async findAllByRole(
         @Param('role') role: string,
-        @Query('region') region?: string
+        @Query('region') region?: string,
+        @Query('myOnly') myOnly?: string,
+        @CurrentUser() user?: AuthenticatedUser
     ) {
-        return this.usersService.findAllByRole(role, region);
+        return this.usersService.findAllByRole(role, region, myOnly === 'true', user);
     }
 
     @Get(':id')
