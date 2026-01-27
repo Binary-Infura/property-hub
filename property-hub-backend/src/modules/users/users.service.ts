@@ -210,6 +210,60 @@ export class UsersService {
         return this.findOrCreateUserMetadata(keycloakId);
     }
 
+    /**
+     * Ensures an authenticated user exists in the local User table.
+     * This is used for managers and authorities who might not be onboarded
+     * but need to be referenced in ownership tracking.
+     */
+    async ensureUserSynced(authenticatedUser: AuthenticatedUser): Promise<User> {
+        // Normalize userId (strip prefixes like onrtrt: if present)
+        const normalizedKeycloakId = authenticatedUser.userId.includes(':')
+            ? authenticatedUser.userId.split(':').pop()
+            : authenticatedUser.userId;
+
+        let user = await this.prisma.user.findUnique({
+            where: { keycloakId: normalizedKeycloakId },
+        });
+
+        if (!user && authenticatedUser.email) {
+            // Fallback: search by email
+            user = await this.prisma.user.findUnique({
+                where: { email: authenticatedUser.email },
+            });
+
+            if (user) {
+                // Link the existing user to this Keycloak ID if not already linked
+                user = await this.prisma.user.update({
+                    where: { id: user.id },
+                    data: { keycloakId: normalizedKeycloakId },
+                });
+            }
+        }
+
+        if (!user) {
+            // Determine a default role if not provided in token (fallback)
+            const role = authenticatedUser.roles.includes('central-authority')
+                ? 'central-authority'
+                : authenticatedUser.roles.includes('property-onboarding-manager')
+                    ? 'property-onboarding-manager'
+                    : authenticatedUser.roles.includes('regional-manager')
+                        ? 'regional-manager'
+                        : 'unknown';
+
+            user = await this.prisma.user.create({
+                data: {
+                    keycloakId: normalizedKeycloakId,
+                    email: authenticatedUser.email || 'unknown',
+                    name: authenticatedUser.username || authenticatedUser.email || 'System User',
+                    role: role,
+                    status: 'active',
+                },
+            });
+        }
+
+        return user;
+    }
+
     // --- User Management Methods (Admin/Manager) ---
 
     async createUser(dto: CreateUserDto, user?: AuthenticatedUser): Promise<User> {

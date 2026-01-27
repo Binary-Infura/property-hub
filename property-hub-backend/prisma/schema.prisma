@@ -22,25 +22,25 @@ model Region {
 }
 
 model Property {
-  id           String         @id @default(uuid())
-  name         String
-  description  String?
-  location     String
-  address      String?
-  regionId     String
-  status       PropertyStatus @default(AVAILABLE)
-  price        Decimal        @db.Decimal(15, 2)
-  area         Decimal?       @db.Decimal(10, 2)
-  bedrooms     Int?
-  bathrooms    Int?
-  propertyType PropertyType
+  id            String         @id @default(uuid())
+  name          String
+  description   String?
+  location      String
+  address       String?
+  regionId      String
+  status        PropertyStatus @default(AVAILABLE)
+  price         Decimal        @db.Decimal(15, 2)
+  area          Decimal?       @db.Decimal(10, 2)
+  bedrooms      Int?
+  bathrooms     Int?
+  propertyType  PropertyType
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
   onboardedById String?
-  createdAt    DateTime       @default(now())
-  updatedAt    DateTime       @updatedAt
-  commissions  Commission[]
-  leads        Lead[]
-  region       Region         @relation(fields: [regionId], references: [id])
-  onboardedBy  User?          @relation("UserOnboardedProperties", fields: [onboardedById], references: [id])
+  commissions   Commission[]
+  leads         Lead[]
+  onboardedBy   User?          @relation("UserOnboardedProperties", fields: [onboardedById], references: [id])
+  region        Region         @relation(fields: [regionId], references: [id])
 
   @@index([regionId])
   @@index([status])
@@ -120,66 +120,27 @@ model UserMetadata {
 }
 
 model User {
-  id               String   @id @default(uuid())
-  keycloakId       String?  @unique
-  name             String
-  email            String   @unique
-  phone            String?
-  role             String
-  status           String   @default("active")
-  agencyName       String?
-  reraId           String?
-  rating           Float?
-  visitsConducted  Int?     @default(0)
-  metadata         Json?
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  regions             Region[] @relation("RegionToUser")
-  onboardedProperties Property[] @relation("UserOnboardedProperties")
+  id                  String     @id @default(uuid())
+  keycloakId          String?    @unique
+  name                String
+  email               String     @unique
+  phone               String?
+  role                String
+  status              String     @default("active")
+  createdAt           DateTime   @default(now())
+  updatedAt           DateTime   @updatedAt
+  agencyName          String?
+  metadata            Json?
+  rating              Float?
+  reraId              String?
+  visitsConducted     Int?       @default(0)
   onboardedById       String?
-  onboardedBy         User?    @relation("UserOnboardedUsers", fields: [onboardedById], references: [id])
-  onboardedUsers      User[]   @relation("UserOnboardedUsers")
+  onboardedProperties Property[] @relation("UserOnboardedProperties")
+  onboardedBy         User?      @relation("UserOnboardedUsers", fields: [onboardedById], references: [id])
+  onboardedUsers      User[]     @relation("UserOnboardedUsers")
+  regions             Region[]   @relation("RegionToUser")
 
   @@map("users")
-}
-
-enum PropertyStatus {
-  AVAILABLE
-  SOLD
-  RESERVED
-  UNDER_CONSTRUCTION
-}
-
-enum PropertyType {
-  APARTMENT
-  VILLA
-  PLOT
-  COMMERCIAL
-  INDUSTRIAL
-}
-
-enum LeadStatus {
-  NEW
-  CONTACTED
-  QUALIFIED
-  VISITING
-  NEGOTIATING
-  CONVERTED
-  LOST
-}
-
-enum VisitStatus {
-  SCHEDULED
-  COMPLETED
-  CANCELLED
-  NO_SHOW
-}
-
-enum CommissionStatus {
-  PENDING
-  APPROVED
-  PAID
-  REJECTED
 }
 
 model CentralAuthorityProfile {
@@ -318,13 +279,12 @@ model ServiceProviderProfile {
   @@map("service_provider_profiles")
 }
 
-
 model ChatSession {
   id                  String            @id @default(uuid())
   mattermostChannelId String            @unique
-  channelType         String            @default("DIRECT") // DIRECT or GROUP
-  contextType         String?           // PROPERTY, LEAD, GENERAL
-  contextId           String?           // propertyId or leadId
+  channelType         String            @default("DIRECT")
+  contextType         String?
+  contextId           String?
   status              String            @default("active")
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
@@ -335,13 +295,13 @@ model ChatSession {
 }
 
 model ChatParticipant {
-  id            String       @id @default(uuid())
+  id            String      @id @default(uuid())
   chatSessionId String
   userId        String
   role          String
-  joinedAt      DateTime     @default(now())
+  joinedAt      DateTime    @default(now())
   lastReadAt    DateTime?
-  chatSession   ChatSession  @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
+  chatSession   ChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
 
   @@unique([chatSessionId, userId])
   @@index([userId])
@@ -358,4 +318,43 @@ model MattermostUserMapping {
 
   @@index([mattermostUserId])
   @@map("mattermost_user_mappings")
+}
+
+enum PropertyStatus {
+  AVAILABLE
+  SOLD
+  RESERVED
+  UNDER_CONSTRUCTION
+}
+
+enum PropertyType {
+  APARTMENT
+  VILLA
+  PLOT
+  COMMERCIAL
+  INDUSTRIAL
+}
+
+enum LeadStatus {
+  NEW
+  CONTACTED
+  QUALIFIED
+  VISITING
+  NEGOTIATING
+  CONVERTED
+  LOST
+}
+
+enum VisitStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+  NO_SHOW
+}
+
+enum CommissionStatus {
+  PENDING
+  APPROVED
+  PAID
+  REJECTED
 }

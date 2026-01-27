@@ -71,8 +71,8 @@ export default function MyPropertyPartnersPage() {
                 <button
                     onClick={() => setActiveTab('my')}
                     className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === 'my'
-                            ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-gray-500 hover:text-gray-700'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
                         }`}
                 >
                     My Onboardings
@@ -80,8 +80,8 @@ export default function MyPropertyPartnersPage() {
                 <button
                     onClick={() => setActiveTab('all')}
                     className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === 'all'
-                            ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-gray-500 hover:text-gray-700'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
                         }`}
                 >
                     All Partners ({activeContext.activeRegion.name})
@@ -148,7 +148,9 @@ export default function MyPropertyPartnersPage() {
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                                     <div className="flex justify-end gap-3">
-                                        <button className="text-blue-600 hover:text-blue-800 font-semibold transition-colors">Edit</button>
+                                        {activeTab === 'my' && (
+                                            <button className="text-blue-600 hover:text-blue-800 font-semibold transition-colors">Edit</button>
+                                        )}
                                         <button className="text-gray-600 hover:text-gray-900 transition-colors font-medium">View Projects</button>
                                     </div>
                                 </td>

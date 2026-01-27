@@ -3,27 +3,32 @@ import { PrismaService } from '../../database/prisma.service';
 import { CreatePropertyDto, UpdatePropertyDto } from './properties.dto';
 import { Property } from '@prisma/client';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class PropertiesService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private usersService: UsersService,
+    ) { }
 
-    async findAll(user: AuthenticatedUser, myOnly?: boolean): Promise<Property[]> {
+    async findAll(user: AuthenticatedUser, regionCode: string, myOnly?: boolean): Promise<Property[]> {
         const isCentralAuthority = user.roles.includes('central-authority');
         const userRegions = user.groups.map(g => g.split('/').pop());
 
-        let where: any = isCentralAuthority
-            ? {} // Central authority sees all properties
-            : { regionId: { in: userRegions } }; // Filter by user's regions
+        // Check if user has access to the requested region
+        if (!isCentralAuthority && !userRegions.includes(regionCode)) {
+            return []; // User has no access to this region's properties
+        }
+
+        let where: any = {
+            region: { code: regionCode }
+        };
 
         if (myOnly) {
-            // Find internal user ID from Keycloak ID
-            const internalUser = await this.prisma.user.findUnique({
-                where: { keycloakId: user.userId },
-            });
-            if (internalUser) {
-                where.onboardedById = internalUser.id;
-            }
+            // Ensure user is synced and use their internal ID
+            const internalUser = await this.usersService.ensureUserSynced(user);
+            where.onboardedById = internalUser.id;
         }
 
         return this.prisma.property.findMany({
@@ -66,12 +71,8 @@ export class PropertiesService {
         let onboardedById = createPropertyDto.onboardedById;
 
         if (!onboardedById && user) {
-            const internalUser = await this.prisma.user.findUnique({
-                where: { keycloakId: user.userId },
-            });
-            if (internalUser) {
-                onboardedById = internalUser.id;
-            }
+            const internalUser = await this.usersService.ensureUserSynced(user);
+            onboardedById = internalUser.id;
         }
 
         return this.prisma.property.create({

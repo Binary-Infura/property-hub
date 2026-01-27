@@ -97,8 +97,8 @@ export default function OnboardingServiceProvidersPage() {
                 <button
                     onClick={() => setActiveTab('my')}
                     className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === 'my'
-                            ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-gray-500 hover:text-gray-700'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
                         }`}
                 >
                     My Onboardings
@@ -106,8 +106,8 @@ export default function OnboardingServiceProvidersPage() {
                 <button
                     onClick={() => setActiveTab('all')}
                     className={`px-6 py-2 rounded-lg text-sm font-semibold transition-all ${activeTab === 'all'
-                            ? 'bg-white text-blue-600 shadow-sm'
-                            : 'text-gray-500 hover:text-gray-700'
+                        ? 'bg-white text-blue-600 shadow-sm'
+                        : 'text-gray-500 hover:text-gray-700'
                         }`}
                 >
                     All Providers ({activeContext.activeRegion.name})
@@ -183,7 +183,9 @@ export default function OnboardingServiceProvidersPage() {
                                             >
                                                 Assign
                                             </button>
-                                            <button className="text-blue-600 hover:text-blue-800 font-semibold transition-colors">Edit</button>
+                                            {activeTab === 'my' && (
+                                                <button className="text-blue-600 hover:text-blue-800 font-semibold transition-colors">Edit</button>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

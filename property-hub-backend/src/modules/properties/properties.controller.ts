@@ -33,7 +33,7 @@ export class PropertiesController {
         @CurrentUser() user: AuthenticatedUser,
         @Query('myOnly') myOnly?: string
     ) {
-        return this.propertiesService.findAll(user, myOnly === 'true');
+        return this.propertiesService.findAll(user, region, myOnly === 'true');
     }
 
     @Get(':id')

@@ -132,7 +132,9 @@ export default function OnboardingPropertiesPage() {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
                                         <div className="flex justify-end gap-3">
-                                            <button className="text-blue-600 hover:text-blue-800 font-semibold transition-colors">Edit</button>
+                                            {activeTab === 'my' && (
+                                                <button className="text-blue-600 hover:text-blue-800 font-semibold transition-colors">Edit</button>
+                                            )}
                                             <button className="text-gray-400 hover:text-gray-600 transition-colors">
                                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
