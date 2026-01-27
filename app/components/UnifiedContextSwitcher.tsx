@@ -84,7 +84,7 @@ export default function UnifiedContextSwitcher() {
                         <span className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">
                             {activeRoleName}
                         </span>
-                        {!isCentralAuthority && (
+                        {!isCentralAuthority && !isBuyer && (
                             <span className="text-[10px] text-blue-600 font-medium">
                                 {activeRegionName}
                             </span>
