@@ -96,10 +96,10 @@ export default function SignInPage() {
             <div className="max-w-md w-full space-y-8 bg-white p-10 rounded-2xl shadow-xl border border-gray-100">
                 <div className="text-center">
                     <div className="flex flex-col items-center">
-                        <div className="flex items-center gap-2 mb-4">
+                        <Link href="/" className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity">
                             <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
                             <span className="font-bold text-2xl text-gray-900">PropertyHub</span>
-                        </div>
+                        </Link>
                     </div>
 
                     <p className="mt-2 text-sm text-gray-500">
