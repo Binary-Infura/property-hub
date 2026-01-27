@@ -1,95 +1,135 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+import { propertyService } from '@/app/services/propertyService';
+import { userService } from '@/app/services/userService';
+import Link from 'next/link';
+
 export default function OnboardingManagerDashboard() {
-    // Mock Stats
-    const stats = [
-        { label: 'Total Properties Onboarded', value: '15', change: '+2 this month', icon: '🏢', color: 'bg-blue-50 text-blue-600' },
-        { label: 'Active Property Partners', value: '8', change: '+1 this month', icon: '🤝', color: 'bg-green-50 text-green-600' },
-        { label: 'Pending Approvals', value: '3', change: 'Needs attention', icon: '⏳', color: 'bg-yellow-50 text-yellow-600' },
-    ];
+    const { user, token } = useAuth();
+    const { activeContext } = useUnifiedApp();
+    const [stats, setStats] = useState([
+        { label: 'Total Properties', value: '...', change: '', icon: '🏢', color: 'bg-blue-50 text-blue-600', link: '/property-onboarding-manager/dashboard/properties' },
+        { label: 'Property Partners', value: '...', change: '', icon: '🤝', color: 'bg-green-50 text-green-600', link: '/property-onboarding-manager/dashboard/property-partners' },
+        { label: 'Service Providers', value: '...', change: '', icon: '🔧', color: 'bg-yellow-50 text-yellow-600', link: '/property-onboarding-manager/dashboard/service-providers' },
+    ]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchDashboardData = async () => {
+            if (!token || !activeContext.activeRegion.code) return;
+            try {
+                setLoading(true);
+                const regionCode = activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined;
+
+                const [properties, partners, providers] = await Promise.all([
+                    propertyService.getAll(token, activeContext.activeRegion.code, true),
+                    userService.getAllByRole('property-partner', token, regionCode, true),
+                    userService.getAllByRole('service-provider', token, regionCode, true),
+                ]);
+
+                setStats([
+                    { label: 'My Properties', value: properties.length.toString(), change: 'Personal Onboardings', icon: '🏢', color: 'bg-blue-50 text-blue-600', link: '/property-onboarding-manager/dashboard/properties' },
+                    { label: 'My Partners', value: partners.length.toString(), change: 'Personal Onboardings', icon: '🤝', color: 'bg-green-50 text-green-600', link: '/property-onboarding-manager/dashboard/property-partners' },
+                    { label: 'My Providers', value: providers.length.toString(), change: 'Personal Onboardings', icon: '🔧', color: 'bg-yellow-50 text-yellow-600', link: '/property-onboarding-manager/dashboard/service-providers' },
+                ]);
+            } catch (error) {
+                console.error('Failed to fetch dashboard stats:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDashboardData();
+    }, [token, activeContext.activeRegion.code]);
 
     const recentActivities = [
-        { id: 1, action: 'New Property Onboarded', subject: 'Sunshine Towers', time: '2 hours ago', status: 'success' },
-        { id: 2, action: 'Partner Added', subject: 'Suresh Real Estate', time: '5 hours ago', status: 'success' },
-        { id: 3, action: 'Property Warning', subject: 'Green Valley Villa 4 - Doc missing', time: '1 day ago', status: 'warning' },
+        { id: 1, action: 'Live Integration', subject: 'Dashboard now connected to real data', time: 'Just now', status: 'success' },
+        { id: 2, action: 'Region Filter', subject: `Showing data for ${activeContext.activeRegion.name}`, time: 'Active', status: 'success' },
     ];
 
     return (
         <div className="space-y-8">
             {/* Welcome Section */}
-            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-lg">
-                <h1 className="text-3xl font-bold mb-2">Welcome back, Ravi! 👋</h1>
-                <p className="text-blue-100 text-lg">Here's what's happening in your region today.</p>
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-lg overflow-hidden relative">
+                <div className="relative z-10">
+                    <h1 className="text-3xl font-bold mb-2 text-white">Welcome back, {user?.name?.split(' ')[0] || 'Manager'}! 👋</h1>
+                    <p className="text-blue-100 text-lg">Here's what's happening in <span className="font-bold underline text-white">{activeContext.activeRegion.name}</span> today.</p>
+                </div>
+                {/* Decorative Elements */}
+                <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>
+                <div className="absolute bottom-0 left-0 w-48 h-48 bg-blue-400/20 rounded-full -ml-10 -mb-10 blur-2xl"></div>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {stats.map((stat, index) => (
-                    <div key={index} className="bg-white rounded-xl p-6 shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
+                    <Link href={stat.link} key={index} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer group">
                         <div className="flex justify-between items-start mb-4">
-                            <div className={`p-3 rounded-lg ${stat.color} text-2xl`}>
+                            <div className={`p-4 rounded-xl ${stat.color} text-3xl group-hover:scale-110 transition-transform shadow-inner`}>
                                 {stat.icon}
                             </div>
-                            <span className={`text-xs font-medium px-2 py-1 rounded-full ${stat.change.includes('+') ? 'bg-green-100 text-green-700' :
-                                stat.change.includes('attention') ? 'bg-yellow-100 text-yellow-700' : 'bg-gray-100 text-gray-600'
-                                }`}>
+                            <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full bg-gray-50 text-gray-500 border border-gray-100`}>
                                 {stat.change}
                             </span>
                         </div>
-                        <h3 className="text-gray-500 text-sm font-medium">{stat.label}</h3>
-                        <p className="text-3xl font-bold text-gray-900 mt-1">{stat.value}</p>
-                    </div>
+                        <h3 className="text-gray-500 text-sm font-bold uppercase tracking-wide">{stat.label}</h3>
+                        <p className="text-4xl font-black text-gray-900 mt-2">{loading ? '...' : stat.value}</p>
+                    </Link>
                 ))}
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 {/* Quick Actions */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <span>⚡</span> Quick Actions
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                    <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-3">
+                        <span className="p-2 bg-yellow-100 rounded-lg text-yellow-600 text-sm">⚡</span> Quick Actions
                     </h2>
-                    <div className="space-y-3">
-                        <button className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-blue-50 hover:text-blue-600 transition group">
-                            <span className="font-medium">Onboard New Property</span>
-                            <span className="text-gray-400 group-hover:text-blue-600">→</span>
-                        </button>
-                        <button className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-green-50 hover:text-green-600 transition group">
-                            <span className="font-medium">Add Property Partner</span>
-                            <span className="text-gray-400 group-hover:text-green-600">→</span>
-                        </button>
-                        <button className="w-full flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-purple-50 hover:text-purple-600 transition group">
-                            <span className="font-medium">View Reports</span>
-                            <span className="text-gray-400 group-hover:text-purple-600">→</span>
-                        </button>
+                    <div className="space-y-4">
+                        <Link href="/property-onboarding-manager/dashboard/properties" className="w-full flex items-center justify-between p-5 bg-gray-50/50 rounded-2xl hover:bg-blue-600 hover:text-white transition-all group border border-transparent hover:border-blue-700 shadow-sm">
+                            <span className="font-bold text-gray-700 group-hover:text-white">Onboard New Property</span>
+                            <span className="text-gray-400 group-hover:text-white text-xl">→</span>
+                        </Link>
+                        <Link href="/property-onboarding-manager/dashboard/property-partners" className="w-full flex items-center justify-between p-5 bg-gray-50/50 rounded-2xl hover:bg-green-600 hover:text-white transition-all group border border-transparent hover:border-green-700 shadow-sm">
+                            <span className="font-bold text-gray-700 group-hover:text-white">Add Property Partner</span>
+                            <span className="text-gray-400 group-hover:text-white text-xl">→</span>
+                        </Link>
+                        <Link href="/property-onboarding-manager/dashboard/service-providers" className="w-full flex items-center justify-between p-5 bg-gray-50/50 rounded-2xl hover:bg-purple-600 hover:text-white transition-all group border border-transparent hover:border-purple-700 shadow-sm">
+                            <span className="font-bold text-gray-700 group-hover:text-white">Onboard Provider</span>
+                            <span className="text-gray-400 group-hover:text-white text-xl">→</span>
+                        </Link>
                     </div>
                 </div>
 
                 {/* Recent Activity */}
-                <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <h2 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-                        <span>📋</span> Recent Activity
-                    </h2>
-                    <div className="space-y-4">
+                <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+                    <div className="flex justify-between items-center mb-6">
+                        <h2 className="text-xl font-black text-gray-900 flex items-center gap-3">
+                            <span className="p-2 bg-indigo-100 rounded-lg text-indigo-600 text-sm">📋</span> Recent Activity
+                        </h2>
+                        <span className="text-xs font-bold text-blue-600 hover:underline cursor-pointer">View History</span>
+                    </div>
+                    <div className="space-y-2">
                         {recentActivities.map((activity) => (
-                            <div key={activity.id} className="flex items-center justify-between p-4 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition rounded-lg">
-                                <div className="flex items-center gap-4">
-                                    <div className={`w-2 h-2 rounded-full ${activity.status === 'success' ? 'bg-green-500' :
+                            <div key={activity.id} className="flex items-center justify-between p-5 border-b border-gray-50 last:border-0 hover:bg-gray-50 transition rounded-2xl group">
+                                <div className="flex items-center gap-5">
+                                    <div className={`w-3 h-3 rounded-full shadow-sm ${activity.status === 'success' ? 'bg-green-500 animate-pulse' :
                                         activity.status === 'warning' ? 'bg-yellow-500' : 'bg-blue-500'
                                         }`} />
                                     <div>
-                                        <p className="text-sm font-semibold text-gray-900">{activity.action}</p>
-                                        <p className="text-sm text-gray-600">{activity.subject}</p>
+                                        <p className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{activity.action}</p>
+                                        <p className="text-sm text-gray-500 font-medium">{activity.subject}</p>
                                     </div>
                                 </div>
-                                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{activity.time}</span>
+                                <span className="text-[10px] font-black uppercase text-gray-400 bg-gray-100 px-3 py-1.5 rounded-full tracking-tighter">{activity.time}</span>
                             </div>
                         ))}
                     </div>
-                    <button className="w-full mt-4 text-center text-sm text-blue-600 font-medium hover:text-blue-700">
-                        View All Activity
-                    </button>
                 </div>
             </div>
         </div>
     );
 }
+
