@@ -26,7 +26,11 @@ export default function ServiceProvidersPage() {
         if (!token) return;
         try {
             setLoading(true);
-            const data = await userService.getAllByRole('service-provider', token);
+            const data = await userService.getAllByRole(
+                'service-provider',
+                token,
+                activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined
+            );
             setProviders(data);
             setError(null);
         } catch (err: any) {
@@ -38,7 +42,7 @@ export default function ServiceProvidersPage() {
 
     useEffect(() => {
         fetchProviders();
-    }, [token]);
+    }, [token, activeContext.activeRegion.code]);
 
     const handleAddProvider = () => {
         setFormData({ name: '', email: '', phone: '', agencyName: '' });

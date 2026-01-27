@@ -25,7 +25,11 @@ export default function VisitExecutivesPage() {
         if (!token) return;
         try {
             setLoading(true);
-            const data = await userService.getAllByRole('visit-executive', token);
+            const data = await userService.getAllByRole(
+                'visit-executive',
+                token,
+                activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined
+            );
             setExecutives(data);
             setError(null);
         } catch (err: any) {
@@ -37,7 +41,7 @@ export default function VisitExecutivesPage() {
 
     useEffect(() => {
         fetchExecutives();
-    }, [token]);
+    }, [token, activeContext.activeRegion.code]);
 
     const handleAddExecutive = () => {
         setFormData({ name: '', email: '', phone: '' });

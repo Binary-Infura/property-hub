@@ -18,8 +18,12 @@ export interface User {
 }
 
 export const userService = {
-    async getAllByRole(role: string, token: string): Promise<User[]> {
-        const response = await fetch(`${API_URL}/api/users/role/${role}`, {
+    async getAllByRole(role: string, token: string, regionSlug?: string): Promise<User[]> {
+        let url = `${API_URL}/api/users/role/${role}`;
+        if (regionSlug) {
+            url += `?region=${regionSlug}`;
+        }
+        const response = await fetch(url, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },

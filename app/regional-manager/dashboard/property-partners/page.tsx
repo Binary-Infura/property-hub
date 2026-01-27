@@ -26,7 +26,11 @@ export default function PropertyPartnersPage() {
     if (!token) return;
     try {
       setLoading(true);
-      const data = await userService.getAllByRole('property-partner', token);
+      const data = await userService.getAllByRole(
+        'property-partner',
+        token,
+        activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined
+      );
       setPartners(data);
       setError(null);
     } catch (err: any) {
@@ -38,7 +42,7 @@ export default function PropertyPartnersPage() {
 
   useEffect(() => {
     fetchPartners();
-  }, [token]);
+  }, [token, activeContext.activeRegion.code]);
 
   const handleAddPartner = () => {
     setFormData({ name: '', email: '', phone: '', agencyName: '' });

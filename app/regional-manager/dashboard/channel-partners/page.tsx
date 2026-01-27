@@ -27,7 +27,11 @@ export default function ChannelPartnersPage() {
         if (!token) return;
         try {
             setLoading(true);
-            const data = await userService.getAllByRole('channel-partner', token);
+            const data = await userService.getAllByRole(
+                'channel-partner',
+                token,
+                activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined
+            );
             setPartners(data);
             setError(null);
         } catch (err: any) {
@@ -39,7 +43,7 @@ export default function ChannelPartnersPage() {
 
     useEffect(() => {
         fetchPartners();
-    }, [token]);
+    }, [token, activeContext.activeRegion.code]);
 
     const handleAddPartner = () => {
         setFormData({ name: '', email: '', phone: '', agencyName: '', reraId: '' });

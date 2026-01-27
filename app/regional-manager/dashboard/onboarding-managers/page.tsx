@@ -25,7 +25,11 @@ export default function OnboardingManagersPage() {
         if (!token) return;
         try {
             setLoading(true);
-            const data = await userService.getAllByRole('property-onboarding-manager', token);
+            const data = await userService.getAllByRole(
+                'property-onboarding-manager',
+                token,
+                activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined
+            );
             setManagers(data);
             setError(null);
         } catch (err: any) {
@@ -37,7 +41,7 @@ export default function OnboardingManagersPage() {
 
     useEffect(() => {
         fetchManagers();
-    }, [token]);
+    }, [token, activeContext.activeRegion.code]);
 
     const handleAddManager = () => {
         setFormData({ name: '', email: '', phone: '' });

@@ -267,9 +267,17 @@ export class UsersService {
         });
     }
 
-    async findAllByRole(role: string): Promise<User[]> {
+    async findAllByRole(role: string, regionSlug?: string): Promise<User[]> {
+        const where: any = { role };
+
+        if (regionSlug) {
+            where.regions = {
+                some: { code: regionSlug }
+            };
+        }
+
         return this.prisma.user.findMany({
-            where: { role },
+            where,
             include: { regions: true },
             orderBy: { createdAt: 'desc' }
         });

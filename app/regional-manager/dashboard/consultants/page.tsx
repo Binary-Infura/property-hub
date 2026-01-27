@@ -25,7 +25,11 @@ export default function ConsultantsPage() {
     if (!token) return;
     try {
       setLoading(true);
-      const data = await userService.getAllByRole('consultant', token);
+      const data = await userService.getAllByRole(
+        'consultant',
+        token,
+        activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined
+      );
       setConsultants(data);
       setError(null);
     } catch (err: any) {
@@ -37,7 +41,7 @@ export default function ConsultantsPage() {
 
   useEffect(() => {
     fetchConsultants();
-  }, [token]);
+  }, [token, activeContext.activeRegion.code]);
 
   const handleAddConsultant = () => {
     setFormData({ name: '', email: '', phone: '' });

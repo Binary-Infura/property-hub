@@ -26,7 +26,11 @@ export default function LoanAdvisersPage() {
         if (!token) return;
         try {
             setLoading(true);
-            const data = await userService.getAllByRole('loan-adviser', token);
+            const data = await userService.getAllByRole(
+                'loan-adviser',
+                token,
+                activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined
+            );
             setAdvisers(data);
             setError(null);
         } catch (err: any) {
@@ -38,7 +42,7 @@ export default function LoanAdvisersPage() {
 
     useEffect(() => {
         fetchAdvisers();
-    }, [token]);
+    }, [token, activeContext.activeRegion.code]);
 
     const handleAddAdviser = () => {
         setFormData({ name: '', email: '', phone: '', agencyName: '' });

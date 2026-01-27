@@ -70,8 +70,11 @@ export class UsersController {
     }
 
     @Get('role/:role')
-    async findAllByRole(@Param('role') role: string) {
-        return this.usersService.findAllByRole(role);
+    async findAllByRole(
+        @Param('role') role: string,
+        @Query('region') region?: string
+    ) {
+        return this.usersService.findAllByRole(role, region);
     }
 
     @Get(':id')
