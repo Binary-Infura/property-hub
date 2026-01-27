@@ -161,6 +161,7 @@ model PropertyPartnerProfile {
   companyAddress String?
   taxId          String?
   licenseNumber  String?
+  isPremium      Boolean  @default(false)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 

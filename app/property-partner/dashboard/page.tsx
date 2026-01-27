@@ -1,6 +1,11 @@
 'use client';
 
+import Link from 'next/link';
+import { useAuth } from '@/app/contexts/AuthContext';
+
 export default function PropertyPartnerDashboard() {
+  const { profileStatus } = useAuth();
+  const isPremium = profileStatus?.['property-partner']?.profileData?.isPremium;
   // Mock analytics data - replace with actual API calls
   const analyticsData = {
     totalProperties: 12,
@@ -43,10 +48,15 @@ export default function PropertyPartnerDashboard() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
             <p className="text-gray-600 mt-1">Overview of your property portfolio</p>
+          </div>
+          <div className="flex gap-3">
+            <Link href="/property-partner/dashboard/properties" className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-semibold hover:bg-blue-100 transition-colors flex items-center gap-2">
+              🏢 My Properties
+            </Link>
           </div>
         </div>
       </div>
@@ -118,6 +128,39 @@ export default function PropertyPartnerDashboard() {
             <p className="text-sm text-gray-600 mt-2">
               <span className="font-medium text-green-600">{analyticsData.conversionRate}%</span> conversion rate
             </p>
+          </div>
+        </div>
+
+        {/* Team Management Quick Access */}
+        {/* Premium Team Management Quick Access */}
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-6">
+            <h2 className="text-xl font-bold text-gray-900">Premium Team & Partner Management</h2>
+            {!isPremium && (
+              <span className="bg-gray-100 text-gray-600 border border-gray-200 text-xs px-2.5 py-1 rounded-full font-bold flex items-center gap-1">
+                🔒 Locked
+              </span>
+            )}
+          </div>
+          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+            {[
+              { name: 'Consultants', href: '/property-partner/dashboard/consultants', icon: '👤', color: 'blue' },
+              { name: 'Loan Advisers', href: '/property-partner/dashboard/loan-advisers', icon: '🏦', color: 'indigo' },
+              { name: 'Channel Partners', href: '/property-partner/dashboard/channel-partners', icon: '🤝', color: 'amber' },
+              { name: 'Visit Executives', href: '/property-partner/dashboard/visit-executives', icon: '📍', color: 'rose' },
+              { name: 'Service Providers', href: '/property-partner/dashboard/service-providers', icon: '🛠️', color: 'teal' },
+              { name: 'Leads', href: '/property-partner/dashboard/leads', icon: '📋', color: 'orange' },
+            ].map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-${item.color}-200 transition-all text-center group relative ${!isPremium ? 'opacity-80 grayscale-[0.3]' : ''}`}
+              >
+                {!isPremium && <div className="absolute top-2 right-2 text-gray-400">🔒</div>}
+                <div className="text-2xl mb-2 group-hover:scale-110 transition-transform">{item.icon}</div>
+                <p className="font-semibold text-gray-900 text-sm">{item.name}</p>
+              </Link>
+            ))}
           </div>
         </div>
 
