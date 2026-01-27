@@ -9,10 +9,7 @@ export default function PropertyPartnerSidebar() {
   const navigation = [
     { name: 'Dashboard', href: '/property-partner/dashboard', icon: '📊' },
     { name: 'Properties', href: '/property-partner/dashboard/properties', icon: '🏢' },
-    { name: 'Employees', href: '/property-partner/employees', icon: '👥' },
-    { name: 'Projects', href: '/property-partner/dashboard/projects', icon: '🏗️' },
     { name: 'Leads', href: '/property-partner/dashboard/leads', icon: '📋' },
-    { name: 'Society', href: '/property-partner/society', icon: '🏘️' },
   ];
 
   const isActive = (href: string) => {
