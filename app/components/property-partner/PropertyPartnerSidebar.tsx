@@ -72,8 +72,8 @@ export default function PropertyPartnerSidebar() {
                 key={item.name}
                 href={item.href}
                 className={`flex items-center gap-3 px-4 py-2.5 rounded-lg text-sm font-medium transition ${isActive(item.href)
-                    ? 'bg-amber-50 text-amber-700'
-                    : 'text-gray-600 hover:bg-gray-50'
+                  ? 'bg-amber-50 text-amber-700'
+                  : 'text-gray-600 hover:bg-gray-50'
                   } ${!isPremium ? 'opacity-70 grayscale-[0.5]' : ''}`}
               >
                 <div className="relative">
@@ -93,21 +93,7 @@ export default function PropertyPartnerSidebar() {
         </div>
       </div>
 
-      {/* User Profile Card */}
-      <div className="border-t border-gray-200 px-4 py-4 bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-            PP
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">Property Partner</p>
-            <p className="text-xs text-gray-600 truncate">partner@example.com</p>
-          </div>
-        </div>
-        <button className="w-full px-3 py-2 text-sm font-medium text-gray-700 hover:bg-white rounded-lg border border-gray-200 transition">
-          Logout
-        </button>
-      </div>
+
     </aside>
   );
 }
