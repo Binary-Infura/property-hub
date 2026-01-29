@@ -3,7 +3,7 @@
  * Represents a property that contains buildings, blocks, and units
  */
 
-export type PropertyStatus = 'draft' | 'submitted' | 'approved' | 'rejected' | 'published';
+export type PropertyStatus = 'draft' | 'submitted' | 'approved' | 'rejected' | 'published' | 'available' | 'sold' | 'reserved';
 export type PropertyType = 'residential' | 'commercial' | 'mixed-use';
 
 export interface Building {

@@ -3,10 +3,14 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Property } from '@/app/types/property';
+import { Property, PropertyStatus } from '@/app/types/property';
 import { Block } from '@/app/types/block';
 import { PROPERTY_STATUS_CONFIG } from '@/app/constants/property';
 import { STATUS_CONFIG } from '@/app/constants/block';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 interface TabType {
   id: 'overview' | 'buildings' | 'blocks' | 'settings';
@@ -41,6 +45,9 @@ export default function PropertyDetailPage() {
   const params = useParams();
   const router = useRouter();
   const propertyId = params.propertyId as string;
+  const { token } = useAuth();
+  const { activeContext } = useUnifiedApp();
+  const regionCode = activeContext.activeRegion.code;
 
   const [property, setProperty] = useState<Property | null>(null);
   const [blocks, setBlocks] = useState<Block[]>([]);
@@ -48,16 +55,85 @@ export default function PropertyDetailPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const properties: Property[] = JSON.parse(localStorage.getItem('builder_properties') || '[]');
-    const found = properties.find(p => p.id === propertyId);
-    setProperty(found || null);
+    const fetchProperty = async () => {
+      if (!token || !regionCode) return;
 
-    const allBlocks: Block[] = JSON.parse(localStorage.getItem('builder_blocks') || '[]');
-    const propertyBlocks = allBlocks.filter(b => b.projectId === propertyId);
-    setBlocks(propertyBlocks);
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_URL}/api/${regionCode}/properties/${propertyId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
 
-    setLoading(false);
-  }, [propertyId]);
+        if (res.ok) {
+          const data = await res.json();
+
+          // Extract amenities from description
+          let description = data.description || '';
+          let amenities: string[] = [];
+          if (description.includes('Amenities:')) {
+            const parts = description.split('Amenities:');
+            description = parts[0].trim(); // Remove amenities string from display description
+            amenities = parts[1].split(',').map((a: string) => a.trim());
+          }
+
+          const mapped: Property = {
+            id: data.id,
+            title: data.name,
+            propertyType: data.propertyType === 'COMMERCIAL' ? 'commercial' : 'residential',
+            location: data.location,
+            address: data.address || '',
+            city: '',
+            state: '',
+            pincode: '',
+            totalArea: parseFloat(data.area) || 0,
+            totalBuildings: 0,
+            totalUnits: 0, // Backend doesn't support yet
+            startingPrice: parseFloat(data.price) || 0,
+            description: description,
+            amenities: amenities,
+            status: data.status.toLowerCase() as PropertyStatus,
+            createdAt: new Date(data.createdAt),
+            buildings: [],
+            images: [],
+          };
+          setProperty(mapped);
+          // Blocks are not supported yet, keeping empty
+          setBlocks([]);
+        } else {
+          console.error('Property not found');
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProperty();
+  }, [propertyId, token, regionCode]);
+
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this property?')) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/${regionCode}/properties/${propertyId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (res.ok) {
+        router.push('/property-partner/dashboard/properties');
+      } else {
+        alert('Failed to delete property');
+      }
+    } catch (e) {
+      alert('Error deleting property');
+    }
+  };
 
   if (loading) {
     return <div className="text-center py-12">Loading...</div>;
@@ -92,6 +168,14 @@ export default function PropertyDetailPage() {
         <div className="text-right">
           <p className="text-3xl font-bold text-blue-600">₹{(property.startingPrice / 100000).toFixed(1)}L+</p>
           <p className="text-sm text-gray-600 mt-1">Starting Price</p>
+          {property.status === 'draft' && (
+            <Link
+              href={`/property-partner/dashboard/properties/add?id=${property.id}`}
+              className="mt-2 inline-block px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 text-sm font-medium transition"
+            >
+              Continue Editing
+            </Link>
+          )}
         </div>
       </div>
 
@@ -123,8 +207,8 @@ export default function PropertyDetailPage() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-2 px-6 py-4 font-medium border-b-2 transition whitespace-nowrap ${activeTab === tab.id
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
             >
               {tab.icon}
@@ -307,7 +391,10 @@ export default function PropertyDetailPage() {
 
               <div className="border-t border-gray-200 pt-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4 text-red-600">Danger Zone</h3>
-                <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition text-sm">
+                <button
+                  onClick={handleDelete}
+                  className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition text-sm"
+                >
                   Delete Property
                 </button>
               </div>

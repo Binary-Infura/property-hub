@@ -4,27 +4,81 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Property, PropertyStatus } from '@/app/types/property';
 import { PROPERTY_STATUS_CONFIG, PROPERTY_TYPES } from '@/app/constants/property';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 type FilterStatus = PropertyStatus | 'all';
 
 export default function PropertiesPage() {
+  const { token } = useAuth();
+  const { activeContext } = useUnifiedApp();
+  const regionCode = activeContext.activeRegion.code;
+
   const [properties, setProperties] = useState<Property[]>([]);
+  const [loading, setLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Initialize properties from localStorage
   useEffect(() => {
-    const saved = localStorage.getItem('builder_properties');
-    if (saved) {
-      setProperties(JSON.parse(saved));
-    }
-  }, []);
+    const fetchProperties = async () => {
+      if (!token || !regionCode) return;
+
+      try {
+        setLoading(true);
+        // Fetch "my" properties
+        const res = await fetch(`${API_URL}/api/${regionCode}/properties?myOnly=true`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          // Map backend data to frontend Property interface
+          const mapped: Property[] = data.map((p: any) => ({
+            id: p.id,
+            title: p.name,
+            propertyType: p.propertyType === 'COMMERCIAL' ? 'commercial' : 'residential', // Simple mapping
+            location: p.location,
+            address: p.address || '',
+            city: '', // Not returned separately
+            state: '',
+            pincode: '',
+            totalArea: parseFloat(p.area) || 0,
+            totalBuildings: 0, // Not supported
+            totalUnits: 0, // Not supported
+            startingPrice: parseFloat(p.price) || 0,
+            description: p.description || '',
+            amenities: [],
+            status: p.status.toLowerCase() as PropertyStatus, // DRAFT -> draft
+            createdAt: new Date(p.createdAt),
+            // ... other fields
+          }));
+          setProperties(mapped);
+        } else {
+          console.error('Failed to fetch properties');
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProperties();
+  }, [token, regionCode]);
+
+  if (loading) {
+    return <div className="p-8 text-center">Loading properties...</div>;
+  }
 
   const filteredProperties = properties.filter(prop => {
     const statusMatch = filterStatus === 'all' || prop.status === filterStatus;
     const searchMatch = prop.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                       prop.location.toLowerCase().includes(searchQuery.toLowerCase());
+      prop.location.toLowerCase().includes(searchQuery.toLowerCase());
     return statusMatch && searchMatch;
   });
 
@@ -95,41 +149,37 @@ export default function PropertiesPage() {
           <div className="flex gap-2 flex-wrap">
             <button
               onClick={() => setFilterStatus('all')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                filterStatus === 'all'
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filterStatus === 'all'
+                ? 'bg-blue-600 text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
             >
               All ({properties.length})
             </button>
             <button
               onClick={() => setFilterStatus('draft')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                filterStatus === 'draft'
-                  ? 'bg-yellow-100 text-yellow-700'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filterStatus === 'draft'
+                ? 'bg-yellow-100 text-yellow-700'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
             >
               Draft ({statusCounts.draft})
             </button>
             <button
               onClick={() => setFilterStatus('submitted')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                filterStatus === 'submitted'
-                  ? 'bg-blue-100 text-blue-700'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filterStatus === 'submitted'
+                ? 'bg-blue-100 text-blue-700'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
             >
               Submitted ({statusCounts.submitted})
             </button>
             <button
               onClick={() => setFilterStatus('approved')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
-                filterStatus === 'approved'
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              }`}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filterStatus === 'approved'
+                ? 'bg-green-100 text-green-700'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
             >
               Approved ({statusCounts.approved})
             </button>
@@ -138,11 +188,10 @@ export default function PropertiesPage() {
           <div className="flex gap-2 flex-shrink-0">
             <button
               onClick={() => setViewMode('list')}
-              className={`p-2 rounded-lg transition ${
-                viewMode === 'list'
-                  ? 'bg-blue-100 text-blue-600'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
+              className={`p-2 rounded-lg transition ${viewMode === 'list'
+                ? 'bg-blue-100 text-blue-600'
+                : 'text-gray-600 hover:bg-gray-100'
+                }`}
               title="List view"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -151,11 +200,10 @@ export default function PropertiesPage() {
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-lg transition ${
-                viewMode === 'grid'
-                  ? 'bg-blue-100 text-blue-600'
-                  : 'text-gray-600 hover:bg-gray-100'
-              }`}
+              className={`p-2 rounded-lg transition ${viewMode === 'grid'
+                ? 'bg-blue-100 text-blue-600'
+                : 'text-gray-600 hover:bg-gray-100'
+                }`}
               title="Grid view"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -224,12 +272,22 @@ export default function PropertiesPage() {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <Link
-                        href={`/property-partner/dashboard/properties/${property.id}`}
-                        className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-                      >
-                        View
-                      </Link>
+                      <div className="flex items-center justify-end gap-3">
+                        {property.status === 'draft' && (
+                          <Link
+                            href={`/property-partner/dashboard/properties/add?id=${property.id}`}
+                            className="text-amber-600 hover:text-amber-700 font-medium text-sm"
+                          >
+                            Edit
+                          </Link>
+                        )}
+                        <Link
+                          href={`/property-partner/dashboard/properties/${property.id}`}
+                          className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+                        >
+                          View
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -242,45 +300,60 @@ export default function PropertiesPage() {
           {filteredProperties.map(property => {
             const statusConfig = PROPERTY_STATUS_CONFIG[property.status];
             return (
-              <Link
-                key={property.id}
-                href={`/property-partner/dashboard/properties/${property.id}`}
-                className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition"
-              >
-                <div className="h-40 bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center">
-                  <svg className="w-16 h-16 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 11l4-4m-4 4l-4-4m9-5l4-4m-4 4l-4-4" />
-                  </svg>
-                </div>
-                <div className="p-4">
-                  <h3 className="font-bold text-gray-900 mb-1">{property.title}</h3>
-                  <p className="text-sm text-gray-600 mb-3">{property.location}</p>
-                  <div className="flex items-center justify-between mb-3">
-                    <span className={`px-2 py-1 rounded text-xs font-semibold ${statusConfig.bgColor} ${statusConfig.color}`}>
-                      {statusConfig.label}
-                    </span>
-                    <p className="text-sm font-semibold text-gray-700">₹{(property.startingPrice / 100000).toFixed(1)}L+</p>
+              <div key={property.id} className="relative group">
+                <Link
+                  href={`/property-partner/dashboard/properties/${property.id}`}
+                  className="block bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition h-full"
+                >
+                  <div className="h-40 bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center">
+                    <svg className="w-16 h-16 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 11l4-4m-4 4l-4-4m9-5l4-4m-4 4l-4-4" />
+                    </svg>
                   </div>
-                  <div className="grid grid-cols-3 gap-2 text-xs">
-                    <div className="text-center">
-                      <p className="text-gray-500">Buildings</p>
-                      <p className="font-bold text-gray-900">{property.totalBuildings}</p>
+                  <div className="p-4">
+                    <div className="flex justify-between items-start mb-1">
+                      <h3 className="font-bold text-gray-900 truncate pr-2">{property.title}</h3>
+                      {property.status === 'draft' && (
+                        <Link
+                          href={`/property-partner/dashboard/properties/add?id=${property.id}`}
+                          onClick={(e) => e.stopPropagation()}
+                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-gray-100 hover:bg-amber-50 text-gray-500 hover:text-amber-600 rounded-lg"
+                          title="Edit Draft"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                          </svg>
+                        </Link>
+                      )}
                     </div>
-                    <div className="text-center">
-                      <p className="text-gray-500">Units</p>
-                      <p className="font-bold text-gray-900">{property.totalUnits}</p>
+                    <p className="text-sm text-gray-600 mb-3">{property.location}</p>
+                    <div className="flex items-center justify-between mb-3">
+                      <span className={`px-2 py-1 rounded text-xs font-semibold ${statusConfig.bgColor} ${statusConfig.color}`}>
+                        {statusConfig.label}
+                      </span>
+                      <p className="text-sm font-semibold text-gray-700">₹{(property.startingPrice / 100000).toFixed(1)}L+</p>
                     </div>
-                    <div className="text-center">
-                      <p className="text-gray-500">Area</p>
-                      <p className="font-bold text-gray-900">{property.totalArea}K</p>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div className="text-center">
+                        <p className="text-gray-500">Buildings</p>
+                        <p className="font-bold text-gray-900">{property.totalBuildings}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-gray-500">Units</p>
+                        <p className="font-bold text-gray-900">{property.totalUnits}</p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-gray-500">Area</p>
+                        <p className="font-bold text-gray-900">{property.totalArea}K</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </Link>
+                </Link>
+              </div>
             );
           })}
-        </div>
+        </div >
       )}
-    </div>
+    </div >
   );
 }

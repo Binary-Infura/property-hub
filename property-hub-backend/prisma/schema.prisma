@@ -322,6 +322,11 @@ model MattermostUserMapping {
 }
 
 enum PropertyStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+  PUBLISHED
   AVAILABLE
   SOLD
   RESERVED

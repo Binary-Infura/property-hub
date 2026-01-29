@@ -27,7 +27,7 @@ export class PropertiesController {
     constructor(private readonly propertiesService: PropertiesService) { }
 
     @Get()
-    @RequireRoles('regional-manager', 'property-onboarding-manager')
+    @RequireRoles('regional-manager', 'property-onboarding-manager', 'property-partner')
     findAll(
         @Param('region') region: string,
         @CurrentUser() user: AuthenticatedUser,
@@ -37,7 +37,7 @@ export class PropertiesController {
     }
 
     @Get(':id')
-    @RequireRoles('regional-manager', 'property-onboarding-manager', 'consultant')
+    @RequireRoles('regional-manager', 'property-onboarding-manager', 'consultant', 'property-partner')
     findOne(
         @Param('region') region: string,
         @Param('id') id: string,
@@ -47,7 +47,7 @@ export class PropertiesController {
     }
 
     @Post()
-    @RequireRoles('regional-manager', 'property-onboarding-manager')
+    @RequireRoles('regional-manager', 'property-onboarding-manager', 'property-partner')
     create(
         @Param('region') region: string,
         @Body() createPropertyDto: CreatePropertyDto,
@@ -57,7 +57,7 @@ export class PropertiesController {
     }
 
     @Patch(':id')
-    @RequireRoles('regional-manager', 'property-onboarding-manager')
+    @RequireRoles('regional-manager', 'property-onboarding-manager', 'property-partner')
     update(
         @Param('region') region: string,
         @Param('id') id: string,
@@ -68,7 +68,7 @@ export class PropertiesController {
     }
 
     @Delete(':id')
-    @RequireRoles('regional-manager')
+    @RequireRoles('regional-manager', 'property-partner')
     remove(
         @Param('region') region: string,
         @Param('id') id: string,

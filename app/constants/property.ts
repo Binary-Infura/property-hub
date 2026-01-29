@@ -16,6 +16,9 @@ export const PROPERTY_STATUS_CONFIG: Record<PropertyStatus, { label: string; col
   approved: { label: 'Approved', color: 'text-green-600', bgColor: 'bg-green-100' },
   rejected: { label: 'Rejected', color: 'text-red-600', bgColor: 'bg-red-100' },
   published: { label: 'Published', color: 'text-purple-600', bgColor: 'bg-purple-100' },
+  available: { label: 'Available', color: 'text-emerald-600', bgColor: 'bg-emerald-100' },
+  sold: { label: 'Sold', color: 'text-gray-600', bgColor: 'bg-gray-100' },
+  reserved: { label: 'Reserved', color: 'text-orange-600', bgColor: 'bg-orange-100' },
 };
 
 export const INDIAN_STATES = [

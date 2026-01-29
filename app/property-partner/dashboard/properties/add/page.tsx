@@ -1,9 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { Property } from '@/app/types/property';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { Property, PropertyStatus } from '@/app/types/property';
 import { PROPERTY_TYPES, AMENITIES_OPTIONS, INDIAN_STATES } from '@/app/constants/property';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 interface StepConfig {
   number: number;
@@ -20,10 +24,29 @@ const STEPS: StepConfig[] = [
 
 export default function AddPropertyPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const editId = searchParams.get('id');
+  const { token } = useAuth();
+  const { activeContext } = useUnifiedApp();
+  const regionCode = activeContext.activeRegion.code; // e.g. 'mumbai'
+  // We need the region ID for the payload, but the URL param uses code.
+  // The backend might expect region CODE in the URL param (:region), 
+  // but the DTO expects regionID in the body.
+  // We'll trust the backend to handle the region param, 
+  // but we need the actual UUID for the body `regionId`.
+  // Wait, the controller @RequireRegion checks the region param against user groups.
+  // The CREATE dto requires `regionId` (UUID).
+  // We need to fetch the region ID or have it in context. 
+  // activeRegion usually has ID.
+
   const [currentStep, setCurrentStep] = useState(1);
+  const [propertyId, setPropertyId] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const [formData, setFormData] = useState({
     title: '',
-    propertyType: 'residential' as const,
+    propertyType: 'residential' as any, // Temporary loose type
     location: '',
     address: '',
     city: '',
@@ -43,10 +66,136 @@ export default function AddPropertyPage() {
     specification: null as File | null,
   });
 
-  // Auto-save to localStorage
+  // Load existing property for editing
   useEffect(() => {
-    localStorage.setItem('property_draft', JSON.stringify({ formData, files: { images: [], brochure: null, specification: null } }));
-  }, [formData]);
+    const fetchProperty = async () => {
+      if (!editId || !token || !regionCode) return;
+
+      try {
+        setLoading(true);
+        const res = await fetch(`${API_URL}/api/${regionCode}/properties/${editId}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          setPropertyId(data.id);
+
+          // Parse description for amenities hack
+          let description = data.description || '';
+          let amenities: string[] = [];
+          if (description.includes('Amenities:')) {
+            const parts = description.split('Amenities:');
+            description = parts[0].trim();
+            amenities = parts[1].split(',').map((a: string) => a.trim());
+          }
+
+          // Parse address for city/state/pincode if possible, or just dump in address
+          // Assuming format: "Address, City, State - Pincode"
+          // This is a naive parse, ideally we store these separately.
+          // For now, we will just fill address and leave others empty or try to regex.
+          // Let's just put the full address in 'address' and let user fix 'city' etc if they want.
+          // Or populate common fields.
+
+          setFormData({
+            title: data.name,
+            propertyType: (data.propertyType === 'APARTMENT' ? 'residential' : 'commercial') as any, // Simple map
+            location: data.location,
+            address: data.address || '',
+            city: '', // User to re-enter or we leave blank
+            state: '',
+            pincode: '',
+            totalArea: data.area?.toString() || '',
+            totalBuildings: '', // Not in backend
+            totalUnits: '', // Not in backend
+            startingPrice: data.price?.toString() || '',
+            description: description,
+            amenities: amenities.length > 0 ? amenities : [],
+          });
+        } else {
+          console.error('Failed to fetch property');
+          setError('Failed to fetch property details');
+        }
+      } catch (err) {
+        console.error(err);
+        setError('An error occurred while fetching property');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProperty();
+  }, [editId, token, regionCode]);
+
+  // Removed auto-save useEffect
+
+
+  const saveToApi = async (status: 'draft' | 'submitted') => {
+    if (!token || !regionCode) {
+      alert('Authentication error or no region selected');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    // Map frontend types to backend types
+    let backendPropertyType = 'APARTMENT';
+    if (formData.propertyType === 'commercial') backendPropertyType = 'COMMERCIAL';
+    else if (formData.propertyType === 'mixed-use') backendPropertyType = 'COMMERCIAL';
+
+    // Combine items for description/address
+    const fullAddress = `${formData.address}${formData.city ? ', ' + formData.city : ''}${formData.state ? ', ' + formData.state : ''}${formData.pincode ? ' - ' + formData.pincode : ''}`;
+    const fullDescription = `${formData.description}\n\nAmenities: ${formData.amenities.join(', ')}`;
+
+    const payload = {
+      name: formData.title,
+      description: fullDescription,
+      location: formData.location,
+      address: fullAddress,
+      regionId: activeContext.activeRegion.id,
+      status: status.toUpperCase(), // DRAFT or SUBMITTED
+      price: parseFloat(formData.startingPrice) || 0,
+      area: parseFloat(formData.totalArea) || 0,
+      propertyType: backendPropertyType,
+      // We are skipping bedrooms/bathrooms/onboardedById for now as they aren't in form
+    };
+
+    const url = propertyId
+      ? `${API_URL}/api/${regionCode}/properties/${propertyId}`
+      : `${API_URL}/api/${regionCode}/properties`;
+
+    const method = propertyId ? 'PATCH' : 'POST';
+
+    try {
+      const res = await fetch(url, {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setPropertyId(data.id);
+        return data.id;
+      } else {
+        const errData = await res.json();
+        setError(errData.message || 'Failed to save property');
+        throw new Error(errData.message || 'Failed to save');
+      }
+    } catch (e: any) {
+      console.error(e);
+      setError(e.message);
+      throw e;
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -79,36 +228,39 @@ export default function AddPropertyPage() {
     }
   };
 
-  const handleSubmit = () => {
-    const properties: Property[] = JSON.parse(localStorage.getItem('builder_properties') || '[]');
-    
-    const newProperty: Property = {
-      id: `prop_${Date.now()}`,
-      title: formData.title,
-      propertyType: formData.propertyType,
-      location: formData.location,
-      address: formData.address,
-      city: formData.city,
-      state: formData.state,
-      pincode: formData.pincode,
-      totalArea: parseInt(formData.totalArea) || 0,
-      totalBuildings: parseInt(formData.totalBuildings) || 0,
-      totalUnits: parseInt(formData.totalUnits) || 0,
-      startingPrice: parseInt(formData.startingPrice) || 0,
-      description: formData.description,
-      amenities: formData.amenities,
-      images: files.images,
-      brochure: files.brochure || undefined,
-      specification: files.specification || undefined,
-      status: 'draft',
-      createdAt: new Date(),
-      buildings: [],
-    };
+  const handleSaveAndExit = async () => {
+    try {
+      await saveToApi('draft');
+      router.push('/property-partner/dashboard/properties');
+    } catch (e) {
+      // Error is set in state
+    }
+  };
 
-    properties.push(newProperty);
-    localStorage.setItem('builder_properties', JSON.stringify(properties));
-    localStorage.removeItem('property_draft');
-    router.push('/property-partner/dashboard/properties');
+  const handleNext = async () => {
+    // We can auto-save on next step if desireable, but checking validation first
+    // Maybe just save to backend on each step? 
+    // "saveToStorage" was called.
+    try {
+      await saveToApi('draft');
+      setCurrentStep(prev => Math.min(STEPS.length, prev + 1));
+    } catch (e) {
+      // error
+    }
+  };
+
+  const handleSubmit = async () => {
+    try {
+      // If we are on the last step, we might want to submit as 'submitted' or just 'draft'?
+      // The original code was 'draft' (comment said 'draft').
+      // Let's assume the user intends to finish drafting. 
+      // If they want to "Submit", that's usually a separate action or we interpret "Finish" as submit.
+      // Let's keep it as 'draft' for safety unless there's a specific 'Submit' button.
+      await saveToApi('draft');
+      router.push('/property-partner/dashboard/properties');
+    } catch (e) {
+      // error
+    }
   };
 
   const isStepValid = () => {
@@ -127,9 +279,21 @@ export default function AddPropertyPage() {
   return (
     <div className="max-w-4xl mx-auto">
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900">Add New Property</h1>
-        <p className="text-gray-600 mt-1">Complete all steps to create a new property listing</p>
+      <div className="mb-8 flex justify-between items-start">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">{editId ? 'Edit Property' : 'Add New Property'}</h1>
+          <p className="text-gray-600 mt-1">Complete all steps to {editId ? 'update' : 'create'} a new property listing</p>
+        </div>
+        <div className="flex gap-2">
+          {error && <span className="text-red-600 text-sm self-center">{error}</span>}
+          <button
+            onClick={handleSaveAndExit}
+            disabled={loading}
+            className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-gray-700 font-medium hover:bg-gray-50 transition shadow-sm text-sm disabled:opacity-50"
+          >
+            {loading ? 'Saving...' : 'Save & Exit'}
+          </button>
+        </div>
       </div>
 
       {/* Step Indicator */}
@@ -139,11 +303,10 @@ export default function AddPropertyPage() {
             <div key={step.number} className="flex-1">
               <div className="flex items-center">
                 <div
-                  className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition ${
-                    currentStep >= step.number
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-200 text-gray-600'
-                  }`}
+                  className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition ${currentStep >= step.number
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-gray-200 text-gray-600'
+                    }`}
                 >
                   {step.number}
                 </div>
@@ -165,7 +328,7 @@ export default function AddPropertyPage() {
         {currentStep === 1 && (
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-gray-900">Basic Information</h2>
-            
+
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Property Title *</label>
               <input
@@ -221,7 +384,7 @@ export default function AddPropertyPage() {
         {currentStep === 2 && (
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-gray-900">Property Details</h2>
-            
+
             <div className="grid md:grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">City *</label>
@@ -304,7 +467,7 @@ export default function AddPropertyPage() {
         {currentStep === 3 && (
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-gray-900">Pricing & Amenities</h2>
-            
+
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Starting Price (₹) *</label>
               <input
@@ -356,7 +519,7 @@ export default function AddPropertyPage() {
         {currentStep === 4 && (
           <div className="space-y-6">
             <h2 className="text-xl font-bold text-gray-900">Documents & Media</h2>
-            
+
             <div>
               <label className="block text-sm font-semibold text-gray-700 mb-2">Property Images</label>
               <input
@@ -411,7 +574,7 @@ export default function AddPropertyPage() {
 
           {currentStep < STEPS.length ? (
             <button
-              onClick={() => setCurrentStep(prev => Math.min(STEPS.length, prev + 1))}
+              onClick={handleNext}
               disabled={!isStepValid()}
               className="px-6 py-2 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition"
             >
@@ -422,7 +585,7 @@ export default function AddPropertyPage() {
               onClick={handleSubmit}
               className="px-6 py-2 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 transition"
             >
-              Create Property
+              Finish
             </button>
           )}
         </div>
