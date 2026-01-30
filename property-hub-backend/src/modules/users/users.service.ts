@@ -5,6 +5,7 @@ import { UserMetadata, User } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { KeycloakAdminService } from '../../common/services/keycloak/keycloak-admin.service';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
+import { UserRole } from '../../common/enums/role.enum';
 
 @Injectable()
 export class UsersService {
@@ -453,44 +454,49 @@ export class UsersService {
 
     async getProfileStatus(userId: string, roles: string[]) {
         const status: any = {};
+        const businessRoles: string[] = Object.values(UserRole);
 
         for (const role of roles) {
-            let hasProfile = false;
+            if (!businessRoles.includes(role)) continue;
+
             let profileData = null;
 
             switch (role) {
-                case 'central-authority':
+                case UserRole.CENTRAL_AUTHORITY:
                     profileData = await this.prisma.centralAuthorityProfile.findUnique({ where: { userId } });
                     break;
-                case 'property-partner':
+                case UserRole.PROPERTY_PARTNER:
                     profileData = await this.prisma.propertyPartnerProfile.findUnique({ where: { userId } });
                     break;
-                case 'channel-partner':
+                case UserRole.CHANNEL_PARTNER:
                     profileData = await this.prisma.channelPartnerProfile.findUnique({ where: { userId } });
                     break;
-                case 'regional-manager':
+                case UserRole.REGIONAL_MANAGER:
                     profileData = await this.prisma.regionalManagerProfile.findUnique({ where: { userId } });
                     break;
-                case 'commission-manager':
+                case UserRole.COMMISSION_MANAGER:
                     profileData = await this.prisma.commissionManagerProfile.findUnique({ where: { userId } });
                     break;
-                case 'marketing-manager':
+                case UserRole.MARKETING_MANAGER:
                     profileData = await this.prisma.marketingManagerProfile.findUnique({ where: { userId } });
                     break;
-
-                case 'consultant':
+                case UserRole.CONSULTANT:
                     profileData = await this.prisma.consultantProfile.findUnique({ where: { userId } });
                     break;
-                case 'buyer':
+                case UserRole.BUYER:
                     profileData = await this.prisma.buyerProfile.findUnique({ where: { userId } });
                     break;
-                case 'service-provider':
+                case UserRole.SERVICE_PROVIDER:
                     profileData = await this.prisma.serviceProviderProfile.findUnique({ where: { userId } });
                     break;
             }
 
-            hasProfile = !!profileData;
-            status[role] = { hasProfile, profileData };
+            status[role] = {
+                // Only mark as missing if it's an onboarding-required role and data is missing.
+                // Currently, only service-provider has a dedicated profile completion UI.
+                hasProfile: role === UserRole.SERVICE_PROVIDER ? !!profileData : true,
+                profileData
+            };
         }
 
         return status;
