@@ -27,7 +27,7 @@ interface RegionAllocation {
     assignedUsers: AssignedUser[];
 }
 
-type ManagerRole = 'regional-manager' | 'marketing-manager' | 'commission-manager' | 'property-onboarding-manager' | '';
+type ManagerRole = 'regional-manager' | 'marketing-manager' | 'commission-manager' | 'onboarding-manager' | '';
 
 export default function RegionAllocationPage() {
     const { token } = useAuth();
@@ -292,7 +292,7 @@ export default function RegionAllocationPage() {
                 return 'bg-purple-100 text-purple-700';
             case 'commission-manager':
                 return 'bg-green-100 text-green-700';
-            case 'property-onboarding-manager':
+            case 'onboarding-manager':
                 return 'bg-orange-100 text-orange-700';
             default:
                 return 'bg-gray-100 text-gray-700';
@@ -307,7 +307,7 @@ export default function RegionAllocationPage() {
                 return 'Marketing Manager';
             case 'commission-manager':
                 return 'Commission Manager';
-            case 'property-onboarding-manager':
+            case 'onboarding-manager':
                 return 'Onboarding Manager';
             default:
                 return role;
@@ -395,7 +395,7 @@ export default function RegionAllocationPage() {
                         <option value="regional-manager">Regional Manager</option>
                         <option value="marketing-manager">Marketing Manager</option>
                         <option value="commission-manager">Commission Manager</option>
-                        <option value="property-onboarding-manager">Onboarding Manager</option>
+                        <option value="onboarding-manager">Onboarding Manager</option>
                     </select>
                 </div>
                 <div className="flex-[1.5] min-w-[300px]">

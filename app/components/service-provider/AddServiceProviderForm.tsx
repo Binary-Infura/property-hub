@@ -26,7 +26,8 @@ interface ServiceProviderFormProps {
 
 export default function ServiceProviderForm({ initialData, onCancel, onSubmit, isEditing = false }: ServiceProviderFormProps) {
     const [formData, setFormData] = useState({
-        name: initialData?.name || '',
+        firstName: initialData?.firstName || '',
+        lastName: initialData?.lastName || '',
         businessName: initialData?.businessName || '',
         category: (initialData?.category as ServiceCategory) || 'painting',
         location: initialData?.location || '',
@@ -47,14 +48,25 @@ export default function ServiceProviderForm({ initialData, onCancel, onSubmit, i
         <form onSubmit={handleSubmit} className="space-y-5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Name</label>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">First Name</label>
                     <input
                         type="text"
                         required
-                        value={formData.name}
-                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                        value={formData.firstName}
+                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
-                        placeholder="John Doe"
+                        placeholder="John"
+                    />
+                </div>
+                <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Last Name</label>
+                    <input
+                        type="text"
+                        required
+                        value={formData.lastName}
+                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
+                        placeholder="Doe"
                     />
                 </div>
                 <div>

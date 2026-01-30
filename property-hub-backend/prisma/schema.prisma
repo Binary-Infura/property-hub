@@ -128,7 +128,8 @@ model UserMetadata {
 model User {
   id                  String     @id @default(uuid())
   keycloakId          String?    @unique
-  name                String
+  firstName           String
+  lastName            String?
   email               String     @unique
   phone               String?
   role                String

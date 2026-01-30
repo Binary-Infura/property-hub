@@ -16,7 +16,8 @@ export default function ServiceProvidersPage() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedProvider, setSelectedProvider] = useState<User | null>(null);
     const [formData, setFormData] = useState({
-        name: '',
+        firstName: '',
+        lastName: '',
         email: '',
         phone: '',
         agencyName: '', // Mapping businessName to agencyName
@@ -26,12 +27,12 @@ export default function ServiceProvidersPage() {
         if (!token) return;
         try {
             setLoading(true);
-            const data = await userService.getAllByRole(
+            const result = await userService.getAllByRole(
                 'service-provider',
                 token,
                 activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined
             );
-            setProviders(data);
+            setProviders(result.data);
             setError(null);
         } catch (err: any) {
             setError(err.message || 'Failed to fetch providers');
@@ -45,13 +46,14 @@ export default function ServiceProvidersPage() {
     }, [token, activeContext.activeRegion.code]);
 
     const handleAddProvider = () => {
-        setFormData({ name: '', email: '', phone: '', agencyName: '' });
+        setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '' });
         setShowAddModal(true);
     };
 
     const handleEditProvider = (provider: User) => {
         setFormData({
-            name: provider.name,
+            firstName: provider.firstName,
+            lastName: provider.lastName || '',
             email: provider.email,
             phone: provider.phone || '',
             agencyName: provider.agencyName || '',
@@ -79,7 +81,7 @@ export default function ServiceProvidersPage() {
                 setProviders([created, ...providers]);
                 setShowAddModal(false);
             }
-            setFormData({ name: '', email: '', phone: '', agencyName: '' });
+            setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '' });
             setSelectedProvider(null);
         } catch (err: any) {
             alert(err.message || 'Failed to save provider');
@@ -145,7 +147,7 @@ export default function ServiceProvidersPage() {
                                     <tr key={sp.id} className="border-b border-gray-100 hover:bg-gray-50">
                                         <td className="py-4 px-4">
                                             <div>
-                                                <p className="font-semibold text-gray-900">{sp.agencyName || sp.name}</p>
+                                                <p className="font-semibold text-gray-900">{sp.agencyName || `${sp.firstName} ${sp.lastName || ''}`.trim()}</p>
                                                 <p className="text-sm text-gray-500">{sp.phone || sp.email}</p>
                                             </div>
                                         </td>
@@ -199,7 +201,7 @@ export default function ServiceProvidersPage() {
                                 onClick={() => {
                                     setShowAddModal(false);
                                     setShowEditModal(false);
-                                    setFormData({ name: '', email: '', phone: '', agencyName: '' });
+                                    setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '' });
                                 }}
                                 className="p-2 hover:bg-gray-200 rounded-full transition-colors"
                             >
@@ -210,15 +212,27 @@ export default function ServiceProvidersPage() {
                         </div>
 
                         <div className="p-6 space-y-5">
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Name</label>
-                                <input
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
-                                    placeholder="Enter name"
-                                />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">First Name</label>
+                                    <input
+                                        type="text"
+                                        value={formData.firstName}
+                                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
+                                        placeholder="Enter first name"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Last Name</label>
+                                    <input
+                                        type="text"
+                                        value={formData.lastName}
+                                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
+                                        placeholder="Enter last name"
+                                    />
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
@@ -257,7 +271,7 @@ export default function ServiceProvidersPage() {
                                     onClick={() => {
                                         setShowAddModal(false);
                                         setShowEditModal(false);
-                                        setFormData({ name: '', email: '', phone: '', agencyName: '' });
+                                        setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '' });
                                     }}
                                     className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all text-sm"
                                 >

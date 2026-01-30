@@ -19,7 +19,8 @@ export interface ServiceProviderAvailability {
 
 export interface ServiceProvider {
     id: string;
-    name: string;
+    firstName: string;
+    lastName?: string;
     businessName?: string;
     email: string;
     phone: string;
@@ -40,7 +41,8 @@ export interface ServiceProvider {
 }
 
 export interface ServiceProviderFormData {
-    name: string;
+    firstName: string;
+    lastName?: string;
     businessName?: string;
     category: ServiceCategory;
     location: string;

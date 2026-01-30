@@ -11,9 +11,9 @@ export default function OnboardingManagerDashboard() {
     const { user, token } = useAuth();
     const { activeContext } = useUnifiedApp();
     const [stats, setStats] = useState([
-        { label: 'Total Properties', value: '...', change: '', icon: '🏢', color: 'bg-blue-50 text-blue-600', link: '/property-onboarding-manager/dashboard/properties' },
-        { label: 'Property Partners', value: '...', change: '', icon: '🤝', color: 'bg-green-50 text-green-600', link: '/property-onboarding-manager/dashboard/property-partners' },
-        { label: 'Service Providers', value: '...', change: '', icon: '🔧', color: 'bg-yellow-50 text-yellow-600', link: '/property-onboarding-manager/dashboard/service-providers' },
+        { label: 'Total Properties', value: '...', change: '', icon: '🏢', color: 'bg-blue-50 text-blue-600', link: '/onboarding-manager/dashboard/properties' },
+        { label: 'Property Partners', value: '...', change: '', icon: '🤝', color: 'bg-green-50 text-green-600', link: '/onboarding-manager/dashboard/property-partners' },
+        { label: 'Service Providers', value: '...', change: '', icon: '🔧', color: 'bg-yellow-50 text-yellow-600', link: '/onboarding-manager/dashboard/service-providers' },
     ]);
     const [loading, setLoading] = useState(true);
 
@@ -31,9 +31,9 @@ export default function OnboardingManagerDashboard() {
                 ]);
 
                 setStats([
-                    { label: 'My Properties', value: properties.length.toString(), change: 'Personal Onboardings', icon: '🏢', color: 'bg-blue-50 text-blue-600', link: '/property-onboarding-manager/dashboard/properties' },
-                    { label: 'My Partners', value: partners.length.toString(), change: 'Personal Onboardings', icon: '🤝', color: 'bg-green-50 text-green-600', link: '/property-onboarding-manager/dashboard/property-partners' },
-                    { label: 'My Providers', value: providers.length.toString(), change: 'Personal Onboardings', icon: '🔧', color: 'bg-yellow-50 text-yellow-600', link: '/property-onboarding-manager/dashboard/service-providers' },
+                    { label: 'My Properties', value: properties.length.toString(), change: 'Personal Onboardings', icon: '🏢', color: 'bg-blue-50 text-blue-600', link: '/onboarding-manager/dashboard/properties' },
+                    { label: 'My Partners', value: partners.data.length.toString(), change: 'Personal Onboardings', icon: '🤝', color: 'bg-green-50 text-green-600', link: '/onboarding-manager/dashboard/property-partners' },
+                    { label: 'My Providers', value: providers.data.length.toString(), change: 'Personal Onboardings', icon: '🔧', color: 'bg-yellow-50 text-yellow-600', link: '/onboarding-manager/dashboard/service-providers' },
                 ]);
             } catch (error) {
                 console.error('Failed to fetch dashboard stats:', error);
@@ -81,22 +81,22 @@ export default function OnboardingManagerDashboard() {
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 lg:col-span-3 gap-8">
                 {/* Quick Actions */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
                     <h2 className="text-xl font-black text-gray-900 mb-6 flex items-center gap-3">
                         <span className="p-2 bg-yellow-100 rounded-lg text-yellow-600 text-sm">⚡</span> Quick Actions
                     </h2>
                     <div className="space-y-4">
-                        <Link href="/property-onboarding-manager/dashboard/properties" className="w-full flex items-center justify-between p-5 bg-gray-50/50 rounded-2xl hover:bg-blue-600 hover:text-white transition-all group border border-transparent hover:border-blue-700 shadow-sm">
+                        <Link href="/onboarding-manager/dashboard/properties" className="w-full flex items-center justify-between p-5 bg-gray-50/50 rounded-2xl hover:bg-blue-600 hover:text-white transition-all group border border-transparent hover:border-blue-700 shadow-sm">
                             <span className="font-bold text-gray-700 group-hover:text-white">Onboard New Property</span>
                             <span className="text-gray-400 group-hover:text-white text-xl">→</span>
                         </Link>
-                        <Link href="/property-onboarding-manager/dashboard/property-partners" className="w-full flex items-center justify-between p-5 bg-gray-50/50 rounded-2xl hover:bg-green-600 hover:text-white transition-all group border border-transparent hover:border-green-700 shadow-sm">
+                        <Link href="/onboarding-manager/dashboard/property-partners" className="w-full flex items-center justify-between p-5 bg-gray-50/50 rounded-2xl hover:bg-green-600 hover:text-white transition-all group border border-transparent hover:border-green-700 shadow-sm">
                             <span className="font-bold text-gray-700 group-hover:text-white">Add Property Partner</span>
                             <span className="text-gray-400 group-hover:text-white text-xl">→</span>
                         </Link>
-                        <Link href="/property-onboarding-manager/dashboard/service-providers" className="w-full flex items-center justify-between p-5 bg-gray-50/50 rounded-2xl hover:bg-purple-600 hover:text-white transition-all group border border-transparent hover:border-purple-700 shadow-sm">
+                        <Link href="/onboarding-manager/dashboard/service-providers" className="w-full flex items-center justify-between p-5 bg-gray-50/50 rounded-2xl hover:bg-purple-600 hover:text-white transition-all group border border-transparent hover:border-purple-700 shadow-sm">
                             <span className="font-bold text-gray-700 group-hover:text-white">Onboard Provider</span>
                             <span className="text-gray-400 group-hover:text-white text-xl">→</span>
                         </Link>

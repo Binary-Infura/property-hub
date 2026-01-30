@@ -20,7 +20,8 @@ export default function OnboardingManagersPage() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedManager, setSelectedManager] = useState<User | null>(null);
     const [formData, setFormData] = useState({
-        name: '',
+        firstName: '',
+        lastName: '',
         email: '',
         phone: '',
     });
@@ -30,7 +31,7 @@ export default function OnboardingManagersPage() {
         try {
             setLoading(true);
             const result = await userService.getAllByRole(
-                'property-onboarding-manager',
+                'onboarding-manager',
                 token,
                 activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined,
                 false,
@@ -52,13 +53,14 @@ export default function OnboardingManagersPage() {
     }, [token, activeContext.activeRegion.code, currentPage]);
 
     const handleAddManager = () => {
-        setFormData({ name: '', email: '', phone: '' });
+        setFormData({ firstName: '', lastName: '', email: '', phone: '' });
         setShowAddModal(true);
     };
 
     const handleEditManager = (manager: User) => {
         setFormData({
-            name: manager.name,
+            firstName: manager.firstName,
+            lastName: manager.lastName || '',
             email: manager.email,
             phone: manager.phone || '',
         });
@@ -69,23 +71,24 @@ export default function OnboardingManagersPage() {
     const handleSaveManager = async () => {
         if (!token) return;
         try {
+            const dataToSave = {
+                ...formData,
+            };
+
             if (selectedManager) {
-                const updated = await userService.update(selectedManager.id, {
-                    ...formData,
-                    // Preserve existing regions on update by not sending regionIds
-                }, token);
+                const updated = await userService.update(selectedManager.id, dataToSave, token);
                 setManagers(managers.map(m => m.id === selectedManager.id ? updated : m));
                 setShowEditModal(false);
             } else {
                 const created = await userService.create({
-                    ...formData,
-                    role: 'property-onboarding-manager',
+                    ...dataToSave,
+                    role: 'onboarding-manager',
                     regionIds: [] // Default to no region
                 }, token);
                 setManagers([created, ...managers]);
                 setShowAddModal(false);
             }
-            setFormData({ name: '', email: '', phone: '' });
+            setFormData({ firstName: '', lastName: '', email: '', phone: '' });
             setSelectedManager(null);
         } catch (err: any) {
             alert(err.message || 'Failed to save manager');
@@ -112,7 +115,7 @@ export default function OnboardingManagersPage() {
         <div className="p-8">
             <div className="flex justify-between items-center mb-8">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Property Onboarding Managers</h1>
+                    <h1 className="text-3xl font-bold text-gray-900">Onboarding Managers</h1>
                     <p className="text-gray-600 mt-2">Manage managers responsible for onboarding properties and partners.</p>
                 </div>
                 <button
@@ -133,7 +136,8 @@ export default function OnboardingManagersPage() {
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">First Name</th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Name</th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Region(s)</th>
                             <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Performance</th>
@@ -147,13 +151,18 @@ export default function OnboardingManagersPage() {
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex items-center">
                                         <div className="h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold">
-                                            {manager.name.charAt(0)}
+                                            {manager.firstName.charAt(0)}
                                         </div>
                                         <div className="ml-4">
-                                            <div className="text-sm font-medium text-gray-900">{manager.name}</div>
+                                            <div className="text-sm font-medium text-gray-900">
+                                                {manager.firstName}
+                                            </div>
                                             <div className="text-xs text-gray-500">Joined {new Date(manager.createdAt).toLocaleDateString()}</div>
                                         </div>
                                     </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                    {manager.lastName || '-'}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="text-sm text-gray-900">{manager.email}</div>
@@ -230,7 +239,7 @@ export default function OnboardingManagersPage() {
                                 onClick={() => {
                                     setShowAddModal(false);
                                     setShowEditModal(false);
-                                    setFormData({ name: '', email: '', phone: '' });
+                                    setFormData({ firstName: '', lastName: '', email: '', phone: '' });
                                 }}
                                 className="p-2 hover:bg-gray-200 rounded-full transition-colors"
                             >
@@ -241,15 +250,27 @@ export default function OnboardingManagersPage() {
                         </div>
 
                         <div className="p-6 space-y-5">
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Name</label>
-                                <input
-                                    type="text"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
-                                    placeholder="Enter name"
-                                />
+                            <div className="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">First Name</label>
+                                    <input
+                                        type="text"
+                                        value={formData.firstName}
+                                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
+                                        placeholder="Enter first name"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Last Name</label>
+                                    <input
+                                        type="text"
+                                        value={formData.lastName}
+                                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
+                                        placeholder="Enter last name"
+                                    />
+                                </div>
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
@@ -278,7 +299,7 @@ export default function OnboardingManagersPage() {
                                     onClick={() => {
                                         setShowAddModal(false);
                                         setShowEditModal(false);
-                                        setFormData({ name: '', email: '', phone: '' });
+                                        setFormData({ firstName: '', lastName: '', email: '', phone: '' });
                                     }}
                                     className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all text-sm"
                                 >

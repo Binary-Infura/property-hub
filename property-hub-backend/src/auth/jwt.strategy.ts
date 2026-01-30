@@ -34,6 +34,8 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
             userId: userId,
             email: payload.email,
             username: payload.preferred_username,
+            firstName: payload.given_name,
+            lastName: payload.family_name,
             roles: payload.realm_access?.roles || [],
             groups: payload.groups || [],
         };

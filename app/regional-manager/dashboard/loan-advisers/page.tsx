@@ -26,12 +26,12 @@ export default function LoanAdvisersPage() {
         if (!token) return;
         try {
             setLoading(true);
-            const data = await userService.getAllByRole(
+            const result = await userService.getAllByRole(
                 'loan-adviser',
                 token,
                 activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined
             );
-            setAdvisers(data);
+            setAdvisers(result.data);
             setError(null);
         } catch (err: any) {
             setError(err.message || 'Failed to fetch advisers');

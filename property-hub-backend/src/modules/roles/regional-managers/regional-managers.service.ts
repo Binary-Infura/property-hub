@@ -43,7 +43,8 @@ export class RegionalManagersService {
         // 4. Create in Database
         const regionalManagerData: any = {
             keycloakId: invitation.userId,
-            name: `${dto.firstName} ${dto.lastName}`,
+            firstName: dto.firstName,
+            lastName: dto.lastName,
             email: dto.email,
             phone: dto.phone,
         };
@@ -98,7 +99,7 @@ export class RegionalManagersService {
         ]);
 
         // Transform to DTO with aggregated stats
-        const data = managers.map((manager) => {
+        const data = (managers as any[]).map((manager) => {
             const stats = {
                 propertiesCount: 0,
                 leadsCount: 0,
@@ -110,10 +111,17 @@ export class RegionalManagersService {
             });
 
             return {
-                ...manager,
+                id: manager.id,
+                email: manager.email,
+                firstName: manager.firstName,
+                lastName: manager.lastName,
+                keycloakId: manager.keycloakId,
+                status: manager.status,
+                phone: manager.phone,
+                createdAt: manager.createdAt,
+                updatedAt: manager.updatedAt,
                 regions: manager.regions.map(r => ({
                     ...r,
-                    // remove _count from individual region if not needed in DTO or keep it
                 })),
                 stats,
             };

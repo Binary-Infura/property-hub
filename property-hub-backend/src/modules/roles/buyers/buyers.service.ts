@@ -77,7 +77,8 @@ export class BuyersService {
         // 2. Create User via UsersService
         // This handles Keycloak invite + Local DB creation
         const user = await this.usersService.createUser({
-            name: dto.name,
+            firstName: dto.firstName,
+            lastName: dto.lastName,
             email: dto.email,
             phone: dto.phone,
             role: 'buyer',

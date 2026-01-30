@@ -23,13 +23,13 @@ export default function ServiceProvidersPage() {
         if (!token) return;
         try {
             setLoading(true);
-            const data = await userService.getAllByRole(
+            const result = await userService.getAllByRole(
                 'service-provider',
                 token,
                 activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined,
                 true // Always personal view
             );
-            setServiceProviders(data);
+            setServiceProviders(result.data);
             setError(null);
         } catch (err: any) {
             setError(err.message || 'Failed to fetch service providers');

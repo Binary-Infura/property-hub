@@ -9,7 +9,7 @@ export enum UserRole {
     BUYER = 'buyer',
     PROPERTY_PARTNER = 'property-partner',
     CHANNEL_PARTNER = 'channel-partner',
-    PROPERTY_ONBOARDING_MANAGER = 'property-onboarding-manager',
+    ONBOARDING_MANAGER = 'onboarding-manager',
     LOAN_ADVISER = 'loan-adviser',
     VISIT_EXECUTIVE = 'visit-executive',
 }

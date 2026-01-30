@@ -108,7 +108,10 @@ export default function MarketingManagersPage() {
                         <thead className="bg-gray-50">
                             <tr>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Marketing Manager
+                                    First Name
+                                </th>
+                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Last Name
                                 </th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                     Status
@@ -145,13 +148,16 @@ export default function MarketingManagersPage() {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
-                                                {manager.name.charAt(0)}
+                                                {manager.firstName.charAt(0)}
                                             </div>
                                             <div>
-                                                <div className="font-medium text-gray-900">{manager.name}</div>
+                                                <div className="font-medium text-gray-900">{manager.firstName}</div>
                                                 <div className="text-sm text-gray-500">{manager.email}</div>
                                             </div>
                                         </div>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {manager.lastName || '-'}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span

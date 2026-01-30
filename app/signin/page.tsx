@@ -29,7 +29,7 @@ export default function SignInPage() {
             const staffRoles = [
                 'regional-manager',
                 'consultant',
-                'property-onboarding-manager',
+                'onboarding-manager',
                 'loan-adviser',
                 'marketing-manager',
 

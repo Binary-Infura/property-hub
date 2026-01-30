@@ -192,7 +192,7 @@ export class ChatService {
                 contextId: session.contextId || undefined,
                 participants: participants.map(p => ({
                     id: p.id,
-                    name: p.name,
+                    name: `${p.firstName} ${p.lastName || ''}`.trim(),
                     email: p.email,
                     role: p.role,
                 })),
@@ -265,8 +265,8 @@ export class ChatService {
         const mattermostUser = await this.mattermostService.createOrGetUser(
             user.email,
             user.email.split('@')[0], // username from email
-            user.name.split(' ')[0], // first name
-            user.name.split(' ').slice(1).join(' ') // last name
+            user.firstName,
+            user.lastName || 'User'
         );
 
         // Create mapping
@@ -329,7 +329,7 @@ export class ChatService {
             contextId: chatSession.contextId || undefined,
             participants: participants.map(p => ({
                 id: p.id,
-                name: p.name,
+                name: `${p.firstName} ${p.lastName || ''}`.trim(),
                 email: p.email,
                 role: p.role,
             })),

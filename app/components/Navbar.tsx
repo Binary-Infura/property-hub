@@ -15,7 +15,7 @@ export default function Navbar() {
             'regional-manager',
             'consultant',
             'marketing-manager',
-            'property-onboarding-manager',
+            'onboarding-manager',
             'loan-adviser',
             'commission-manager',
             'channel-partner',

@@ -19,13 +19,13 @@ export default function ConsultantsPage() {
         if (!token) return;
         try {
             setLoading(true);
-            const data = await userService.getAllByRole(
+            const result = await userService.getAllByRole(
                 'consultant',
                 token,
                 activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined,
                 true // Always personal view
             );
-            setConsultants(data);
+            setConsultants(result.data);
             setError(null);
         } catch (err: any) {
             setError(err.message || 'Failed to fetch consultants');

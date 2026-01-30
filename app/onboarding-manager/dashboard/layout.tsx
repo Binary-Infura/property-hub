@@ -9,7 +9,7 @@ import RouteGuard from '@/app/components/auth/RouteGuard';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import NoRegionAllocated from '@/app/components/dashboard/NoRegionAllocated';
 
-function PropertyOnboardingManagerLayoutContent({
+function OnboardingManagerLayoutContent({
     children,
 }: {
     children: React.ReactNode;
@@ -18,16 +18,16 @@ function PropertyOnboardingManagerLayoutContent({
     const { activeContext } = useUnifiedApp();
 
     const navigation = [
-        { name: 'Dashboard', href: '/property-onboarding-manager/dashboard', icon: '📊' },
-        { name: 'Properties', href: '/property-onboarding-manager/dashboard/properties', icon: '🏢' },
+        { name: 'Dashboard', href: '/onboarding-manager/dashboard', icon: '📊' },
+        { name: 'Properties', href: '/onboarding-manager/dashboard/properties', icon: '🏢' },
 
-        { name: 'Property Partners', href: '/property-onboarding-manager/dashboard/property-partners', icon: '🤝' },
-        { name: 'Service Providers', href: '/property-onboarding-manager/dashboard/service-providers', icon: '🛠️' },
+        { name: 'Property Partners', href: '/onboarding-manager/dashboard/property-partners', icon: '🤝' },
+        { name: 'Service Providers', href: '/onboarding-manager/dashboard/service-providers', icon: '🛠️' },
     ];
 
     const isActive = (href: string) => {
-        if (href === '/property-onboarding-manager/dashboard' && pathname === href) return true;
-        if (href !== '/property-onboarding-manager/dashboard' && pathname.startsWith(href)) return true;
+        if (href === '/onboarding-manager/dashboard' && pathname === href) return true;
+        if (href !== '/onboarding-manager/dashboard' && pathname.startsWith(href)) return true;
         return false;
     };
 
@@ -67,7 +67,7 @@ function PropertyOnboardingManagerLayoutContent({
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                <DashboardHeader title="Property Onboarding Manager Dashboard" showLogo={isNoRegion} />
+                <DashboardHeader title="Onboarding Manager Dashboard" showLogo={isNoRegion} />
                 <main className={`flex-1 overflow-y-auto ${isNoRegion ? 'flex items-center justify-center p-8' : 'p-8 pb-20'}`}>
                     {isNoRegion ? <NoRegionAllocated /> : children}
                 </main>
@@ -76,10 +76,10 @@ function PropertyOnboardingManagerLayoutContent({
     );
 }
 
-export default function PropertyOnboardingManagerLayout({ children }: { children: React.ReactNode }) {
+export default function OnboardingManagerLayout({ children }: { children: React.ReactNode }) {
     return (
-        <RouteGuard requiredRole="property-onboarding-manager">
-            <PropertyOnboardingManagerLayoutContent>{children}</PropertyOnboardingManagerLayoutContent>
+        <RouteGuard requiredRole="onboarding-manager">
+            <OnboardingManagerLayoutContent>{children}</OnboardingManagerLayoutContent>
         </RouteGuard>
     );
 }

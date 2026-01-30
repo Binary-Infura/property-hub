@@ -244,8 +244,8 @@ export class UsersService {
             // Determine a default role if not provided in token (fallback)
             const role = authenticatedUser.roles.includes('central-authority')
                 ? 'central-authority'
-                : authenticatedUser.roles.includes('property-onboarding-manager')
-                    ? 'property-onboarding-manager'
+                : authenticatedUser.roles.includes('onboarding-manager')
+                    ? 'onboarding-manager'
                     : authenticatedUser.roles.includes('regional-manager')
                         ? 'regional-manager'
                         : 'unknown';
@@ -254,7 +254,8 @@ export class UsersService {
                 data: {
                     keycloakId: normalizedKeycloakId,
                     email: authenticatedUser.email || 'unknown',
-                    name: authenticatedUser.username || authenticatedUser.email || 'System User',
+                    firstName: authenticatedUser.firstName || authenticatedUser.username || 'System',
+                    lastName: authenticatedUser.lastName || 'User',
                     role: role,
                     status: 'active',
                 },
@@ -278,9 +279,12 @@ export class UsersService {
         }
 
         // 2. Prepare for Keycloak
-        const nameParts = dto.name.split(' ');
-        const firstName = nameParts[0];
-        const lastName = nameParts.slice(1).join(' ') || 'User';
+        const firstName = dto.firstName;
+        const lastName = dto.lastName || 'User';
+
+        if (!firstName) {
+            throw new BadRequestException('firstName must be provided');
+        }
 
         // Get region codes for group mapping
         const regions = dto.regionIds ? await this.prisma.region.findMany({
@@ -316,7 +320,8 @@ export class UsersService {
         const createdUser = await this.prisma.user.create({
             data: {
                 keycloakId: invitation.userId,
-                name: dto.name,
+                firstName: dto.firstName,
+                lastName: dto.lastName,
                 email: dto.email,
                 phone: dto.phone,
                 role: dto.role,
@@ -385,7 +390,8 @@ export class UsersService {
                     regions: true,
                     onboardedBy: {
                         select: {
-                            name: true,
+                            firstName: true,
+                            lastName: true,
                             role: true
                         }
                     }
@@ -413,7 +419,8 @@ export class UsersService {
         const existingUser = await this.findOne(id);
 
         const data: any = {
-            name: dto.name,
+            firstName: dto.firstName,
+            lastName: dto.lastName,
             phone: dto.phone,
             status: dto.status,
             agencyName: dto.agencyName,

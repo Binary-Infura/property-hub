@@ -68,7 +68,12 @@ export class UpdateUserMetadataDto {
 
 export class CreateUserDto {
     @IsString()
-    name: string;
+    @IsNotEmpty()
+    firstName: string;
+
+    @IsString()
+    @IsOptional()
+    lastName?: string;
 
     @IsEmail()
     email: string;
@@ -129,7 +134,11 @@ export class CreateUserDto {
 export class UpdateUserDto {
     @IsString()
     @IsOptional()
-    name?: string;
+    firstName?: string;
+
+    @IsString()
+    @IsOptional()
+    lastName?: string;
 
     @IsString()
     @IsOptional()

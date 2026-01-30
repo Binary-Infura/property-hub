@@ -6,7 +6,8 @@ import AddGlobalUserModal from '@/app/components/central-authority/AddGlobalUser
 
 interface GlobalUser {
     id: string;
-    name: string;
+    firstName: string;
+    lastName?: string;
     email: string;
     phone: string;
     role: string;
@@ -132,15 +133,10 @@ export default function GlobalUsersPage() {
                                     </tr>
                                 ) : (
                                     users.map((user) => {
-                                        // Split name into first and last for display
-                                        const nameParts = user.name?.split(' ') || [];
-                                        const firstName = nameParts[0] || '';
-                                        const lastName = nameParts.slice(1).join(' ') || '';
-
                                         return (
                                             <tr key={user.id} className="hover:bg-gray-50 transition">
-                                                <td className="py-4 px-4 font-semibold text-gray-900">{firstName}</td>
-                                                <td className="py-4 px-4 font-semibold text-gray-900">{lastName}</td>
+                                                <td className="py-4 px-4 font-semibold text-gray-900">{user.firstName}</td>
+                                                <td className="py-4 px-4 font-semibold text-gray-900">{user.lastName || '-'}</td>
                                                 <td className="py-4 px-4 text-sm text-gray-700">{user.email}</td>
                                                 <td className="py-4 px-4 text-gray-700">{user.phone || '-'}</td>
                                                 <td className="py-4 px-4">

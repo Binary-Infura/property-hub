@@ -27,12 +27,12 @@ export default function ChannelPartnersPage() {
         if (!token) return;
         try {
             setLoading(true);
-            const data = await userService.getAllByRole(
+            const result = await userService.getAllByRole(
                 'channel-partner',
                 token,
                 activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined
             );
-            setPartners(data);
+            setPartners(result.data);
             setError(null);
         } catch (err: any) {
             setError(err.message || 'Failed to fetch partners');

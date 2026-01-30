@@ -14,7 +14,7 @@ export default function SearchNavbar() {
             'regional-manager',
             'consultant',
             'marketing-manager',
-            'property-onboarding-manager',
+            'onboarding-manager',
             'loan-adviser',
             'commission-manager',
             'channel-partner',

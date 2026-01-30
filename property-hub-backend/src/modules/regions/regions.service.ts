@@ -425,7 +425,8 @@ export class RegionsService {
     async searchUsers(query: string, role?: ManagerRole): Promise<any[]> {
         const where: any = {
             OR: [
-                { name: { contains: query, mode: 'insensitive' } },
+                { firstName: { contains: query, mode: 'insensitive' } },
+                { lastName: { contains: query, mode: 'insensitive' } },
                 { email: { contains: query, mode: 'insensitive' } },
             ],
         };
@@ -442,7 +443,8 @@ export class RegionsService {
             where,
             select: {
                 id: true,
-                name: true,
+                firstName: true,
+                lastName: true,
                 email: true,
                 phone: true,
                 role: true,
@@ -450,7 +452,7 @@ export class RegionsService {
             },
             take: 20, // Limit results for search
             orderBy: {
-                name: 'asc',
+                firstName: 'asc',
             },
         });
 

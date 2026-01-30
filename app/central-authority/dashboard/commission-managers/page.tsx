@@ -6,7 +6,8 @@ import AddCommissionManagerModal from '@/app/components/central-authority/AddCom
 
 interface CommissionManager {
     id: string;
-    name: string;
+    firstName: string;
+    lastName?: string;
     email: string;
     phone: string;
     status: 'active' | 'inactive';
@@ -129,14 +130,10 @@ export default function CommissionManagersPage() {
                                     </tr>
                                 ) : (
                                     managers.map((manager) => {
-                                        const nameParts = manager.name?.split(' ') || [];
-                                        const firstName = nameParts[0] || '';
-                                        const lastName = nameParts.slice(1).join(' ') || '';
-
                                         return (
                                             <tr key={manager.id} className="hover:bg-gray-50 transition">
-                                                <td className="py-4 px-4 font-semibold text-gray-900">{firstName}</td>
-                                                <td className="py-4 px-4 font-semibold text-gray-900">{lastName}</td>
+                                                <td className="py-4 px-4 font-semibold text-gray-900">{manager.firstName}</td>
+                                                <td className="py-4 px-4 font-semibold text-gray-900">{manager.lastName || '-'}</td>
                                                 <td className="py-4 px-4 text-sm text-gray-700">{manager.email}</td>
                                                 <td className="py-4 px-4 text-gray-700">{manager.phone || '-'}</td>
                                                 <td className="py-4 px-4">

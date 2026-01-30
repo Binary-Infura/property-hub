@@ -47,7 +47,8 @@ export class CentralAuthorityService {
         const globalUser = await this.prisma.user.create({
             data: {
                 keycloakId: invitation.userId,
-                name: `${dto.firstName} ${dto.lastName}`.trim(),
+                firstName: dto.firstName,
+                lastName: dto.lastName,
                 email: dto.email,
                 phone: dto.phone,
                 role: 'central-authority',

@@ -20,7 +20,8 @@ export class CreateCommissionManagerDto {
 export class CommissionManagerDto {
     id: string;
     keycloakId: string | null;
-    name: string;
+    firstName: string;
+    lastName: string | null;
     email: string;
     phone: string | null;
     role: string;

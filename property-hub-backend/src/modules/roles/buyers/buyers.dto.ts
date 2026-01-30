@@ -17,7 +17,11 @@ export class UpdateBuyerProfileDto {
 
 export class RegisterBuyerDto {
     @IsString()
-    name: string;
+    firstName: string;
+
+    @IsString()
+    @IsOptional()
+    lastName?: string;
 
     @IsString() // Changed from IsEmail to IsString because phone is not email, wait. The field is email.
     @IsEmail()

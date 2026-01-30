@@ -22,13 +22,13 @@ export default function OnboardingServiceProvidersPage() {
         if (!token) return;
         try {
             setLoading(true);
-            const data = await userService.getAllByRole(
+            const result = await userService.getAllByRole(
                 'service-provider',
                 token,
                 activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined,
                 activeTab === 'my'
             );
-            setServiceProviders(data);
+            setServiceProviders(result.data);
             setError(null);
         } catch (err: any) {
             setError(err.message || 'Failed to fetch service providers');

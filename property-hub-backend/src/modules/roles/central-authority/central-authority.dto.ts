@@ -30,7 +30,8 @@ export class CreateCentralAuthorityUserDto {
 export class CentralAuthorityUserDto {
     id: string;
     keycloakId: string | null;
-    name: string;
+    firstName: string;
+    lastName: string | null;
     email: string;
     phone: string | null;
     role: string;

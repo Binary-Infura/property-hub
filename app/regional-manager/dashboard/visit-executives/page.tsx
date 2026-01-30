@@ -25,12 +25,12 @@ export default function VisitExecutivesPage() {
         if (!token) return;
         try {
             setLoading(true);
-            const data = await userService.getAllByRole(
+            const result = await userService.getAllByRole(
                 'visit-executive',
                 token,
                 activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined
             );
-            setExecutives(data);
+            setExecutives(result.data);
             setError(null);
         } catch (err: any) {
             setError(err.message || 'Failed to fetch executives');

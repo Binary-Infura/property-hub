@@ -20,7 +20,7 @@ import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface
 
 @Controller('api/:region/commissions')
 @UseGuards(JwtAuthGuard, RolesGuard, RegionGuard)
-@RequireRoles('central-authority', 'regional-manager', 'marketing-manager', 'commission-manager', 'property-onboarding-manager', 'property-partner', 'channel-partner', 'consultant')
+@RequireRoles('central-authority', 'regional-manager', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'property-partner', 'channel-partner', 'consultant')
 @RequireRegion()
 export class CommissionsController {
     constructor(private readonly commissionsService: CommissionsService) { }
