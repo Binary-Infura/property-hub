@@ -93,10 +93,10 @@ export default function VisitExecutivesPage() {
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex items-center">
                                         <div className="h-10 w-10 bg-rose-100 rounded-xl flex items-center justify-center text-rose-700 font-bold shadow-sm">
-                                            {(executive.name || 'E').charAt(0)}
+                                            {(executive.firstName || 'E').charAt(0)}
                                         </div>
                                         <div className="ml-4">
-                                            <div className="text-sm font-bold text-gray-900">{executive.name}</div>
+                                            <div className="text-sm font-bold text-gray-900">{executive.firstName} {executive.lastName}</div>
                                             <div className="text-xs text-gray-500">{executive.email}</div>
                                         </div>
                                     </div>
@@ -150,14 +150,25 @@ export default function VisitExecutivesPage() {
 
                         <div className="p-6 space-y-5">
                             <div className="grid grid-cols-2 gap-5">
-                                <div className="col-span-2">
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Full Name</label>
-                                    <input
-                                        type="text"
-                                        id="executive-name"
-                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
-                                        placeholder="Enter full name"
-                                    />
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 col-span-2">
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">First Name</label>
+                                        <input
+                                            type="text"
+                                            id="executive-firstName"
+                                            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
+                                            placeholder="Enter first name"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Last Name</label>
+                                        <input
+                                            type="text"
+                                            id="executive-lastName"
+                                            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
+                                            placeholder="Enter last name"
+                                        />
+                                    </div>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
@@ -190,17 +201,19 @@ export default function VisitExecutivesPage() {
                                     onClick={async () => {
                                         if (!token) return;
                                         try {
-                                            const name = (document.getElementById('executive-name') as HTMLInputElement)?.value;
+                                            const firstName = (document.getElementById('executive-firstName') as HTMLInputElement)?.value;
+                                            const lastName = (document.getElementById('executive-lastName') as HTMLInputElement)?.value;
                                             const email = (document.getElementById('executive-email') as HTMLInputElement)?.value;
                                             const phone = (document.getElementById('executive-phone') as HTMLInputElement)?.value;
 
-                                            if (!name || !email || !phone) {
+                                            if (!firstName || !lastName || !email || !phone) {
                                                 alert('Please fill all fields');
                                                 return;
                                             }
 
                                             const payload = {
-                                                name,
+                                                firstName,
+                                                lastName,
                                                 email,
                                                 phone,
                                                 role: 'visit-executive',

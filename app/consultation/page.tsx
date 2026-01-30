@@ -11,7 +11,8 @@ export default function ConsultationPage() {
     budget: '',
     location: '',
     intent: '',
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
   });
 
@@ -37,8 +38,12 @@ export default function ConsultationPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) {
-      newErrors.name = 'Name is required';
+    if (!formData.firstName.trim()) {
+      newErrors.firstName = 'First name is required';
+    }
+
+    if (!formData.lastName.trim()) {
+      newErrors.lastName = 'Last name is required';
     }
 
     if (!formData.phone.trim()) {
@@ -144,23 +149,42 @@ export default function ConsultationPage() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Name */}
-              <div>
-                <label className="block text-sm font-medium text-gray-900 mb-2">
-                  Full Name <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleChange}
-                  placeholder="Enter your full name"
-                  className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.name ? 'border-red-300' : 'border-gray-300'
-                    }`}
-                />
-                {errors.name && (
-                  <p className="mt-1 text-sm text-red-600">{errors.name}</p>
-                )}
+              {/* Names */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    First Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="firstName"
+                    value={formData.firstName}
+                    onChange={handleChange}
+                    placeholder="Enter first name"
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.firstName ? 'border-red-300' : 'border-gray-300'
+                      }`}
+                  />
+                  {errors.firstName && (
+                    <p className="mt-1 text-sm text-red-600">{errors.firstName}</p>
+                  )}
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-900 mb-2">
+                    Last Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="lastName"
+                    value={formData.lastName}
+                    onChange={handleChange}
+                    placeholder="Enter last name"
+                    className={`w-full px-4 py-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.lastName ? 'border-red-300' : 'border-gray-300'
+                      }`}
+                  />
+                  {errors.lastName && (
+                    <p className="mt-1 text-sm text-red-600">{errors.lastName}</p>
+                  )}
+                </div>
               </div>
 
               {/* Email */}
@@ -253,10 +277,10 @@ export default function ConsultationPage() {
                 </label>
                 <div className="grid grid-cols-2 gap-4">
                   <label className={`flex items-center p-3 border rounded-lg cursor-pointer transition ${formData.intent === 'end-use'
-                      ? 'border-blue-600 bg-blue-50'
-                      : errors.intent
-                        ? 'border-red-300 hover:bg-red-50'
-                        : 'border-gray-300 hover:bg-blue-50'
+                    ? 'border-blue-600 bg-blue-50'
+                    : errors.intent
+                      ? 'border-red-300 hover:bg-red-50'
+                      : 'border-gray-300 hover:bg-blue-50'
                     }`}>
                     <input
                       type="radio"
@@ -269,10 +293,10 @@ export default function ConsultationPage() {
                     <span className="ml-3 font-medium text-gray-900">End-Use (Self)</span>
                   </label>
                   <label className={`flex items-center p-3 border rounded-lg cursor-pointer transition ${formData.intent === 'investment'
-                      ? 'border-blue-600 bg-blue-50'
-                      : errors.intent
-                        ? 'border-red-300 hover:bg-red-50'
-                        : 'border-gray-300 hover:bg-blue-50'
+                    ? 'border-blue-600 bg-blue-50'
+                    : errors.intent
+                      ? 'border-red-300 hover:bg-red-50'
+                      : 'border-gray-300 hover:bg-blue-50'
                     }`}>
                     <input
                       type="radio"
