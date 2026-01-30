@@ -22,6 +22,7 @@ function CentralAuthorityDashboardLayoutContent({
         { name: 'Regional Managers', href: '/central-authority/dashboard/regional-managers', icon: '👔' },
         { name: 'Marketing Managers', href: '/central-authority/dashboard/marketing-managers', icon: '📢' },
         { name: 'Commission Managers', href: '/central-authority/dashboard/commission-managers', icon: '💰' },
+        { name: 'Onboarding Managers', href: '/central-authority/dashboard/onboarding-managers', icon: '👔' },
         { name: 'Global Users', href: '/central-authority/dashboard/global-users', icon: '👥' },
     ];
 

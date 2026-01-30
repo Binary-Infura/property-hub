@@ -40,6 +40,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRo
         'regional-manager',
         'marketing-manager',
         'commission-manager',
+        'property-onboarding-manager',
     ];
 
     useEffect(() => {

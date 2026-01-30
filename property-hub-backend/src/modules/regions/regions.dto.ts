@@ -35,6 +35,7 @@ export enum ManagerRole {
     REGIONAL = 'regional-manager',
     MARKETING = 'marketing-manager',
     COMMISSION = 'commission-manager',
+    ONBOARDING = 'property-onboarding-manager',
 }
 
 // Query DTO for filtering region allocations

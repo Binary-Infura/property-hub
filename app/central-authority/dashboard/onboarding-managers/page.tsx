@@ -64,7 +64,7 @@ export default function OnboardingManagersPage() {
             if (selectedManager) {
                 const updated = await userService.update(selectedManager.id, {
                     ...formData,
-                    regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : []
+                    // Preserve existing regions on update by not sending regionIds
                 }, token);
                 setManagers(managers.map(m => m.id === selectedManager.id ? updated : m));
                 setShowEditModal(false);
@@ -72,7 +72,7 @@ export default function OnboardingManagersPage() {
                 const created = await userService.create({
                     ...formData,
                     role: 'property-onboarding-manager',
-                    regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : []
+                    regionIds: [] // Default to no region
                 }, token);
                 setManagers([created, ...managers]);
                 setShowAddModal(false);
