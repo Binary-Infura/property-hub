@@ -5,7 +5,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 
 interface EditAssignmentModalProps {
     isOpen: boolean;
-    user: { id: string; name: string; email: string; role: string } | null;
+    user: { id: string; firstName: string; lastName?: string; email: string; role: string } | null;
     onClose: () => void;
     onSuccess: () => void;
 }
@@ -135,11 +135,11 @@ export default function EditAssignmentModal({ isOpen, user, onClose, onSuccess }
                             {/* User Info */}
                             <div className="bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-2xl p-6 border border-gray-100 flex items-center gap-5 shadow-inner">
                                 <div className="w-14 h-14 bg-white rounded-xl shadow-sm border border-gray-200 flex items-center justify-center text-lg font-black text-blue-600">
-                                    {user.name.split(' ').map(n => n[0]).join('')}
+                                    {user.firstName[0]}{user.lastName ? user.lastName[0] : ''}
                                 </div>
                                 <div className="flex-1 min-w-0">
                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] mb-1">Authenticated Manager</p>
-                                    <p className="font-bold text-gray-900 truncate leading-tight">{user.name}</p>
+                                    <p className="font-bold text-gray-900 truncate leading-tight">{user.firstName} {user.lastName}</p>
                                     <p className="text-sm font-medium text-gray-500 mt-0.5">{user.email}</p>
                                     <div className="mt-3 flex gap-2">
                                         <span className="px-2 py-0.5 bg-blue-600 text-[10px] font-black text-white rounded-md uppercase tracking-wider">

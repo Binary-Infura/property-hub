@@ -2,7 +2,7 @@
 
 interface RemoveAssignmentDialogProps {
     isOpen: boolean;
-    user: { name: string; email: string; role: string } | null;
+    user: { firstName: string; lastName?: string; email: string; role: string } | null;
     onClose: () => void;
     onConfirm: () => void;
 }
@@ -40,7 +40,7 @@ export default function RemoveAssignmentDialog({ isOpen, user, onClose, onConfir
                     <div className="bg-gray-50/80 rounded-2xl p-6 border border-gray-100 shadow-inner space-y-3">
                         <div className="space-y-1 text-center">
                             <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Manager Identity</p>
-                            <p className="font-bold text-gray-900 truncate">{user.name}</p>
+                            <p className="font-bold text-gray-900 truncate">{user.firstName} {user.lastName}</p>
                             <p className="text-xs font-medium text-gray-500">{user.email}</p>
                         </div>
                         <div className="flex justify-center">

@@ -12,7 +12,8 @@ interface AssignRoleModalProps {
 
 interface User {
     id: string;
-    name: string;
+    firstName: string;
+    lastName?: string;
     email: string;
     role: string;
 }
@@ -313,7 +314,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRo
                                     >
                                         <div className="flex items-center justify-between">
                                             <div>
-                                                <p className={`text-sm font-bold transition-colors ${selectedUserId === user.id ? 'text-blue-600' : 'text-gray-900'}`}>{user.name}</p>
+                                                <p className={`text-sm font-bold transition-colors ${selectedUserId === user.id ? 'text-blue-600' : 'text-gray-900'}`}>{user.firstName} {user.lastName}</p>
                                                 <p className="text-[11px] font-medium text-gray-400 uppercase mt-0.5">{user.email}</p>
                                             </div>
                                             {selectedUserId === user.id && (

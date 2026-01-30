@@ -225,7 +225,8 @@ export class RegionsService {
 
         if (filters.search) {
             userWhere.OR = [
-                { name: { contains: filters.search, mode: 'insensitive' } },
+                { firstName: { contains: filters.search, mode: 'insensitive' } },
+                { lastName: { contains: filters.search, mode: 'insensitive' } },
                 { email: { contains: filters.search, mode: 'insensitive' } },
             ];
         }
@@ -257,7 +258,8 @@ export class RegionsService {
                         where: userWhere,
                         select: {
                             id: true,
-                            name: true,
+                            firstName: true,
+                            lastName: true,
                             email: true,
                             phone: true,
                             role: true,

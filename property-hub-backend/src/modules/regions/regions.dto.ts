@@ -208,7 +208,8 @@ export class RegionPaginatedAllocationResponseDto {
 
 export class AssignedUserDto {
     id: string;
-    name: string;
+    firstName: string;
+    lastName?: string;
     email: string;
     phone?: string;
     role: string;

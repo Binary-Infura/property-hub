@@ -8,7 +8,8 @@ import RemoveAssignmentDialog from '@/app/components/central-authority/RemoveAss
 
 interface AssignedUser {
     id: string;
-    name: string;
+    firstName: string;
+    lastName?: string;
     email: string;
     phone?: string;
     role: string;
@@ -526,10 +527,10 @@ export default function RegionAllocationPage() {
                                                     {region.assignedUsers.map((user) => (
                                                         <div key={user.id} className="flex items-center gap-4 bg-white p-2.5 pr-4 rounded-xl border border-gray-100 shadow-sm group/user hover:border-blue-200 hover:shadow-md hover:shadow-blue-50/50 transition-all duration-300">
                                                             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-500 border border-gray-200 shadow-inner group-hover/user:from-blue-50 group-hover/user:to-blue-100 group-hover/user:text-blue-600 group-hover/user:border-blue-200 transition-all">
-                                                                {user.name.split(' ').map(n => n[0]).join('')}
+                                                                {user.firstName[0]}{user.lastName ? user.lastName[0] : ''}
                                                             </div>
                                                             <div className="flex-1 min-w-0">
-                                                                <p className="text-sm font-bold text-gray-900 truncate">{user.name}</p>
+                                                                <p className="text-sm font-bold text-gray-900 truncate">{user.firstName} {user.lastName}</p>
                                                                 <p className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md inline-block mt-0.5 uppercase tracking-tighter ${getRoleColor(user.role)}`}>
                                                                     {getRoleName(user.role)}
                                                                 </p>
