@@ -16,7 +16,8 @@ export default function ChannelPartnersPage() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedPartner, setSelectedPartner] = useState<User | null>(null);
     const [formData, setFormData] = useState({
-        name: '',
+        firstName: '',
+        lastName: '',
         email: '',
         phone: '',
         agencyName: '',
@@ -46,13 +47,14 @@ export default function ChannelPartnersPage() {
     }, [token, activeContext.activeRegion.code]);
 
     const handleAddPartner = () => {
-        setFormData({ name: '', email: '', phone: '', agencyName: '', reraId: '' });
+        setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '', reraId: '' });
         setShowAddModal(true);
     };
 
     const handleEditPartner = (partner: User) => {
         setFormData({
-            name: partner.name,
+            firstName: partner.firstName,
+            lastName: partner.lastName || '',
             email: partner.email,
             phone: partner.phone || '',
             agencyName: partner.agencyName || '',
@@ -83,7 +85,7 @@ export default function ChannelPartnersPage() {
                 setPartners([created, ...partners]);
                 setShowAddModal(false);
             }
-            setFormData({ name: '', email: '', phone: '', agencyName: '', reraId: '' });
+            setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '', reraId: '' });
             setSelectedPartner(null);
         } catch (err: any) {
             alert(err.message || 'Failed to save partner');
@@ -165,7 +167,7 @@ export default function ChannelPartnersPage() {
                                     <tr key={partner.id} className="border-b border-gray-100 hover:bg-gray-50">
                                         <td className="py-4 px-4">
                                             <div>
-                                                <p className="font-semibold text-gray-900">{partner.name}</p>
+                                                <p className="font-semibold text-gray-900">{partner.firstName} {partner.lastName}</p>
                                                 <p className="text-sm text-gray-500">{partner.email}</p>
                                             </div>
                                         </td>
@@ -226,7 +228,7 @@ export default function ChannelPartnersPage() {
                                 onClick={() => {
                                     setShowAddModal(false);
                                     setShowEditModal(false);
-                                    setFormData({ name: '', email: '', phone: '', agencyName: '', reraId: '' });
+                                    setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '', reraId: '' });
                                 }}
                                 className="p-2 hover:bg-gray-200 rounded-full transition-colors"
                             >
@@ -294,7 +296,7 @@ export default function ChannelPartnersPage() {
                                     onClick={() => {
                                         setShowAddModal(false);
                                         setShowEditModal(false);
-                                        setFormData({ name: '', email: '', phone: '', agencyName: '', reraId: '' });
+                                        setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '', reraId: '' });
                                     }}
                                     className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all text-sm"
                                 >

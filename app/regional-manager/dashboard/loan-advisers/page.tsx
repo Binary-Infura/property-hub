@@ -16,7 +16,8 @@ export default function LoanAdvisersPage() {
     const [showEditModal, setShowEditModal] = useState(false);
     const [selectedAdviser, setSelectedAdviser] = useState<User | null>(null);
     const [formData, setFormData] = useState({
-        name: '',
+        firstName: '',
+        lastName: '',
         email: '',
         phone: '',
         agencyName: '',
@@ -45,13 +46,14 @@ export default function LoanAdvisersPage() {
     }, [token, activeContext.activeRegion.code]);
 
     const handleAddAdviser = () => {
-        setFormData({ name: '', email: '', phone: '', agencyName: '' });
+        setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '' });
         setShowAddModal(true);
     };
 
     const handleEditAdviser = (adviser: User) => {
         setFormData({
-            name: adviser.name,
+            firstName: adviser.firstName,
+            lastName: adviser.lastName || '',
             email: adviser.email,
             phone: adviser.phone || '',
             agencyName: adviser.agencyName || '',
@@ -79,7 +81,7 @@ export default function LoanAdvisersPage() {
                 setAdvisers([created, ...advisers]);
                 setShowAddModal(false);
             }
-            setFormData({ name: '', email: '', phone: '', agencyName: '' });
+            setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '' });
             setSelectedAdviser(null);
         } catch (err: any) {
             alert(err.message || 'Failed to save adviser');
@@ -161,7 +163,7 @@ export default function LoanAdvisersPage() {
                                     <tr key={adviser.id} className="border-b border-gray-100 hover:bg-gray-50">
                                         <td className="py-4 px-4">
                                             <div>
-                                                <p className="font-semibold text-gray-900">{adviser.name}</p>
+                                                <p className="font-semibold text-gray-900">{adviser.firstName} {adviser.lastName}</p>
                                                 <p className="text-sm text-gray-500">{adviser.email}</p>
                                             </div>
                                         </td>
@@ -213,7 +215,7 @@ export default function LoanAdvisersPage() {
                                 onClick={() => {
                                     setShowAddModal(false);
                                     setShowEditModal(false);
-                                    setFormData({ name: '', email: '', phone: '', agencyName: '' });
+                                    setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '' });
                                 }}
                                 className="p-2 hover:bg-gray-200 rounded-full transition-colors"
                             >
@@ -225,13 +227,23 @@ export default function LoanAdvisersPage() {
 
                         <div className="p-6 space-y-5">
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Name</label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">First Name</label>
                                 <input
                                     type="text"
-                                    value={formData.name}
-                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    value={formData.firstName}
+                                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                                     className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
-                                    placeholder="Enter name"
+                                    placeholder="Enter first name"
+                                />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Last Name</label>
+                                <input
+                                    type="text"
+                                    value={formData.lastName}
+                                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
+                                    placeholder="Enter last name"
                                 />
                             </div>
                             <div>
@@ -271,7 +283,7 @@ export default function LoanAdvisersPage() {
                                     onClick={() => {
                                         setShowAddModal(false);
                                         setShowEditModal(false);
-                                        setFormData({ name: '', email: '', phone: '', agencyName: '' });
+                                        setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '' });
                                     }}
                                     className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all text-sm"
                                 >
