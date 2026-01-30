@@ -192,7 +192,6 @@ export default function MarketingManagersPage() {
                                             >
                                                 {manager.status === 'active' ? 'Deactivate' : 'Activate'}
                                             </button>
-                                            <button className="text-red-600 hover:text-red-800 font-medium">Delete</button>
                                         </div>
                                     </td>
                                 </tr>
