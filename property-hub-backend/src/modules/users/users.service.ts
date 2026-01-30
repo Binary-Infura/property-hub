@@ -455,15 +455,7 @@ export class UsersService {
                 case 'marketing-manager':
                     profileData = await this.prisma.marketingManagerProfile.findUnique({ where: { userId } });
                     break;
-                case 'marketing-lead':
-                    profileData = await this.prisma.marketingLeadProfile.findUnique({ where: { userId } });
-                    break;
-                case 'ads-executive':
-                    profileData = await this.prisma.adsExecutiveProfile.findUnique({ where: { userId } });
-                    break;
-                case 'creative-executive':
-                    profileData = await this.prisma.creativeExecutiveProfile.findUnique({ where: { userId } });
-                    break;
+
                 case 'consultant':
                     profileData = await this.prisma.consultantProfile.findUnique({ where: { userId } });
                     break;

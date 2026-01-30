@@ -32,9 +32,7 @@ export default function SignInPage() {
                 'property-onboarding-manager',
                 'loan-adviser',
                 'marketing-manager',
-                'marketing-lead',
-                'ads-executive',
-                'creative-executive',
+
                 'visit-executive',
                 'commission-manager',
                 'channel-partner',
@@ -46,11 +44,7 @@ export default function SignInPage() {
             if (foundRole) {
                 // Map specific team roles to their parent dashboard if needed, 
                 // or just redirect to their specific path if it exists.
-                const redirectPath = [
-                    'marketing-lead',
-                    'ads-executive',
-                    'creative-executive'
-                ].includes(foundRole) ? 'marketing-manager' : foundRole;
+                const redirectPath = foundRole;
 
                 router.push(`/${redirectPath}/dashboard`);
                 return;

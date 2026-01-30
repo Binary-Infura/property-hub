@@ -16,9 +16,7 @@ import { BuyersModule } from './modules/roles/buyers/buyers.module';
 import { ConsultantsModule } from './modules/roles/consultants/consultants.module';
 import { PropertyPartnersModule } from './modules/roles/property-partners/property-partners.module';
 import { ChannelPartnersModule } from './modules/roles/channel-partners/channel-partners.module';
-import { MarketingLeadsModule } from './modules/roles/marketing-leads/marketing-leads.module';
-import { AdsExecutivesModule } from './modules/roles/ads-executives/ads-executives.module';
-import { CreativeExecutivesModule } from './modules/roles/creative-executives/creative-executives.module';
+
 import { CentralAuthorityModule } from './modules/roles/central-authority/central-authority.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { PrismaService } from './database/prisma.service';
@@ -45,9 +43,7 @@ import { PrismaService } from './database/prisma.service';
         ConsultantsModule,
         PropertyPartnersModule,
         ChannelPartnersModule,
-        MarketingLeadsModule,
-        AdsExecutivesModule,
-        CreativeExecutivesModule,
+
         CentralAuthorityModule,
         ChatModule,
     ],

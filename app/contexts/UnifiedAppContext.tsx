@@ -9,9 +9,7 @@ export type RoleId =
     | 'central-authority'
     | 'regional-manager'
     | 'marketing-manager'
-    | 'marketing-lead'
-    | 'ads-executive'
-    | 'creative-executive'
+
     | 'commission-manager'
     | 'property-onboarding-manager'
     | 'property-partner'
@@ -71,24 +69,7 @@ const KNOWN_ROLES: UserRole[] = [
         permissionHint: 'Manage campaigns & leads for region',
         dashboardUrl: '/marketing-manager/dashboard'
     },
-    {
-        id: 'marketing-lead',
-        name: 'Marketing Lead',
-        permissionHint: 'Strategic marketing leadership',
-        dashboardUrl: '/marketing-manager/dashboard'
-    },
-    {
-        id: 'ads-executive',
-        name: 'Ads Executive',
-        permissionHint: 'Manage paid advertising campaigns',
-        dashboardUrl: '/marketing-manager/dashboard'
-    },
-    {
-        id: 'creative-executive',
-        name: 'Creative Executive',
-        permissionHint: 'Design and creative asset management',
-        dashboardUrl: '/marketing-manager/dashboard'
-    },
+
     {
         id: 'commission-manager',
         name: 'Commission Manager',

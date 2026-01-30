@@ -32,7 +32,7 @@ export interface MarketingTeamMember {
     id: string;
     name: string;
     email: string;
-    role: 'ads-executive' | 'creative-executive' | 'marketing-lead';
+    role: string;
     status: 'active' | 'inactive';
     assignedCampaigns: string[];
     performance: TeamMemberPerformance;

@@ -54,11 +54,7 @@ export default function MarketingManagerDashboard() {
         },
     ];
 
-    const teamPerformance = [
-        { name: 'Rajesh Kumar', role: 'Ads Executive', campaigns: 5, leads: 580, avgCPL: 238 },
-        { name: 'Priya Sharma', role: 'Creative Executive', campaigns: 4, leads: 420, avgCPL: 245 },
-        { name: 'Amit Patel', role: 'Marketing Lead', campaigns: 3, leads: 250, avgCPL: 252 },
-    ];
+
 
     return (
         <div className="p-8 bg-gray-50 min-h-screen">
@@ -75,8 +71,8 @@ export default function MarketingManagerDashboard() {
                         key={range}
                         onClick={() => setTimeRange(range)}
                         className={`px-4 py-2 rounded-lg font-medium transition ${timeRange === range
-                                ? 'bg-purple-600 text-white'
-                                : 'bg-white text-gray-700 hover:bg-gray-100'
+                            ? 'bg-purple-600 text-white'
+                            : 'bg-white text-gray-700 hover:bg-gray-100'
                             }`}
                     >
                         {range === '7d' && 'Last 7 Days'}
@@ -137,14 +133,7 @@ export default function MarketingManagerDashboard() {
                     </div>
                 </div>
 
-                <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className="text-gray-600 text-sm font-medium">Team Members</span>
-                        <span className="text-2xl">👔</span>
-                    </div>
-                    <div className="text-3xl font-bold text-gray-900">15</div>
-                    <div className="text-gray-600 text-sm mt-1">5 Ads • 4 Creative • 6 Leads</div>
-                </div>
+
             </div>
 
             {/* Campaign Performance */}
@@ -196,8 +185,8 @@ export default function MarketingManagerDashboard() {
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span
                                             className={`px-3 py-1 rounded-full text-xs font-medium ${campaign.status === 'active'
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : 'bg-yellow-100 text-yellow-800'
+                                                ? 'bg-green-100 text-green-800'
+                                                : 'bg-yellow-100 text-yellow-800'
                                                 }`}
                                         >
                                             {campaign.status}
@@ -235,42 +224,7 @@ export default function MarketingManagerDashboard() {
             </div>
 
             {/* Team Performance */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div className="p-6 border-b border-gray-200">
-                    <h2 className="text-xl font-bold text-gray-900">Team Performance</h2>
-                </div>
-                <div className="p-6">
-                    <div className="space-y-4">
-                        {teamPerformance.map((member, index) => (
-                            <div key={index} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                                <div className="flex items-center gap-4">
-                                    <div className="w-12 h-12 bg-gradient-to-br from-purple-400 to-pink-400 rounded-full flex items-center justify-center text-white font-bold text-lg">
-                                        {member.name.charAt(0)}
-                                    </div>
-                                    <div>
-                                        <div className="font-semibold text-gray-900">{member.name}</div>
-                                        <div className="text-sm text-gray-600">{member.role}</div>
-                                    </div>
-                                </div>
-                                <div className="flex gap-8 text-sm">
-                                    <div>
-                                        <div className="text-gray-600">Campaigns</div>
-                                        <div className="font-semibold text-gray-900">{member.campaigns}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-gray-600">Leads</div>
-                                        <div className="font-semibold text-gray-900">{member.leads}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-gray-600">Avg CPL</div>
-                                        <div className="font-semibold text-gray-900">₹{member.avgCPL}</div>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            </div>
+
         </div>
     );
 }

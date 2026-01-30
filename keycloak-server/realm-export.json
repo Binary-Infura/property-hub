@@ -41,18 +41,6 @@
                 "description": "Head of marketing department"
             },
             {
-                "name": "ads-executive",
-                "description": "Manages advertising campaigns"
-            },
-            {
-                "name": "creative-executive",
-                "description": "Manages creative assets"
-            },
-            {
-                "name": "marketing-lead",
-                "description": "Coordinates marketing team"
-            },
-            {
                 "name": "property-onboarding-manager",
                 "description": "Manages property onboarding"
             },

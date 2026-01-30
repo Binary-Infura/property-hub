@@ -211,35 +211,7 @@ model MarketingManagerProfile {
   @@map("marketing_manager_profiles")
 }
 
-model MarketingLeadProfile {
-  id             String   @id @default(uuid())
-  userId         String   @unique
-  specialization String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
 
-  @@map("marketing_lead_profiles")
-}
-
-model AdsExecutiveProfile {
-  id                String   @id @default(uuid())
-  userId            String   @unique
-  platformSpecialty String[]
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-
-  @@map("ads_executive_profiles")
-}
-
-model CreativeExecutiveProfile {
-  id           String   @id @default(uuid())
-  userId       String   @unique
-  portfolioUrl String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  @@map("creative_executive_profiles")
-}
 
 model ConsultantProfile {
   id              String   @id @default(uuid())

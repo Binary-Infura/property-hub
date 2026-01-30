@@ -7,9 +7,7 @@ export type UserRole =
     | 'channel-partner'
     | 'commission-manager'
     | 'marketing-manager'
-    | 'ads-executive'
-    | 'creative-executive'
-    | 'marketing-lead';
+
 
 export interface Permission {
     resource: string;
@@ -80,38 +78,6 @@ export const ROLES: Record<UserRole, RoleDefinition> = {
             { resource: 'regions', actions: ['read'] },
             { resource: 'builders', actions: ['read'] },
             { resource: 'projects', actions: ['read'] }
-        ],
-        canCreateRoles: ['ads-executive', 'creative-executive', 'marketing-lead']
-    },
-    'ads-executive': {
-        role: 'ads-executive',
-        label: 'Ads Executive',
-        description: 'Manages advertising campaigns and ad execution',
-        permissions: [
-            { resource: 'marketing-campaigns', actions: ['read', 'update'] },
-            { resource: 'ads', actions: ['create', 'read', 'update'] },
-            { resource: 'marketing-analytics', actions: ['read'] }
         ]
     },
-    'creative-executive': {
-        role: 'creative-executive',
-        label: 'Creative Executive',
-        description: 'Manages creative assets and content creation',
-        permissions: [
-            { resource: 'creative-assets', actions: ['create', 'read', 'update'] },
-            { resource: 'marketing-campaigns', actions: ['read'] },
-            { resource: 'content', actions: ['create', 'read', 'update'] }
-        ]
-    },
-    'marketing-lead': {
-        role: 'marketing-lead',
-        label: 'Marketing Lead',
-        description: 'Coordinates marketing team and tracks performance',
-        permissions: [
-            { resource: 'marketing-campaigns', actions: ['read', 'update'] },
-            { resource: 'marketing-team', actions: ['read'] },
-            { resource: 'marketing-analytics', actions: ['read'] },
-            { resource: 'tasks', actions: ['create', 'read', 'update'] }
-        ]
-    }
 };

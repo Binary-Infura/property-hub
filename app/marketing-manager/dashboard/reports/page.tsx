@@ -25,11 +25,7 @@ export default function ReportsPage() {
         { name: 'Delhi NCR Apartments', leads: 360, conversions: 67, spent: 95000, cpl: 264, roi: 2.5 },
     ];
 
-    const teamReports = [
-        { name: 'Rajesh Kumar', role: 'Ads Executive', campaigns: 5, leads: 580, avgCPL: 238 },
-        { name: 'Priya Sharma', role: 'Creative Executive', campaigns: 4, leads: 420, avgCPL: 245 },
-        { name: 'Amit Patel', role: 'Marketing Lead', campaigns: 3, leads: 250, avgCPL: 252 },
-    ];
+
 
     return (
         <div className="p-8 bg-gray-50 min-h-screen">
@@ -52,7 +48,7 @@ export default function ReportsPage() {
                         >
                             <option value="monthly">Monthly Performance</option>
                             <option value="campaign">Campaign Breakdown</option>
-                            <option value="team">Team Performance</option>
+
                             <option value="budget">Budget Utilization</option>
                             <option value="custom">Custom Report</option>
                         </select>
@@ -180,48 +176,7 @@ export default function ReportsPage() {
                 </div>
             </div>
 
-            {/* Team Performance Report */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200">
-                <div className="p-6 border-b border-gray-200">
-                    <h2 className="text-xl font-bold text-gray-900">Team Performance Report</h2>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Team Member
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Role
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Campaigns
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Leads Generated
-                                </th>
-                                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Avg CPL
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {teamReports.map((member, index) => (
-                                <tr key={index} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4">
-                                        <div className="font-medium text-gray-900">{member.name}</div>
-                                    </td>
-                                    <td className="px-6 py-4 text-sm text-gray-600">{member.role}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-900">{member.campaigns}</td>
-                                    <td className="px-6 py-4 text-sm font-medium text-gray-900">{member.leads}</td>
-                                    <td className="px-6 py-4 text-sm text-gray-900">₹{member.avgCPL}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+
         </div>
     );
 }

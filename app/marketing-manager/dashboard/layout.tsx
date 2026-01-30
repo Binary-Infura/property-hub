@@ -21,15 +21,7 @@ function MarketingManagerDashboardLayoutContent({
     const navigation = [
         { name: 'Dashboard', href: '/marketing-manager/dashboard', icon: '📊' },
         { name: 'Campaigns', href: '/marketing-manager/dashboard/campaigns', icon: '📢' },
-        {
-            name: 'Team Management',
-            icon: '👥',
-            submenu: [
-                { name: 'Ads Executives', href: '/marketing-manager/dashboard/ads-executives', icon: '📱' },
-                { name: 'Creative Executives', href: '/marketing-manager/dashboard/creative-executives', icon: '🎨' },
-                { name: 'Marketing Leads', href: '/marketing-manager/dashboard/marketing-leads', icon: '👔' },
-            ]
-        },
+
         { name: 'Budget & Performance', href: '/marketing-manager/dashboard/budget', icon: '💰' },
         { name: 'Reports', href: '/marketing-manager/dashboard/reports', icon: '📈' },
     ];
@@ -57,40 +49,11 @@ function MarketingManagerDashboardLayoutContent({
 
                     <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
                         {navigation.map((item) => {
-                            if (item.submenu) {
-                                return (
-                                    <div key={item.name} className="space-y-1">
-                                        <div className="flex items-center gap-3 px-4 py-3 text-gray-700 font-semibold">
-                                            <span className="text-xl">{item.icon}</span>
-                                            <span>{item.name}</span>
-                                        </div>
-                                        <div className="ml-4 space-y-1">
-                                            {item.submenu.map((subItem) => {
-                                                const active = isActive(subItem.href);
-                                                return (
-                                                    <Link
-                                                        key={subItem.name}
-                                                        href={subItem.href}
-                                                        className={`flex items-center gap-3 px-4 py-2 rounded-lg transition text-sm ${active
-                                                            ? 'bg-purple-50 text-purple-700 font-semibold border-l-4 border-purple-600'
-                                                            : 'text-gray-600 hover:bg-gray-50'
-                                                            }`}
-                                                    >
-                                                        <span className="text-lg">{subItem.icon}</span>
-                                                        <span>{subItem.name}</span>
-                                                    </Link>
-                                                );
-                                            })}
-                                        </div>
-                                    </div>
-                                );
-                            }
-
-                            const active = isActive(item.href!);
+                            const active = isActive(item.href);
                             return (
                                 <Link
                                     key={item.name}
-                                    href={item.href!}
+                                    href={item.href}
                                     className={`flex items-center gap-3 px-4 py-3 rounded-lg transition ${active
                                         ? 'bg-purple-50 text-purple-700 font-semibold border-l-4 border-purple-600'
                                         : 'text-gray-700 hover:bg-gray-50'
