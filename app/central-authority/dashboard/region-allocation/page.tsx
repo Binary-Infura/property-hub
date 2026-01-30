@@ -20,6 +20,10 @@ interface RegionAllocation {
     name: string;
     code: string;
     active: boolean;
+    continent?: string;
+    country?: string;
+    state?: string;
+    city?: string;
     assignedUsers: AssignedUser[];
 }
 
@@ -28,13 +32,57 @@ type ManagerRole = 'regional-manager' | 'marketing-manager' | 'commission-manage
 export default function RegionAllocationPage() {
     const { token } = useAuth();
     const [allocations, setAllocations] = useState<RegionAllocation[]>([]);
+    const [totalAllocations, setTotalAllocations] = useState(0);
     const [loading, setLoading] = useState(true);
 
-    // Filters
-    const [roleFilter, setRoleFilter] = useState<ManagerRole>('');
-    const [regionFilter, setRegionFilter] = useState('');
-    const [searchQuery, setSearchQuery] = useState('');
+    // Filters with LocalStorage persistence
+    const [roleFilter, setRoleFilter] = useState<ManagerRole>(() => {
+        if (typeof window !== 'undefined') {
+            return (localStorage.getItem('ra_roleFilter') as ManagerRole) || '';
+        }
+        return '';
+    });
+    const [regionFilter, setRegionFilter] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('ra_regionFilter') || '';
+        }
+        return '';
+    });
+    const [searchQuery, setSearchQuery] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('ra_searchQuery') || '';
+        }
+        return '';
+    });
+    const [continentFilter, setContinentFilter] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('ra_continentFilter') || '';
+        }
+        return '';
+    });
+    const [countryFilter, setCountryFilter] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('ra_countryFilter') || '';
+        }
+        return '';
+    });
+    const [stateFilter, setStateFilter] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('ra_stateFilter') || '';
+        }
+        return '';
+    });
+    const [cityFilter, setCityFilter] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return localStorage.getItem('ra_cityFilter') || '';
+        }
+        return '';
+    });
     const [regions, setRegions] = useState<{ id: string; name: string; code: string }[]>([]);
+    const [availableContinents, setAvailableContinents] = useState<string[]>([]);
+    const [availableCountries, setAvailableCountries] = useState<{ code: string; name: string }[]>([]);
+    const [availableStates, setAvailableStates] = useState<{ id: string; name: string; code: string }[]>([]);
+    const [availableCities, setAvailableCities] = useState<{ id: string; name: string }[]>([]);
 
     // Modals
     const [showAssignModal, setShowAssignModal] = useState(false);
@@ -44,10 +92,98 @@ export default function RegionAllocationPage() {
     const [selectedRegionId, setSelectedRegionId] = useState<string>('');
 
     // Pagination
-    const [currentPage, setCurrentPage] = useState(1);
+    const [currentPage, setCurrentPage] = useState(() => {
+        if (typeof window !== 'undefined') {
+            return Number(localStorage.getItem('ra_currentPage')) || 1;
+        }
+        return 1;
+    });
     const itemsPerPage = 10;
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+    // Persist filters
+    useEffect(() => {
+        localStorage.setItem('ra_roleFilter', roleFilter);
+        localStorage.setItem('ra_regionFilter', regionFilter);
+        localStorage.setItem('ra_searchQuery', searchQuery);
+        localStorage.setItem('ra_continentFilter', continentFilter);
+        localStorage.setItem('ra_countryFilter', countryFilter);
+        localStorage.setItem('ra_stateFilter', stateFilter);
+        localStorage.setItem('ra_cityFilter', cityFilter);
+        localStorage.setItem('ra_currentPage', String(currentPage));
+    }, [roleFilter, regionFilter, searchQuery, continentFilter, countryFilter, stateFilter, cityFilter, currentPage]);
+
+    // Fetch filters options
+    useEffect(() => {
+        if (token) {
+            fetchContinents();
+        }
+    }, [token]);
+
+    useEffect(() => {
+        if (token) {
+            fetchCountries(continentFilter);
+        }
+    }, [token, continentFilter]);
+
+    useEffect(() => {
+        if (token && countryFilter) {
+            fetchStates(countryFilter);
+        } else {
+            setAvailableStates([]);
+            setAvailableCities([]);
+        }
+    }, [token, countryFilter]);
+
+    useEffect(() => {
+        if (token && countryFilter && stateFilter) {
+            // Find state code if needed
+            const stateObj = availableStates.find(s => s.code === stateFilter || s.id === stateFilter || s.name === stateFilter);
+            if (stateObj) fetchCities(countryFilter, stateObj.code);
+        } else {
+            setAvailableCities([]);
+        }
+    }, [token, countryFilter, stateFilter]);
+
+    const fetchContinents = async () => {
+        try {
+            const res = await fetch(`${API_URL}/api/locations/continents`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) setAvailableContinents(await res.json());
+        } catch (e) { console.error(e); }
+    };
+
+    const fetchCountries = async (continent?: string) => {
+        try {
+            const url = continent
+                ? `${API_URL}/api/locations/countries?continent=${encodeURIComponent(continent)}`
+                : `${API_URL}/api/locations/countries`;
+            const res = await fetch(url, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) setAvailableCountries(await res.json());
+        } catch (e) { console.error(e); }
+    };
+
+    const fetchStates = async (cCode: string) => {
+        try {
+            const res = await fetch(`${API_URL}/api/locations/states/${cCode}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) setAvailableStates(await res.json());
+        } catch (e) { console.error(e); }
+    };
+
+    const fetchCities = async (cCode: string, sCode: string) => {
+        try {
+            const res = await fetch(`${API_URL}/api/locations/cities/${cCode}/${sCode}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) setAvailableCities(await res.json());
+        } catch (e) { console.error(e); }
+    };
 
     // Fetch allocations
     const fetchAllocations = async () => {
@@ -58,13 +194,26 @@ export default function RegionAllocationPage() {
             if (roleFilter) params.append('role', roleFilter);
             if (regionFilter) params.append('regionId', regionFilter);
             if (searchQuery) params.append('search', searchQuery);
+            if (continentFilter) params.append('continent', continentFilter);
+            if (countryFilter) {
+                const country = availableCountries.find(c => c.code === countryFilter || c.name === countryFilter);
+                if (country) params.append('country', country.name);
+            }
+            if (stateFilter) {
+                const state = availableStates.find(s => s.code === stateFilter || s.id === stateFilter || s.name === stateFilter);
+                if (state) params.append('state', state.name);
+            }
+            if (cityFilter) params.append('city', cityFilter);
+            params.append('page', String(currentPage));
+            params.append('limit', String(itemsPerPage));
 
             const response = await fetch(`${API_URL}/api/regions/allocations/all?${params}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (response.ok) {
-                const data = await response.json();
-                setAllocations(data);
+                const result = await response.json();
+                setAllocations(result.data);
+                setTotalAllocations(result.total);
             }
         } catch (err) {
             console.error('Failed to fetch allocations:', err);
@@ -77,12 +226,12 @@ export default function RegionAllocationPage() {
     const fetchRegions = async () => {
         if (!token) return;
         try {
-            const response = await fetch(`${API_URL}/api/regions`, {
+            const response = await fetch(`${API_URL}/api/regions?limit=1000`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (response.ok) {
-                const data = await response.json();
-                setRegions(data);
+                const result = await response.json();
+                setRegions(result.data);
             }
         } catch (err) {
             console.error('Failed to fetch regions:', err);
@@ -94,8 +243,14 @@ export default function RegionAllocationPage() {
     }, [token]);
 
     useEffect(() => {
+        setCurrentPage(1);
+        // Clear specific region filter when geographic filters change to prevent conflicts
+        setRegionFilter('');
+    }, [roleFilter, searchQuery, continentFilter, countryFilter, stateFilter, cityFilter]);
+
+    useEffect(() => {
         fetchAllocations();
-    }, [token, roleFilter, regionFilter, searchQuery]);
+    }, [token, roleFilter, regionFilter, searchQuery, continentFilter, countryFilter, stateFilter, cityFilter, currentPage]);
 
     const handleRemove = (user: AssignedUser, regionId: string) => {
         setSelectedUser(user);
@@ -159,12 +314,8 @@ export default function RegionAllocationPage() {
         }
     };
 
-    // Pagination
-    const totalPages = Math.ceil(allocations.length / itemsPerPage);
-    const paginatedAllocations = allocations.slice(
-        (currentPage - 1) * itemsPerPage,
-        currentPage * itemsPerPage
-    );
+    const totalPages = Math.ceil(totalAllocations / itemsPerPage);
+    const paginatedAllocations = allocations;
 
     return (
         <div className="space-y-8 animate-in fade-in duration-500">
@@ -189,6 +340,50 @@ export default function RegionAllocationPage() {
 
             {/* Filters */}
             <div className="bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-wrap gap-4 items-end">
+                <div className="flex-1 min-w-[150px]">
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Continent</label>
+                    <select
+                        value={continentFilter}
+                        onChange={(e) => { setContinentFilter(e.target.value); setCountryFilter(''); }}
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-medium"
+                    >
+                        <option value="">All Continents</option>
+                        {availableContinents.map(c => <option key={c} value={c}>{c}</option>)}
+                    </select>
+                </div>
+                <div className="flex-1 min-w-[150px]">
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Country</label>
+                    <select
+                        value={countryFilter}
+                        onChange={(e) => { setCountryFilter(e.target.value); setStateFilter(''); setCityFilter(''); }}
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-medium"
+                    >
+                        <option value="">All Countries</option>
+                        {availableCountries.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
+                    </select>
+                </div>
+                <div className="flex-1 min-w-[150px]">
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">State</label>
+                    <select
+                        value={stateFilter}
+                        onChange={(e) => { setStateFilter(e.target.value); setCityFilter(''); }}
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-medium"
+                    >
+                        <option value="">All States</option>
+                        {availableStates.map(s => <option key={s.id} value={s.code}>{s.name}</option>)}
+                    </select>
+                </div>
+                <div className="flex-1 min-w-[150px]">
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">City</label>
+                    <select
+                        value={cityFilter}
+                        onChange={(e) => setCityFilter(e.target.value)}
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-medium"
+                    >
+                        <option value="">All Cities</option>
+                        {availableCities.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                    </select>
+                </div>
                 <div className="flex-1 min-w-[200px]">
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Filter by Role</label>
                     <select
@@ -201,21 +396,6 @@ export default function RegionAllocationPage() {
                         <option value="marketing-manager">Marketing Manager</option>
                         <option value="commission-manager">Commission Manager</option>
                         <option value="property-onboarding-manager">Onboarding Manager</option>
-                    </select>
-                </div>
-                <div className="flex-1 min-w-[200px]">
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Filter by Region</label>
-                    <select
-                        value={regionFilter}
-                        onChange={(e) => setRegionFilter(e.target.value)}
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-medium"
-                    >
-                        <option value="">All Operating Regions</option>
-                        {regions.map((region) => (
-                            <option key={region.id} value={region.id}>
-                                {region.name}
-                            </option>
-                        ))}
                     </select>
                 </div>
                 <div className="flex-[1.5] min-w-[300px]">
@@ -254,7 +434,16 @@ export default function RegionAllocationPage() {
                         <h3 className="text-lg font-bold text-gray-900">No Allocations Found</h3>
                         <p className="text-sm text-gray-400 mt-1 max-w-xs mx-auto">We couldn't find any assignments matching your current criteria.</p>
                         <button
-                            onClick={() => { setRoleFilter(''); setRegionFilter(''); setSearchQuery(''); }}
+                            onClick={() => {
+                                setRoleFilter('');
+                                setRegionFilter('');
+                                setSearchQuery('');
+                                setContinentFilter('');
+                                setCountryFilter('');
+                                setStateFilter('');
+                                setCityFilter('');
+                                setCurrentPage(1);
+                            }}
                             className="mt-6 text-blue-600 hover:text-blue-700 font-bold text-sm"
                         >
                             Reset All Filters
@@ -271,7 +460,7 @@ export default function RegionAllocationPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
-                                {paginatedAllocations.map((region) => (
+                                {allocations.map((region) => (
                                     <tr key={region.id} className="group hover:bg-gray-50/50 transition-all duration-300">
                                         <td className="px-8 py-6">
                                             <div className="flex items-center gap-4">
@@ -280,7 +469,47 @@ export default function RegionAllocationPage() {
                                                 </div>
                                                 <div>
                                                     <p className="font-bold text-gray-900 leading-tight">{region.name}</p>
-                                                    <p className="text-[11px] font-medium text-gray-400 mt-1 uppercase tracking-wider">{region.active ? 'Operational' : 'Inactive'}</p>
+                                                    <div className="flex flex-wrap items-center gap-x-1.5 mt-1">
+                                                        {region.continent ? (
+                                                            <div className="flex items-center gap-1">
+                                                                <span className="text-[9px] font-black text-gray-300 uppercase tracking-tighter">Cnt:</span>
+                                                                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">{region.continent}</span>
+                                                            </div>
+                                                        ) : null}
+
+                                                        {region.country ? (
+                                                            <div className="flex items-center gap-1">
+                                                                {region.continent && <span className="text-[10px] text-gray-300 mr-0.5">•</span>}
+                                                                <span className="text-[9px] font-black text-gray-300 uppercase tracking-tighter">Cty:</span>
+                                                                <span className="text-[10px] font-medium text-gray-600 uppercase tracking-wider">{region.country}</span>
+                                                            </div>
+                                                        ) : null}
+
+                                                        {region.state ? (
+                                                            <div className="flex items-center gap-1">
+                                                                {(region.continent || region.country) && <span className="text-[10px] text-gray-300 mr-0.5">•</span>}
+                                                                <span className="text-[9px] font-black text-gray-300 uppercase tracking-tighter">St:</span>
+                                                                <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">{region.state}</span>
+                                                            </div>
+                                                        ) : null}
+
+                                                        {region.city ? (
+                                                            <div className="flex items-center gap-1">
+                                                                {(region.continent || region.country || region.state) && <span className="text-[10px] text-gray-300 mr-0.5">•</span>}
+                                                                <span className="text-[9px] font-black text-gray-300 uppercase tracking-tighter">Ct:</span>
+                                                                <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">{region.city}</span>
+                                                            </div>
+                                                        ) : null}
+
+                                                        {!region.continent && !region.country && !region.state && !region.city && (
+                                                            <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100 flex items-center gap-1">
+                                                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                                </svg>
+                                                                Location Data Pending
+                                                            </span>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </div>
                                         </td>
@@ -347,28 +576,35 @@ export default function RegionAllocationPage() {
                     </div>
                 )}
 
-                {/* Pagination */}
-                {!loading && totalPages > 1 && (
+                {/* Always show pagination status if there are allocations */}
+                {!loading && totalAllocations > 0 && (
                     <div className="px-8 py-5 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
                         <div className="text-[12px] font-medium text-gray-400 tracking-wide">
-                            Showing <span className="text-gray-900 font-bold">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="text-gray-900 font-bold">{Math.min(currentPage * itemsPerPage, allocations.length)}</span> of <span className="text-gray-900 font-bold">{allocations.length}</span> regions
+                            Showing <span className="text-gray-900 font-bold">{Math.min((currentPage - 1) * itemsPerPage + 1, totalAllocations)}</span> to <span className="text-gray-900 font-bold">{Math.min(currentPage * itemsPerPage, totalAllocations)}</span> of <span className="text-gray-900 font-bold">{totalAllocations}</span> regions
                         </div>
-                        <div className="flex gap-2">
-                            <button
-                                onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                                disabled={currentPage === 1}
-                                className="px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                            >
-                                Previous
-                            </button>
-                            <button
-                                onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                                disabled={currentPage === totalPages}
-                                className="px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                            >
-                                Next
-                            </button>
-                        </div>
+                        {totalPages > 1 && (
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        )}
+                        {totalPages <= 1 && (
+                            <div className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
+                                End of List
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

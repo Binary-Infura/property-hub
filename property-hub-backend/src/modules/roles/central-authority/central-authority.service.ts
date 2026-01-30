@@ -57,15 +57,23 @@ export class CentralAuthorityService {
         return globalUser;
     }
 
-    async findAll(): Promise<CentralAuthorityUserDto[]> {
-        const users = await this.prisma.user.findMany({
-            where: {
-                role: 'central-authority',
-            },
-            orderBy: {
-                createdAt: 'desc',
-            },
-        });
-        return users as any;
+    async findAll(page: number = 1, limit: number = 10): Promise<{ data: CentralAuthorityUserDto[], total: number }> {
+        const skip = (page - 1) * limit;
+        const [data, total] = await Promise.all([
+            this.prisma.user.findMany({
+                where: {
+                    role: 'central-authority',
+                },
+                orderBy: {
+                    createdAt: 'desc',
+                },
+                skip,
+                take: limit,
+            }),
+            this.prisma.user.count({
+                where: { role: 'central-authority' }
+            })
+        ]);
+        return { data: data as any, total };
     }
 }

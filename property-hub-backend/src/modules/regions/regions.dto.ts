@@ -2,20 +2,60 @@ import { IsString, IsNotEmpty, IsBoolean, IsOptional, IsEnum, IsArray } from 'cl
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateRegionDto {
-    @ApiProperty({ example: 'mumbai-west', description: 'Unique code for the region' })
+    @ApiProperty({ example: 'mumbai-west', description: 'Unique code for the region', required: false })
     @IsString()
-    @IsNotEmpty()
-    code: string;
+    @IsOptional()
+    code?: string;
 
     @ApiProperty({ example: 'Mumbai West', description: 'Display name of the region' })
     @IsString()
     @IsNotEmpty()
     name: string;
 
-    @ApiProperty({ example: true, description: 'Whether the region is active', required: false })
     @IsBoolean()
     @IsOptional()
     active?: boolean;
+
+    @ApiProperty({ example: 'Asia', description: 'Continent name', required: false })
+    @IsString()
+    @IsOptional()
+    continent?: string;
+
+    @ApiProperty({ example: 'India', description: 'Country name', required: false })
+    @IsString()
+    @IsOptional()
+    country?: string;
+
+    @ApiProperty({ example: 'Maharashtra', description: 'State name', required: false })
+    @IsString()
+    @IsOptional()
+    state?: string;
+
+    @ApiProperty({ example: 'Mumbai', description: 'City name', required: false })
+    @IsString()
+    @IsOptional()
+    city?: string;
+
+    @IsArray()
+    @IsString({ each: true })
+    @IsOptional()
+    tags?: string[];
+
+    @IsString()
+    @IsOptional()
+    description?: string;
+
+    @IsString()
+    @IsOptional()
+    countryCode?: string;
+
+    @IsString()
+    @IsOptional()
+    stateCode?: string;
+
+    @IsString()
+    @IsOptional()
+    cityCode?: string;
 }
 
 export class UpdateRegionDto {
@@ -28,6 +68,61 @@ export class UpdateRegionDto {
     @IsBoolean()
     @IsOptional()
     active?: boolean;
+
+    @IsArray()
+    @IsString({ each: true })
+    @IsOptional()
+    tags?: string[];
+
+    @IsString()
+    @IsOptional()
+    description?: string;
+
+    @IsString()
+    @IsOptional()
+    continent?: string;
+
+    @IsString()
+    @IsOptional()
+    country?: string;
+
+    @IsString()
+    @IsOptional()
+    state?: string;
+
+    @IsString()
+    @IsOptional()
+    city?: string;
+}
+
+export class GetAllRegionsQueryDto {
+    @IsOptional()
+    @IsString()
+    page?: string;
+
+    @IsOptional()
+    @IsString()
+    limit?: string;
+
+    @IsOptional()
+    @IsString()
+    continent?: string;
+
+    @IsOptional()
+    @IsString()
+    country?: string;
+
+    @IsOptional()
+    @IsString()
+    state?: string;
+
+    @IsOptional()
+    @IsString()
+    city?: string;
+
+    @IsOptional()
+    @IsString()
+    search?: string;
 }
 
 // Enum for role types that are assignable to regions
@@ -50,7 +145,31 @@ export class GetRegionAllocationsQueryDto {
 
     @IsOptional()
     @IsString()
+    continent?: string;
+
+    @IsOptional()
+    @IsString()
+    country?: string;
+
+    @IsOptional()
+    @IsString()
+    state?: string;
+
+    @IsOptional()
+    @IsString()
+    city?: string;
+
+    @IsOptional()
+    @IsString()
     search?: string; // Search by user name or email
+
+    @IsOptional()
+    @IsString()
+    page?: string;
+
+    @IsOptional()
+    @IsString()
+    limit?: string;
 }
 
 // DTO for assigning users to regions
@@ -76,7 +195,15 @@ export class RegionAllocationResponseDto {
     name: string;
     code: string;
     active: boolean;
+    country?: string;
+    state?: string;
+    city?: string;
     assignedUsers: AssignedUserDto[];
+}
+
+export class RegionPaginatedAllocationResponseDto {
+    data: RegionAllocationResponseDto[];
+    total: number;
 }
 
 export class AssignedUserDto {

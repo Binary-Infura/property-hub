@@ -21,6 +21,8 @@ interface Region {
     id: string;
     name: string;
     code: string;
+    continent?: string;
+    country?: string;
 }
 
 export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRoleModalProps) {
@@ -31,6 +33,14 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRo
     const [users, setUsers] = useState<User[]>([]);
     const [regions, setRegions] = useState<Region[]>([]);
     const [userSearch, setUserSearch] = useState('');
+    const [continentFilter, setContinentFilter] = useState('');
+    const [countryFilter, setCountryFilter] = useState('');
+    const [stateFilter, setStateFilter] = useState('');
+    const [cityFilter, setCityFilter] = useState('');
+    const [availableContinents, setAvailableContinents] = useState<string[]>([]);
+    const [availableCountries, setAvailableCountries] = useState<{ code: string; name: string }[]>([]);
+    const [availableStates, setAvailableStates] = useState<{ id: string; name: string; code: string }[]>([]);
+    const [availableCities, setAvailableCities] = useState<{ id: string; name: string }[]>([]);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
@@ -46,8 +56,39 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRo
     useEffect(() => {
         if (isOpen) {
             fetchRegions();
+            fetchContinents();
         }
     }, [isOpen]);
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchRegions();
+        }
+    }, [isOpen, continentFilter, countryFilter, stateFilter, cityFilter]);
+
+    useEffect(() => {
+        if (isOpen) {
+            fetchCountries(continentFilter);
+        }
+    }, [isOpen, continentFilter]);
+
+    useEffect(() => {
+        if (isOpen && countryFilter) {
+            fetchStates(countryFilter);
+        } else {
+            setAvailableStates([]);
+            setAvailableCities([]);
+        }
+    }, [isOpen, countryFilter]);
+
+    useEffect(() => {
+        if (isOpen && countryFilter && stateFilter) {
+            const stateObj = availableStates.find(s => s.code === stateFilter || s.id === stateFilter || s.name === stateFilter);
+            if (stateObj) fetchCities(countryFilter, stateObj.code);
+        } else {
+            setAvailableCities([]);
+        }
+    }, [isOpen, countryFilter, stateFilter]);
 
     useEffect(() => {
         if (role && userSearch.length >= 2) {
@@ -60,16 +101,68 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRo
     const fetchRegions = async () => {
         if (!token) return;
         try {
-            const response = await fetch(`${API_URL}/api/regions`, {
+            const params = new URLSearchParams();
+            params.append('limit', '1000');
+            if (continentFilter) params.append('continent', continentFilter);
+            if (countryFilter) {
+                const country = availableCountries.find(c => c.code === countryFilter || c.name === countryFilter);
+                if (country) params.append('country', country.name);
+            }
+            if (stateFilter) {
+                const state = availableStates.find(s => s.code === stateFilter || s.id === stateFilter || s.name === stateFilter);
+                if (state) params.append('state', state.name);
+            }
+            if (cityFilter) params.append('city', cityFilter);
+
+            const response = await fetch(`${API_URL}/api/regions?${params}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (response.ok) {
                 const data = await response.json();
-                setRegions(data);
+                setRegions(data.data);
             }
         } catch (err) {
             console.error('Failed to fetch regions:', err);
         }
+    };
+
+    const fetchContinents = async () => {
+        try {
+            const res = await fetch(`${API_URL}/api/locations/continents`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) setAvailableContinents(await res.json());
+        } catch (e) { console.error(e); }
+    };
+
+    const fetchCountries = async (continent?: string) => {
+        try {
+            const url = continent
+                ? `${API_URL}/api/locations/countries?continent=${encodeURIComponent(continent)}`
+                : `${API_URL}/api/locations/countries`;
+            const res = await fetch(url, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) setAvailableCountries(await res.json());
+        } catch (e) { console.error(e); }
+    };
+
+    const fetchStates = async (cCode: string) => {
+        try {
+            const res = await fetch(`${API_URL}/api/locations/states/${cCode}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) setAvailableStates(await res.json());
+        } catch (e) { console.error(e); }
+    };
+
+    const fetchCities = async (cCode: string, sCode: string) => {
+        try {
+            const res = await fetch(`${API_URL}/api/locations/cities/${cCode}/${sCode}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) setAvailableCities(await res.json());
+        } catch (e) { console.error(e); }
     };
 
     const searchUsers = async () => {
@@ -242,7 +335,43 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRo
 
                     {/* Region Selection */}
                     <div className="space-y-4">
-                        <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] ml-1">3. Scope Selection ({selectedRegionIds.length} Jurisdictions)</label>
+                        <div className="flex items-center justify-between">
+                            <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] ml-1">3. Scope Selection ({selectedRegionIds.length} Jurisdictions)</label>
+                            <div className="flex flex-wrap gap-2 justify-end max-w-[60%]">
+                                <select
+                                    value={continentFilter}
+                                    onChange={(e) => { setContinentFilter(e.target.value); setCountryFilter(''); setStateFilter(''); setCityFilter(''); }}
+                                    className="px-2 py-1 text-[9px] font-black uppercase border rounded bg-white outline-none focus:ring-1 focus:ring-blue-500 max-w-[100px] overflow-hidden truncate"
+                                >
+                                    <option value="">All Continents</option>
+                                    {availableContinents.map(c => <option key={c} value={c}>{c}</option>)}
+                                </select>
+                                <select
+                                    value={countryFilter}
+                                    onChange={(e) => { setCountryFilter(e.target.value); setStateFilter(''); setCityFilter(''); }}
+                                    className="px-2 py-1 text-[9px] font-black uppercase border rounded bg-white outline-none focus:ring-1 focus:ring-blue-500 max-w-[100px] overflow-hidden truncate"
+                                >
+                                    <option value="">All Countries</option>
+                                    {availableCountries.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
+                                </select>
+                                <select
+                                    value={stateFilter}
+                                    onChange={(e) => { setStateFilter(e.target.value); setCityFilter(''); }}
+                                    className="px-2 py-1 text-[9px] font-black uppercase border rounded bg-white outline-none focus:ring-1 focus:ring-blue-500 max-w-[100px] overflow-hidden truncate"
+                                >
+                                    <option value="">All States</option>
+                                    {availableStates.map(s => <option key={s.id} value={s.code}>{s.name}</option>)}
+                                </select>
+                                <select
+                                    value={cityFilter}
+                                    onChange={(e) => setCityFilter(e.target.value)}
+                                    className="px-2 py-1 text-[9px] font-black uppercase border rounded bg-white outline-none focus:ring-1 focus:ring-blue-500 max-w-[100px] overflow-hidden truncate"
+                                >
+                                    <option value="">All Cities</option>
+                                    {availableCities.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                                </select>
+                            </div>
+                        </div>
                         <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-200">
                             {regions.map((region) => (
                                 <div

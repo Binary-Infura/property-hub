@@ -4,9 +4,11 @@ import {
     CreateRegionDto,
     UpdateRegionDto,
     GetRegionAllocationsQueryDto,
+    GetAllRegionsQueryDto,
     AssignRegionDto,
     UpdateRegionAssignmentDto,
     RegionAllocationResponseDto,
+    RegionPaginatedAllocationResponseDto,
     ManagerRole,
 } from './regions.dto';
 import { Region } from '@prisma/client';
@@ -19,10 +21,38 @@ export class RegionsService {
         private keycloakAdmin: KeycloakAdminService
     ) { }
 
-    async findAll(): Promise<Region[]> {
-        return this.prisma.region.findMany({
-            orderBy: { name: 'asc' },
-        });
+    async findAll(query: GetAllRegionsQueryDto): Promise<{ data: Region[], total: number }> {
+        // Auto-sync missing continents for legacy data
+        await this.syncMissingContinents();
+
+        const page = Number(query.page) || 1;
+        const limit = Number(query.limit) || 10;
+        const skip = (page - 1) * limit;
+
+        const where: any = { active: true };
+
+        if (query.continent) where.continent = { contains: query.continent, mode: 'insensitive' };
+        if (query.country) where.country = { contains: query.country, mode: 'insensitive' };
+        if (query.state) where.state = { contains: query.state, mode: 'insensitive' };
+        if (query.city) where.city = { contains: query.city, mode: 'insensitive' };
+        if (query.search) {
+            where.OR = [
+                { name: { contains: query.search, mode: 'insensitive' } },
+                { code: { contains: query.search, mode: 'insensitive' } },
+            ];
+        }
+
+        const [data, total] = await Promise.all([
+            this.prisma.region.findMany({
+                where,
+                skip,
+                take: limit,
+                orderBy: { name: 'asc' },
+            }),
+            this.prisma.region.count({ where }),
+        ]);
+
+        return { data, total };
     }
 
     async findOne(id: string): Promise<Region> {
@@ -37,17 +67,83 @@ export class RegionsService {
         return region;
     }
 
-    async create(createRegionDto: CreateRegionDto): Promise<Region> {
-        const existing = await this.prisma.region.findUnique({
-            where: { code: createRegionDto.code },
-        });
+    /**
+     * Helper to populate missing continents for existing regions
+     */
+    private async syncMissingContinents() {
+        try {
+            const regionModel = (this.prisma as any).region;
+            const regionsToFix = await regionModel.findMany({
+                where: {
+                    continent: null,
+                    country: { not: null }
+                },
+                take: 100
+            });
 
-        if (existing) {
-            throw new ConflictException(`Region with code ${createRegionDto.code} already exists`);
+            if (regionsToFix.length === 0) return;
+
+            for (const region of regionsToFix) {
+                if (region.country) {
+                    let continent = '';
+                    const c = region.country.toLowerCase();
+                    // Basic mapping for legacy data fix
+                    if (c === 'india' || c === 'brunei' || c === 'sri lanka' || c === 'pakistan') continent = 'Asia';
+                    else if (c === 'belarus' || c === 'russia' || c === 'ukraine') continent = 'Europe';
+                    else if (c === 'nigeria' || c === 'egypt') continent = 'Africa';
+                    else if (c === 'united states' || c === 'usa' || c === 'canada') continent = 'Americas';
+
+                    if (continent) {
+                        await regionModel.update({
+                            where: { id: region.id },
+                            data: { continent }
+                        });
+                    }
+                }
+            }
+        } catch (e) {
+            // Background sync failure is okay
+        }
+    }
+
+    async create(createRegionDto: CreateRegionDto): Promise<Region> {
+        let baseCode = '';
+
+        if (createRegionDto.countryCode && createRegionDto.stateCode && createRegionDto.cityCode && createRegionDto.name) {
+            const cCode = createRegionDto.countryCode.toLowerCase();
+            const sCode = createRegionDto.stateCode.toLowerCase();
+            const ciPrefix = createRegionDto.cityCode?.substring(0, 2).toLowerCase() || createRegionDto.city?.substring(0, 2).toLowerCase();
+            const loPrefix = createRegionDto.name.substring(0, 2).toLowerCase();
+            baseCode = `${cCode}-${sCode}-${ciPrefix}-${loPrefix}`;
+        } else {
+            baseCode = createRegionDto.code || createRegionDto.name.toLowerCase().replace(/\s+/g, '-');
         }
 
+        // Clean base code from existing suffix -XX
+        baseCode = baseCode.replace(/-\d+$/, '');
+
+        let finalCode = `${baseCode}-01`;
+        let counter = 1;
+
+        while (true) {
+            const existing = await this.prisma.region.findUnique({
+                where: { code: finalCode },
+            });
+            if (!existing) break;
+
+            counter++;
+            const suffix = counter < 10 ? `0${counter}` : `${counter}`;
+            finalCode = `${baseCode}-${suffix}`;
+        }
+
+        // De-structure to remove UI-only code fields
+        const { countryCode, stateCode, cityCode, ...dbData } = createRegionDto as any;
+
         const region = await this.prisma.region.create({
-            data: createRegionDto,
+            data: {
+                ...(dbData as any),
+                code: finalCode,
+            },
         });
 
         // Sync with Keycloak: Create group /regions/:code
@@ -59,9 +155,14 @@ export class RegionsService {
     async update(id: string, updateRegionDto: UpdateRegionDto): Promise<Region> {
         await this.findOne(id);
 
+        // De-structure to remove UI-only code fields, but KEEP location fields (country, state, city)
+        const { countryCode, stateCode, cityCode, ...dbData } = updateRegionDto as any;
+
         return this.prisma.region.update({
             where: { id },
-            data: updateRegionDto,
+            data: {
+                ...(dbData as any),
+            },
         });
     }
 
@@ -102,7 +203,14 @@ export class RegionsService {
     /**
      * Get all regions with their assigned users, with optional filtering
      */
-    async getAllocations(filters: GetRegionAllocationsQueryDto): Promise<RegionAllocationResponseDto[]> {
+    async getAllocations(filters: GetRegionAllocationsQueryDto): Promise<RegionPaginatedAllocationResponseDto> {
+        // Ensure data is synced
+        await this.syncMissingContinents();
+
+        const page = Number(filters.page) || 1;
+        const limit = Number(filters.limit) || 10;
+        const skip = (page - 1) * limit;
+
         // Build where clause for users based on filters
         const userWhere: any = {};
 
@@ -127,35 +235,61 @@ export class RegionsService {
         if (filters.regionId) {
             regionWhere.id = filters.regionId;
         }
+        if (filters.continent) {
+            regionWhere.continent = { contains: filters.continent, mode: 'insensitive' };
+        }
+        if (filters.country) {
+            regionWhere.country = { contains: filters.country, mode: 'insensitive' };
+        }
+        if (filters.state) {
+            regionWhere.state = { contains: filters.state, mode: 'insensitive' };
+        }
+        if (filters.city) {
+            regionWhere.city = { contains: filters.city, mode: 'insensitive' };
+        }
 
-        // Fetch regions with assigned users
-        const regions = await (this.prisma.region as any).findMany({
-            where: regionWhere,
-            include: {
-                managers: {
-                    where: userWhere,
-                    select: {
-                        id: true,
-                        name: true,
-                        email: true,
-                        phone: true,
-                        role: true,
-                        status: true,
+        // Fetch regions with assigned users and total count
+        const [regions, total] = await Promise.all([
+            (this.prisma.region as any).findMany({
+                where: regionWhere,
+                include: {
+                    managers: {
+                        where: userWhere,
+                        select: {
+                            id: true,
+                            name: true,
+                            email: true,
+                            phone: true,
+                            role: true,
+                            status: true,
+                        },
                     },
                 },
-            },
-            orderBy: {
-                name: 'asc',
-            },
-        });
+                orderBy: {
+                    name: 'asc',
+                },
+                skip,
+                take: limit,
+            }),
+            (this.prisma.region as any).count({
+                where: regionWhere,
+            }),
+        ]);
 
-        return regions.map(region => ({
-            id: region.id,
-            name: region.name,
-            code: region.code,
-            active: region.active,
-            assignedUsers: region.managers,
-        }));
+        return {
+            data: regions.map(region => ({
+                id: region.id,
+                name: region.name,
+                code: region.code,
+                active: region.active,
+                continent: region.continent || '',
+                country: region.country || '',
+                state: region.state || '',
+                city: region.city || '',
+                assignedUsers: region.managers,
+            })),
+            total,
+        };
     }
 
     /**

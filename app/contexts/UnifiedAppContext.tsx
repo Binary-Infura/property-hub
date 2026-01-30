@@ -178,12 +178,12 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
 
             // 1. Fetch all operational regions from Global API (Required for all users to resolve names/codes)
             try {
-                const response = await fetch(`${API_URL}/api/regions`, {
+                const response = await fetch(`${API_URL}/api/regions?limit=1000`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (response.ok) {
-                    const data = await response.json();
-                    allRegions = data.map((r: any) => ({
+                    const result = await response.json();
+                    allRegions = result.data.map((r: any) => ({
                         id: r.id,
                         name: r.name,
                         code: r.code

@@ -352,7 +352,15 @@ export class UsersService {
         return createdUser;
     }
 
-    async findAllByRole(role: string, regionSlug?: string, myOnly: boolean = false, user?: AuthenticatedUser): Promise<User[]> {
+    async findAllByRole(
+        role: string,
+        regionSlug?: string,
+        myOnly: boolean = false,
+        user?: AuthenticatedUser,
+        page: number = 1,
+        limit: number = 10
+    ): Promise<{ data: User[], total: number }> {
+        const skip = (page - 1) * limit;
         const where: any = { role };
 
         if (regionSlug) {
@@ -370,19 +378,26 @@ export class UsersService {
             }
         }
 
-        return this.prisma.user.findMany({
-            where,
-            include: {
-                regions: true,
-                onboardedBy: {
-                    select: {
-                        name: true,
-                        role: true
+        const [data, total] = await Promise.all([
+            this.prisma.user.findMany({
+                where,
+                include: {
+                    regions: true,
+                    onboardedBy: {
+                        select: {
+                            name: true,
+                            role: true
+                        }
                     }
-                }
-            },
-            orderBy: { createdAt: 'desc' }
-        });
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            this.prisma.user.count({ where }),
+        ]);
+
+        return { data, total };
     }
 
     async findOne(id: string): Promise<User> {

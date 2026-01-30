@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Query } from '@nestjs/common';
 import { RegionalManagersService } from './regional-managers.service';
 import { CreateRegionalManagerDto, UpdateRegionalManagerProfileDto } from './regional-managers.dto';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
@@ -20,8 +20,11 @@ export class RegionalManagersController {
 
     @Get()
     @RequireRoles('central-authority')
-    findAll() {
-        return this.regionalManagersService.findAll();
+    findAll(
+        @Query('page') page: string = '1',
+        @Query('limit') limit: string = '10'
+    ) {
+        return this.regionalManagersService.findAll(Number(page), Number(limit));
     }
 
     @Get('me/profile')

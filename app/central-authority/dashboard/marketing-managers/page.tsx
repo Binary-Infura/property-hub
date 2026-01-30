@@ -10,18 +10,23 @@ export default function MarketingManagersPage() {
     const { token } = useAuth();
     const [marketingManagers, setMarketingManagers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+    const itemsPerPage = 10;
+    const totalPages = Math.ceil(totalCount / itemsPerPage);
 
     // Fetch data
     const fetchData = async () => {
         if (!token) return;
         setLoading(true);
         try {
-            const res = await fetch('/api/marketing-managers', {
+            const res = await fetch(`/api/marketing-managers?page=${currentPage}&limit=${itemsPerPage}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (res.ok) {
-                const data = await res.json();
-                setMarketingManagers(data);
+                const result = await res.json();
+                setMarketingManagers(result.data);
+                setTotalCount(result.total);
             }
         } catch (err) {
             console.error('Failed to fetch data', err);
@@ -35,7 +40,7 @@ export default function MarketingManagersPage() {
         if (token) {
             fetchData();
         }
-    }, [token]);
+    }, [token, currentPage]);
 
     return (
         <div>
@@ -49,22 +54,22 @@ export default function MarketingManagersPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                     <div className="text-gray-600 text-sm font-medium mb-2">Total Marketing Managers</div>
-                    <div className="text-3xl font-bold text-gray-900">{marketingManagers.length}</div>
+                    <div className="text-3xl font-bold text-gray-900">{totalCount}</div>
                 </div>
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                    <div className="text-gray-600 text-sm font-medium mb-2">Active</div>
+                    <div className="text-gray-600 text-sm font-medium mb-2">Active (Page)</div>
                     <div className="text-3xl font-bold text-green-600">
                         {marketingManagers.filter((m) => m.status === 'active').length}
                     </div>
                 </div>
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                    <div className="text-gray-600 text-sm font-medium mb-2">Total Team Members</div>
+                    <div className="text-gray-600 text-sm font-medium mb-2">Team (Page)</div>
                     <div className="text-3xl font-bold text-purple-600">
                         {marketingManagers.reduce((sum, m) => sum + (m.teamSize || 0), 0)}
                     </div>
                 </div>
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                    <div className="text-gray-600 text-sm font-medium mb-2">Active Campaigns</div>
+                    <div className="text-gray-600 text-sm font-medium mb-2">Campaigns (Page)</div>
                     <div className="text-3xl font-bold text-blue-600">
                         {marketingManagers.reduce((sum, m) => sum + (m.activeCampaigns || 0), 0)}
                     </div>
@@ -195,6 +200,32 @@ export default function MarketingManagersPage() {
                         </tbody>
                     </table>
                 </div>
+
+                {!loading && totalCount > 0 && (
+                    <div className="px-8 py-5 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
+                        <div className="text-[12px] font-medium text-gray-400 tracking-wide">
+                            Showing <span className="text-gray-900 font-bold">{Math.min((currentPage - 1) * itemsPerPage + 1, totalCount)}</span> to <span className="text-gray-900 font-bold">{Math.min(currentPage * itemsPerPage, totalCount)}</span> of <span className="text-gray-900 font-bold">{totalCount}</span> managers
+                        </div>
+                        {totalPages > 1 && (
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Add Marketing Manager Modal */}

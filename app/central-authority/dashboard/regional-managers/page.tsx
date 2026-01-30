@@ -10,6 +10,10 @@ export default function RegionalManagersPage() {
     const { token } = useAuth();
     const [regionalManagers, setRegionalManagers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+    const itemsPerPage = 10;
+    const totalPages = Math.ceil(totalCount / itemsPerPage);
 
     // Fetch data
     const fetchData = async () => {
@@ -17,12 +21,13 @@ export default function RegionalManagersPage() {
         setLoading(true);
         try {
             // Fetch Managers
-            const managersRes = await fetch('/api/regional-managers', {
+            const managersRes = await fetch(`/api/regional-managers?page=${currentPage}&limit=${itemsPerPage}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (managersRes.ok) {
-                const data = await managersRes.json();
-                setRegionalManagers(data);
+                const result = await managersRes.json();
+                setRegionalManagers(result.data);
+                setTotalCount(result.total);
             }
         } catch (err) {
             console.error('Failed to fetch data', err);
@@ -36,7 +41,7 @@ export default function RegionalManagersPage() {
         if (token) {
             fetchData();
         }
-    }, [token]);
+    }, [token, currentPage]);
 
     return (
         <div className="p-8">
@@ -50,22 +55,22 @@ export default function RegionalManagersPage() {
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                     <div className="text-gray-600 text-sm font-medium mb-2">Total Regional Managers</div>
-                    <div className="text-3xl font-bold text-gray-900">{regionalManagers.length}</div>
+                    <div className="text-3xl font-bold text-gray-900">{totalCount}</div>
                 </div>
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                    <div className="text-gray-600 text-sm font-medium mb-2">Active</div>
+                    <div className="text-gray-600 text-sm font-medium mb-2">Active (Page)</div>
                     <div className="text-3xl font-bold text-green-600">
                         {regionalManagers.filter((m) => m.status === 'active').length}
                     </div>
                 </div>
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                    <div className="text-gray-600 text-sm font-medium mb-2">Total Properties</div>
+                    <div className="text-gray-600 text-sm font-medium mb-2">Properties (Page)</div>
                     <div className="text-3xl font-bold text-blue-600">
                         {regionalManagers.reduce((sum, m) => sum + (m.stats?.propertiesCount || 0), 0)}
                     </div>
                 </div>
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-100">
-                    <div className="text-gray-600 text-sm font-medium mb-2">Total Leads</div>
+                    <div className="text-gray-600 text-sm font-medium mb-2">Leads (Page)</div>
                     <div className="text-3xl font-bold text-purple-600">
                         {regionalManagers.reduce((sum, m) => sum + (m.stats?.leadsCount || 0), 0).toLocaleString()}
                     </div>
@@ -215,6 +220,32 @@ export default function RegionalManagersPage() {
                         </tbody>
                     </table>
                 </div>
+
+                {!loading && totalCount > 0 && (
+                    <div className="px-8 py-5 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
+                        <div className="text-[12px] font-medium text-gray-400 tracking-wide">
+                            Showing <span className="text-gray-900 font-bold">{Math.min((currentPage - 1) * itemsPerPage + 1, totalCount)}</span> to <span className="text-gray-900 font-bold">{Math.min(currentPage * itemsPerPage, totalCount)}</span> of <span className="text-gray-900 font-bold">{totalCount}</span> managers
+                        </div>
+                        {totalPages > 1 && (
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Add Regional Manager Modal */}

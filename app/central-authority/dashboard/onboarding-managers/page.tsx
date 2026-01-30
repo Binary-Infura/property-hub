@@ -11,6 +11,10 @@ export default function OnboardingManagersPage() {
     const [managers, setManagers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+    const itemsPerPage = 10;
+    const totalPages = Math.ceil(totalCount / itemsPerPage);
 
     const [showAddModal, setShowAddModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
@@ -25,12 +29,16 @@ export default function OnboardingManagersPage() {
         if (!token) return;
         try {
             setLoading(true);
-            const data = await userService.getAllByRole(
+            const result = await userService.getAllByRole(
                 'property-onboarding-manager',
                 token,
-                activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined
+                activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined,
+                false,
+                currentPage,
+                itemsPerPage
             );
-            setManagers(data);
+            setManagers(result.data);
+            setTotalCount(result.total);
             setError(null);
         } catch (err: any) {
             setError(err.message || 'Failed to fetch managers');
@@ -41,7 +49,7 @@ export default function OnboardingManagersPage() {
 
     useEffect(() => {
         fetchManagers();
-    }, [token, activeContext.activeRegion.code]);
+    }, [token, activeContext.activeRegion.code, currentPage]);
 
     const handleAddManager = () => {
         setFormData({ name: '', email: '', phone: '' });
@@ -183,6 +191,32 @@ export default function OnboardingManagersPage() {
                         ))}
                     </tbody>
                 </table>
+
+                {!loading && totalCount > 0 && (
+                    <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
+                        <div className="text-sm text-gray-500">
+                            Showing <span className="font-medium text-gray-900">{Math.min((currentPage - 1) * itemsPerPage + 1, totalCount)}</span> to <span className="font-medium text-gray-900">{Math.min(currentPage * itemsPerPage, totalCount)}</span> of <span className="font-medium text-gray-900">{totalCount}</span> managers
+                        </div>
+                        {totalPages > 1 && (
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {(showAddModal || showEditModal) && (

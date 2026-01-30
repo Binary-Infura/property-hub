@@ -20,6 +20,7 @@ import { ChannelPartnersModule } from './modules/roles/channel-partners/channel-
 import { CentralAuthorityModule } from './modules/roles/central-authority/central-authority.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { PrismaService } from './database/prisma.service';
+import { LocationsModule } from './modules/locations/locations.module';
 
 @Module({
     imports: [
@@ -46,6 +47,7 @@ import { PrismaService } from './database/prisma.service';
 
         CentralAuthorityModule,
         ChatModule,
+        LocationsModule,
     ],
 })
 export class AppModule { }

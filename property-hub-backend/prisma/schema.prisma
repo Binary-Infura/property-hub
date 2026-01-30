@@ -8,10 +8,16 @@ datasource db {
 }
 
 model Region {
-  id         String     @id @default(uuid())
-  code       String     @unique
-  name       String
-  active     Boolean    @default(true)
+  id          String     @id @default(uuid())
+  code        String     @unique
+  name        String
+  active      Boolean    @default(true)
+  continent   String?
+  country     String?
+  state       String?
+  city        String?
+  tags       String[]
+  description String?
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
   leads      Lead[]
@@ -336,3 +342,5 @@ enum CommissionStatus {
   PAID
   REJECTED
 }
+
+

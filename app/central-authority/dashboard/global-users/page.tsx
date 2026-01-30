@@ -18,6 +18,10 @@ export default function GlobalUsersPage() {
     const { token } = useAuth();
     const [users, setUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalCount, setTotalCount] = useState(0);
+    const itemsPerPage = 10;
+    const totalPages = Math.ceil(totalCount / itemsPerPage);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -26,12 +30,13 @@ export default function GlobalUsersPage() {
         if (!token) return;
         setLoading(true);
         try {
-            const res = await fetch('/api/central-authority/users', {
+            const res = await fetch(`/api/central-authority/users?page=${currentPage}&limit=${itemsPerPage}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (res.ok) {
-                const data = await res.json();
-                setUsers(data);
+                const result = await res.json();
+                setUsers(result.data);
+                setTotalCount(result.total);
             }
         } catch (err) {
             console.error('Failed to fetch data', err);
@@ -45,7 +50,7 @@ export default function GlobalUsersPage() {
         if (token) {
             fetchData();
         }
-    }, [token]);
+    }, [token, currentPage]);
 
     const handleAddUser = () => {
         setIsModalOpen(true);
@@ -86,14 +91,13 @@ export default function GlobalUsersPage() {
 
 
 
-            {/* Stats */}
             <div className="grid md:grid-cols-2 gap-6 mb-8">
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
                     <p className="text-gray-600 text-sm font-medium">Total Users</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-2">{users.length}</p>
+                    <p className="text-3xl font-bold text-gray-900 mt-2">{totalCount}</p>
                 </div>
                 <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                    <p className="text-gray-600 text-sm font-medium">Active</p>
+                    <p className="text-gray-600 text-sm font-medium">Active (This Page)</p>
                     <p className="text-3xl font-bold text-green-600 mt-2">{activeCount}</p>
                 </div>
             </div>
@@ -174,6 +178,32 @@ export default function GlobalUsersPage() {
                         </table>
                     </div>
                 </div>
+
+                {!loading && totalCount > 0 && (
+                    <div className="px-8 py-5 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
+                        <div className="text-[12px] font-medium text-gray-400 tracking-wide">
+                            Showing <span className="text-gray-900 font-bold">{Math.min((currentPage - 1) * itemsPerPage + 1, totalCount)}</span> to <span className="text-gray-900 font-bold">{Math.min(currentPage * itemsPerPage, totalCount)}</span> of <span className="text-gray-900 font-bold">{totalCount}</span> users
+                        </div>
+                        {totalPages > 1 && (
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                    disabled={currentPage === 1}
+                                    className="px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                                    disabled={currentPage === totalPages}
+                                    className="px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                )}
             </div>
 
             {/* Add Global User Modal */}

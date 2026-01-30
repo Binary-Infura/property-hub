@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Query } from '@nestjs/common';
 import { CentralAuthorityService } from './central-authority.service';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/guards/roles.guard';
@@ -34,7 +34,10 @@ export class CentralAuthorityController {
 
     @Get('users')
     @RequireRoles('central-authority')
-    findAll() {
-        return this.centralAuthorityService.findAll();
+    findAll(
+        @Query('page') page: string = '1',
+        @Query('limit') limit: string = '10'
+    ) {
+        return this.centralAuthorityService.findAll(Number(page), Number(limit));
     }
 }

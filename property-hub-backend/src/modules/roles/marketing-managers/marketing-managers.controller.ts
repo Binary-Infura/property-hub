@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Query } from '@nestjs/common';
 import { MarketingManagersService } from './marketing-managers.service';
 import { CreateMarketingManagerDto, UpdateMarketingManagerProfileDto } from './marketing-managers.dto';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
@@ -20,8 +20,11 @@ export class MarketingManagersController {
 
     @Get()
     @RequireRoles('central-authority')
-    findAll() {
-        return this.marketingManagersService.findAll();
+    findAll(
+        @Query('page') page: string = '1',
+        @Query('limit') limit: string = '10'
+    ) {
+        return this.marketingManagersService.findAll(Number(page), Number(limit));
     }
 
     @Get('me/profile')

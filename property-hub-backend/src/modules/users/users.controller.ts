@@ -78,9 +78,18 @@ export class UsersController {
         @Param('role') role: string,
         @Query('region') region?: string,
         @Query('myOnly') myOnly?: string,
+        @Query('page') page: string = '1',
+        @Query('limit') limit: string = '10',
         @CurrentUser() user?: AuthenticatedUser
     ) {
-        return this.usersService.findAllByRole(role, region, myOnly === 'true', user);
+        return this.usersService.findAllByRole(
+            role,
+            region,
+            myOnly === 'true',
+            user,
+            Number(page),
+            Number(limit)
+        );
     }
 
     @Get(':id')

@@ -35,16 +35,24 @@ export class CommissionManagersService {
         return commissionManager;
     }
 
-    async findAll(): Promise<CommissionManagerDto[]> {
-        const users = await this.prisma.user.findMany({
-            where: {
-                role: 'commission-manager',
-            },
-            orderBy: {
-                createdAt: 'desc',
-            },
-        });
-        return users as any;
+    async findAll(page: number = 1, limit: number = 10): Promise<{ data: CommissionManagerDto[], total: number }> {
+        const skip = (page - 1) * limit;
+        const [data, total] = await Promise.all([
+            this.prisma.user.findMany({
+                where: {
+                    role: 'commission-manager',
+                },
+                orderBy: {
+                    createdAt: 'desc',
+                },
+                skip,
+                take: limit,
+            }),
+            this.prisma.user.count({
+                where: { role: 'commission-manager' }
+            })
+        ]);
+        return { data: data as any, total };
     }
 
     async getProfile(userId: string) {

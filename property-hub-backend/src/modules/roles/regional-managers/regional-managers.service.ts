@@ -67,30 +67,38 @@ export class RegionalManagersService {
         return regionalManager;
     }
 
-    async findAll(): Promise<RegionalManagerDto[]> {
-        const managers = await this.prisma.user.findMany({
-            where: {
-                role: 'regional-manager',
-            },
-            include: {
-                regions: {
-                    include: {
-                        _count: {
-                            select: {
-                                properties: true,
-                                leads: true,
+    async findAll(page: number = 1, limit: number = 10): Promise<{ data: RegionalManagerDto[], total: number }> {
+        const skip = (page - 1) * limit;
+        const [managers, total] = await Promise.all([
+            this.prisma.user.findMany({
+                where: {
+                    role: 'regional-manager',
+                },
+                include: {
+                    regions: {
+                        include: {
+                            _count: {
+                                select: {
+                                    properties: true,
+                                    leads: true,
+                                },
                             },
                         },
                     },
                 },
-            },
-            orderBy: {
-                createdAt: 'desc',
-            },
-        });
+                orderBy: {
+                    createdAt: 'desc',
+                },
+                skip,
+                take: limit,
+            }),
+            this.prisma.user.count({
+                where: { role: 'regional-manager' }
+            })
+        ]);
 
         // Transform to DTO with aggregated stats
-        return managers.map((manager) => {
+        const data = managers.map((manager) => {
             const stats = {
                 propertiesCount: 0,
                 leadsCount: 0,
@@ -110,6 +118,8 @@ export class RegionalManagersService {
                 stats,
             };
         });
+
+        return { data, total };
     }
 
     async getProfile(userId: string) {

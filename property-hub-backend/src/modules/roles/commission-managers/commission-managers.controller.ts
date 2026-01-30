@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Query } from '@nestjs/common';
 import { CommissionManagersService } from './commission-managers.service';
 import { CreateCommissionManagerDto, UpdateCommissionManagerProfileDto } from './commission-managers.dto';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
@@ -20,8 +20,11 @@ export class CommissionManagersController {
 
     @Get()
     @RequireRoles('central-authority')
-    findAll() {
-        return this.commissionManagersService.findAll();
+    findAll(
+        @Query('page') page: string = '1',
+        @Query('limit') limit: string = '10'
+    ) {
+        return this.commissionManagersService.findAll(Number(page), Number(limit));
     }
 
     @Get('me/profile')

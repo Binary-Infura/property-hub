@@ -37,12 +37,12 @@ export default function EditAssignmentModal({ isOpen, user, onClose, onSuccess }
         setLoading(true);
         try {
             // Fetch all regions
-            const regionsResponse = await fetch(`${API_URL}/api/regions`, {
+            const regionsResponse = await fetch(`${API_URL}/api/regions?limit=1000`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (regionsResponse.ok) {
                 const regionsData = await regionsResponse.json();
-                setAllRegions(regionsData);
+                setAllRegions(regionsData.data);
             }
 
             // Fetch user's current regions (we'll get them from allocations)

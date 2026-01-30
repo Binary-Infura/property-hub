@@ -16,6 +16,7 @@ import {
     CreateRegionDto,
     UpdateRegionDto,
     GetRegionAllocationsQueryDto,
+    GetAllRegionsQueryDto,
     AssignRegionDto,
     UpdateRegionAssignmentDto,
     ManagerRole,
@@ -28,8 +29,8 @@ export class RegionsController {
     constructor(private readonly regionsService: RegionsService) { }
 
     @Get()
-    findAll() {
-        return this.regionsService.findAll();
+    findAll(@Query() query: GetAllRegionsQueryDto) {
+        return this.regionsService.findAll(query);
     }
 
     @Get(':id')
