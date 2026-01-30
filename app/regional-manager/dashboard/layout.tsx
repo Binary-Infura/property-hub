@@ -20,12 +20,10 @@ function RegionalManagerDashboardLayoutContent({
 
   const navigation = [
     { name: 'Dashboard', href: '/regional-manager/dashboard', icon: '📊' },
-    { name: 'Property Partners', href: '/regional-manager/dashboard/property-partners', icon: '🤝' },
     { name: 'Consultants', href: '/regional-manager/dashboard/consultants', icon: '👤' },
     { name: 'Loan Advisers', href: '/regional-manager/dashboard/loan-advisers', icon: '🏦' },
     { name: 'Channel Partners', href: '/regional-manager/dashboard/channel-partners', icon: '🤝' },
     { name: 'Visit Executives', href: '/regional-manager/dashboard/visit-executives', icon: '📍' },
-    { name: 'Service Providers', href: '/regional-manager/dashboard/service-providers', icon: '🛠️' },
   ];
 
   const isActive = (href: string) => {
