@@ -33,7 +33,7 @@ export default function OnboardingManagersPage() {
             const result = await userService.getAllByRole(
                 'onboarding-manager',
                 token,
-                activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined,
+                undefined, // Remove region-based filtering for global management
                 false,
                 currentPage,
                 itemsPerPage
@@ -156,75 +156,93 @@ export default function OnboardingManagersPage() {
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
-                        {managers.map((manager) => (
-                            <tr key={manager.id} className="group hover:bg-gray-50/50 transition-all duration-300">
-                                <td className="px-8 py-6">
-                                    <div className="flex items-center gap-4">
-                                        <div className="w-10 h-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center font-bold text-xs ring-4 ring-orange-50/50 group-hover:scale-110 transition-transform duration-300 uppercase">
-                                            {manager.firstName.charAt(0)}
+                        {managers.length > 0 ? (
+                            managers.map((manager) => (
+                                <tr key={manager.id} className="group hover:bg-gray-50/50 transition-all duration-300">
+                                    <td className="px-8 py-6">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-10 h-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center font-bold text-xs ring-4 ring-orange-50/50 group-hover:scale-110 transition-transform duration-300 uppercase">
+                                                {(manager.firstName || 'M').charAt(0)}
+                                            </div>
+                                            <div>
+                                                <p className="font-bold text-gray-900 leading-tight">{manager.firstName || 'Unknown'}</p>
+                                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">Joined {manager.createdAt ? new Date(manager.createdAt).toLocaleDateString() : 'N/A'}</p>
+                                            </div>
                                         </div>
-                                        <div>
-                                            <p className="font-bold text-gray-900 leading-tight">{manager.firstName}</p>
-                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">Joined {new Date(manager.createdAt).toLocaleDateString()}</p>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="px-8 py-6 text-sm font-bold text-gray-700">
-                                    {manager.lastName || '-'}
-                                </td>
-                                <td className="px-8 py-6">
-                                    <div className="text-sm font-bold text-gray-900">{manager.email}</div>
-                                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">{manager.phone || 'NO DIRECT PHONE'}</div>
-                                </td>
-                                <td className="px-8 py-6">
-                                    <div className="flex flex-wrap gap-1">
-                                        {manager.regions?.length ? (
-                                            manager.regions.map(r => (
-                                                <span key={r.id} className="px-2 py-0.5 bg-gray-100 text-[9px] font-black text-gray-500 rounded uppercase tracking-wider">
-                                                    {r.city || r.name}
-                                                </span>
-                                            ))
-                                        ) : (
-                                            <span className="text-[10px] font-bold text-gray-300 italic">No scope assigned</span>
-                                        )}
-                                    </div>
-                                </td>
-                                <td className="px-8 py-6">
-                                    <span className={`px-2 py-1 text-[9px] font-black rounded-md uppercase tracking-wider ${manager.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                                        }`}>
-                                        {manager.status}
-                                    </span>
-                                </td>
-                                <td className="px-8 py-6 text-right">
-                                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                                        <button
-                                            onClick={() => handleEditManager(manager)}
-                                            className="p-2 text-blue-500 hover:bg-blue-50 rounded-xl transition-all"
-                                            title="Edit Profile"
-                                        >
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                            </svg>
-                                        </button>
-                                        <button
-                                            onClick={() => handleToggleStatus(manager.id)}
-                                            className={`p-2 rounded-xl transition-all ${manager.status === 'active' ? 'text-red-500 hover:bg-red-50' : 'text-green-500 hover:bg-green-50'}`}
-                                            title={manager.status === 'active' ? 'Deactivate' : 'Activate'}
-                                        >
-                                            {manager.status === 'active' ? (
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
-                                                </svg>
+                                    </td>
+                                    <td className="px-8 py-6 text-sm font-bold text-gray-700">
+                                        {manager.lastName || '-'}
+                                    </td>
+                                    <td className="px-8 py-6">
+                                        <div className="text-sm font-bold text-gray-900">{manager.email}</div>
+                                        <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">{manager.phone || 'NO DIRECT PHONE'}</div>
+                                    </td>
+                                    <td className="px-8 py-6">
+                                        <div className="flex flex-wrap gap-1">
+                                            {manager.regions?.length ? (
+                                                manager.regions.map(r => (
+                                                    <span key={r.id} className="px-2 py-0.5 bg-gray-100 text-[9px] font-black text-gray-500 rounded uppercase tracking-wider">
+                                                        {r.city || r.name}
+                                                    </span>
+                                                ))
                                             ) : (
-                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                                </svg>
+                                                <span className="text-[10px] font-bold text-gray-300 italic">No scope assigned</span>
                                             )}
-                                        </button>
+                                        </div>
+                                    </td>
+                                    <td className="px-8 py-6">
+                                        <span className={`px-2 py-1 text-[9px] font-black rounded-md uppercase tracking-wider ${manager.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                            }`}>
+                                            {manager.status}
+                                        </span>
+                                    </td>
+                                    <td className="px-8 py-6 text-right">
+                                        <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                                            <button
+                                                onClick={() => handleEditManager(manager)}
+                                                className="p-2 text-blue-500 hover:bg-blue-50 rounded-xl transition-all"
+                                                title="Edit Profile"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                </svg>
+                                            </button>
+                                            <button
+                                                onClick={() => handleToggleStatus(manager.id)}
+                                                className={`p-2 rounded-xl transition-all ${manager.status === 'active' ? 'text-red-500 hover:bg-red-50' : 'text-green-500 hover:bg-green-50'}`}
+                                                title={manager.status === 'active' ? 'Deactivate' : 'Activate'}
+                                            >
+                                                {manager.status === 'active' ? (
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                    </svg>
+                                                ) : (
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                    </svg>
+                                                )}
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))
+                        ) : (
+                            <tr>
+                                <td colSpan={6} className="px-8 py-20 text-center">
+                                    <div className="flex flex-col items-center justify-center">
+                                        <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center mb-4">
+                                            <svg className="w-8 h-8 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                                            </svg>
+                                        </div>
+                                        <h3 className="text-sm font-bold text-gray-900">No Onboarding Managers Found</h3>
+                                        <p className="text-xs text-gray-500 mt-1">
+                                            You haven't onboarded any managers yet.
+                                        </p>
                                     </div>
                                 </td>
                             </tr>
-                        ))}
+                        )}
                     </tbody>
                 </table>
 
