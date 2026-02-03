@@ -50,12 +50,51 @@ export default function CentralAuthorityDashboardPage() {
                 </div>
             </div>
 
+            {/* Regional Performance */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                <div className="p-6 border-b border-gray-100 flex justify-between items-center">
+                    <h2 className="text-lg font-semibold text-gray-900">Regional Performance</h2>
+                    <Link href="/central-authority/dashboard/regions" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                        View All
+                    </Link>
+                </div>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm text-gray-600">
+                        <thead className="bg-gray-50 text-gray-900 font-medium border-b border-gray-100">
+                            <tr>
+                                <th className="px-6 py-3">Region Name</th>
+                                <th className="px-6 py-3">Managers</th>
+                                <th className="px-6 py-3">Properties</th>
+                                <th className="px-6 py-3">Leads</th>
+                                <th className="px-6 py-3">Detail</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-100">
+                            {regions.map((region) => (
+                                <tr key={region.id} className="hover:bg-gray-50 transition">
+                                    <td className="px-6 py-4 font-medium text-gray-900">{region.name}</td>
+                                    <td className="px-6 py-4">{region.managers.join(', ')}</td>
+                                    <td className="px-6 py-4">{region.propertiesCount}</td>
+                                    <td className="px-6 py-4">{region.leadsGenerated}</td>
+                                    <td className="px-6 py-4">
+                                        <Link href={`/central-authority/dashboard/regions/${region.id}`} className="text-blue-600 hover:underline">
+                                            View
+                                        </Link>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* City Allocation & Recent Activity Feed */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                {/* Region Performance Table */}
+                {/* City Allocation Table */}
                 <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
                     <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                        <h2 className="text-lg font-semibold text-gray-900">Regional Performance</h2>
-                        <Link href="/central-authority/dashboard/regions" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                        <h2 className="text-lg font-semibold text-gray-900">City Allocation</h2>
+                        <Link href="/central-authority/dashboard/city-allocation" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
                             View All
                         </Link>
                     </div>
@@ -63,23 +102,35 @@ export default function CentralAuthorityDashboardPage() {
                         <table className="w-full text-left text-sm text-gray-600">
                             <thead className="bg-gray-50 text-gray-900 font-medium border-b border-gray-100">
                                 <tr>
-                                    <th className="px-6 py-3">Region Name</th>
-                                    <th className="px-6 py-3">Managers</th>
-                                    <th className="px-6 py-3">Properties</th>
-                                    <th className="px-6 py-3">Leads</th>
-                                    <th className="px-6 py-3">Detail</th>
+                                    <th className="px-6 py-3">City Name</th>
+                                    <th className="px-6 py-3">Onboarding Managers</th>
+                                    <th className="px-6 py-3">Pending Properties</th>
+                                    <th className="px-6 py-3">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
-                                {regions.map((region) => (
-                                    <tr key={region.id} className="hover:bg-gray-50 transition">
-                                        <td className="px-6 py-4 font-medium text-gray-900">{region.name}</td>
-                                        <td className="px-6 py-4">{region.managers.join(', ')}</td>
-                                        <td className="px-6 py-4">{region.propertiesCount}</td>
-                                        <td className="px-6 py-4">{region.leadsGenerated}</td>
+                                {[
+                                    { name: 'Mumbai', managers: ['Rajesh Kumar'], pending: 12 },
+                                    { name: 'Pune', managers: ['Sneha Patil'], pending: 8 },
+                                    { name: 'Bangalore', managers: ['Amit Sharma'], pending: 15 },
+                                    { name: 'Hyderabad', managers: ['Priya Reddy'], pending: 10 },
+                                    { name: 'Delhi', managers: ['Vikram Singh'], pending: 20 },
+                                ].map((city, idx) => (
+                                    <tr key={idx} className="hover:bg-gray-50 transition">
+                                        <td className="px-6 py-4 font-medium text-gray-900">{city.name}</td>
                                         <td className="px-6 py-4">
-                                            <Link href={`/central-authority/dashboard/regions/${region.id}`} className="text-blue-600 hover:underline">
-                                                View
+                                            <div className="flex -space-x-2">
+                                                {city.managers.map((m, i) => (
+                                                    <div key={i} className="w-8 h-8 rounded-full bg-blue-100 border-2 border-white flex items-center justify-center text-[10px] font-bold text-blue-600" title={m}>
+                                                        {m.split(' ').map(n => n[0]).join('')}
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4 text-orange-600 font-semibold">{city.pending}</td>
+                                        <td className="px-6 py-4">
+                                            <Link href="/central-authority/dashboard/city-allocation" className="text-blue-600 hover:underline">
+                                                Manage
                                             </Link>
                                         </td>
                                     </tr>

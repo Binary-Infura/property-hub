@@ -5,9 +5,10 @@ interface RemoveAssignmentDialogProps {
     user: { firstName: string; lastName?: string; email: string; role: string } | null;
     onClose: () => void;
     onConfirm: () => void;
+    isCityContext?: boolean;
 }
 
-export default function RemoveAssignmentDialog({ isOpen, user, onClose, onConfirm }: RemoveAssignmentDialogProps) {
+export default function RemoveAssignmentDialog({ isOpen, user, onClose, onConfirm, isCityContext }: RemoveAssignmentDialogProps) {
     if (!isOpen || !user) return null;
 
     const getRoleName = (role: string) => {
@@ -33,7 +34,7 @@ export default function RemoveAssignmentDialog({ isOpen, user, onClose, onConfir
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                             </svg>
                         </div>
-                        <h2 className="text-xl font-bold text-gray-900 leading-tight">Revoke Jurisdiction</h2>
+                        <h2 className="text-xl font-bold text-gray-900 leading-tight">{isCityContext ? 'Revoke City Access' : 'Revoke Jurisdiction'}</h2>
                         <p className="text-[11px] font-black text-gray-400 uppercase tracking-[0.2em] mt-2 mb-8">Access Termination Protocol</p>
                     </div>
 
@@ -56,7 +57,7 @@ export default function RemoveAssignmentDialog({ isOpen, user, onClose, onConfir
                         </svg>
                         <p className="text-[12px] font-medium text-red-600 leading-relaxed">
                             <strong className="font-bold block text-[10px] uppercase tracking-wider mb-1">Impact Analysis</strong>
-                            The manager will immediately lose all operational access to the selected region. This action is irreversible without formal reassignment.
+                            The manager will immediately lose all operational access to the selected {isCityContext ? 'city' : 'region'}. This action is irreversible without formal reassignment.
                         </p>
                     </div>
                 </div>

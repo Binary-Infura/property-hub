@@ -28,7 +28,7 @@ interface RegionAllocation {
     assignedUsers: AssignedUser[];
 }
 
-type ManagerRole = 'regional-manager' | 'marketing-manager' | 'commission-manager' | 'onboarding-manager' | '';
+type ManagerRole = 'regional-manager' | 'marketing-manager' | 'commission-manager' | '';
 
 export default function RegionAllocationPage() {
     const { token } = useAuth();
@@ -293,8 +293,6 @@ export default function RegionAllocationPage() {
                 return 'bg-purple-100 text-purple-700';
             case 'commission-manager':
                 return 'bg-green-100 text-green-700';
-            case 'onboarding-manager':
-                return 'bg-orange-100 text-orange-700';
             default:
                 return 'bg-gray-100 text-gray-700';
         }
@@ -308,8 +306,6 @@ export default function RegionAllocationPage() {
                 return 'Marketing Manager';
             case 'commission-manager':
                 return 'Commission Manager';
-            case 'onboarding-manager':
-                return 'Onboarding Manager';
             default:
                 return role;
         }
@@ -396,7 +392,6 @@ export default function RegionAllocationPage() {
                         <option value="regional-manager">Regional Manager</option>
                         <option value="marketing-manager">Marketing Manager</option>
                         <option value="commission-manager">Commission Manager</option>
-                        <option value="onboarding-manager">Onboarding Manager</option>
                     </select>
                 </div>
                 <div className="flex-[1.5] min-w-[300px]">
@@ -461,117 +456,120 @@ export default function RegionAllocationPage() {
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
-                                {allocations.map((region) => (
-                                    <tr key={region.id} className="group hover:bg-gray-50/50 transition-all duration-300">
-                                        <td className="px-8 py-6">
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold text-xs ring-4 ring-blue-50/50">
-                                                    {region.code}
-                                                </div>
-                                                <div>
-                                                    <p className="font-bold text-gray-900 leading-tight">{region.name}</p>
-                                                    <div className="flex flex-wrap items-center gap-x-1.5 mt-1">
-                                                        {region.continent ? (
-                                                            <div className="flex items-center gap-1">
-                                                                <span className="text-[9px] font-black text-gray-300 uppercase tracking-tighter">Cnt:</span>
-                                                                <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">{region.continent}</span>
-                                                            </div>
-                                                        ) : null}
+                                {allocations.map((region) => {
+                                    const regionalAssignments = region.assignedUsers.filter(u => u.role !== 'onboarding-manager');
+                                    return (
+                                        <tr key={region.id} className="group hover:bg-gray-50/50 transition-all duration-300">
+                                            <td className="px-8 py-6">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-10 h-10 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center font-bold text-xs ring-4 ring-blue-50/50">
+                                                        {region.code}
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-bold text-gray-900 leading-tight">{region.name}</p>
+                                                        <div className="flex flex-wrap items-center gap-x-1.5 mt-1">
+                                                            {region.continent ? (
+                                                                <div className="flex items-center gap-1">
+                                                                    <span className="text-[9px] font-black text-gray-300 uppercase tracking-tighter">Cnt:</span>
+                                                                    <span className="text-[10px] font-bold text-blue-600 uppercase tracking-wider">{region.continent}</span>
+                                                                </div>
+                                                            ) : null}
 
-                                                        {region.country ? (
-                                                            <div className="flex items-center gap-1">
-                                                                {region.continent && <span className="text-[10px] text-gray-300 mr-0.5">•</span>}
-                                                                <span className="text-[9px] font-black text-gray-300 uppercase tracking-tighter">Cty:</span>
-                                                                <span className="text-[10px] font-medium text-gray-600 uppercase tracking-wider">{region.country}</span>
-                                                            </div>
-                                                        ) : null}
+                                                            {region.country ? (
+                                                                <div className="flex items-center gap-1">
+                                                                    {region.continent && <span className="text-[10px] text-gray-300 mr-0.5">•</span>}
+                                                                    <span className="text-[9px] font-black_text-gray-300 uppercase tracking-tighter">Cty:</span>
+                                                                    <span className="text-[10px] font-medium text-gray-600 uppercase tracking-wider">{region.country}</span>
+                                                                </div>
+                                                            ) : null}
 
-                                                        {region.state ? (
-                                                            <div className="flex items-center gap-1">
-                                                                {(region.continent || region.country) && <span className="text-[10px] text-gray-300 mr-0.5">•</span>}
-                                                                <span className="text-[9px] font-black text-gray-300 uppercase tracking-tighter">St:</span>
-                                                                <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">{region.state}</span>
-                                                            </div>
-                                                        ) : null}
+                                                            {region.state ? (
+                                                                <div className="flex items-center gap-1">
+                                                                    {(region.continent || region.country) && <span className="text-[10px] text-gray-300 mr-0.5">•</span>}
+                                                                    <span className="text-[9px] font-black text-gray-300 uppercase tracking-tighter">St:</span>
+                                                                    <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">{region.state}</span>
+                                                                </div>
+                                                            ) : null}
 
-                                                        {region.city ? (
-                                                            <div className="flex items-center gap-1">
-                                                                {(region.continent || region.country || region.state) && <span className="text-[10px] text-gray-300 mr-0.5">•</span>}
-                                                                <span className="text-[9px] font-black text-gray-300 uppercase tracking-tighter">Ct:</span>
-                                                                <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">{region.city}</span>
-                                                            </div>
-                                                        ) : null}
+                                                            {region.city ? (
+                                                                <div className="flex items-center gap-1">
+                                                                    {(region.continent || region.country || region.state) && <span className="text-[10px] text-gray-300 mr-0.5">•</span>}
+                                                                    <span className="text-[9px] font-black text-gray-300 uppercase tracking-tighter">Ct:</span>
+                                                                    <span className="text-[10px] font-medium text-gray-500 uppercase tracking-wider">{region.city}</span>
+                                                                </div>
+                                                            ) : null}
 
-                                                        {!region.continent && !region.country && !region.state && !region.city && (
-                                                            <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100 flex items-center gap-1">
-                                                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                                                </svg>
-                                                                Location Data Pending
-                                                            </span>
-                                                        )}
+                                                            {!region.continent && !region.country && !region.state && !region.city && (
+                                                                <span className="text-[10px] font-bold text-amber-500 uppercase tracking-widest bg-amber-50 px-1.5 py-0.5 rounded border border-amber-100 flex items-center gap-1">
+                                                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                                                    </svg>
+                                                                    Location Data Pending
+                                                                </span>
+                                                            )}
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </td>
-                                        <td className="px-8 py-6">
-                                            {region.assignedUsers.length === 0 ? (
-                                                <div className="flex items-center gap-2 text-gray-300">
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                                                    </svg>
-                                                    <span className="text-sm font-medium italic">Pending assignments</span>
+                                            </td>
+                                            <td className="px-8 py-6">
+                                                {regionalAssignments.length === 0 ? (
+                                                    <div className="flex items-center gap-2 text-gray-300">
+                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                                                        </svg>
+                                                        <span className="text-sm font-medium italic">Pending assignments</span>
+                                                    </div>
+                                                ) : (
+                                                    <div className="flex flex-col gap-3">
+                                                        {regionalAssignments.map((user) => (
+                                                            <div key={user.id} className="flex items-center gap-4 bg-white p-2.5 pr-4 rounded-xl border border-gray-100 shadow-sm group/user hover:border-blue-200 hover:shadow-md hover:shadow-blue-50/50 transition-all duration-300">
+                                                                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-500 border border-gray-200 shadow-inner group-hover/user:from-blue-50 group-hover/user:to-blue-100 group-hover/user:text-blue-600 group-hover/user:border-blue-200 transition-all">
+                                                                    {user.firstName[0]}{user.lastName ? user.lastName[0] : ''}
+                                                                </div>
+                                                                <div className="flex-1 min-w-0">
+                                                                    <p className="text-sm font-bold text-gray-900 truncate">{user.firstName} {user.lastName}</p>
+                                                                    <p className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md inline-block mt-0.5 uppercase tracking-tighter ${getRoleColor(user.role)}`}>
+                                                                        {getRoleName(user.role)}
+                                                                    </p>
+                                                                </div>
+                                                                <div className="flex gap-1 ml-auto opacity-0 group-hover/user:opacity-100 transition-all transform translate-x-2 group-hover/user:translate-x-0">
+                                                                    <button
+                                                                        onClick={() => handleEdit(user)}
+                                                                        className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors tooltip"
+                                                                        title="Edit assignment"
+                                                                    >
+                                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                                        </svg>
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={() => handleRemove(user, region.id)}
+                                                                        className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
+                                                                        title="Revoke access"
+                                                                    >
+                                                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                                        </svg>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                )}
+                                            </td>
+                                            <td className="px-8 py-6 text-right">
+                                                <div className="inline-flex flex-col items-end gap-1">
+                                                    <span className="text-xl font-black text-gray-900 leading-none">
+                                                        {regionalAssignments.length}
+                                                    </span>
+                                                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
+                                                        {regionalAssignments.length === 1 ? 'Liaison' : 'Liaisons'}
+                                                    </span>
                                                 </div>
-                                            ) : (
-                                                <div className="flex flex-col gap-3">
-                                                    {region.assignedUsers.map((user) => (
-                                                        <div key={user.id} className="flex items-center gap-4 bg-white p-2.5 pr-4 rounded-xl border border-gray-100 shadow-sm group/user hover:border-blue-200 hover:shadow-md hover:shadow-blue-50/50 transition-all duration-300">
-                                                            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-500 border border-gray-200 shadow-inner group-hover/user:from-blue-50 group-hover/user:to-blue-100 group-hover/user:text-blue-600 group-hover/user:border-blue-200 transition-all">
-                                                                {user.firstName[0]}{user.lastName ? user.lastName[0] : ''}
-                                                            </div>
-                                                            <div className="flex-1 min-w-0">
-                                                                <p className="text-sm font-bold text-gray-900 truncate">{user.firstName} {user.lastName}</p>
-                                                                <p className={`text-[10px] font-bold px-1.5 py-0.5 rounded-md inline-block mt-0.5 uppercase tracking-tighter ${getRoleColor(user.role)}`}>
-                                                                    {getRoleName(user.role)}
-                                                                </p>
-                                                            </div>
-                                                            <div className="flex gap-1 ml-auto opacity-0 group-hover/user:opacity-100 transition-all transform translate-x-2 group-hover/user:translate-x-0">
-                                                                <button
-                                                                    onClick={() => handleEdit(user)}
-                                                                    className="p-1.5 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors tooltip"
-                                                                    title="Edit assignment"
-                                                                >
-                                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                                                                    </svg>
-                                                                </button>
-                                                                <button
-                                                                    onClick={() => handleRemove(user, region.id)}
-                                                                    className="p-1.5 text-red-400 hover:bg-red-50 rounded-lg transition-colors"
-                                                                    title="Revoke access"
-                                                                >
-                                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                                    </svg>
-                                                                </button>
-                                                            </div>
-                                                        </div>
-                                                    ))}
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="px-8 py-6 text-right">
-                                            <div className="inline-flex flex-col items-end gap-1">
-                                                <span className="text-xl font-black text-gray-900 leading-none">
-                                                    {region.assignedUsers.length}
-                                                </span>
-                                                <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">
-                                                    {region.assignedUsers.length === 1 ? 'Liaison' : 'Liaisons'}
-                                                </span>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
                             </tbody>
                         </table>
                     </div>

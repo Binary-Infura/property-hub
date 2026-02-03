@@ -149,6 +149,11 @@ export class RegionsService {
         // Sync with Keycloak: Create group /regions/:code
         await this.keycloakAdmin.createRegionGroup(region.code, region.name);
 
+        // Ensure city group exists as well
+        if (region.city) {
+            await this.keycloakAdmin.createCityGroup(region.city);
+        }
+
         return region;
     }
 
@@ -187,13 +192,22 @@ export class RegionsService {
 
             if (!user) return;
 
-            // Sync groups
-            // First remove from all region groups to ensure fresh state
+            // First remove from all groups to ensure fresh state
             await this.keycloakAdmin.removeUserFromAllRegionGroups(user.email);
+            await this.keycloakAdmin.removeUserFromAllCityGroups(user.email);
 
-            // Add to new region groups
-            for (const region of user.regions) {
-                await this.keycloakAdmin.addUserToRegionGroup(user.email, region.code);
+            // Add to new groups based on role
+            if (user.role === 'onboarding-manager') {
+                // Onboarding Managers get access at city level
+                const cities = [...new Set(user.regions.map(r => r.city).filter(Boolean))];
+                for (const city of cities) {
+                    await this.keycloakAdmin.addUserToCityGroup(user.email, city);
+                }
+            } else {
+                // Strategic Managers (Regional, Marketing, Commission) get access at regional code level
+                for (const region of user.regions) {
+                    await this.keycloakAdmin.addUserToRegionGroup(user.email, region.code);
+                }
             }
         } catch (error) {
             console.error(`Failed to sync user ${userId} to Keycloak:`, error);

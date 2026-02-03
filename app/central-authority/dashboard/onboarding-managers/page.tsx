@@ -108,21 +108,32 @@ export default function OnboardingManagersPage() {
     const activeCount = managers.filter(m => m.status === 'active').length;
 
     if (loading && managers.length === 0) {
-        return <div className="p-8">Loading onboarding managers...</div>;
+        return (
+            <div className="flex flex-col items-center justify-center min-h-[60vh]">
+                <div className="w-12 h-12 border-4 border-orange-500/20 border-t-orange-500 rounded-full animate-spin"></div>
+                <p className="text-gray-400 mt-4 font-medium animate-pulse uppercase tracking-widest text-[10px]">Syncing Personnel Data...</p>
+            </div>
+        );
     }
 
     return (
-        <div className="p-8">
-            <div className="flex justify-between items-center mb-8">
+        <div className="space-y-8 animate-in fade-in duration-500">
+            {/* Header */}
+            <div className="flex justify-between items-end">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Onboarding Managers</h1>
-                    <p className="text-gray-600 mt-2">Manage managers responsible for onboarding properties and partners.</p>
+                    <h1 className="text-3xl font-bold text-gray-900 tracking-tight">Onboarding Managers</h1>
+                    <p className="text-gray-500 mt-2 text-sm max-w-lg leading-relaxed">
+                        Manage your elite property onboarding workforce. Add, update, or recalibrate access for managers responsible for metropolitan growth.
+                    </p>
                 </div>
                 <button
                     onClick={handleAddManager}
-                    className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition flex items-center gap-2"
+                    className="bg-orange-600 text-white px-6 py-3 rounded-xl hover:bg-orange-700 hover:shadow-lg hover:shadow-orange-200 transition-all transform active:scale-95 flex items-center gap-2 font-bold text-sm"
                 >
-                    <span>+</span> Add New Manager
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Add Onboarding Manager
                 </button>
             </div>
 
@@ -132,69 +143,85 @@ export default function OnboardingManagersPage() {
                 </div>
             )}
 
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+            <div className="bg-white rounded-2xl shadow-xl shadow-gray-100/50 border border-gray-100 overflow-hidden">
+                <table className="w-full">
+                    <thead className="bg-gray-50/50 border-b border-gray-100">
                         <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">First Name</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Name</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contact</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Region(s)</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Performance</th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            <th className="px-8 py-5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">Manager Identity</th>
+                            <th className="px-8 py-5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">Last Name</th>
+                            <th className="px-8 py-5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">Communication</th>
+                            <th className="px-8 py-5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">Assigned Cities</th>
+                            <th className="px-8 py-5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">Status</th>
+                            <th className="px-8 py-5 text-right text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">Operations</th>
                         </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="divide-y divide-gray-50">
                         {managers.map((manager) => (
-                            <tr key={manager.id} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="flex items-center">
-                                        <div className="h-10 w-10 bg-indigo-100 rounded-full flex items-center justify-center text-indigo-700 font-bold">
+                            <tr key={manager.id} className="group hover:bg-gray-50/50 transition-all duration-300">
+                                <td className="px-8 py-6">
+                                    <div className="flex items-center gap-4">
+                                        <div className="w-10 h-10 bg-orange-50 text-orange-600 rounded-xl flex items-center justify-center font-bold text-xs ring-4 ring-orange-50/50 group-hover:scale-110 transition-transform duration-300 uppercase">
                                             {manager.firstName.charAt(0)}
                                         </div>
-                                        <div className="ml-4">
-                                            <div className="text-sm font-medium text-gray-900">
-                                                {manager.firstName}
-                                            </div>
-                                            <div className="text-xs text-gray-500">Joined {new Date(manager.createdAt).toLocaleDateString()}</div>
+                                        <div>
+                                            <p className="font-bold text-gray-900 leading-tight">{manager.firstName}</p>
+                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">Joined {new Date(manager.createdAt).toLocaleDateString()}</p>
                                         </div>
                                     </div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                <td className="px-8 py-6 text-sm font-bold text-gray-700">
                                     {manager.lastName || '-'}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-900">{manager.email}</div>
-                                    <div className="text-sm text-gray-500">{manager.phone || 'N/A'}</div>
+                                <td className="px-8 py-6">
+                                    <div className="text-sm font-bold text-gray-900">{manager.email}</div>
+                                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">{manager.phone || 'NO DIRECT PHONE'}</div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
-                                        {manager.regions?.map(r => r.name).join(', ') || 'N/A'}
-                                    </span>
+                                <td className="px-8 py-6">
+                                    <div className="flex flex-wrap gap-1">
+                                        {manager.regions?.length ? (
+                                            manager.regions.map(r => (
+                                                <span key={r.id} className="px-2 py-0.5 bg-gray-100 text-[9px] font-black text-gray-500 rounded uppercase tracking-wider">
+                                                    {r.city || r.name}
+                                                </span>
+                                            ))
+                                        ) : (
+                                            <span className="text-[10px] font-bold text-gray-300 italic">No scope assigned</span>
+                                        )}
+                                    </div>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="text-sm text-gray-900">N/A Properties</div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${manager.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                <td className="px-8 py-6">
+                                    <span className={`px-2 py-1 text-[9px] font-black rounded-md uppercase tracking-wider ${manager.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
                                         }`}>
                                         {manager.status}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <button
-                                        onClick={() => handleEditManager(manager)}
-                                        className="text-blue-600 hover:text-blue-900 mr-4"
-                                    >
-                                        Edit
-                                    </button>
-                                    <button
-                                        onClick={() => handleToggleStatus(manager.id)}
-                                        className={`${manager.status === 'active' ? 'text-red-600 hover:text-red-900' : 'text-green-600 hover:text-green-900'}`}
-                                    >
-                                        {manager.status === 'active' ? 'Deactivate' : 'Activate'}
-                                    </button>
+                                <td className="px-8 py-6 text-right">
+                                    <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                                        <button
+                                            onClick={() => handleEditManager(manager)}
+                                            className="p-2 text-blue-500 hover:bg-blue-50 rounded-xl transition-all"
+                                            title="Edit Profile"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                            </svg>
+                                        </button>
+                                        <button
+                                            onClick={() => handleToggleStatus(manager.id)}
+                                            className={`p-2 rounded-xl transition-all ${manager.status === 'active' ? 'text-red-500 hover:bg-red-50' : 'text-green-500 hover:bg-green-50'}`}
+                                            title={manager.status === 'active' ? 'Deactivate' : 'Activate'}
+                                        >
+                                            {manager.status === 'active' ? (
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                </svg>
+                                            ) : (
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                </svg>
+                                            )}
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         ))}
@@ -202,23 +229,23 @@ export default function OnboardingManagersPage() {
                 </table>
 
                 {!loading && totalCount > 0 && (
-                    <div className="px-6 py-4 bg-gray-50 border-t border-gray-200 flex items-center justify-between">
-                        <div className="text-sm text-gray-500">
-                            Showing <span className="font-medium text-gray-900">{Math.min((currentPage - 1) * itemsPerPage + 1, totalCount)}</span> to <span className="font-medium text-gray-900">{Math.min(currentPage * itemsPerPage, totalCount)}</span> of <span className="font-medium text-gray-900">{totalCount}</span> managers
+                    <div className="px-8 py-5 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
+                        <div className="text-[12px] font-medium text-gray-400 tracking-wide">
+                            Showing <span className="text-gray-900 font-bold">{Math.min((currentPage - 1) * itemsPerPage + 1, totalCount)}</span> to <span className="text-gray-900 font-bold">{Math.min(currentPage * itemsPerPage, totalCount)}</span> of <span className="text-gray-900 font-bold">{totalCount}</span> experts
                         </div>
                         {totalPages > 1 && (
                             <div className="flex gap-2">
                                 <button
                                     onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
                                     disabled={currentPage === 1}
-                                    className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    className="px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                 >
                                     Previous
                                 </button>
                                 <button
                                     onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
                                     disabled={currentPage === totalPages}
-                                    className="px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                                    className="px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
                                 >
                                     Next
                                 </button>
@@ -230,11 +257,14 @@ export default function OnboardingManagersPage() {
 
             {(showAddModal || showEditModal) && (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-in zoom-in-95 duration-200">
+                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-in zoom-in-95 duration-200 flex flex-col">
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                            <h2 className="text-xl font-bold text-gray-900">
-                                {showEditModal ? 'Edit Onboarding Manager' : 'Add Onboarding Manager'}
-                            </h2>
+                            <div>
+                                <h2 className="text-xl font-bold text-gray-900 leading-tight">
+                                    {showEditModal ? 'Scale Profile' : 'Onboard New Expert'}
+                                </h2>
+                                <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-1">Identity Configuration</p>
+                            </div>
                             <button
                                 onClick={() => {
                                     setShowAddModal(false);
@@ -249,67 +279,67 @@ export default function OnboardingManagersPage() {
                             </button>
                         </div>
 
-                        <div className="p-6 space-y-5">
+                        <div className="p-8 space-y-6">
                             <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">First Name</label>
+                                <div className="space-y-2">
+                                    <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] ml-1">First Name</label>
                                     <input
                                         type="text"
                                         value={formData.firstName}
                                         onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
-                                        placeholder="Enter first name"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm font-medium"
+                                        placeholder="Alpha"
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Last Name</label>
+                                <div className="space-y-2">
+                                    <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] ml-1">Last Name</label>
                                     <input
                                         type="text"
                                         value={formData.lastName}
                                         onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
-                                        placeholder="Enter last name"
+                                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm font-medium"
+                                        placeholder="Manager"
                                     />
                                 </div>
                             </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
+                            <div className="space-y-2">
+                                <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] ml-1">Corporate Email</label>
                                 <input
                                     type="email"
                                     value={formData.email}
                                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm font-medium disabled:opacity-50"
                                     disabled={showEditModal}
-                                    placeholder="Enter email address"
+                                    placeholder="expert@propertyhub.com"
                                 />
                             </div>
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone</label>
+                            <div className="space-y-2">
+                                <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] ml-1">Primary Phone</label>
                                 <input
                                     type="tel"
                                     value={formData.phone}
                                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
-                                    placeholder="Enter phone number"
+                                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm font-medium"
+                                    placeholder="+1 (555) 000-0000"
                                 />
                             </div>
 
-                            <div className="flex gap-3 pt-2">
+                            <div className="flex gap-3 pt-4">
                                 <button
                                     onClick={() => {
                                         setShowAddModal(false);
                                         setShowEditModal(false);
                                         setFormData({ firstName: '', lastName: '', email: '', phone: '' });
                                     }}
-                                    className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all text-sm"
+                                    className="flex-1 px-6 py-3 text-sm font-bold text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-xl transition-all"
                                 >
-                                    Cancel
+                                    Abort
                                 </button>
                                 <button
                                     onClick={handleSaveManager}
-                                    className="flex-1 px-4 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-200 text-sm"
+                                    className="flex-[1.5] px-6 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 font-bold text-sm transition-all shadow-lg shadow-orange-200 transform active:scale-95"
                                 >
-                                    {showEditModal ? 'Save Changes' : 'Add Manager'}
+                                    {showEditModal ? 'Commit Changes' : 'Execute Onboarding'}
                                 </button>
                             </div>
                         </div>

@@ -1,6 +1,7 @@
 import { Module, Global } from '@nestjs/common';
 import { RolesGuard } from '../auth/guards/roles.guard';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
+import { RegionGuard } from '../auth/guards/region.guard';
 import { PrismaService } from '../database/prisma.service';
 import { KeycloakModule } from './services/keycloak/keycloak.module';
 
@@ -16,11 +17,13 @@ import { KeycloakModule } from './services/keycloak/keycloak.module';
     providers: [
         RolesGuard,
         JwtAuthGuard,
+        RegionGuard,
         PrismaService,
     ],
     exports: [
         RolesGuard,
         JwtAuthGuard,
+        RegionGuard,
         PrismaService,
         KeycloakModule,
     ],

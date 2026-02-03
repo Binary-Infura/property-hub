@@ -8,6 +8,9 @@ interface AssignRoleModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
+    initialRole?: RoleId;
+    fixedRole?: boolean;
+    isCityContext?: boolean;
 }
 
 interface User {
@@ -24,11 +27,13 @@ interface Region {
     code: string;
     continent?: string;
     country?: string;
+    state?: string;
+    city?: string;
 }
 
-export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRoleModalProps) {
+export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRole, fixedRole, isCityContext }: AssignRoleModalProps) {
     const { token } = useAuth();
-    const [role, setRole] = useState<RoleId>('regional-manager');
+    const [role, setRole] = useState<RoleId>(initialRole || 'regional-manager');
     const [selectedUserId, setSelectedUserId] = useState('');
     const [selectedRegionIds, setSelectedRegionIds] = useState<string[]>([]);
     const [users, setUsers] = useState<User[]>([]);
@@ -47,12 +52,22 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRo
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-    const ASSIGNABLE_ROLES: RoleId[] = [
+    const ALL_ROLES: RoleId[] = [
         'regional-manager',
         'marketing-manager',
         'commission-manager',
         'onboarding-manager',
     ];
+
+    const ASSIGNABLE_ROLES = isCityContext
+        ? ['onboarding-manager' as RoleId]
+        : ALL_ROLES.filter(r => r !== 'onboarding-manager');
+
+    useEffect(() => {
+        if (isOpen && initialRole) {
+            setRole(initialRole);
+        }
+    }, [isOpen, initialRole]);
 
     useEffect(() => {
         if (isOpen) {
@@ -232,7 +247,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRo
     };
 
     const resetForm = () => {
-        setRole('regional-manager');
+        setRole(initialRole || 'regional-manager');
         setSelectedUserId('');
         setSelectedRegionIds([]);
         setUserSearch('');
@@ -251,7 +266,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRo
             <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden transform transition-all animate-in zoom-in-95 duration-200 flex flex-col">
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900 leading-tight">Assign Manager to Regions</h2>
+                        <h2 className="text-xl font-bold text-gray-900 leading-tight">{isCityContext ? 'Assign Manager to Cities' : 'Assign Manager to Regions'}</h2>
                         <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-1">Assignment Orchestrator</p>
                     </div>
                     <button onClick={handleClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
@@ -263,23 +278,25 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRo
 
                 <div className="p-8 space-y-8 overflow-y-auto flex-1">
                     {/* Role Selection */}
-                    <div className="space-y-3">
-                        <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] ml-1">1. Select Strategic Role</label>
-                        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-                            {ASSIGNABLE_ROLES.map((r) => (
-                                <button
-                                    key={r}
-                                    onClick={() => setRole(r)}
-                                    className={`px-3 py-2 rounded-xl border text-[9px] font-bold uppercase tracking-wider transition-all h-12 flex items-center justify-center text-center ${role === r
-                                        ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200'
-                                        : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'
-                                        }`}
-                                >
-                                    {r.replace(/-/g, ' ').replace('property ', '')}
-                                </button>
-                            ))}
+                    {!fixedRole && (
+                        <div className="space-y-3">
+                            <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] ml-1">1. Select Strategic Role</label>
+                            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+                                {ASSIGNABLE_ROLES.map((r) => (
+                                    <button
+                                        key={r}
+                                        onClick={() => setRole(r)}
+                                        className={`px-3 py-2 rounded-xl border text-[9px] font-bold uppercase tracking-wider transition-all h-12 flex items-center justify-center text-center ${role === r
+                                            ? 'bg-blue-600 border-blue-600 text-white shadow-lg shadow-blue-200'
+                                            : 'bg-white border-gray-200 text-gray-500 hover:border-gray-300 hover:bg-gray-50'
+                                            }`}
+                                    >
+                                        {r.replace(/-/g, ' ').replace('property ', '')}
+                                    </button>
+                                ))}
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     {/* User Search */}
                     <div className="space-y-4">
@@ -337,7 +354,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRo
                     {/* Region Selection */}
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] ml-1">3. Scope Selection ({selectedRegionIds.length} Jurisdictions)</label>
+                            <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] ml-1">3. Scope Selection ({selectedRegionIds.length} {isCityContext ? 'Cities' : 'Regions'})</label>
                             <div className="flex flex-wrap gap-2 justify-end max-w-[60%]">
                                 <select
                                     value={continentFilter}
@@ -394,7 +411,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess }: AssignRo
                                         )}
                                     </div>
                                     <div className="min-w-0">
-                                        <p className={`text-sm font-bold transition-colors ${selectedRegionIds.includes(region.id) ? 'text-blue-600' : 'text-gray-900'}`}>{region.name}</p>
+                                        <p className={`text-sm font-bold transition-colors ${selectedRegionIds.includes(region.id) ? 'text-blue-600' : 'text-gray-900'}`}>{isCityContext ? (region.city || region.name) : region.name}</p>
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter mt-1">{region.code}</p>
                                     </div>
                                 </div>

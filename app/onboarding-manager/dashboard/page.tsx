@@ -19,13 +19,16 @@ export default function OnboardingManagerDashboard() {
 
     useEffect(() => {
         const fetchDashboardData = async () => {
-            if (!token || !activeContext.activeRegion.code) return;
+            if (!token || activeContext.activeRegion.code === 'no-region') {
+                setLoading(false);
+                return;
+            }
             try {
                 setLoading(true);
-                const regionCode = activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined;
+                const regionCode = activeContext.activeRegion.code;
 
                 const [properties, partners, providers] = await Promise.all([
-                    propertyService.getAll(token, activeContext.activeRegion.code, true),
+                    propertyService.getAll(token, regionCode, true),
                     userService.getAllByRole('property-partner', token, regionCode, true),
                     userService.getAllByRole('service-provider', token, regionCode, true),
                 ]);
@@ -47,7 +50,7 @@ export default function OnboardingManagerDashboard() {
 
     const recentActivities = [
         { id: 1, action: 'Live Integration', subject: 'Dashboard now connected to real data', time: 'Just now', status: 'success' },
-        { id: 2, action: 'Region Filter', subject: `Showing data for ${activeContext.activeRegion.name}`, time: 'Active', status: 'success' },
+        { id: 2, action: 'City Filter', subject: `Showing data for ${activeContext.activeRegion.city || activeContext.activeRegion.name}`, time: 'Active', status: 'success' },
     ];
 
     return (
@@ -56,7 +59,7 @@ export default function OnboardingManagerDashboard() {
             <div className="bg-gradient-to-r from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-lg overflow-hidden relative">
                 <div className="relative z-10">
                     <h1 className="text-3xl font-bold mb-2 text-white">Welcome back, {user?.name?.split(' ')[0] || 'Manager'}! 👋</h1>
-                    <p className="text-blue-100 text-lg">Here's what's happening in <span className="font-bold underline text-white">{activeContext.activeRegion.name}</span> today.</p>
+                    <p className="text-blue-100 text-lg">Here's what's happening in <span className="font-bold underline text-white">{activeContext.activeRegion.city || activeContext.activeRegion.name}</span> today.</p>
                 </div>
                 {/* Decorative Elements */}
                 <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-20 -mt-20 blur-3xl"></div>

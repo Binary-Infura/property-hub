@@ -84,7 +84,7 @@ export default function MyPropertyPartnersPage() {
                         : 'text-gray-500 hover:text-gray-700'
                         }`}
                 >
-                    All Partners ({activeContext.activeRegion.name})
+                    All Partners ({activeContext.activeRegion.city || activeContext.activeRegion.name})
                 </button>
             </div>
 
@@ -120,11 +120,11 @@ export default function MyPropertyPartnersPage() {
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex items-center">
                                         <div className="h-10 w-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-700 font-bold shadow-sm">
-                                            {(partner.agencyName || partner.name || 'P').charAt(0)}
+                                            {(partner.agencyName || partner.firstName || 'P').charAt(0)}
                                         </div>
                                         <div className="ml-4">
                                             <div className="text-sm font-bold text-gray-900">{partner.agencyName || 'No Agency'}</div>
-                                            <div className="text-xs text-gray-500">{partner.name}</div>
+                                            <div className="text-xs text-gray-500">{partner.firstName} {partner.lastName}</div>
                                         </div>
                                     </div>
                                 </td>

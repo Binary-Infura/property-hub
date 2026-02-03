@@ -123,6 +123,49 @@ export class KeycloakAdminService implements OnModuleInit {
     }
 
     /**
+     * Create a city group in Keycloak
+     * Path: /cities/:cityName
+     */
+    async createCityGroup(cityName: string) {
+        if (!cityName) return;
+        const client = await this.getClient();
+        const citySlug = cityName.toLowerCase().replace(/\s+/g, '-');
+
+        try {
+            // 1. Ensure /cities parent group exists
+            let citiesParent = (await client.groups.find({ realm: this.realm }))
+                .find(g => g.name === 'cities');
+
+            if (!citiesParent) {
+                const created = await client.groups.create({
+                    realm: this.realm,
+                    name: 'cities',
+                });
+                citiesParent = await client.groups.findOne({ realm: this.realm, id: created.id });
+            }
+
+            // 2. Create the specific city subgroup
+            await client.groups.createChildGroup({
+                realm: this.realm,
+                id: citiesParent.id,
+            }, {
+                name: citySlug,
+                attributes: {
+                    displayName: [cityName]
+                }
+            });
+
+            console.log(`Successfully created Keycloak group: /cities/${citySlug}`);
+        } catch (error: any) {
+            // Ignore if group already exists (409)
+            if (error.response?.status !== 409) {
+                console.error(`Failed to create Keycloak group /cities/${citySlug}:`, error);
+                // Non-blocking but warn
+            }
+        }
+    }
+
+    /**
      * Add a user to a specific region group
      */
     async addUserToRegionGroup(email: string, regionCode: string) {
@@ -156,6 +199,86 @@ export class KeycloakAdminService implements OnModuleInit {
             console.log(`Successfully added ${email} to Keycloak group: /regions/${regionCode}`);
         } catch (error) {
             console.error(`Failed to add user ${email} to region group ${regionCode}:`, error);
+        }
+    }
+
+    /**
+     * Add a user to a specific city group
+     */
+    async addUserToCityGroup(email: string, cityName: string) {
+        if (!cityName) return;
+        const client = await this.getClient();
+        const citySlug = cityName.toLowerCase().replace(/\s+/g, '-');
+
+        try {
+            const users = await client.users.find({ realm: this.realm, email });
+            if (users.length === 0) return;
+            const user = users[0];
+
+            // 1. Find the group
+            const groups = await client.groups.find({ realm: this.realm });
+            const citiesParent = groups.find(g => g.name === 'cities');
+            if (!citiesParent) return;
+
+            const cityGroup = (await client.groups.listSubGroups({
+                parentId: citiesParent.id,
+                realm: this.realm
+            })).find(g => g.name === citySlug);
+
+            if (!cityGroup) {
+                console.warn(`City group ${citySlug} not found in Keycloak. Attempting to create it.`);
+                await this.createCityGroup(cityName);
+                return this.addUserToCityGroup(email, cityName); // Retry
+            }
+
+            // 2. Add user to group
+            await client.users.addToGroup({
+                realm: this.realm,
+                id: user.id,
+                groupId: cityGroup.id
+            });
+            console.log(`Successfully added ${email} to Keycloak group: /cities/${citySlug}`);
+        } catch (error) {
+            console.error(`Failed to add user ${email} to city group ${citySlug}:`, error);
+        }
+    }
+
+    /**
+     * Remove a user from all city groups
+     */
+    async removeUserFromAllCityGroups(email: string) {
+        const client = await this.getClient();
+        try {
+            const users = await client.users.find({ realm: this.realm, email });
+            if (users.length === 0) return;
+            const user = users[0];
+
+            const userGroups = await client.users.listGroups({
+                realm: this.realm,
+                id: user.id
+            });
+
+            const groups = await client.groups.find({ realm: this.realm });
+            const citiesParent = groups.find(g => g.name === 'cities');
+            if (!citiesParent) return;
+
+            const cityGroups = await client.groups.listSubGroups({
+                parentId: citiesParent.id,
+                realm: this.realm
+            });
+            const cityGroupIds = cityGroups.map(g => g.id);
+
+            for (const group of userGroups) {
+                if (cityGroupIds.includes(group.id)) {
+                    await client.users.delFromGroup({
+                        realm: this.realm,
+                        id: user.id,
+                        groupId: group.id
+                    });
+                }
+            }
+        } catch (error) {
+            console.error(`Failed to remove user ${email} from city groups:`, error);
         }
     }
 

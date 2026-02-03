@@ -38,7 +38,7 @@ export default function OnboardingPropertiesPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">Properties Inventory</h1>
-                    <p className="text-gray-600 mt-1">Manage and track property onboarding across regions.</p>
+                    <p className="text-gray-600 mt-1">Manage and track property onboarding across cities.</p>
                 </div>
                 <button
                     onClick={() => { const el = document.getElementById('pom-add-property-modal'); if (el) el.classList.remove('hidden'); }}
@@ -69,7 +69,7 @@ export default function OnboardingPropertiesPage() {
                         : 'text-gray-500 hover:text-gray-700'
                         }`}
                 >
-                    All Properties ({activeContext.activeRegion.name})
+                    All Properties ({activeContext.activeRegion.city || activeContext.activeRegion.name})
                 </button>
             </div>
 

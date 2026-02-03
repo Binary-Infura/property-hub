@@ -17,7 +17,8 @@ export default function UnifiedContextSwitcher() {
     const displayName = firstName || lastName ? `${firstName} ${lastName}`.trim() : (user?.name || 'User');
     const isCentralAuthority = roles.includes('central-authority');
     const activeRoleName = activeContext.activeRole.name;
-    const activeRegionName = activeContext.activeRegion.name;
+    const isOM = activeContext.activeRole.id === 'onboarding-manager';
+    const activeRegionName = isOM ? (activeContext.activeRegion.city || activeContext.activeRegion.name) : activeContext.activeRegion.name;
 
     // Avatar URL - use user's name for a better fallback
     const avatarUrl = user ? `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0D8ABC&color=fff` : currentUser.avatar;
@@ -86,7 +87,7 @@ export default function UnifiedContextSwitcher() {
                         </span>
                         {!isCentralAuthority && !isBuyer && (
                             <span className="text-[10px] text-blue-600 font-medium">
-                                {activeRegionName}
+                                {activeContext.activeRegion.id === 'no-region' && isOM ? 'No City Allocated' : activeRegionName}
                             </span>
                         )}
                     </div>
@@ -107,26 +108,41 @@ export default function UnifiedContextSwitcher() {
                     {!isRestricted && (
                         <div className="flex flex-col h-[320px]">
                             <div className="p-3 border-b border-gray-100 bg-gray-50">
-                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">Regions</span>
+                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{isOM ? 'Cities' : 'Regions'}</span>
                             </div>
                             <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                                {currentUser.availableRegions.map(region => (
-                                    <button
-                                        key={region.id}
-                                        onClick={() => setSelectedRegionId(region.id)}
-                                        className={`w-full text-left px-3 py-2.5 rounded-md text-sm font-medium transition-all ${selectedRegionId === region.id
-                                            ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100'
-                                            : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                                            }`}
-                                    >
-                                        <div className="flex justify-between items-center">
-                                            <span>{region.name}</span>
-                                            {selectedRegionId === region.id && (
-                                                <div className="w-1.5 h-1.5 rounded-full bg-blue-600"></div>
-                                            )}
-                                        </div>
-                                    </button>
-                                ))}
+                                {(() => {
+                                    const displayedItems = isOM
+                                        ? currentUser.availableRegions.filter((region, index, self) =>
+                                            index === self.findIndex((r) => (r.city || r.name) === (region.city || region.name))
+                                        )
+                                        : currentUser.availableRegions;
+
+                                    return displayedItems.map(region => {
+                                        const displayName = isOM ? (region.city || region.name) : region.name;
+                                        const isSelected = isOM
+                                            ? (currentRegionDisplay?.city || currentRegionDisplay?.name) === displayName
+                                            : selectedRegionId === region.id;
+
+                                        return (
+                                            <button
+                                                key={region.id}
+                                                onClick={() => setSelectedRegionId(region.id)}
+                                                className={`w-full text-left px-3 py-2.5 rounded-md text-sm font-medium transition-all ${isSelected
+                                                    ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100'
+                                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+                                                    }`}
+                                            >
+                                                <div className="flex justify-between items-center font-bold">
+                                                    <span>{region.id === 'no-region' && isOM ? 'No City Allocated' : displayName}</span>
+                                                    {isSelected && (
+                                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-600 ring-4 ring-blue-50"></div>
+                                                    )}
+                                                </div>
+                                            </button>
+                                        );
+                                    });
+                                })()}
                             </div>
                         </div>
                     )}
@@ -138,7 +154,9 @@ export default function UnifiedContextSwitcher() {
                                 <div className="flex flex-col">
                                     <span className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold mb-1">Switching to</span>
                                     <div className="flex items-center gap-2 text-sm text-gray-900">
-                                        <span className="font-semibold">{currentRegionDisplay?.name}</span>
+                                        <span className="font-semibold">
+                                            {currentRegionDisplay?.id === 'no-region' && isOM ? 'No City Allocated' : (isOM ? (currentRegionDisplay?.city || currentRegionDisplay?.name) : currentRegionDisplay?.name)}
+                                        </span>
                                     </div>
                                 </div>
                                 <button

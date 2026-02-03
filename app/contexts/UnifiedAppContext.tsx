@@ -31,6 +31,8 @@ export interface Region {
     id: string;
     name: string;
     code: string;
+    city?: string;
+    state?: string;
 }
 
 export interface UserContextData {
@@ -186,7 +188,9 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
                     allRegions = result.data.map((r: any) => ({
                         id: r.id,
                         name: r.name,
-                        code: r.code
+                        code: r.code,
+                        city: r.city,
+                        state: r.state
                     }));
                 }
             } catch (e) {
@@ -199,13 +203,27 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
                 try {
                     // 2. Filter available regions based on Keycloak groups
                     const groups = (user.groups || []) as string[];
-                    const userRegionCodes = groups
-                        .map(g => g.startsWith('/regions/') ? g.replace('/regions/', '') : g)
-                        .filter(g => g !== 'regions');
 
-                    userRegions = allRegions.filter(region =>
-                        userRegionCodes.includes(region.code)
-                    );
+                    const userRegionCodes = groups
+                        .filter(g => g.startsWith('/regions/'))
+                        .map(g => g.replace('/regions/', ''));
+
+                    const userCitySlugs = groups
+                        .filter(g => g.startsWith('/cities/'))
+                        .map(g => g.replace('/cities/', ''));
+
+                    userRegions = allRegions.filter(region => {
+                        // Check if direct region match
+                        if (userRegionCodes.includes(region.code)) return true;
+
+                        // Check if city match (converting city name to slug like backend does)
+                        if (region.city) {
+                            const citySlug = region.city.toLowerCase().replace(/\s+/g, '-');
+                            if (userCitySlugs.includes(citySlug)) return true;
+                        }
+
+                        return false;
+                    });
                 } catch (e) {
                     console.error("Failed to solve regions from user groups:", e);
                 }

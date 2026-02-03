@@ -67,7 +67,7 @@ export default function OnboardingServiceProvidersPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">Service Providers</h1>
-                    <p className="text-gray-600 mt-1">Onboard and assign service providers across regions.</p>
+                    <p className="text-gray-600 mt-1">Onboard and assign service providers across cities.</p>
                 </div>
                 <button
                     onClick={() => setShowAddModal(true)}
@@ -110,7 +110,7 @@ export default function OnboardingServiceProvidersPage() {
                         : 'text-gray-500 hover:text-gray-700'
                         }`}
                 >
-                    All Providers ({activeContext.activeRegion.name})
+                    All Providers ({activeContext.activeRegion.city || activeContext.activeRegion.name})
                 </button>
             </div>
 
@@ -148,7 +148,7 @@ export default function OnboardingServiceProvidersPage() {
                                 <tr key={sp.id} className="hover:bg-gray-50/50 transition-colors">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex flex-col">
-                                            <p className="text-sm font-bold text-gray-900">{sp.agencyName || sp.name}</p>
+                                            <p className="text-sm font-bold text-gray-900">{sp.agencyName || (sp.firstName + ' ' + sp.lastName)}</p>
                                             <p className="text-xs text-gray-500 capitalize">{sp.role || 'Service'}</p>
                                         </div>
                                     </td>
@@ -228,7 +228,7 @@ export default function OnboardingServiceProvidersPage() {
             {showAssignModal && selectedProvider && (
                 <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
                     <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">Assign {selectedProvider.name}</h2>
+                        <h2 className="text-xl font-bold text-gray-900 mb-4">Assign {selectedProvider.firstName} {selectedProvider.lastName}</h2>
                         <p className="text-gray-600 mb-4">Assign this provider to a Property Partner or region.</p>
 
                         <div className="space-y-4">
@@ -259,7 +259,7 @@ export default function OnboardingServiceProvidersPage() {
                             </button>
                             <button
                                 onClick={() => {
-                                    alert(`Assigned ${selectedProvider.name} successfully!`);
+                                    alert(`Assigned ${selectedProvider.firstName} ${selectedProvider.lastName} successfully!`);
                                     setShowAssignModal(false);
                                 }}
                                 className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"

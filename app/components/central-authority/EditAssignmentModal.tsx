@@ -8,15 +8,17 @@ interface EditAssignmentModalProps {
     user: { id: string; firstName: string; lastName?: string; email: string; role: string } | null;
     onClose: () => void;
     onSuccess: () => void;
+    isCityContext?: boolean;
 }
 
 interface Region {
     id: string;
     name: string;
     code: string;
+    city?: string;
 }
 
-export default function EditAssignmentModal({ isOpen, user, onClose, onSuccess }: EditAssignmentModalProps) {
+export default function EditAssignmentModal({ isOpen, user, onClose, onSuccess, isCityContext }: EditAssignmentModalProps) {
     const { token } = useAuth();
     const [selectedRegionIds, setSelectedRegionIds] = useState<string[]>([]);
     const [allRegions, setAllRegions] = useState<Region[]>([]);
@@ -114,7 +116,7 @@ export default function EditAssignmentModal({ isOpen, user, onClose, onSuccess }
             <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden transform transition-all animate-in zoom-in-95 duration-200 flex flex-col">
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900 leading-tight">Edit Region Assignment</h2>
+                        <h2 className="text-xl font-bold text-gray-900 leading-tight">{isCityContext ? 'Edit City Assignment' : 'Edit Region Assignment'}</h2>
                         <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-1">Scope Calibration</p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
@@ -152,7 +154,7 @@ export default function EditAssignmentModal({ isOpen, user, onClose, onSuccess }
                             {/* Region Selection */}
                             <div className="space-y-4">
                                 <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] ml-1">
-                                    Jurisdiction Scope ({selectedRegionIds.length} active)
+                                    {isCityContext ? 'City Scope' : 'Jurisdiction Scope'} ({selectedRegionIds.length} active)
                                 </label>
                                 <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-200">
                                     {allRegions.map((region) => (
@@ -175,7 +177,7 @@ export default function EditAssignmentModal({ isOpen, user, onClose, onSuccess }
                                                 )}
                                             </div>
                                             <div className="min-w-0">
-                                                <p className={`text-sm font-bold transition-colors ${selectedRegionIds.includes(region.id) ? 'text-blue-600' : 'text-gray-900'}`}>{region.name}</p>
+                                                <p className={`text-sm font-bold transition-colors ${selectedRegionIds.includes(region.id) ? 'text-blue-600' : 'text-gray-900'}`}>{isCityContext ? (region.city || region.name) : region.name}</p>
                                                 <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter mt-1">{region.code}</p>
                                             </div>
                                         </div>
