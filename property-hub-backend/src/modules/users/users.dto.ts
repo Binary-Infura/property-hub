@@ -129,6 +129,23 @@ export class CreateUserDto {
     @IsString()
     @IsOptional()
     portfolio?: string;
+
+    // Property Partner Profile Fields
+    @IsString()
+    @IsOptional()
+    companyName?: string;
+
+    @IsString()
+    @IsOptional()
+    companyAddress?: string;
+
+    @IsString()
+    @IsOptional()
+    taxId?: string;
+
+    @IsString()
+    @IsOptional()
+    licenseNumber?: string;
 }
 
 export class UpdateUserDto {
@@ -192,4 +209,65 @@ export class UpdateUserDto {
     @IsString()
     @IsOptional()
     portfolio?: string;
+
+    // Property Partner Profile Fields
+    @IsString()
+    @IsOptional()
+    companyName?: string;
+
+    @IsString()
+    @IsOptional()
+    companyAddress?: string;
+
+    @IsString()
+    @IsOptional()
+    taxId?: string;
+
+    @IsString()
+    @IsOptional()
+    licenseNumber?: string;
+}
+
+export class UpdateProfileDto {
+    @IsString()
+    @IsOptional()
+    firstName?: string;
+
+    @IsString()
+    @IsOptional()
+    lastName?: string;
+
+    @IsString()
+    @IsOptional()
+    phone?: string;
+
+    // Property Partner Specific
+    @IsString()
+    @IsOptional()
+    companyName?: string;
+
+    @IsString()
+    @IsOptional()
+    companyAddress?: string;
+
+    @IsString()
+    @IsOptional()
+    taxId?: string;
+
+    @IsString()
+    @IsOptional()
+    licenseNumber?: string;
+
+    // Service Provider Specific
+    @IsString()
+    @IsOptional()
+    businessName?: string;
+
+    @IsString()
+    @IsOptional()
+    category?: string;
+
+    @IsString()
+    @IsOptional()
+    location?: string;
 }

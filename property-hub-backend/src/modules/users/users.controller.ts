@@ -1,6 +1,6 @@
 import { Controller, Get, Post, Patch, Body, Param, UseGuards, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UpdateUserMetadataDto, CreateUserDto, UpdateUserDto, InviteUserDto, InviteCentralAuthorityDto, InvitationResponse } from './users.dto';
+import { UpdateUserMetadataDto, CreateUserDto, UpdateUserDto, InviteUserDto, InviteCentralAuthorityDto, InvitationResponse, UpdateProfileDto } from './users.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { RegionGuard } from '../../auth/guards/region.guard';
@@ -30,6 +30,14 @@ export class UsersController {
         @Body() updateUserMetadataDto: UpdateUserMetadataDto,
     ) {
         return this.usersService.updateUserMetadata(user.userId, updateUserMetadataDto);
+    }
+
+    @Patch('profile')
+    updateProfile(
+        @CurrentUser() user: AuthenticatedUser,
+        @Body() dto: UpdateProfileDto,
+    ) {
+        return this.usersService.updateMyProfile(user.userId, user.roles, dto);
     }
 
     // --- User Invitation Endpoints ---

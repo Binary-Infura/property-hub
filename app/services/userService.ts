@@ -15,6 +15,14 @@ export interface User {
     visitsConducted?: number;
     regions?: any[];
     regionIds?: string[];
+    propertyPartnerProfile?: {
+        companyName: string;
+        companyAddress?: string;
+        taxId?: string;
+        licenseNumber?: string;
+        isPremium: boolean;
+    };
+    serviceProviderProfile?: any;
     createdAt: string;
 }
 
@@ -75,6 +83,22 @@ export const userService = {
             },
         });
         if (!response.ok) throw new Error('Failed to toggle status');
+        return response.json();
+    },
+
+    async updateProfile(profileData: any, token: string): Promise<User> {
+        const response = await fetch(`${API_URL}/api/users/profile`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(profileData),
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to update profile');
+        }
         return response.json();
     },
 };

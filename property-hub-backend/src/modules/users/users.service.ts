@@ -1,6 +1,6 @@
 import { Injectable, BadRequestException, NotFoundException, InternalServerErrorException, HttpException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { UpdateUserMetadataDto, CreateUserDto, UpdateUserDto, InviteUserDto, InviteCentralAuthorityDto, InvitationResponse } from './users.dto';
+import { UpdateUserMetadataDto, CreateUserDto, UpdateUserDto, InviteUserDto, InviteCentralAuthorityDto, InvitationResponse, UpdateProfileDto } from './users.dto';
 import { UserMetadata, User } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { KeycloakAdminService } from '../../common/services/keycloak/keycloak-admin.service';
@@ -355,6 +355,18 @@ export class UsersService {
             });
         }
 
+        if (dto.role === 'property-partner') {
+            await this.prisma.propertyPartnerProfile.create({
+                data: {
+                    userId: createdUser.id,
+                    companyName: dto.companyName || dto.agencyName || 'New Property Partner',
+                    companyAddress: dto.companyAddress || '',
+                    taxId: dto.taxId || '',
+                    licenseNumber: dto.licenseNumber || '',
+                }
+            });
+        }
+
         return createdUser;
     }
 
@@ -400,9 +412,29 @@ export class UsersService {
                 orderBy: { createdAt: 'desc' },
                 skip,
                 take: limit,
-            }),
+            }) as Promise<any[]>,
             this.prisma.user.count({ where }),
         ]);
+
+        if (role === 'property-partner') {
+            const userIds = data.map(u => u.id);
+            const profiles = await this.prisma.propertyPartnerProfile.findMany({
+                where: { userId: { in: userIds } }
+            });
+            data.forEach(user => {
+                user.propertyPartnerProfile = profiles.find(p => p.userId === user.id);
+            });
+        }
+
+        if (role === 'service-provider') {
+            const userIds = data.map(u => u.id);
+            const profiles = await this.prisma.serviceProviderProfile.findMany({
+                where: { userId: { in: userIds } }
+            });
+            data.forEach(user => {
+                user.serviceProviderProfile = profiles.find(p => p.userId === user.id);
+            });
+        }
 
         return { data, total };
     }
@@ -435,6 +467,52 @@ export class UsersService {
             };
         }
 
+        if (existingUser.role === 'property-partner') {
+            const profileData: any = {};
+            if (dto.companyName) profileData.companyName = dto.companyName;
+            if (dto.companyAddress) profileData.companyAddress = dto.companyAddress;
+            if (dto.taxId) profileData.taxId = dto.taxId;
+            if (dto.licenseNumber) profileData.licenseNumber = dto.licenseNumber;
+
+            if (Object.keys(profileData).length > 0) {
+                await this.prisma.propertyPartnerProfile.upsert({
+                    where: { userId: id },
+                    create: {
+                        userId: id,
+                        companyName: dto.companyName || dto.agencyName || 'New Property Partner',
+                        ...profileData
+                    },
+                    update: profileData
+                });
+            }
+        }
+
+        if (existingUser.role === 'service-provider') {
+            const profileData: any = {};
+            if (dto.businessName) profileData.businessName = dto.businessName;
+            if (dto.category) profileData.category = dto.category;
+            if (dto.location) profileData.location = dto.location;
+            if (dto.availabilityDays) profileData.availabilityDays = dto.availabilityDays;
+            if (dto.availabilityHours) profileData.availabilityHours = dto.availabilityHours;
+            if (dto.rates) profileData.rates = dto.rates;
+            if (dto.portfolio) profileData.portfolio = dto.portfolio;
+
+            if (Object.keys(profileData).length > 0) {
+                await this.prisma.serviceProviderProfile.upsert({
+                    where: { userId: id },
+                    create: {
+                        userId: id,
+                        businessName: dto.businessName || 'New Service Provider',
+                        category: dto.category || 'General',
+                        location: dto.location || 'N/A',
+                        availabilityHours: dto.availabilityHours || 'N/A',
+                        ...profileData
+                    },
+                    update: profileData
+                });
+            }
+        }
+
         return this.prisma.user.update({
             where: { id },
             data,
@@ -452,7 +530,14 @@ export class UsersService {
         });
     }
 
-    async getProfileStatus(userId: string, roles: string[]) {
+    async getProfileStatus(keycloakId: string, roles: string[]) {
+        const user = await this.prisma.user.findUnique({
+            where: { keycloakId }
+        });
+
+        if (!user) return {};
+
+        const internalId = user.id;
         const status: any = {};
         const businessRoles: string[] = Object.values(UserRole);
 
@@ -463,42 +548,107 @@ export class UsersService {
 
             switch (role) {
                 case UserRole.CENTRAL_AUTHORITY:
-                    profileData = await this.prisma.centralAuthorityProfile.findUnique({ where: { userId } });
+                    profileData = await this.prisma.centralAuthorityProfile.findUnique({ where: { userId: internalId } });
                     break;
                 case UserRole.PROPERTY_PARTNER:
-                    profileData = await this.prisma.propertyPartnerProfile.findUnique({ where: { userId } });
+                    profileData = await this.prisma.propertyPartnerProfile.findUnique({ where: { userId: internalId } });
                     break;
                 case UserRole.CHANNEL_PARTNER:
-                    profileData = await this.prisma.channelPartnerProfile.findUnique({ where: { userId } });
+                    profileData = await this.prisma.channelPartnerProfile.findUnique({ where: { userId: internalId } });
                     break;
                 case UserRole.REGIONAL_MANAGER:
-                    profileData = await this.prisma.regionalManagerProfile.findUnique({ where: { userId } });
+                    profileData = await this.prisma.regionalManagerProfile.findUnique({ where: { userId: internalId } });
                     break;
                 case UserRole.COMMISSION_MANAGER:
-                    profileData = await this.prisma.commissionManagerProfile.findUnique({ where: { userId } });
+                    profileData = await this.prisma.commissionManagerProfile.findUnique({ where: { userId: internalId } });
                     break;
                 case UserRole.MARKETING_MANAGER:
-                    profileData = await this.prisma.marketingManagerProfile.findUnique({ where: { userId } });
+                    profileData = await this.prisma.marketingManagerProfile.findUnique({ where: { userId: internalId } });
                     break;
                 case UserRole.CONSULTANT:
-                    profileData = await this.prisma.consultantProfile.findUnique({ where: { userId } });
+                    profileData = await this.prisma.consultantProfile.findUnique({ where: { userId: internalId } });
                     break;
                 case UserRole.BUYER:
-                    profileData = await this.prisma.buyerProfile.findUnique({ where: { userId } });
+                    profileData = await this.prisma.buyerProfile.findUnique({ where: { userId: internalId } });
                     break;
                 case UserRole.SERVICE_PROVIDER:
-                    profileData = await this.prisma.serviceProviderProfile.findUnique({ where: { userId } });
+                    profileData = await this.prisma.serviceProviderProfile.findUnique({ where: { userId: internalId } });
                     break;
             }
 
             status[role] = {
-                // Only mark as missing if it's an onboarding-required role and data is missing.
-                // Currently, only service-provider has a dedicated profile completion UI.
-                hasProfile: role === UserRole.SERVICE_PROVIDER ? !!profileData : true,
+                hasProfile: (role === UserRole.SERVICE_PROVIDER || role === UserRole.PROPERTY_PARTNER) ? !!profileData : true,
                 profileData
             };
         }
 
         return status;
+    }
+
+    async updateMyProfile(keycloakId: string, roles: string[], dto: UpdateProfileDto) {
+        const user = await this.prisma.user.findUnique({
+            where: { keycloakId },
+        });
+
+        if (!user) {
+            throw new NotFoundException('User not found');
+        }
+
+        // Update basic info
+        await this.prisma.user.update({
+            where: { id: user.id },
+            data: {
+                firstName: dto.firstName,
+                lastName: dto.lastName,
+                phone: dto.phone,
+                // Also update agencyName if companyName is provided and user is property-partner
+                agencyName: (user.role === 'property-partner' && dto.companyName) ? dto.companyName : undefined
+            }
+        });
+
+        // Update role-specific profile
+        if (user.role === 'property-partner') {
+            const profileData: any = {};
+            if (dto.companyName) profileData.companyName = dto.companyName;
+            if (dto.companyAddress) profileData.companyAddress = dto.companyAddress;
+            if (dto.taxId) profileData.taxId = dto.taxId;
+            if (dto.licenseNumber) profileData.licenseNumber = dto.licenseNumber;
+
+            if (Object.keys(profileData).length > 0) {
+                await this.prisma.propertyPartnerProfile.upsert({
+                    where: { userId: user.id },
+                    create: {
+                        userId: user.id,
+                        companyName: dto.companyName || user.agencyName || 'New Property Partner',
+                        ...profileData
+                    },
+                    update: profileData
+                });
+            }
+        }
+
+        if (user.role === 'service-provider') {
+            const profileData: any = {};
+            if (dto.businessName) profileData.businessName = dto.businessName;
+            if (dto.category) profileData.category = dto.category;
+            if (dto.location) profileData.location = dto.location;
+
+            if (Object.keys(profileData).length > 0) {
+                await this.prisma.serviceProviderProfile.upsert({
+                    where: { userId: user.id },
+                    create: {
+                        userId: user.id,
+                        businessName: dto.businessName || 'New Service Provider',
+                        category: dto.category || 'General',
+                        location: dto.location || 'N/A',
+                        availabilityHours: 'N/A',
+                        ...profileData
+                    },
+                    update: profileData
+                });
+            }
+        }
+
+        return this.findOne(user.id);
     }
 }

@@ -33,9 +33,10 @@ export class RegionGuard implements CanActivate {
             throw new ForbiddenException('Region context is required but :region or :regionSlug param is missing');
         }
 
-        // 1. Check for global region access (Regional Managers, etc.)
+        // 1. Check for global region access or roles that don't use region context
+        const isGlobalRole = user.roles.includes('central-authority') || user.roles.includes('property-partner');
         const regionGroup = `/regions/${regionSlug}`;
-        if (user.groups.includes(regionGroup)) {
+        if (isGlobalRole || user.groups.includes(regionGroup)) {
             return true;
         }
 

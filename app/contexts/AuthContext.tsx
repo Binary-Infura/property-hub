@@ -40,9 +40,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             if (response.ok) {
                 const data = await response.json();
                 setProfileStatus(data);
+            } else {
+                setProfileStatus({});
             }
         } catch (error) {
             console.error('Failed to fetch profile status:', error);
+            setProfileStatus({});
         }
     };
 

@@ -5,17 +5,6 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import { userService, User } from '@/app/services/userService';
 
-interface PropertyPartner {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone: string;
-    companyName: string;
-    projectsCount: number;
-    status: 'active' | 'inactive';
-}
-
 export default function MyPropertyPartnersPage() {
     const { token } = useAuth();
     const { activeContext } = useUnifiedApp();
@@ -24,6 +13,19 @@ export default function MyPropertyPartnersPage() {
     const [error, setError] = useState<string | null>(null);
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'my' | 'all'>('my');
+
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        companyName: '',
+        companyAddress: '',
+        taxId: '',
+        licenseNumber: '',
+    });
+    const [selectedPartner, setSelectedPartner] = useState<User | null>(null);
+    const [isEdit, setIsEdit] = useState(false);
 
     const fetchPartners = async () => {
         if (!token) return;
@@ -48,6 +50,73 @@ export default function MyPropertyPartnersPage() {
         fetchPartners();
     }, [token, activeContext.activeRegion.code, activeTab]);
 
+    const handleOpenAdd = () => {
+        setFormData({
+            firstName: '',
+            lastName: '',
+            email: '',
+            phone: '',
+            companyName: '',
+            companyAddress: '',
+            taxId: '',
+            licenseNumber: '',
+        });
+        setIsEdit(false);
+        setSelectedPartner(null);
+        setIsAddModalOpen(true);
+    };
+
+    const handleOpenEdit = (partner: User) => {
+        setSelectedPartner(partner);
+        setFormData({
+            firstName: partner.firstName,
+            lastName: partner.lastName || '',
+            email: partner.email,
+            phone: partner.phone || '',
+            companyName: partner.propertyPartnerProfile?.companyName || partner.agencyName || '',
+            companyAddress: partner.propertyPartnerProfile?.companyAddress || '',
+            taxId: partner.propertyPartnerProfile?.taxId || '',
+            licenseNumber: partner.propertyPartnerProfile?.licenseNumber || '',
+        });
+        setIsEdit(true);
+        setIsAddModalOpen(true);
+    };
+
+    const handleOnboard = async () => {
+        if (!token) return;
+        try {
+            if (!formData.firstName || !formData.lastName || !formData.email || !formData.phone || !formData.companyName) {
+                alert('Please fill all required fields');
+                return;
+            }
+
+            const payload = {
+                firstName: formData.firstName,
+                lastName: formData.lastName,
+                email: formData.email,
+                phone: formData.phone,
+                agencyName: formData.companyName,
+                companyName: formData.companyName,
+                companyAddress: formData.companyAddress,
+                taxId: formData.taxId,
+                licenseNumber: formData.licenseNumber,
+                role: 'property-partner',
+                regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : [],
+            };
+
+            if (isEdit && selectedPartner) {
+                await userService.update(selectedPartner.id, payload, token);
+            } else {
+                await userService.create(payload, token);
+            }
+
+            fetchPartners();
+            setIsAddModalOpen(false);
+        } catch (err: any) {
+            alert(err.message || 'Failed to process property partner');
+        }
+    };
+
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -56,7 +125,7 @@ export default function MyPropertyPartnersPage() {
                     <p className="text-gray-600 mt-1">Manage builders and developers under your portfolio.</p>
                 </div>
                 <button
-                    onClick={() => setIsAddModalOpen(true)}
+                    onClick={handleOpenAdd}
                     className="px-5 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold transition-all flex items-center gap-2 shadow-lg shadow-blue-200"
                 >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -88,12 +157,19 @@ export default function MyPropertyPartnersPage() {
                 </button>
             </div>
 
+            {error && (
+                <div className="p-4 bg-red-50 text-red-700 rounded-xl border border-red-100">
+                    {error}
+                </div>
+            )}
+
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
                 <table className="min-w-full divide-y divide-gray-100">
                     <thead className="bg-gray-50/50">
                         <tr>
                             <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Property Partner / Company</th>
                             <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact</th>
+                            <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Business Info</th>
                             <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Onboarded By</th>
                             <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                             <th scope="col" className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
@@ -102,7 +178,7 @@ export default function MyPropertyPartnersPage() {
                     <tbody className="bg-white divide-y divide-gray-50">
                         {loading ? (
                             <tr>
-                                <td colSpan={5} className="px-6 py-10 text-center text-gray-400">
+                                <td colSpan={6} className="px-6 py-10 text-center text-gray-400">
                                     <div className="flex flex-col items-center gap-2">
                                         <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
                                         <span>Loading partners...</span>
@@ -111,19 +187,19 @@ export default function MyPropertyPartnersPage() {
                             </tr>
                         ) : partners.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="px-6 py-10 text-center text-gray-400">
+                                <td colSpan={6} className="px-6 py-10 text-center text-gray-400">
                                     No property partners found.
                                 </td>
                             </tr>
                         ) : partners.map((partner) => (
-                            <tr key={partner.id} className="hover:bg-gray-50/50 transition-colors">
+                            <tr key={partner.id} className="hover:bg-gray-50/50 transition-colors group">
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex items-center">
                                         <div className="h-10 w-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-700 font-bold shadow-sm">
-                                            {(partner.agencyName || partner.firstName || 'P').charAt(0)}
+                                            {(partner.propertyPartnerProfile?.companyName || partner.agencyName || partner.firstName || 'P').charAt(0)}
                                         </div>
                                         <div className="ml-4">
-                                            <div className="text-sm font-bold text-gray-900">{partner.agencyName || 'No Agency'}</div>
+                                            <div className="text-sm font-bold text-gray-900">{partner.propertyPartnerProfile?.companyName || partner.agencyName || 'No Agency'}</div>
                                             <div className="text-xs text-gray-500">{partner.firstName} {partner.lastName}</div>
                                         </div>
                                     </div>
@@ -135,8 +211,21 @@ export default function MyPropertyPartnersPage() {
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="flex flex-col gap-1">
+                                        {partner.propertyPartnerProfile?.taxId && (
+                                            <span className="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded w-fit font-medium">PAN: {partner.propertyPartnerProfile.taxId}</span>
+                                        )}
+                                        {partner.propertyPartnerProfile?.licenseNumber && (
+                                            <span className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-600 rounded w-fit font-medium">RERA: {partner.propertyPartnerProfile.licenseNumber}</span>
+                                        )}
+                                        {!partner.propertyPartnerProfile?.taxId && !partner.propertyPartnerProfile?.licenseNumber && (
+                                            <span className="text-xs text-gray-400 italic">Not set</span>
+                                        )}
+                                    </div>
+                                </td>
+                                <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex flex-col">
-                                        <span className="text-sm text-gray-900 font-medium">{(partner as any).onboardedBy?.name || 'Unknown'}</span>
+                                        <span className="text-sm text-gray-900 font-medium">{(partner as any).onboardedBy?.firstName ? `${(partner as any).onboardedBy.firstName} ${(partner as any).onboardedBy.lastName || ''}` : 'System'}</span>
                                         <span className="text-xs text-gray-500">{new Date(partner.createdAt).toLocaleDateString()}</span>
                                     </div>
                                 </td>
@@ -147,9 +236,14 @@ export default function MyPropertyPartnersPage() {
                                     </span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                    <div className="flex justify-end gap-3">
+                                    <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
                                         {activeTab === 'my' && (
-                                            <button className="text-blue-600 hover:text-blue-800 font-semibold transition-colors">Edit</button>
+                                            <button
+                                                onClick={() => handleOpenEdit(partner)}
+                                                className="text-blue-600 hover:text-blue-800 font-bold transition-colors"
+                                            >
+                                                Edit Info
+                                            </button>
                                         )}
                                         <button className="text-gray-600 hover:text-gray-900 transition-colors font-medium">View Projects</button>
                                     </div>
@@ -165,8 +259,8 @@ export default function MyPropertyPartnersPage() {
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all animate-in zoom-in-95 duration-200">
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                             <div>
-                                <h2 className="text-xl font-bold text-gray-900">Onboard New Property Partner</h2>
-                                <p className="text-sm text-gray-500 mt-1">Onboard a new builder to your network.</p>
+                                <h2 className="text-xl font-bold text-gray-900">{isEdit ? 'Update Business Information' : 'Onboard New Property Partner'}</h2>
+                                <p className="text-sm text-gray-500 mt-1">{isEdit ? `Editing details for ${formData.companyName}` : 'Onboard a new builder to your network.'}</p>
                             </div>
                             <button
                                 onClick={() => setIsAddModalOpen(false)}
@@ -178,51 +272,103 @@ export default function MyPropertyPartnersPage() {
                             </button>
                         </div>
 
-                        <div className="p-6 space-y-5">
+                        <div className="p-6 space-y-5 max-h-[70vh] overflow-y-auto">
                             <div className="grid grid-cols-2 gap-5">
+                                <div className="col-span-2">
+                                    <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Basic Contact Info</p>
+                                </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">First Name</label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">First Name *</label>
                                     <input
                                         type="text"
+                                        value={formData.firstName}
+                                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
                                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
                                         placeholder="Enter first name"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Last Name</label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Last Name *</label>
                                     <input
                                         type="text"
+                                        value={formData.lastName}
+                                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
                                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
                                         placeholder="Enter last name"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email Address *</label>
                                     <input
                                         type="email"
-                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
+                                        value={formData.email}
+                                        disabled={isEdit}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                        className={`w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400 ${isEdit ? 'bg-gray-50 text-gray-500' : ''}`}
                                         placeholder="builder@example.com"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number</label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number *</label>
                                     <input
                                         type="tel"
+                                        value={formData.phone}
+                                        onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
                                         placeholder="+91 98765 43210"
                                     />
                                 </div>
+
+                                <div className="col-span-2 pt-2 border-t border-gray-100">
+                                    <p className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-2">Business Details</p>
+                                </div>
+
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Company Name</label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Company Name *</label>
                                     <input
                                         type="text"
+                                        value={formData.companyName}
+                                        onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
                                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
                                         placeholder="Enter company/firm name"
                                     />
                                 </div>
-                            </div>
 
-                            <div className="flex gap-3 pt-2">
+                                <div className="col-span-2">
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Company Address</label>
+                                    <textarea
+                                        value={formData.companyAddress}
+                                        onChange={(e) => setFormData({ ...formData, companyAddress: e.target.value })}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400 min-h-[80px]"
+                                        placeholder="Full business address"
+                                    />
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tax ID / PAN</label>
+                                    <input
+                                        type="text"
+                                        value={formData.taxId}
+                                        onChange={(e) => setFormData({ ...formData, taxId: e.target.value })}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
+                                        placeholder="GSTIN or PAN"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">RERA / License No.</label>
+                                    <input
+                                        type="text"
+                                        value={formData.licenseNumber}
+                                        onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
+                                        placeholder="Ex: PRM/KA/RERA/..."
+                                    />
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="p-6 bg-gray-50/50 border-t border-gray-100">
+                            <div className="flex gap-3">
                                 <button
                                     onClick={() => setIsAddModalOpen(false)}
                                     className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all text-sm"
@@ -230,41 +376,10 @@ export default function MyPropertyPartnersPage() {
                                     Cancel
                                 </button>
                                 <button
-                                    onClick={async () => {
-                                        if (!token) return;
-                                        try {
-                                            // Extract data from uncontrolled inputs for now as per current structure
-                                            // In a real app, we'd use state or a form library
-                                            const firstName = (document.querySelector('input[placeholder="Enter first name"]') as HTMLInputElement)?.value;
-                                            const lastName = (document.querySelector('input[placeholder="Enter last name"]') as HTMLInputElement)?.value;
-                                            const email = (document.querySelector('input[placeholder="builder@example.com"]') as HTMLInputElement)?.value;
-                                            const phone = (document.querySelector('input[placeholder="+91 98765 43210"]') as HTMLInputElement)?.value;
-                                            const companyName = (document.querySelector('input[placeholder="Enter company/firm name"]') as HTMLInputElement)?.value;
-
-                                            if (!firstName || !lastName || !email || !phone || !companyName) {
-                                                alert('Please fill all fields');
-                                                return;
-                                            }
-
-                                            const payload = {
-                                                name: `${firstName} ${lastName}`,
-                                                email,
-                                                phone,
-                                                agencyName: companyName,
-                                                role: 'property-partner',
-                                                regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : [],
-                                            };
-
-                                            await userService.create(payload, token);
-                                            fetchPartners();
-                                            setIsAddModalOpen(false);
-                                        } catch (err: any) {
-                                            alert(err.message || 'Failed to onboard property partner');
-                                        }
-                                    }}
+                                    onClick={handleOnboard}
                                     className="flex-1 px-4 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-200 text-sm"
                                 >
-                                    Onboard Property Partner
+                                    {isEdit ? 'Update Information' : 'Onboard Property Partner'}
                                 </button>
                             </div>
                         </div>

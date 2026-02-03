@@ -11,6 +11,7 @@ export default function PropertyPartnerSidebar() {
   const mainNavigation = [
     { name: 'Dashboard', href: '/property-partner/dashboard', icon: '📊' },
     { name: 'Properties', href: '/property-partner/dashboard/properties', icon: '🏢' },
+    { name: 'Business Info', href: '/property-partner/dashboard/profile', icon: '💼' },
   ];
 
   const advancedNavigation = [

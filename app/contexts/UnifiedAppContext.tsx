@@ -172,6 +172,7 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
         }
 
         // 2. Map regions
+        const isGlobal = roles.includes('central-authority') || roles.includes('property-partner');
         const isCentralAuthority = roles.includes('central-authority');
 
         const updateRegions = async () => {
@@ -197,7 +198,7 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
                 console.error("Failed to fetch regions from API:", e);
             }
 
-            if (isCentralAuthority) {
+            if (isGlobal) {
                 userRegions = allRegions;
             } else {
                 try {

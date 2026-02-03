@@ -14,16 +14,23 @@ export class PropertiesService {
 
     async findAll(user: AuthenticatedUser, regionCode: string, myOnly?: boolean): Promise<Property[]> {
         const isCentralAuthority = user.roles.includes('central-authority');
+        const isPropertyPartner = user.roles.includes('property-partner');
         const userRegions = user.groups.map(g => g.split('/').pop());
 
         // Check if user has access to the requested region
-        if (!isCentralAuthority && !userRegions.includes(regionCode)) {
+        if (!isCentralAuthority && !isPropertyPartner && !userRegions.includes(regionCode)) {
             return []; // User has no access to this region's properties
         }
 
-        let where: any = {
-            region: { code: regionCode }
-        };
+        let where: any = {};
+
+        // Property Partners and Central Authority can view properties across regions if they want,
+        // but for now we follow the regionCode unless they are property-partner viewing "myOnly"
+        if (isPropertyPartner && myOnly) {
+            // Global view for property partners of their own properties
+        } else {
+            where.region = { code: regionCode };
+        }
 
         if (myOnly) {
             // Ensure user is synced and use their internal ID

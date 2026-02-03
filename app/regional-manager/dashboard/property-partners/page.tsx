@@ -16,7 +16,8 @@ export default function PropertyPartnersPage() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [selectedPartner, setSelectedPartner] = useState<User | null>(null);
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
     agencyName: '',
@@ -45,13 +46,14 @@ export default function PropertyPartnersPage() {
   }, [token, activeContext.activeRegion.code]);
 
   const handleAddPartner = () => {
-    setFormData({ name: '', email: '', phone: '', agencyName: '' });
+    setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '' });
     setShowAddModal(true);
   };
 
   const handleEditPartner = (partner: User) => {
     setFormData({
-      name: partner.name,
+      firstName: partner.firstName,
+      lastName: partner.lastName || '',
       email: partner.email,
       phone: partner.phone || '',
       agencyName: partner.agencyName || '',
@@ -72,14 +74,18 @@ export default function PropertyPartnersPage() {
         setShowEditModal(false);
       } else {
         const created = await userService.create({
-          ...formData,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          phone: formData.phone,
+          agencyName: formData.agencyName,
           role: 'property-partner',
           regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : []
         }, token);
         setPartners([created, ...partners]);
         setShowAddModal(false);
       }
-      setFormData({ name: '', email: '', phone: '', agencyName: '' });
+      setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '' });
       setSelectedPartner(null);
     } catch (err: any) {
       alert(err.message || 'Failed to save partner');
@@ -157,7 +163,7 @@ export default function PropertyPartnersPage() {
                   <tr key={partner.id} className="border-b border-gray-100 hover:bg-gray-50">
                     <td className="py-4 px-4">
                       <div>
-                        <p className="font-semibold text-gray-900">{partner.name}</p>
+                        <p className="font-semibold text-gray-900">{partner.firstName} {partner.lastName}</p>
                         <p className="text-sm text-gray-500">{partner.email}</p>
                       </div>
                     </td>
@@ -209,7 +215,7 @@ export default function PropertyPartnersPage() {
                 onClick={() => {
                   setShowAddModal(false);
                   setShowEditModal(false);
-                  setFormData({ name: '', email: '', phone: '', agencyName: '' });
+                  setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '' });
                 }}
                 className="p-2 hover:bg-gray-200 rounded-full transition-colors"
               >
@@ -220,15 +226,27 @@ export default function PropertyPartnersPage() {
             </div>
 
             <div className="p-6 space-y-5">
-              <div>
-                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Name</label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
-                  placeholder="Enter name"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">First Name</label>
+                  <input
+                    type="text"
+                    value={formData.firstName}
+                    onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
+                    placeholder="First name"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1.5">Last Name</label>
+                  <input
+                    type="text"
+                    value={formData.lastName}
+                    onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
+                    placeholder="Last name"
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
@@ -267,7 +285,7 @@ export default function PropertyPartnersPage() {
                   onClick={() => {
                     setShowAddModal(false);
                     setShowEditModal(false);
-                    setFormData({ name: '', email: '', phone: '', agencyName: '' });
+                    setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '' });
                   }}
                   className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all text-sm"
                 >

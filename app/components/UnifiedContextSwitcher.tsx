@@ -49,7 +49,8 @@ export default function UnifiedContextSwitcher() {
     // Check for restricted roles
     const hasCAAccess = currentUser.availableRoles.some(r => r.id === 'central-authority');
     const isBuyer = activeContext.activeRole.id === 'buyer';
-    const isRestricted = hasCAAccess || isBuyer;
+    const isPropertyPartner = activeContext.activeRole.id === 'property-partner';
+    const isRestricted = hasCAAccess || isBuyer || isPropertyPartner;
 
     const selectedRegion = currentUser.availableRegions.find(r => r.id === selectedRegionId);
 
@@ -85,7 +86,7 @@ export default function UnifiedContextSwitcher() {
                         <span className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">
                             {activeRoleName}
                         </span>
-                        {!isCentralAuthority && !isBuyer && (
+                        {!isRestricted && (
                             <span className="text-[10px] text-blue-600 font-medium">
                                 {activeContext.activeRegion.id === 'no-region' && isOM ? 'No City Allocated' : activeRegionName}
                             </span>
