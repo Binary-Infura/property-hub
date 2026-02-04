@@ -179,12 +179,23 @@ export default function OnboardingPropertiesPage() {
                                 />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Property Type</label>
-                                <select id="prop-type" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm">
-                                    <option value="APARTMENT">Apartment</option>
-                                    <option value="VILLA">Villa</option>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Category</label>
+                                <select id="prop-category" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm">
+                                    <option value="FLAT">Flat / Apartment</option>
                                     <option value="PLOT">Plot</option>
+                                    <option value="SHOP">Shop</option>
+                                    <option value="VILLA">Villa</option>
+                                    <option value="OFFICE">Office</option>
+                                    <option value="WAREHOUSE">Warehouse</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Property Type (Segment)</label>
+                                <select id="prop-type" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm">
+                                    <option value="APARTMENT">Residential</option>
                                     <option value="COMMERCIAL">Commercial</option>
+                                    <option value="INDUSTRIAL">Industrial</option>
+                                    <option value="PLOT">Land / Plot</option>
                                 </select>
                             </div>
                             <div>
@@ -229,8 +240,10 @@ export default function OnboardingPropertiesPage() {
                                     try {
                                         const payload = {
                                             name: (document.getElementById('prop-name') as HTMLInputElement).value,
-                                            propertyType: (document.getElementById('prop-type') as HTMLSelectElement).value as PropertyType,
+                                            propertyType: (document.getElementById('prop-type') as HTMLSelectElement).value as any,
+                                            category: (document.getElementById('prop-category') as HTMLSelectElement).value,
                                             location: (document.getElementById('prop-location') as HTMLInputElement).value,
+                                            city: activeContext.activeRegion.city,
                                             price: Number((document.getElementById('prop-price') as HTMLInputElement).value),
                                             area: Number((document.getElementById('prop-area') as HTMLInputElement).value),
                                             regionId: activeContext.activeRegion.id,

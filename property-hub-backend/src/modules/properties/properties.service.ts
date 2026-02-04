@@ -12,33 +12,56 @@ export class PropertiesService {
         private usersService: UsersService,
     ) { }
 
-    async findAll(user: AuthenticatedUser, regionCode: string, myOnly?: boolean): Promise<Property[]> {
+    async findAll(user: AuthenticatedUser, regionCode: string, myOnly?: boolean, city?: string): Promise<Property[]> {
         const isCentralAuthority = user.roles.includes('central-authority');
         const isPropertyPartner = user.roles.includes('property-partner');
-        const userRegions = user.groups.map(g => g.split('/').pop());
+        const isOnboardingManager = user.roles.includes('onboarding-manager');
+        const userRegions = (user.groups || []).map(g => g.split('/').pop());
 
-        // Check if user has access to the requested region
-        if (!isCentralAuthority && !isPropertyPartner && !userRegions.includes(regionCode)) {
-            return []; // User has no access to this region's properties
+        // Check if user has access to the requested region or city
+        if (!isCentralAuthority && !isPropertyPartner) {
+            let hasAccess = (user.groups || []).some(g => g.endsWith(`/${regionCode}`));
+
+            if (!hasAccess && city) {
+                const citySlug = city.toLowerCase().replace(/\s+/g, '-');
+                hasAccess = (user.groups || []).some(g => g.endsWith(`/${citySlug}`));
+            }
+
+            if (!hasAccess && regionCode !== 'no-region') {
+                // Check if regionCode belongs to any of user's cities
+                const region = await this.prisma.region.findUnique({ where: { code: regionCode } });
+                const citySlug = region?.city?.toLowerCase().replace(/\s+/g, '-');
+                hasAccess = citySlug && (user.groups || []).some(g => g.endsWith(`/${citySlug}`));
+            }
+
+            if (!hasAccess) {
+                return []; // Access denied
+            }
         }
 
         let where: any = {};
 
-        // Property Partners and Central Authority can view properties across regions if they want,
-        // but for now we follow the regionCode unless they are property-partner viewing "myOnly"
-        if (isPropertyPartner && myOnly) {
+        if (city) {
+            where.OR = [
+                { city: { contains: city, mode: 'insensitive' } },
+                { location: { contains: city, mode: 'insensitive' } },
+                { address: { contains: city, mode: 'insensitive' } },
+            ];
+        } else if (isPropertyPartner && myOnly) {
             // Global view for property partners of their own properties
         } else {
             where.region = { code: regionCode };
         }
 
         if (myOnly) {
-            // Ensure user is synced and use their internal ID
             const internalUser = await this.usersService.ensureUserSynced(user);
             where.onboardedById = internalUser.id;
         }
 
-        return this.prisma.property.findMany({
+        console.log(`[findAll] Region: ${regionCode}, City: ${city}, MyOnly: ${myOnly}`);
+        console.log(`[findAll] Where clause:`, JSON.stringify(where, null, 2));
+
+        const results = await this.prisma.property.findMany({
             where,
             include: {
                 region: true,
@@ -48,6 +71,9 @@ export class PropertiesService {
                 createdAt: 'desc',
             },
         });
+
+        console.log(`[findAll] Found ${results.length} properties`);
+        return results;
     }
 
     async findOne(id: string, user: AuthenticatedUser): Promise<Property> {
@@ -70,23 +96,14 @@ export class PropertiesService {
         const internalUser = await this.usersService.ensureUserSynced(user);
         const isOwner = property.onboardedById === internalUser.id;
 
-        // Check region access (skip if owner or central authority)
+        // Check region/city access (skip if owner or central authority)
         if (!isCentralAuthority && !isOwner) {
-            // If property has no region, only CA or Owner can see it (which we handled above)
-            if (!property.regionId) {
+            const hasRegionAccess = property.region && userRegions.includes(property.region.code);
+            const hasCityAccess = (property as any).city && userRegions.some(g => g.toLowerCase() === (property as any).city?.toLowerCase());
+            const hasRegionCityAccess = property.region?.city && userRegions.some(g => g.toLowerCase() === property.region.city.toLowerCase());
+
+            if (!hasRegionAccess && !hasCityAccess && !hasRegionCityAccess) {
                 throw new NotFoundException(`Property with ID ${id} not found`);
-            }
-            // If property has region, check if user has access to it
-            if (!userRegions.includes(property.region?.code)) {
-                // Note: userRegions contains codes like 'mumbai', property.regionId is UUID. 
-                // We need to match codes. The property include 'region' is true, so property.region.code should be available used.
-                // However, the original code used `userRegions.includes(property.regionId)` which seems wrong if userRegions are codes!
-                // Let's fix this logic too. If property.region is loaded, compare codes.
-                if (property.region && !userRegions.includes(property.region.code)) {
-                    throw new NotFoundException(`Property with ID ${id} not found`);
-                }
-                // If original code was checking UUID against codes, that was definitely a bug or I misunderstood 'userRegions'.
-                // Assuming userRegions are codes (from split('/').pop()), we must compare with property.region.code.
             }
         }
 

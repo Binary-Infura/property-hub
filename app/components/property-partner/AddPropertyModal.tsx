@@ -278,7 +278,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                     propertyType: (data.propertyType === 'COMMERCIAL' ? 'commercial' : 'residential') as any,
                     location: data.location,
                     address: data.address || '',
-                    city: '',
+                    city: data.city || '',
                     state: '',
                     pincode: '',
                     totalArea: data.area?.toString() || '',
@@ -316,7 +316,8 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
             location: formData.location,
             address: fullAddress,
             category: propertyCategory.toUpperCase(),
-            // regionId removed as it is assigned later by onboarding manager
+            city: formData.city,
+            regionId: activeContext.activeRegion.id !== 'no-region' ? activeContext.activeRegion.id : undefined,
 
             status: status.toUpperCase(),
             price: parseFloat(formData.startingPrice) || 0,

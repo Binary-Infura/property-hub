@@ -46,6 +46,14 @@ export class CreatePropertyDto {
     @IsEnum(PropertyType)
     propertyType: PropertyType;
 
+    @IsString()
+    @IsOptional()
+    category?: string;
+
+    @IsString()
+    @IsOptional()
+    city?: string;
+
     @IsUUID()
     @IsOptional()
     onboardedById?: string;
@@ -95,4 +103,12 @@ export class UpdatePropertyDto {
     @IsEnum(PropertyType)
     @IsOptional()
     propertyType?: PropertyType;
+
+    @IsString()
+    @IsOptional()
+    category?: string;
+
+    @IsString()
+    @IsOptional()
+    city?: string;
 }

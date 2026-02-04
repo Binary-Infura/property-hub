@@ -27,8 +27,12 @@ export interface Property {
 }
 
 export const propertyService = {
-    async getAll(token: string, regionSlug: string, myOnly: boolean = false): Promise<Property[]> {
-        const query = myOnly ? '?myOnly=true' : '';
+    async getAll(token: string, regionSlug: string, myOnly: boolean = false, city?: string): Promise<Property[]> {
+        const params = new URLSearchParams();
+        if (myOnly) params.append('myOnly', 'true');
+        if (city) params.append('city', city);
+        const query = params.toString() ? `?${params.toString()}` : '';
+
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/${regionSlug}/properties${query}`, {
             headers: {
                 'Authorization': `Bearer ${token}`,

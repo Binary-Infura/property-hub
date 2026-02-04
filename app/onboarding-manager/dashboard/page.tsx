@@ -12,8 +12,9 @@ export default function OnboardingManagerDashboard() {
     const { activeContext } = useUnifiedApp();
     const [stats, setStats] = useState([
         { label: 'Total Properties', value: '...', change: '', icon: '🏢', color: 'bg-blue-50 text-blue-600', link: '/onboarding-manager/dashboard/properties' },
+        { label: 'Listing Requests', value: '...', change: '', icon: '📋', color: 'bg-orange-50 text-orange-600', link: '/onboarding-manager/dashboard/listing-requests' },
         { label: 'Property Partners', value: '...', change: '', icon: '🤝', color: 'bg-green-50 text-green-600', link: '/onboarding-manager/dashboard/property-partners' },
-        { label: 'Service Providers', value: '...', change: '', icon: '🔧', color: 'bg-yellow-50 text-yellow-600', link: '/onboarding-manager/dashboard/service-providers' },
+        { label: 'Service Providers', value: '...', change: '', icon: '🔧', color: 'bg-purple-50 text-purple-600', link: '/onboarding-manager/dashboard/service-providers' },
     ]);
     const [loading, setLoading] = useState(true);
 
@@ -27,16 +28,20 @@ export default function OnboardingManagerDashboard() {
                 setLoading(true);
                 const regionCode = activeContext.activeRegion.code;
 
-                const [properties, partners, providers] = await Promise.all([
+                const [properties, partners, providers, allProperties] = await Promise.all([
                     propertyService.getAll(token, regionCode, true),
                     userService.getAllByRole('property-partner', token, regionCode, true),
                     userService.getAllByRole('service-provider', token, regionCode, true),
+                    propertyService.getAll(token, regionCode, false, activeContext.activeRegion.city),
                 ]);
 
+                const pendingCount = allProperties.filter((p: any) => p.status === 'SUBMITTED').length;
+
                 setStats([
-                    { label: 'My Properties', value: properties.length.toString(), change: 'Personal Onboardings', icon: '🏢', color: 'bg-blue-50 text-blue-600', link: '/onboarding-manager/dashboard/properties' },
-                    { label: 'My Partners', value: partners.data.length.toString(), change: 'Personal Onboardings', icon: '🤝', color: 'bg-green-50 text-green-600', link: '/onboarding-manager/dashboard/property-partners' },
-                    { label: 'My Providers', value: providers.data.length.toString(), change: 'Personal Onboardings', icon: '🔧', color: 'bg-yellow-50 text-yellow-600', link: '/onboarding-manager/dashboard/service-providers' },
+                    { label: 'My Properties', value: properties.length.toString(), change: 'Total', icon: '🏢', color: 'bg-blue-50 text-blue-600', link: '/onboarding-manager/dashboard/properties' },
+                    { label: 'Listing Requests', value: pendingCount.toString(), change: 'Pending Review', icon: '📋', color: 'bg-orange-50 text-orange-600', link: '/onboarding-manager/dashboard/listing-requests' },
+                    { label: 'Property Partners', value: (partners as any).data?.length || (partners as any).length || 0, change: 'Active', icon: '🤝', color: 'bg-green-50 text-green-600', link: '/onboarding-manager/dashboard/property-partners' },
+                    { label: 'Service Providers', value: (providers as any).data?.length || (providers as any).length || 0, change: 'Verified', icon: '🔧', color: 'bg-purple-50 text-purple-600', link: '/onboarding-manager/dashboard/service-providers' },
                 ]);
             } catch (error) {
                 console.error('Failed to fetch dashboard stats:', error);
@@ -46,7 +51,7 @@ export default function OnboardingManagerDashboard() {
         };
 
         fetchDashboardData();
-    }, [token, activeContext.activeRegion.code]);
+    }, [token, activeContext.activeRegion.code, activeContext.activeRegion.city]);
 
     const recentActivities = [
         { id: 1, action: 'Live Integration', subject: 'Dashboard now connected to real data', time: 'Just now', status: 'success' },
@@ -67,7 +72,7 @@ export default function OnboardingManagerDashboard() {
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {stats.map((stat, index) => (
                     <Link href={stat.link} key={index} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl hover:scale-[1.02] transition-all cursor-pointer group">
                         <div className="flex justify-between items-start mb-4">
@@ -91,6 +96,10 @@ export default function OnboardingManagerDashboard() {
                         <span className="p-2 bg-yellow-100 rounded-lg text-yellow-600 text-sm">⚡</span> Quick Actions
                     </h2>
                     <div className="space-y-4">
+                        <Link href="/onboarding-manager/dashboard/listing-requests" className="w-full flex items-center justify-between p-5 bg-gray-50/50 rounded-2xl hover:bg-orange-600 hover:text-white transition-all group border border-transparent hover:border-orange-700 shadow-sm">
+                            <span className="font-bold text-gray-700 group-hover:text-white">Review Listing Requests</span>
+                            <span className="text-gray-400 group-hover:text-white text-xl">→</span>
+                        </Link>
                         <Link href="/onboarding-manager/dashboard/properties" className="w-full flex items-center justify-between p-5 bg-gray-50/50 rounded-2xl hover:bg-blue-600 hover:text-white transition-all group border border-transparent hover:border-blue-700 shadow-sm">
                             <span className="font-bold text-gray-700 group-hover:text-white">Onboard New Property</span>
                             <span className="text-gray-400 group-hover:text-white text-xl">→</span>

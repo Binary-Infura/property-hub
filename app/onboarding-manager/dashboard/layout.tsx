@@ -20,7 +20,7 @@ function OnboardingManagerLayoutContent({
     const navigation = [
         { name: 'Dashboard', href: '/onboarding-manager/dashboard', icon: '📊' },
         { name: 'Properties', href: '/onboarding-manager/dashboard/properties', icon: '🏢' },
-
+        { name: 'Listing Requests', href: '/onboarding-manager/dashboard/listing-requests', icon: '📋' },
         { name: 'Property Partners', href: '/onboarding-manager/dashboard/property-partners', icon: '🤝' },
         { name: 'Service Providers', href: '/onboarding-manager/dashboard/service-providers', icon: '🛠️' },
     ];

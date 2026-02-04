@@ -85,7 +85,7 @@ export default function PropertiesPage() {
             propertyCategory: p.category?.toLowerCase() as any,
             location: p.location,
             address: p.address || '',
-            city: '',
+            city: p.city || '',
             state: '',
             pincode: '',
             totalArea: parseFloat(p.area) || 0,

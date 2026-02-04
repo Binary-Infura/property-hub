@@ -24,23 +24,44 @@ export class RegionGuard implements CanActivate {
         const request = context.switchToHttp().getRequest();
         const user: AuthenticatedUser = request.user;
         const regionSlug = request.params.regionSlug || request.params.region;
+        const cityQuery = request.query.city;
 
         if (!user) {
             return false;
         }
 
-        if (!regionSlug) {
-            throw new ForbiddenException('Region context is required but :region or :regionSlug param is missing');
-        }
-
         // 1. Check for global region access or roles that don't use region context
         const isGlobalRole = user.roles.includes('central-authority') || user.roles.includes('property-partner');
         const regionGroup = `/regions/${regionSlug}`;
-        if (isGlobalRole || user.groups.includes(regionGroup)) {
+
+        if (isGlobalRole || (regionSlug && user.groups.includes(regionGroup))) {
             return true;
         }
 
         // 2. Check for city-level access (Onboarding Managers)
+        if (cityQuery) {
+            const citySlug = cityQuery.toLowerCase().replace(/\s+/g, '-');
+            const cityGroup = `/cities/${citySlug}`;
+            if (user.groups.includes(cityGroup)) {
+                return true;
+            }
+        }
+
+        if (!regionSlug || regionSlug === 'no-region') {
+            // Already checked cityQuery, if we are here and no regionSlug, we can't proceed
+            // unless we are CA, Partner or OM with a valid city group (already checked above)
+            if (isGlobalRole) return true;
+
+            // Re-check for internal city access just for the no-region case
+            if (cityQuery) {
+                const citySlug = cityQuery.toLowerCase().replace(/\s+/g, '-');
+                if (user.groups.includes(`/cities/${citySlug}`)) return true;
+            }
+
+            throw new ForbiddenException('Region context is required or access denied for city');
+        }
+
+        // 3. Check for city-level access for the regionSlug (Onboarding Managers)
         const region = await this.prisma.region.findFirst({
             where: { code: regionSlug }
         });

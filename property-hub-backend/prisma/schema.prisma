@@ -40,6 +40,8 @@ model Property {
   bedrooms      Int?
   bathrooms     Int?
   propertyType  PropertyType
+  category      String?
+  city          String?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   onboardedById String?

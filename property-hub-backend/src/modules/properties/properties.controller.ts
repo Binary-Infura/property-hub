@@ -31,9 +31,10 @@ export class PropertiesController {
     findAll(
         @Param('region') region: string,
         @CurrentUser() user: AuthenticatedUser,
-        @Query('myOnly') myOnly?: string
+        @Query('myOnly') myOnly?: string,
+        @Query('city') city?: string
     ) {
-        return this.propertiesService.findAll(user, region, myOnly === 'true');
+        return this.propertiesService.findAll(user, region, myOnly === 'true', city);
     }
 
     @Get(':id')
