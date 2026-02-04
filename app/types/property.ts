@@ -5,6 +5,7 @@
 
 export type PropertyStatus = 'draft' | 'submitted' | 'approved' | 'rejected' | 'published' | 'available' | 'sold' | 'reserved';
 export type PropertyType = 'residential' | 'commercial' | 'mixed-use';
+export type PropertyCategory = 'flat' | 'plot' | 'shop' | 'villa' | 'office' | 'warehouse';
 
 export interface Building {
   id: string;
@@ -18,6 +19,7 @@ export interface Building {
 export interface PropertyFormData {
   title: string;
   propertyType: PropertyType;
+  propertyCategory?: PropertyCategory;
   location: string;
   address: string;
   city: string;
@@ -38,6 +40,7 @@ export interface Property {
   id: string;
   title: string;
   propertyType: PropertyType;
+  propertyCategory?: PropertyCategory;
   location: string;
   address: string;
   city: string;

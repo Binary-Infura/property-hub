@@ -14,11 +14,19 @@ interface StepConfig {
     description: string;
 }
 
+const PROPERTY_CATEGORIES = [
+    { value: 'flat', label: 'Flat / Apartment', description: 'Residential units in multi-story buildings' },
+    { value: 'plot', label: 'Plot / Land', description: 'Vacant land for development' },
+    { value: 'shop', label: 'Shop / Retail', description: 'Commercial retail spaces' },
+    { value: 'villa', label: 'Villa / Independent House', description: 'Standalone residential properties' },
+    { value: 'office', label: 'Office Space', description: 'Commercial office spaces' },
+    { value: 'warehouse', label: 'Warehouse / Godown', description: 'Industrial storage spaces' },
+];
+
 const STEPS: StepConfig[] = [
-    { number: 1, title: 'Basic Info', description: 'Title, type, and location' },
-    { number: 2, title: 'Details', description: 'Area, buildings, and units' },
-    { number: 3, title: 'Pricing', description: 'Starting price and amenities' },
-    { number: 4, title: 'Documents', description: 'Brochure and specifications' },
+    { number: 1, title: 'Category', description: 'Select property type' },
+    { number: 2, title: 'Basic Info', description: 'Title, type, and location' },
+    { number: 3, title: 'Details', description: 'Area, buildings, and units' },
 ];
 
 interface AddPropertyModalProps {
@@ -51,7 +59,8 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
     const { activeContext } = useUnifiedApp();
     const regionCode = activeContext.activeRegion.code;
 
-    const [currentStep, setCurrentStep] = useState(1);
+    const [currentStep, setCurrentStep] = useState(1); // Start at category selection (Step 1)
+    const [propertyCategory, setPropertyCategory] = useState<string>(''); // Selected category
     const [propertyId, setPropertyId] = useState<string | null>(editId);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
@@ -67,7 +76,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
         totalArea: '',
         totalBuildings: '',
         totalUnits: '',
-        startingPrice: '',
+        startingPrice: '', // We keep these for type safety but they won't be filled here
         description: '',
         amenities: [] as string[],
     });
@@ -288,7 +297,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
         }
     };
 
-    const saveToApi = async (status: 'draft' | 'submitted') => {
+    const saveToApi = async (status: string) => {
         if (!token || !regionCode) return;
 
         setLoading(true);
@@ -306,6 +315,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
             description: fullDescription,
             location: formData.location,
             address: fullAddress,
+            category: propertyCategory.toUpperCase(),
             // regionId removed as it is assigned later by onboarding manager
 
             status: status.toUpperCase(),
@@ -379,32 +389,37 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
         }
     };
 
-    const handleNext = async () => {
-        try {
-            await saveToApi('draft');
-            setCurrentStep(prev => Math.min(STEPS.length, prev + 1));
-        } catch (e) { }
+    const handleNext = () => {
+        setCurrentStep(prev => Math.min(STEPS.length, prev + 1));
     };
 
     const handleSubmit = async () => {
         try {
-            await saveToApi('draft');
+            await saveToApi('available');
             onSuccess();
             onClose();
         } catch (e) { }
     };
 
-    const isStepValid = () => {
-        switch (currentStep) {
+    const checkStepValidity = (step: number) => {
+        switch (step) {
             case 1:
-                return formData.title && formData.propertyType && formData.location && formData.address;
+                return !!propertyCategory; // Must select a category
             case 2:
-                return formData.city && formData.state && formData.pincode && formData.totalArea && formData.totalBuildings && formData.totalUnits;
+                return !!(formData.title && formData.propertyType && formData.location && formData.address);
             case 3:
-                return formData.startingPrice && formData.description && formData.amenities.length > 0;
+                // City is auto-filled sometimes, but check generic validity
+                return !!(formData.city && formData.state && formData.pincode && formData.totalArea && formData.totalBuildings && formData.totalUnits);
             default:
                 return true;
         }
+    };
+
+    const isStepValid = () => checkStepValidity(currentStep);
+
+    const isFormComplete = () => {
+        // Check all steps including category selection
+        return STEPS.every(step => checkStepValidity(step.number));
     };
 
     if (!isOpen) return null;
@@ -436,14 +451,18 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                         {/* Step Indicator */}
                         <div className="flex items-center justify-between mb-8 overflow-x-auto pb-4">
                             {STEPS.map((step, idx) => (
-                                <div key={step.number} className="flex-1 min-w-[150px]">
+                                <div
+                                    key={step.number}
+                                    className="flex-1 min-w-[150px] cursor-pointer group"
+                                    onClick={() => setCurrentStep(step.number)}
+                                >
                                     <div className="flex items-center">
-                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0 transition ${currentStep >= step.number ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-100 text-gray-400'
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold shrink-0 transition ${currentStep >= step.number ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200'
                                             }`}>
                                             {step.number}
                                         </div>
                                         <div className="ml-3">
-                                            <p className={`text-sm font-bold ${currentStep >= step.number ? 'text-gray-900' : 'text-gray-400'}`}>{step.title}</p>
+                                            <p className={`text-sm font-bold ${currentStep >= step.number ? 'text-gray-900' : 'text-gray-400 group-hover:text-gray-600'}`}>{step.title}</p>
                                             <p className="text-[10px] text-gray-500 truncate">{step.description}</p>
                                         </div>
                                     </div>
@@ -459,6 +478,34 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                             {error && <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-xl border border-red-100 text-sm">{error}</div>}
 
                             {currentStep === 1 && (
+                                <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                                    <div className="text-center mb-6">
+                                        <h3 className="text-lg font-bold text-gray-900 mb-2">What type of property are you adding?</h3>
+                                        <p className="text-sm text-gray-600">Select the category that best describes your property</p>
+                                    </div>
+
+                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                        {PROPERTY_CATEGORIES.map(category => (
+                                            <button
+                                                key={category.value}
+                                                type="button"
+                                                onClick={() => setPropertyCategory(category.value)}
+                                                className={`p-6 rounded-xl border-2 transition-all text-left hover:shadow-lg ${propertyCategory === category.value
+                                                    ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
+                                                    : 'border-gray-200 hover:border-blue-300 bg-white'
+                                                    }`}
+                                            >
+                                                <h4 className={`font-bold mb-1 ${propertyCategory === category.value ? 'text-blue-700' : 'text-gray-900'}`}>
+                                                    {category.label}
+                                                </h4>
+                                                <p className="text-xs text-gray-600">{category.description}</p>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {currentStep === 2 && (
                                 <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                                     <div className="grid grid-cols-2 gap-6">
                                         <div className="col-span-2">
@@ -571,7 +618,8 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                                 </div>
                             )}
 
-                            {currentStep === 2 && (
+
+                            {currentStep === 3 && (
                                 <div className="space-y-6">
                                     <div className="grid grid-cols-3 gap-6">
                                         <div>
@@ -657,96 +705,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                                 </div>
                             )}
 
-                            {currentStep === 3 && (
-                                <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                                    <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Starting Price (₹) *</label>
-                                        <input
-                                            type="number"
-                                            name="startingPrice"
-                                            value={formData.startingPrice}
-                                            onChange={handleInputChange}
-                                            placeholder="e.g., 5000000"
-                                            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
-                                        />
-                                        {formData.startingPrice && (
-                                            <p className="text-sm text-blue-600 font-bold mt-2">
-                                                ₹{(parseInt(formData.startingPrice) / 100000).toFixed(1)} Lakhs
-                                            </p>
-                                        )}
-                                    </div>
 
-                                    <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Description *</label>
-                                        <textarea
-                                            name="description"
-                                            value={formData.description}
-                                            onChange={handleInputChange}
-                                            placeholder="Describe your property project in detail..."
-                                            rows={4}
-                                            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
-                                        />
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-4">Amenities *</label>
-                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                            {AMENITIES_OPTIONS.map(amenity => (
-                                                <label key={amenity} className={`flex items-center gap-3 p-3 border rounded-xl cursor-pointer transition-all ${formData.amenities.includes(amenity) ? 'bg-blue-50 border-blue-200 text-blue-700 ring-1 ring-blue-200' : 'border-gray-100 hover:bg-gray-50'
-                                                    }`}>
-                                                    <input
-                                                        type="checkbox"
-                                                        checked={formData.amenities.includes(amenity)}
-                                                        onChange={() => handleAmenityToggle(amenity)}
-                                                        className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500"
-                                                    />
-                                                    <span className="text-xs font-semibold">{amenity}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {currentStep === 4 && (
-                                <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                                    <div className="p-6 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100/50 transition-colors">
-                                        <svg className="w-12 h-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                                        </svg>
-                                        <p className="text-sm font-bold text-gray-900">Upload Property Media</p>
-                                        <p className="text-xs text-gray-500 mt-1 mb-4">Upload high-quality images and brochures</p>
-                                        <input
-                                            type="file"
-                                            multiple
-                                            accept="image/*"
-                                            onChange={(e) => handleFileChange(e, 'images')}
-                                            className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                                        />
-                                    </div>
-
-                                    <div className="grid grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Brochure (PDF)</label>
-                                            <input
-                                                type="file"
-                                                accept=".pdf"
-                                                onChange={(e) => handleFileChange(e, 'brochure')}
-                                                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700"
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Specifications (PDF)</label>
-                                            <input
-                                                type="file"
-                                                accept=".pdf"
-                                                onChange={(e) => handleFileChange(e, 'specification')}
-                                                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
                         </div>
 
                         {/* Navigation Buttons */}
@@ -775,17 +734,17 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                                     className="px-8 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 disabled:opacity-50 transition-all flex items-center gap-2"
                                 >
                                     {loading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
-                                    Save & Next
+                                    Next
                                 </button>
                             ) : (
                                 <button
                                     type="button"
                                     onClick={handleSubmit}
-                                    disabled={loading}
+                                    disabled={loading || !isFormComplete()}
                                     className="px-8 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 shadow-lg shadow-green-200 disabled:opacity-50 transition-all flex items-center gap-2"
                                 >
                                     {loading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
-                                    Finish Listing
+                                    Save Property
                                 </button>
                             )}
                         </div>

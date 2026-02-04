@@ -6,6 +6,7 @@ import { Property, PropertyStatus } from '@/app/types/property';
 import { PROPERTY_STATUS_CONFIG } from '@/app/constants/property';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+import SelectPropertyModal from '@/app/components/property-partner/SelectPropertyModal';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -22,8 +23,7 @@ export default function PublicListingPage() {
     const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
     const [searchQuery, setSearchQuery] = useState('');
 
-    // Mock initial wizard state - in real app, we might toggle between list/wizard
-    const [isWizardOpen, setIsWizardOpen] = useState(false);
+    const [isSelectModalOpen, setIsSelectModalOpen] = useState(false);
 
     const fetchProperties = async () => {
         if (!token || !regionCode) return;
@@ -97,10 +97,6 @@ export default function PublicListingPage() {
         </div>;
     }
 
-    // If the user was using the wizard, we might want to keep that functionality accessible 
-    // via an "Add Listing" button that routes to a wizard page or opens a modal.
-    // For now, I'll link the "Create New Listing" button to the wizard logic.
-
     return (
         <div className="space-y-6">
             {/* Header */}
@@ -109,18 +105,9 @@ export default function PublicListingPage() {
                     <h1 className="text-3xl font-bold text-gray-900">Public Listings</h1>
                     <p className="text-gray-600 mt-1">Manage your Submitted and Published properties</p>
                 </div>
-                {/* We can re-introduce the wizard here later if needed, or link to a create page */}
                 <button
                     className="bg-gray-900 text-white px-6 py-3 rounded-xl hover:bg-black font-bold transition flex items-center gap-2 shadow-lg"
-                    onClick={() => {
-                        // Logic to open wizard or redirect to create page
-                        // Since I replaced the wizard page, I should probably put it back as a sub-route
-                        // For now, just a placeholder action or link to the 'Add Property' modal in 'Properties' if that's the flow
-                        // But 'Properties' is for Drafts.
-                        // Maybe this button should allow creating a new listing from scratch?
-                        // Or selecting a Draft to submit?
-                        alert("To create a public listing, select a Draft from 'My Properties' and submit it.");
-                    }}
+                    onClick={() => setIsSelectModalOpen(true)}
                 >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -128,6 +115,12 @@ export default function PublicListingPage() {
                     New Listing
                 </button>
             </div>
+
+            <SelectPropertyModal
+                isOpen={isSelectModalOpen}
+                onClose={() => setIsSelectModalOpen(false)}
+                onSuccess={fetchProperties}
+            />
 
             {/* Stats */}
             <div className="grid md:grid-cols-4 gap-4">

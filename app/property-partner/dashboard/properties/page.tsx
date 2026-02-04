@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Property, PropertyStatus } from '@/app/types/property';
+import { Property, PropertyStatus, PropertyCategory } from '@/app/types/property';
 import { PROPERTY_STATUS_CONFIG, PROPERTY_TYPES } from '@/app/constants/property';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
@@ -11,6 +11,15 @@ import AddPropertyModal from '@/app/components/property-partner/AddPropertyModal
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 type FilterStatus = PropertyStatus | 'all';
+
+const CATEGORY_CONFIG: Record<PropertyCategory, { label: string; color: string; bgColor: string }> = {
+  flat: { label: 'Flat', color: 'text-purple-700', bgColor: 'bg-purple-100' },
+  plot: { label: 'Plot', color: 'text-green-700', bgColor: 'bg-green-100' },
+  shop: { label: 'Shop', color: 'text-orange-700', bgColor: 'bg-orange-100' },
+  villa: { label: 'Villa', color: 'text-pink-700', bgColor: 'bg-pink-100' },
+  office: { label: 'Office', color: 'text-blue-700', bgColor: 'bg-blue-100' },
+  warehouse: { label: 'Warehouse', color: 'text-gray-700', bgColor: 'bg-gray-100' },
+};
 
 export default function PropertiesPage() {
   const { token } = useAuth();
@@ -41,25 +50,56 @@ export default function PropertiesPage() {
       if (res.ok) {
         const data = await res.json();
         // Map backend data to frontend Property interface
-        const mapped: Property[] = data.map((p: any) => ({
-          id: p.id,
-          title: p.name,
-          propertyType: p.propertyType === 'COMMERCIAL' ? 'commercial' : 'residential', // Simple mapping
-          location: p.location,
-          address: p.address || '',
-          city: '', // Not returned separately
-          state: '',
-          pincode: '',
-          totalArea: parseFloat(p.area) || 0,
-          totalBuildings: 0, // Not supported
-          totalUnits: 0, // Not supported
-          startingPrice: parseFloat(p.price) || 0,
-          description: p.description || '',
-          amenities: [],
-          status: p.status.toLowerCase() as PropertyStatus, // DRAFT -> draft
-          createdAt: new Date(p.createdAt),
-          // ... other fields
-        }));
+        const mapped: Property[] = data.map((p: any) => {
+          // Backend returns status as uppercase (e.g., 'AVAILABLE', 'SUBMITTED')
+          const backendStatus = p.status?.toUpperCase();
+          let frontendStatus: PropertyStatus = 'available'; // default
+
+          switch (backendStatus) {
+            case 'AVAILABLE':
+              frontendStatus = 'available';
+              break;
+            case 'SUBMITTED':
+              frontendStatus = 'submitted';
+              break;
+            case 'APPROVED':
+              frontendStatus = 'approved';
+              break;
+            case 'REJECTED':
+              frontendStatus = 'rejected';
+              break;
+            case 'PUBLISHED':
+              frontendStatus = 'published';
+              break;
+            case 'DRAFT':
+              frontendStatus = 'draft';
+              break;
+            default:
+              frontendStatus = p.status?.toLowerCase() as PropertyStatus;
+          }
+
+          return {
+            id: p.id,
+            title: p.name,
+            propertyType: p.propertyType === 'COMMERCIAL' ? 'commercial' : 'residential',
+            propertyCategory: p.category?.toLowerCase() as any,
+            location: p.location,
+            address: p.address || '',
+            city: '',
+            state: '',
+            pincode: '',
+            totalArea: parseFloat(p.area) || 0,
+            totalBuildings: 0,
+            totalUnits: 0,
+            startingPrice: parseFloat(p.price) || 0,
+            description: p.description || '',
+            amenities: [],
+            status: frontendStatus,
+            createdAt: new Date(p.createdAt),
+          };
+        });
+
+        console.log('Fetched properties:', mapped.map(p => ({ id: p.id, title: p.title, status: p.status })));
         setProperties(mapped);
       } else {
         console.error('Failed to fetch properties');
@@ -93,22 +133,25 @@ export default function PropertiesPage() {
   }
 
   const filteredProperties = properties.filter(prop => {
-    // Only show Draft and Rejected properties on this page
-    const allowedStatuses = ['draft', 'rejected'];
+    // Show all internal inventory
+    // This is the builder's complete property portfolio
+    const allowedStatuses: PropertyStatus[] = ['available', 'submitted', 'rejected', 'draft', 'approved', 'published'];
+
     if (!allowedStatuses.includes(prop.status)) return false;
 
-    const statusMatch = filterStatus === 'all' || prop.status === filterStatus;
+    // When 'available' filter is selected, show anything that is part of internal inventory
+    // (available, submitted, rejected, draft)
+    const statusMatch = filterStatus === 'all'
+      || (filterStatus === 'available' && (prop.status === 'available' || prop.status === 'submitted' || prop.status === 'draft' || prop.status === 'rejected'))
+      || prop.status === filterStatus;
+
     const searchMatch = prop.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       prop.location.toLowerCase().includes(searchQuery.toLowerCase());
     return statusMatch && searchMatch;
   });
 
   const statusCounts = {
-    draft: properties.filter(p => p.status === 'draft').length,
-    submitted: properties.filter(p => p.status === 'submitted').length,
-    approved: properties.filter(p => p.status === 'approved').length,
-    rejected: properties.filter(p => p.status === 'rejected').length,
-    published: properties.filter(p => p.status === 'published').length,
+    available: properties.filter(p => p.status === 'available' || p.status === 'submitted' || p.status === 'draft' || p.status === 'rejected').length,
   };
 
   return (
@@ -117,7 +160,7 @@ export default function PropertiesPage() {
       <div className="flex justify-between items-start">
         <div>
           <h1 className="text-3xl font-bold text-gray-900">My Properties</h1>
-          <p className="text-gray-600 mt-1">Manage and organize your real estate properties</p>
+          <p className="text-gray-600 mt-1">Manage your internal inventory and property details</p>
         </div>
         <button
           onClick={handleAddProperty}
@@ -138,19 +181,14 @@ export default function PropertiesPage() {
       />
 
       {/* Stats */}
-      <div className="grid md:grid-cols-3 gap-4">
+      <div className="grid md:grid-cols-2 gap-4">
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-          <p className="text-gray-600 text-sm font-medium">Draft</p>
-          <p className="text-2xl font-bold text-yellow-600 mt-2">{statusCounts.draft}</p>
+          <p className="text-gray-600 text-sm font-medium">Available (Internal)</p>
+          <p className="text-2xl font-bold text-emerald-600 mt-2">{statusCounts.available}</p>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-          <p className="text-gray-600 text-sm font-medium">Rejected</p>
-          <p className="text-2xl font-bold text-red-600 mt-2">{statusCounts.rejected}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-          <p className="text-gray-600 text-sm font-medium">Total</p>
-          {/* Total of only valid statuses for this page */}
-          <p className="text-2xl font-bold text-gray-900 mt-2">{statusCounts.draft + statusCounts.rejected}</p>
+          <p className="text-gray-600 text-sm font-medium">Total Inventory</p>
+          <p className="text-2xl font-bold text-gray-900 mt-2">{properties.length}</p>
         </div>
       </div>
 
@@ -175,16 +213,16 @@ export default function PropertiesPage() {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
             >
-              All ({statusCounts.draft + statusCounts.rejected})
+              All
             </button>
             <button
-              onClick={() => setFilterStatus('draft')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filterStatus === 'draft'
-                ? 'bg-yellow-100 text-yellow-700'
+              onClick={() => setFilterStatus('available')}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filterStatus === 'available'
+                ? 'bg-emerald-100 text-emerald-700'
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
             >
-              Draft ({statusCounts.draft})
+              Available ({statusCounts.available})
             </button>
           </div>
 
@@ -240,7 +278,7 @@ export default function PropertiesPage() {
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700">Location</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700">Type</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700">Buildings</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700">Category</th>
                 <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700">Actions</th>
               </tr>
             </thead>
@@ -265,13 +303,19 @@ export default function PropertiesPage() {
                       <p className="text-gray-700">{property.totalBuildings}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`px-3 py-1 rounded-full text-xs font-semibold ${statusConfig.bgColor} ${statusConfig.color}`}>
-                        {statusConfig.label}
-                      </span>
+                      {property.propertyCategory && CATEGORY_CONFIG[property.propertyCategory] ? (
+                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${CATEGORY_CONFIG[property.propertyCategory].bgColor} ${CATEGORY_CONFIG[property.propertyCategory].color}`}>
+                          {CATEGORY_CONFIG[property.propertyCategory].label}
+                        </span>
+                      ) : (
+                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
+                          Flat
+                        </span>
+                      )}
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-3">
-                        {property.status === 'draft' && (
+                        {(['available', 'rejected'].includes(property.status)) && (
                           <button
                             onClick={() => handleEditProperty(property.id)}
                             className="text-amber-600 hover:text-amber-700 font-bold text-sm"
@@ -311,7 +355,7 @@ export default function PropertiesPage() {
                   <div className="p-4">
                     <div className="flex justify-between items-start mb-1">
                       <h3 className="font-bold text-gray-900 truncate pr-2">{property.title}</h3>
-                      {property.status === 'draft' && (
+                      {(['available', 'rejected'].includes(property.status)) && (
                         <button
                           onClick={(e) => {
                             e.preventDefault();
@@ -319,7 +363,7 @@ export default function PropertiesPage() {
                             handleEditProperty(property.id);
                           }}
                           className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-gray-100 hover:bg-amber-50 text-gray-500 hover:text-amber-600 rounded-lg"
-                          title="Edit Draft"
+                          title="Edit Property"
                         >
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
@@ -329,9 +373,15 @@ export default function PropertiesPage() {
                     </div>
                     <p className="text-sm text-gray-600 mb-3">{property.location}</p>
                     <div className="flex items-center justify-between mb-3">
-                      <span className={`px-2 py-1 rounded text-xs font-semibold ${statusConfig.bgColor} ${statusConfig.color}`}>
-                        {statusConfig.label}
-                      </span>
+                      {property.propertyCategory && CATEGORY_CONFIG[property.propertyCategory] ? (
+                        <span className={`px-2 py-1 rounded text-xs font-semibold ${CATEGORY_CONFIG[property.propertyCategory].bgColor} ${CATEGORY_CONFIG[property.propertyCategory].color}`}>
+                          {CATEGORY_CONFIG[property.propertyCategory].label}
+                        </span>
+                      ) : (
+                        <span className="px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-700">
+                          Flat
+                        </span>
+                      )}
                       <p className="text-sm font-semibold text-gray-700">₹{(property.startingPrice / 100000).toFixed(1)}L+</p>
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-xs">
