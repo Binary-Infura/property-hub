@@ -11,6 +11,7 @@ export default function PropertyPartnerSidebar() {
   const mainNavigation = [
     { name: 'Dashboard', href: '/property-partner/dashboard', icon: '📊' },
     { name: 'Properties', href: '/property-partner/dashboard/properties', icon: '🏢' },
+    { name: 'Public Listing', href: '/property-partner/dashboard/public-listing', icon: '🌐' },
     { name: 'Business Info', href: '/property-partner/dashboard/profile', icon: '💼' },
   ];
 
@@ -33,7 +34,7 @@ export default function PropertyPartnerSidebar() {
   const isPremium = profileStatus?.['property-partner']?.profileData?.isPremium;
 
   return (
-    <aside className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col">
+    <aside className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col shrink-0">
       {/* Sidebar Header */}
       <div className="h-16 flex items-center px-6 border-b border-gray-200">
         <Link href="/property-partner/dashboard" className="flex items-center gap-2 font-bold text-xl text-gray-900">
@@ -93,8 +94,6 @@ export default function PropertyPartnerSidebar() {
           </nav>
         </div>
       </div>
-
-
     </aside>
   );
 }

@@ -33,7 +33,7 @@ model Property {
   description   String?
   location      String
   address       String?
-  regionId      String
+  regionId      String?
   status        PropertyStatus @default(AVAILABLE)
   price         Decimal        @db.Decimal(15, 2)
   area          Decimal?       @db.Decimal(10, 2)
@@ -46,7 +46,7 @@ model Property {
   commissions   Commission[]
   leads         Lead[]
   onboardedBy   User?          @relation("UserOnboardedProperties", fields: [onboardedById], references: [id])
-  region        Region         @relation(fields: [regionId], references: [id])
+  region        Region?        @relation(fields: [regionId], references: [id])
 
   @@index([regionId])
   @@index([status])

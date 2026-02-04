@@ -6,6 +6,7 @@ import { Property, PropertyStatus } from '@/app/types/property';
 import { PROPERTY_STATUS_CONFIG, PROPERTY_TYPES } from '@/app/constants/property';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+import AddPropertyModal from '@/app/components/property-partner/AddPropertyModal';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -22,60 +23,80 @@ export default function PropertiesPage() {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [searchQuery, setSearchQuery] = useState('');
 
-  useEffect(() => {
-    const fetchProperties = async () => {
-      if (!token || !regionCode) return;
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
-      try {
-        setLoading(true);
-        // Fetch "my" properties
-        const res = await fetch(`${API_URL}/api/${regionCode}/properties?myOnly=true`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
+  const fetchProperties = async () => {
+    if (!token || !regionCode) return;
 
-        if (res.ok) {
-          const data = await res.json();
-          // Map backend data to frontend Property interface
-          const mapped: Property[] = data.map((p: any) => ({
-            id: p.id,
-            title: p.name,
-            propertyType: p.propertyType === 'COMMERCIAL' ? 'commercial' : 'residential', // Simple mapping
-            location: p.location,
-            address: p.address || '',
-            city: '', // Not returned separately
-            state: '',
-            pincode: '',
-            totalArea: parseFloat(p.area) || 0,
-            totalBuildings: 0, // Not supported
-            totalUnits: 0, // Not supported
-            startingPrice: parseFloat(p.price) || 0,
-            description: p.description || '',
-            amenities: [],
-            status: p.status.toLowerCase() as PropertyStatus, // DRAFT -> draft
-            createdAt: new Date(p.createdAt),
-            // ... other fields
-          }));
-          setProperties(mapped);
-        } else {
-          console.error('Failed to fetch properties');
+    try {
+      setLoading(true);
+      // Fetch "my" properties
+      const res = await fetch(`${API_URL}/api/${regionCode}/properties?myOnly=true`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
         }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
+      });
 
+      if (res.ok) {
+        const data = await res.json();
+        // Map backend data to frontend Property interface
+        const mapped: Property[] = data.map((p: any) => ({
+          id: p.id,
+          title: p.name,
+          propertyType: p.propertyType === 'COMMERCIAL' ? 'commercial' : 'residential', // Simple mapping
+          location: p.location,
+          address: p.address || '',
+          city: '', // Not returned separately
+          state: '',
+          pincode: '',
+          totalArea: parseFloat(p.area) || 0,
+          totalBuildings: 0, // Not supported
+          totalUnits: 0, // Not supported
+          startingPrice: parseFloat(p.price) || 0,
+          description: p.description || '',
+          amenities: [],
+          status: p.status.toLowerCase() as PropertyStatus, // DRAFT -> draft
+          createdAt: new Date(p.createdAt),
+          // ... other fields
+        }));
+        setProperties(mapped);
+      } else {
+        console.error('Failed to fetch properties');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchProperties();
   }, [token, regionCode]);
 
-  if (loading) {
-    return <div className="p-8 text-center">Loading properties...</div>;
+  const handleAddProperty = () => {
+    setEditingId(null);
+    setIsModalOpen(true);
+  };
+
+  const handleEditProperty = (id: string) => {
+    setEditingId(id);
+    setIsModalOpen(true);
+  };
+
+  if (loading && properties.length === 0) {
+    return <div className="p-8 text-center text-gray-500">
+      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+      Loading properties...
+    </div>;
   }
 
   const filteredProperties = properties.filter(prop => {
+    // Only show Draft and Rejected properties on this page
+    const allowedStatuses = ['draft', 'rejected'];
+    if (!allowedStatuses.includes(prop.status)) return false;
+
     const statusMatch = filterStatus === 'all' || prop.status === filterStatus;
     const searchMatch = prop.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       prop.location.toLowerCase().includes(searchQuery.toLowerCase());
@@ -98,30 +119,29 @@ export default function PropertiesPage() {
           <h1 className="text-3xl font-bold text-gray-900">My Properties</h1>
           <p className="text-gray-600 mt-1">Manage and organize your real estate properties</p>
         </div>
-        <Link
-          href="/property-partner/dashboard/properties/add"
-          className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-semibold transition flex items-center gap-2"
+        <button
+          onClick={handleAddProperty}
+          className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 font-bold transition flex items-center gap-2 shadow-lg shadow-blue-200"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
           </svg>
           Add Property
-        </Link>
+        </button>
       </div>
 
+      <AddPropertyModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        editId={editingId}
+        onSuccess={fetchProperties}
+      />
+
       {/* Stats */}
-      <div className="grid md:grid-cols-5 gap-4">
+      <div className="grid md:grid-cols-3 gap-4">
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
           <p className="text-gray-600 text-sm font-medium">Draft</p>
           <p className="text-2xl font-bold text-yellow-600 mt-2">{statusCounts.draft}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-          <p className="text-gray-600 text-sm font-medium">Submitted</p>
-          <p className="text-2xl font-bold text-blue-600 mt-2">{statusCounts.submitted}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-          <p className="text-gray-600 text-sm font-medium">Approved</p>
-          <p className="text-2xl font-bold text-green-600 mt-2">{statusCounts.approved}</p>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
           <p className="text-gray-600 text-sm font-medium">Rejected</p>
@@ -129,7 +149,8 @@ export default function PropertiesPage() {
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
           <p className="text-gray-600 text-sm font-medium">Total</p>
-          <p className="text-2xl font-bold text-gray-900 mt-2">{properties.length}</p>
+          {/* Total of only valid statuses for this page */}
+          <p className="text-2xl font-bold text-gray-900 mt-2">{statusCounts.draft + statusCounts.rejected}</p>
         </div>
       </div>
 
@@ -154,7 +175,7 @@ export default function PropertiesPage() {
                 : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                 }`}
             >
-              All ({properties.length})
+              All ({statusCounts.draft + statusCounts.rejected})
             </button>
             <button
               onClick={() => setFilterStatus('draft')}
@@ -164,24 +185,6 @@ export default function PropertiesPage() {
                 }`}
             >
               Draft ({statusCounts.draft})
-            </button>
-            <button
-              onClick={() => setFilterStatus('submitted')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filterStatus === 'submitted'
-                ? 'bg-blue-100 text-blue-700'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              Submitted ({statusCounts.submitted})
-            </button>
-            <button
-              onClick={() => setFilterStatus('approved')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filterStatus === 'approved'
-                ? 'bg-green-100 text-green-700'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              Approved ({statusCounts.approved})
             </button>
           </div>
 
@@ -225,12 +228,7 @@ export default function PropertiesPage() {
             {searchQuery || filterStatus !== 'all' ? 'Try adjusting your search or filters' : 'Create your first property to get started'}
           </p>
           {!searchQuery && filterStatus === 'all' && (
-            <Link
-              href="/property-partner/dashboard/properties/add"
-              className="inline-block bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium transition"
-            >
-              Create Property
-            </Link>
+            <p className="text-sm text-gray-400">Click the &quot;Add Property&quot; button above to create your first listing</p>
           )}
         </div>
       ) : viewMode === 'list' ? (
@@ -274,12 +272,12 @@ export default function PropertiesPage() {
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-3">
                         {property.status === 'draft' && (
-                          <Link
-                            href={`/property-partner/dashboard/properties/add?id=${property.id}`}
-                            className="text-amber-600 hover:text-amber-700 font-medium text-sm"
+                          <button
+                            onClick={() => handleEditProperty(property.id)}
+                            className="text-amber-600 hover:text-amber-700 font-bold text-sm"
                           >
                             Edit
-                          </Link>
+                          </button>
                         )}
                         <Link
                           href={`/property-partner/dashboard/properties/${property.id}`}
@@ -314,16 +312,19 @@ export default function PropertiesPage() {
                     <div className="flex justify-between items-start mb-1">
                       <h3 className="font-bold text-gray-900 truncate pr-2">{property.title}</h3>
                       {property.status === 'draft' && (
-                        <Link
-                          href={`/property-partner/dashboard/properties/add?id=${property.id}`}
-                          onClick={(e) => e.stopPropagation()}
+                        <button
+                          onClick={(e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleEditProperty(property.id);
+                          }}
                           className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-gray-100 hover:bg-amber-50 text-gray-500 hover:text-amber-600 rounded-lg"
                           title="Edit Draft"
                         >
                           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                           </svg>
-                        </Link>
+                        </button>
                       )}
                     </div>
                     <p className="text-sm text-gray-600 mb-3">{property.location}</p>

@@ -18,19 +18,21 @@ export default function PropertyPartnerLayoutWrapper({
   return (
     <RouteGuard requiredRole="property-partner">
       <div className="flex h-screen bg-gray-50 overflow-hidden">
-        {!isNoRegion && (
-          <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0">
-            <PropertyPartnerSidebar />
-          </aside>
-        )}
+        {!isNoRegion && <PropertyPartnerSidebar />}
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
           <PropertyPartnerTopNav showLogo={isNoRegion} />
 
-          <main className={`flex-1 overflow-y-auto ${isNoRegion ? 'flex items-center justify-center p-8' : 'p-8'}`}>
+          <main className={`flex-1 overflow-y-auto ${isNoRegion ? 'flex items-center justify-center p-8' : ''}`}>
             <ProfileCompletionPrompt />
-            {isNoRegion ? <NoRegionAllocated /> : children}
+            {isNoRegion ? (
+              <NoRegionAllocated />
+            ) : (
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
+                {children}
+              </div>
+            )}
           </main>
         </div>
       </div>
