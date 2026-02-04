@@ -18,6 +18,12 @@ interface Region {
     description?: string;
     propertiesCount?: number;
     revenue?: number;
+    location?: {
+        continent: string;
+        country: string;
+        state: string;
+        city: string;
+    };
 }
 
 export default function RegionsPage() {
@@ -183,7 +189,7 @@ export default function RegionsPage() {
                                         <td className="px-6 py-4">
                                             <div className="font-semibold text-gray-900 leading-none">{region.name}</div>
                                             <div className="text-[11px] text-gray-400 font-medium mt-1 uppercase tracking-wider">
-                                                {[region.city, region.state, region.country].filter(Boolean).join(' • ')}
+                                                {[region.location?.city || region.city, region.location?.state || region.state, region.location?.country || region.country].filter(Boolean).join(' • ')}
                                             </div>
                                             {region.description && (
                                                 <div className="text-xs text-gray-500 mt-2 line-clamp-1 italic bg-gray-50/50 p-1.5 rounded-lg border border-gray-100/50">

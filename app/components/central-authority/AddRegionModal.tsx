@@ -62,13 +62,16 @@ export default function AddRegionModal({ isOpen, onClose, onSuccess, initialData
             setName(initialData.name || '');
             setDescription(initialData.description || '');
             setTags(initialData.tags || []);
-            setCountryName(initialData.country || '');
-            setStateName(initialData.state || '');
-            setCityName(initialData.city || '');
 
-            // Note: We don't have continent in initialData usually, 
-            // but we can try to fetch it if needed. 
-            // For now, let's just allow editing name/description/tags
+            // Handle location pre-filling
+            const loc = initialData.location || initialData;
+            setCountryName(loc.country || '');
+            setStateName(loc.state || '');
+            setCityName(loc.city || '');
+
+            if (loc.continent) {
+                setSelectedContinent(loc.continent);
+            }
         }
     }, [isOpen, initialData]);
 
@@ -268,9 +271,6 @@ export default function AddRegionModal({ isOpen, onClose, onSuccess, initialData
                     country: countryName,
                     state: stateName,
                     city: cityName,
-                    countryCode: selectedCountryCode,
-                    stateCode: selectedStateCode,
-                    cityCode: cityName,
                     description,
                     tags
                 })

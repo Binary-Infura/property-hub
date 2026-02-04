@@ -54,6 +54,22 @@ export class CreatePropertyDto {
     @IsOptional()
     city?: string;
 
+    @IsString()
+    @IsOptional()
+    state?: string;
+
+    @IsString()
+    @IsOptional()
+    country?: string;
+
+    @IsString()
+    @IsOptional()
+    continent?: string;
+
+    @IsUUID()
+    @IsOptional()
+    locationId?: string;
+
     @IsUUID()
     @IsOptional()
     onboardedById?: string;
@@ -111,4 +127,20 @@ export class UpdatePropertyDto {
     @IsString()
     @IsOptional()
     city?: string;
+
+    @IsString()
+    @IsOptional()
+    state?: string;
+
+    @IsString()
+    @IsOptional()
+    country?: string;
+
+    @IsString()
+    @IsOptional()
+    continent?: string;
+
+    @IsUUID()
+    @IsOptional()
+    locationId?: string;
 }

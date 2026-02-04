@@ -15,7 +15,6 @@ export class PropertiesService {
     async findAll(user: AuthenticatedUser, regionCode: string, myOnly?: boolean, city?: string): Promise<Property[]> {
         const isCentralAuthority = user.roles.includes('central-authority');
         const isPropertyPartner = user.roles.includes('property-partner');
-        const isOnboardingManager = user.roles.includes('onboarding-manager');
         const userRegions = (user.groups || []).map(g => g.split('/').pop());
 
         // Check if user has access to the requested region or city
@@ -28,7 +27,6 @@ export class PropertiesService {
             }
 
             if (!hasAccess && regionCode !== 'no-region') {
-                // Check if regionCode belongs to any of user's cities
                 const region = await this.prisma.region.findUnique({ where: { code: regionCode } });
                 const citySlug = region?.city?.toLowerCase().replace(/\s+/g, '-');
                 hasAccess = citySlug && (user.groups || []).some(g => g.endsWith(`/${citySlug}`));
@@ -46,9 +44,10 @@ export class PropertiesService {
                 { city: { contains: city, mode: 'insensitive' } },
                 { location: { contains: city, mode: 'insensitive' } },
                 { address: { contains: city, mode: 'insensitive' } },
+                { locationRel: { city: { contains: city, mode: 'insensitive' } } }
             ];
         } else if (isPropertyPartner && myOnly) {
-            // Global view for property partners of their own properties
+            // Global view for property partners
         } else {
             where.region = { code: regionCode };
         }
@@ -58,21 +57,18 @@ export class PropertiesService {
             where.onboardedById = internalUser.id;
         }
 
-        console.log(`[findAll] Region: ${regionCode}, City: ${city}, MyOnly: ${myOnly}`);
-        console.log(`[findAll] Where clause:`, JSON.stringify(where, null, 2));
-
         const results = await this.prisma.property.findMany({
             where,
             include: {
                 region: true,
                 onboardedBy: true,
+                locationRel: true,
             },
             orderBy: {
                 createdAt: 'desc',
             },
         });
 
-        console.log(`[findAll] Found ${results.length} properties`);
         return results;
     }
 
@@ -82,6 +78,7 @@ export class PropertiesService {
             include: {
                 region: true,
                 commissions: true,
+                locationRel: true,
             },
         });
 
@@ -90,7 +87,7 @@ export class PropertiesService {
         }
 
         const isCentralAuthority = user.roles.includes('central-authority');
-        const userRegions = user.groups.map(g => g.split('/').pop());
+        const userRegions = (user.groups || []).map(g => g.split('/').pop());
 
         // Check ownership
         const internalUser = await this.usersService.ensureUserSynced(user);
@@ -99,15 +96,40 @@ export class PropertiesService {
         // Check region/city access (skip if owner or central authority)
         if (!isCentralAuthority && !isOwner) {
             const hasRegionAccess = property.region && userRegions.includes(property.region.code);
-            const hasCityAccess = (property as any).city && userRegions.some(g => g.toLowerCase() === (property as any).city?.toLowerCase());
-            const hasRegionCityAccess = property.region?.city && userRegions.some(g => g.toLowerCase() === property.region.city.toLowerCase());
+            const hasLocationCityAccess = property.locationRel?.city && userRegions.some(g => g.toLowerCase() === property.locationRel.city.toLowerCase());
 
-            if (!hasRegionAccess && !hasCityAccess && !hasRegionCityAccess) {
+            if (!hasRegionAccess && !hasLocationCityAccess) {
                 throw new NotFoundException(`Property with ID ${id} not found`);
             }
         }
 
         return property;
+    }
+
+    private async resolveLocationId(dto: CreatePropertyDto | UpdatePropertyDto): Promise<string | undefined> {
+        if (dto.locationId) return dto.locationId;
+
+        if (dto.continent && dto.country && dto.state && dto.city) {
+            const location = await this.prisma.location.upsert({
+                where: {
+                    continent_country_state_city: {
+                        continent: dto.continent,
+                        country: dto.country,
+                        state: dto.state,
+                        city: dto.city,
+                    },
+                },
+                update: {},
+                create: {
+                    continent: dto.continent,
+                    country: dto.country,
+                    state: dto.state,
+                    city: dto.city,
+                },
+            });
+            return location.id;
+        }
+        return undefined;
     }
 
     async create(createPropertyDto: CreatePropertyDto, user?: AuthenticatedUser): Promise<Property> {
@@ -118,11 +140,15 @@ export class PropertiesService {
             onboardedById = internalUser.id;
         }
 
-        const { regionId, ...rest } = createPropertyDto;
+        const locationId = await this.resolveLocationId(createPropertyDto);
+
+        const { regionId, continent, country, state, city, locationId: _, ...rest } = createPropertyDto;
 
         const data: any = {
             ...rest,
+            city, // Still keep for backward compatibility in existing where clauses
             onboardedById,
+            locationId,
         };
 
         if (regionId) {
@@ -133,27 +159,36 @@ export class PropertiesService {
             data,
             include: {
                 region: true,
+                locationRel: true,
             },
         });
     }
 
     async update(id: string, updatePropertyDto: UpdatePropertyDto, user: AuthenticatedUser): Promise<Property> {
-        // Verify property exists and user has access
-        await this.findOne(id, user);
+        const property = await this.findOne(id, user);
+
+        const locationId = await this.resolveLocationId(updatePropertyDto);
+
+        const { continent, country, state, city, locationId: _, ...rest } = updatePropertyDto;
+
+        const data: any = {
+            ...rest,
+            city,
+            locationId,
+        };
 
         return this.prisma.property.update({
             where: { id },
-            data: updatePropertyDto,
+            data,
             include: {
                 region: true,
+                locationRel: true,
             },
         });
     }
 
     async remove(id: string, user: AuthenticatedUser): Promise<Property> {
-        // Verify property exists and user has access
         await this.findOne(id, user);
-
         return this.prisma.property.delete({
             where: { id },
         });

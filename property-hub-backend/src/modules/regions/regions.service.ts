@@ -31,10 +31,14 @@ export class RegionsService {
 
         const where: any = { active: true };
 
-        if (query.continent) where.continent = { contains: query.continent, mode: 'insensitive' };
-        if (query.country) where.country = { contains: query.country, mode: 'insensitive' };
-        if (query.state) where.state = { contains: query.state, mode: 'insensitive' };
-        if (query.city) where.city = { contains: query.city, mode: 'insensitive' };
+        if (query.continent || query.country || query.state || query.city) {
+            where.location = {};
+            if (query.continent) where.location.continent = { contains: query.continent, mode: 'insensitive' };
+            if (query.country) where.location.country = { contains: query.country, mode: 'insensitive' };
+            if (query.state) where.location.state = { contains: query.state, mode: 'insensitive' };
+            if (query.city) where.location.city = { contains: query.city, mode: 'insensitive' };
+        }
+
         if (query.search) {
             where.OR = [
                 { name: { contains: query.search, mode: 'insensitive' } },
@@ -45,6 +49,7 @@ export class RegionsService {
         const [data, total] = await Promise.all([
             this.prisma.region.findMany({
                 where,
+                include: { location: true },
                 skip,
                 take: limit,
                 orderBy: { name: 'asc' },
@@ -58,6 +63,7 @@ export class RegionsService {
     async findOne(id: string): Promise<Region> {
         const region = await this.prisma.region.findUnique({
             where: { id },
+            include: { location: true },
         });
 
         if (!region) {
@@ -106,6 +112,30 @@ export class RegionsService {
         }
     }
 
+    private async resolveLocationId(dto: CreateRegionDto | UpdateRegionDto): Promise<string | undefined> {
+        if (dto.continent && dto.country && dto.state && dto.city) {
+            const location = await this.prisma.location.upsert({
+                where: {
+                    continent_country_state_city: {
+                        continent: dto.continent,
+                        country: dto.country,
+                        state: dto.state,
+                        city: dto.city,
+                    },
+                },
+                update: {},
+                create: {
+                    continent: dto.continent,
+                    country: dto.country,
+                    state: dto.state,
+                    city: dto.city,
+                },
+            });
+            return location.id;
+        }
+        return undefined;
+    }
+
     async create(createRegionDto: CreateRegionDto): Promise<Region> {
         let baseCode = '';
 
@@ -119,7 +149,6 @@ export class RegionsService {
             baseCode = createRegionDto.code || createRegionDto.name.toLowerCase().replace(/\s+/g, '-');
         }
 
-        // Clean base code from existing suffix -XX
         baseCode = baseCode.replace(/-\d+$/, '');
 
         let finalCode = `${baseCode}-01`;
@@ -136,22 +165,25 @@ export class RegionsService {
             finalCode = `${baseCode}-${suffix}`;
         }
 
-        // De-structure to remove UI-only code fields
+        const locationId = await this.resolveLocationId(createRegionDto);
+
         const { countryCode, stateCode, cityCode, ...dbData } = createRegionDto as any;
 
         const region = await this.prisma.region.create({
             data: {
                 ...(dbData as any),
+                locationId,
                 code: finalCode,
             },
+            include: { location: true },
         });
 
-        // Sync with Keycloak: Create group /regions/:code
         await this.keycloakAdmin.createRegionGroup(region.code, region.name);
 
-        // Ensure city group exists as well
         if (region.city) {
             await this.keycloakAdmin.createCityGroup(region.city);
+        } else if (region.location?.city) {
+            await this.keycloakAdmin.createCityGroup(region.location.city);
         }
 
         return region;
@@ -160,14 +192,17 @@ export class RegionsService {
     async update(id: string, updateRegionDto: UpdateRegionDto): Promise<Region> {
         await this.findOne(id);
 
-        // De-structure to remove UI-only code fields, but KEEP location fields (country, state, city)
+        const locationId = await this.resolveLocationId(updateRegionDto);
+
         const { countryCode, stateCode, cityCode, ...dbData } = updateRegionDto as any;
 
         return this.prisma.region.update({
             where: { id },
             data: {
                 ...(dbData as any),
+                locationId,
             },
+            include: { location: true },
         });
     }
 
@@ -250,17 +285,13 @@ export class RegionsService {
         if (filters.regionId) {
             regionWhere.id = filters.regionId;
         }
-        if (filters.continent) {
-            regionWhere.continent = { contains: filters.continent, mode: 'insensitive' };
-        }
-        if (filters.country) {
-            regionWhere.country = { contains: filters.country, mode: 'insensitive' };
-        }
-        if (filters.state) {
-            regionWhere.state = { contains: filters.state, mode: 'insensitive' };
-        }
-        if (filters.city) {
-            regionWhere.city = { contains: filters.city, mode: 'insensitive' };
+
+        if (filters.continent || filters.country || filters.state || filters.city) {
+            regionWhere.location = {};
+            if (filters.continent) regionWhere.location.continent = { contains: filters.continent, mode: 'insensitive' };
+            if (filters.country) regionWhere.location.country = { contains: filters.country, mode: 'insensitive' };
+            if (filters.state) regionWhere.location.state = { contains: filters.state, mode: 'insensitive' };
+            if (filters.city) regionWhere.location.city = { contains: filters.city, mode: 'insensitive' };
         }
 
         // Fetch regions with assigned users and total count
@@ -298,10 +329,10 @@ export class RegionsService {
                 name: region.name,
                 code: region.code,
                 active: region.active,
-                continent: region.continent || '',
-                country: region.country || '',
-                state: region.state || '',
-                city: region.city || '',
+                continent: region.location?.continent || region.continent || '',
+                country: region.location?.country || region.country || '',
+                state: region.location?.state || region.state || '',
+                city: region.location?.city || region.city || '',
                 assignedUsers: region.managers,
             })),
             total,

@@ -278,8 +278,8 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                     propertyType: (data.propertyType === 'COMMERCIAL' ? 'commercial' : 'residential') as any,
                     location: data.location,
                     address: data.address || '',
-                    city: data.city || '',
-                    state: '',
+                    city: data.locationRel?.city || data.city || '',
+                    state: data.locationRel?.state || '',
                     pincode: '',
                     totalArea: data.area?.toString() || '',
                     totalBuildings: '',
@@ -288,6 +288,15 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                     description: description,
                     amenities: amenities.length > 0 ? amenities : [],
                 });
+
+                if (data.locationRel) {
+                    if (data.locationRel.continent) setSelectedContinent(data.locationRel.continent);
+                    const country = countries.find(c => c.name === data.locationRel.country);
+                    if (country && country.code) setSelectedCountryCode(country.code);
+
+                    const state = states.find(s => s.name === data.locationRel.state);
+                    if (state && state.code) setSelectedStateCode(state.code);
+                }
             }
         } catch (err) {
             console.error(err);
@@ -310,13 +319,20 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
         const fullAddress = `${formData.address}${formData.city ? ', ' + formData.city : ''}${formData.state ? ', ' + formData.state : ''}${formData.pincode ? ' - ' + formData.pincode : ''}`;
         const fullDescription = `${formData.description}\n\nAmenities: ${formData.amenities.join(', ')}`;
 
+        const country = countries.find(c => c.code === selectedCountryCode);
+
         const payload = {
             name: formData.title,
             description: fullDescription,
             location: formData.location,
             address: fullAddress,
             category: propertyCategory.toUpperCase(),
+
             city: formData.city,
+            state: formData.state,
+            country: country?.name || '',
+            continent: selectedContinent,
+
             regionId: activeContext.activeRegion.id !== 'no-region' ? activeContext.activeRegion.id : undefined,
 
             status: status.toUpperCase(),
