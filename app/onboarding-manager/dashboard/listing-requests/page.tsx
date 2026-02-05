@@ -16,6 +16,8 @@ export default function ListingRequestsPage() {
     const [loading, setLoading] = useState(true);
     const [selectedCity, setSelectedCity] = useState<string>('all');
     const [searchQuery, setSearchQuery] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 6; // Cards are larger so fewer per page
     const [processingId, setProcessingId] = useState<string | null>(null);
 
     const fetchRequests = async () => {
@@ -52,6 +54,10 @@ export default function ListingRequestsPage() {
     useEffect(() => {
         fetchRequests();
     }, [token, regionCode, activeContext.activeRegion.city]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [selectedCity, searchQuery, regionCode]);
 
     const handleAction = async (id: string, action: 'APPROVE' | 'REJECT') => {
         if (!token || !regionCode) return;
@@ -135,98 +141,154 @@ export default function ListingRequestsPage() {
             </div>
 
             {loading ? (
-                <div className="bg-white rounded-2xl p-12 text-center border border-gray-100 shadow-sm">
-                    <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-gray-500 font-medium">Loading requests...</p>
+                <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                    <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                    <p className="mt-4 text-gray-500 font-medium">Fetching listing requests...</p>
                 </div>
-            ) : filteredRequests.length === 0 ? (
-                <div className="bg-white rounded-2xl p-12 text-center border border-gray-100 shadow-sm">
-                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">📋</div>
-                    <h3 className="text-lg font-bold text-gray-900">No Pending Requests</h3>
-                    <p className="text-gray-500 mt-1">There are no property listings waiting for review {selectedCity !== 'all' ? `in ${selectedCity}` : 'at the moment'}.</p>
-                </div>
-            ) : (
-                <div className="grid gap-6">
-                    {filteredRequests.map(request => (
-                        <div key={request.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition">
-                            <div className="p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <h3 className="text-xl font-bold text-gray-900 truncate">{request.name}</h3>
-                                        <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-700 border border-orange-200">
-                                            New Request
-                                        </span>
-                                    </div>
-                                    <p className="text-gray-600 flex items-center gap-2 text-sm mb-4">
-                                        <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                                        </svg>
-                                        {request.location}
-                                    </p>
+            ) : (() => {
+                const filtered = requests.filter(r => {
+                    const matchesCity = selectedCity === 'all' || r.location.toLowerCase().includes(selectedCity.toLowerCase());
+                    const searchStr = `${r.name} ${r.location} ${r.onboardedBy?.name || ''}`.toLowerCase();
+                    const matchesSearch = searchStr.includes(searchQuery.toLowerCase());
+                    return matchesCity && matchesSearch;
+                });
 
-                                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-                                        <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Type</p>
-                                            <p className="font-bold text-gray-700 capitalize">{request.category?.toLowerCase() || 'Flat'}</p>
-                                        </div>
-                                        <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Price</p>
-                                            <p className="font-bold text-blue-600">₹{(parseFloat(request.price) / 100000).toFixed(1)}L+</p>
-                                        </div>
-                                        <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Area</p>
-                                            <p className="font-bold text-gray-700">{request.area} sq.ft</p>
-                                        </div>
-                                        <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
-                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">City</p>
-                                            <p className="font-bold text-gray-700 truncate">{request.location.split(',').pop()?.trim() || 'Unknown'}</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 lg:min-w-[200px]">
-                                    <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2">Submitted By</p>
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold shadow-md shadow-blue-200">
-                                            {request.onboardedBy?.name?.charAt(0) || 'P'}
-                                        </div>
-                                        <div className="min-w-0">
-                                            <p className="font-bold text-gray-900 truncate">{request.onboardedBy?.name || 'Unknown Partner'}</p>
-                                            <p className="text-[10px] text-gray-500 font-medium">Verified Partner</p>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <div className="flex lg:flex-col gap-3 shrink-0">
-                                    <button
-                                        onClick={() => handleAction(request.id, 'APPROVE')}
-                                        disabled={!!processingId}
-                                        className="flex-1 px-6 py-2.5 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition shadow-lg shadow-green-100 flex items-center justify-center gap-2 disabled:opacity-50"
-                                    >
-                                        {processingId === request.id ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : 'Approve'}
-                                    </button>
-                                    <button
-                                        onClick={() => handleAction(request.id, 'REJECT')}
-                                        disabled={!!processingId}
-                                        className="flex-1 px-6 py-2.5 border border-red-200 text-red-600 font-bold rounded-xl hover:bg-red-50 transition flex items-center justify-center gap-2 disabled:opacity-50"
-                                    >
-                                        Reject
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Expandable Preview Section */}
-                            <div className="px-6 py-4 bg-gray-50 border-t border-gray-100">
-                                <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Description Preview</p>
-                                <p className="text-sm text-gray-600 line-clamp-2">
-                                    {request.description || 'No description provided by partner.'}
-                                </p>
-                            </div>
+                if (filtered.length === 0) {
+                    return (
+                        <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
+                            <p className="text-gray-400 text-lg">
+                                {searchQuery || selectedCity !== 'all'
+                                    ? `No requests matching your filters`
+                                    : 'No pending listing requests found.'}
+                            </p>
                         </div>
-                    ))}
-                </div>
-            )}
-        </div>
+                    );
+                }
+
+                const totalPages = Math.ceil(filtered.length / itemsPerPage);
+                const startIndex = (currentPage - 1) * itemsPerPage;
+                const paginatedData = filtered.slice(startIndex, startIndex + itemsPerPage);
+
+                return (
+                    <div className="space-y-8">
+                        <div className="grid gap-6">
+                            {paginatedData.map(request => (
+                                <div key={request.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition">
+                                    <div className="p-6 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-3 mb-2">
+                                                <h3 className="text-xl font-bold text-gray-900 truncate">{request.name}</h3>
+                                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-700 border border-orange-200">
+                                                    New Request
+                                                </span>
+                                            </div>
+                                            <p className="text-gray-600 flex items-center gap-2 text-sm mb-4">
+                                                <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                                </svg>
+                                                {request.location}
+                                            </p>
+
+                                            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                                                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Type</p>
+                                                    <p className="font-bold text-gray-700 capitalize">{(request as any).propertyType || 'Flat'}</p>
+                                                </div>
+                                                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Price</p>
+                                                    <p className="font-bold text-blue-600">₹{(parseFloat(request.price) / 100000).toFixed(1)}L+</p>
+                                                </div>
+                                                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Area</p>
+                                                    <p className="font-bold text-gray-700">{request.area} sq.ft</p>
+                                                </div>
+                                                <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
+                                                    <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">City</p>
+                                                    <p className="font-bold text-gray-700 truncate">{request.location.split(',').pop()?.trim() || 'Unknown'}</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 lg:min-w-[200px]">
+                                            <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2">Submitted By</p>
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold shadow-md shadow-blue-200">
+                                                    {request.onboardedBy?.name?.charAt(0) || 'P'}
+                                                </div>
+                                                <div className="min-w-0">
+                                                    <p className="font-bold text-gray-900 truncate">{request.onboardedBy?.name || 'Unknown Partner'}</p>
+                                                    <p className="text-[10px] text-gray-500 font-medium">Verified Partner</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex lg:flex-col gap-3 shrink-0">
+                                            <button
+                                                onClick={() => handleAction(request.id, 'APPROVE')}
+                                                disabled={!!processingId}
+                                                className="flex-1 px-6 py-2.5 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition shadow-lg shadow-green-100 flex items-center justify-center gap-2 disabled:opacity-50"
+                                            >
+                                                {processingId === request.id ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : 'Approve'}
+                                            </button>
+                                            <button
+                                                onClick={() => handleAction(request.id, 'REJECT')}
+                                                disabled={!!processingId}
+                                                className="flex-1 px-6 py-2.5 border border-red-200 text-red-600 font-bold rounded-xl hover:bg-red-50 transition flex items-center justify-center gap-2 disabled:opacity-50"
+                                            >
+                                                Reject
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+
+                        {/* Pagination Controls */}
+                        {totalPages > 1 && (
+                            <div className="flex items-center justify-between bg-white px-6 py-4 rounded-2xl border border-gray-100 shadow-sm">
+                                <p className="text-sm text-gray-500 font-medium">
+                                    Showing <span className="text-gray-900">{startIndex + 1}</span> to <span className="text-gray-900">{Math.min(startIndex + itemsPerPage, filtered.length)}</span> of <span className="text-gray-900">{filtered.length}</span> requests
+                                </p>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                        disabled={currentPage === 1}
+                                        className="p-2 rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white transition-all shadow-sm"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                        </svg>
+                                    </button>
+                                    <div className="flex items-center gap-1">
+                                        {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                            <button
+                                                key={page}
+                                                onClick={() => setCurrentPage(page)}
+                                                className={`w-10 h-10 rounded-xl text-sm font-bold transition-all ${currentPage === page
+                                                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
+                                                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                                                    }`}
+                                            >
+                                                {page}
+                                            </button>
+                                        ))}
+                                    </div>
+                                    <button
+                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                        disabled={currentPage === totalPages}
+                                        className="p-2 rounded-xl border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white transition-all shadow-sm"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            })()}
+        </div >
     );
 }

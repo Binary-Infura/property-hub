@@ -18,6 +18,8 @@ export default function OnboardingServiceProvidersPage() {
     const [selectedProvider, setSelectedProvider] = useState<User | null>(null);
     const [activeTab, setActiveTab] = useState<'my' | 'all'>('my');
     const [searchQuery, setSearchQuery] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 7;
 
     const fetchProviders = async () => {
         if (!token) return;
@@ -40,7 +42,12 @@ export default function OnboardingServiceProvidersPage() {
 
     useEffect(() => {
         fetchProviders();
+        setCurrentPage(1);
     }, [token, activeContext.activeRegion.code, activeTab]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery]);
 
     const handleAddSubmit = async (data: any) => {
         if (!token) return;
@@ -156,64 +163,124 @@ export default function OnboardingServiceProvidersPage() {
                                         </div>
                                     </td>
                                 </tr>
-                            ) : serviceProviders.filter(sp => {
-                                const searchStr = `${sp.firstName} ${sp.lastName} ${sp.email} ${sp.phone} ${sp.agencyName || ''}`.toLowerCase();
-                                return searchStr.includes(searchQuery.toLowerCase());
-                            }).length === 0 ? (
-                                <tr>
-                                    <td colSpan={6} className="px-6 py-10 text-center text-gray-400">
-                                        {searchQuery ? `No providers matching "${searchQuery}"` : 'No service providers found.'}
-                                    </td>
-                                </tr>
-                            ) : serviceProviders.filter(sp => {
-                                const searchStr = `${sp.firstName} ${sp.lastName} ${sp.email} ${sp.phone} ${sp.agencyName || ''}`.toLowerCase();
-                                return searchStr.includes(searchQuery.toLowerCase());
-                            }).map((sp) => (
-                                <tr key={sp.id} className="hover:bg-gray-50/50 transition-colors">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex flex-col">
-                                            <p className="text-sm font-bold text-gray-900">{sp.agencyName || (sp.firstName + ' ' + sp.lastName)}</p>
-                                            <p className="text-xs text-gray-500 capitalize">{sp.role || 'Service'}</p>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-sm text-gray-700">{sp.regions?.[0]?.name || 'N/A'}</span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex flex-col">
-                                            <p className="text-sm font-medium text-gray-900">{sp.phone}</p>
-                                            <p className="text-xs text-gray-500">{sp.email}</p>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex flex-col">
-                                            <span className="text-sm text-gray-900 font-medium">{(sp as any).onboardedBy?.name || 'Unknown'}</span>
-                                            <span className="text-xs text-gray-500">{new Date(sp.createdAt).toLocaleDateString()}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${sp.status === 'active' ? 'bg-green-100 text-green-700' :
-                                            sp.status === 'inactive' ? 'bg-red-100 text-red-700' :
-                                                'bg-yellow-100 text-yellow-700'
-                                            }`}>
-                                            {sp.status === 'active' ? 'Active' : sp.status === 'inactive' ? 'Inactive' : 'Pending'}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                        <div className="flex justify-end gap-3">
-                                            <button
-                                                onClick={() => handleAssign(sp)}
-                                                className="text-purple-600 hover:text-purple-800 font-semibold transition-colors"
-                                            >
-                                                Assign
-                                            </button>
-                                            {activeTab === 'my' && (
-                                                <button className="text-blue-600 hover:text-blue-800 font-semibold transition-colors">Edit</button>
-                                            )}
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                            ) : (() => {
+                                const filtered = serviceProviders.filter(sp => {
+                                    const searchStr = `${sp.firstName} ${sp.lastName} ${sp.email} ${sp.phone} ${sp.agencyName || ''}`.toLowerCase();
+                                    return searchStr.includes(searchQuery.toLowerCase());
+                                });
+
+                                if (filtered.length === 0) {
+                                    return (
+                                        <tr>
+                                            <td colSpan={6} className="px-6 py-10 text-center text-gray-400">
+                                                {searchQuery ? `No providers matching "${searchQuery}"` : 'No service providers found.'}
+                                            </td>
+                                        </tr>
+                                    );
+                                }
+
+                                const totalPages = Math.ceil(filtered.length / itemsPerPage);
+                                const startIndex = (currentPage - 1) * itemsPerPage;
+                                const paginatedData = filtered.slice(startIndex, startIndex + itemsPerPage);
+
+                                return (
+                                    <>
+                                        {paginatedData.map((sp) => (
+                                            <tr key={sp.id} className="hover:bg-gray-50/50 transition-colors">
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex flex-col">
+                                                        <p className="text-sm font-bold text-gray-900">{sp.agencyName || (sp.firstName + ' ' + sp.lastName)}</p>
+                                                        <p className="text-xs text-gray-500 capitalize">{sp.role || 'Service'}</p>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className="text-sm text-gray-700">{sp.regions?.[0]?.name || 'N/A'}</span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex flex-col">
+                                                        <p className="text-sm font-medium text-gray-900">{sp.phone}</p>
+                                                        <p className="text-xs text-gray-500">{sp.email}</p>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm text-gray-900 font-medium">{(sp as any).onboardedBy?.name || 'Unknown'}</span>
+                                                        <span className="text-xs text-gray-500">{new Date(sp.createdAt).toLocaleDateString()}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`px-2.5 py-1 rounded-full text-xs font-semibold ${sp.status === 'active' ? 'bg-green-100 text-green-700' :
+                                                        sp.status === 'inactive' ? 'bg-red-100 text-red-700' :
+                                                            'bg-yellow-100 text-yellow-700'
+                                                        }`}>
+                                                        {sp.status === 'active' ? 'Active' : sp.status === 'inactive' ? 'Inactive' : 'Pending'}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                                    <div className="flex justify-end gap-3">
+                                                        <button
+                                                            onClick={() => handleAssign(sp)}
+                                                            className="text-purple-600 hover:text-purple-800 font-semibold transition-colors"
+                                                        >
+                                                            Assign
+                                                        </button>
+                                                        {activeTab === 'my' && (
+                                                            <button className="text-blue-600 hover:text-blue-800 font-semibold transition-colors">Edit</button>
+                                                        )}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+
+                                        {/* Pagination Controls */}
+                                        {totalPages > 1 && (
+                                            <tr>
+                                                <td colSpan={6} className="px-6 py-4 border-t border-gray-100 bg-gray-50/30">
+                                                    <div className="flex items-center justify-between">
+                                                        <p className="text-sm text-gray-500 font-medium">
+                                                            Showing <span className="text-gray-900">{startIndex + 1}</span> to <span className="text-gray-900">{Math.min(startIndex + itemsPerPage, filtered.length)}</span> of <span className="text-gray-900">{filtered.length}</span> providers
+                                                        </p>
+                                                        <div className="flex items-center gap-2">
+                                                            <button
+                                                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                                                disabled={currentPage === 1}
+                                                                className="p-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white transition-all shadow-sm"
+                                                            >
+                                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                                                </svg>
+                                                            </button>
+                                                            <div className="flex items-center gap-1">
+                                                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                                                    <button
+                                                                        key={page}
+                                                                        onClick={() => setCurrentPage(page)}
+                                                                        className={`w-8 h-8 rounded-lg text-sm font-bold transition-all ${currentPage === page
+                                                                            ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
+                                                                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                                                                            }`}
+                                                                    >
+                                                                        {page}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                            <button
+                                                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                                                disabled={currentPage === totalPages}
+                                                                className="p-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white transition-all shadow-sm"
+                                                            >
+                                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </>
+                                );
+                            })()}
                         </tbody>
                     </table>
                 </div>
@@ -246,54 +313,58 @@ export default function OnboardingServiceProvidersPage() {
                         </div>
                     </div>
                 </div>
-            )}
+            )
+            }
 
             {/* Assign Modal (Mock) */}
-            {showAssignModal && selectedProvider && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
-                        <h2 className="text-xl font-bold text-gray-900 mb-4">Assign {selectedProvider.firstName} {selectedProvider.lastName}</h2>
-                        <p className="text-gray-600 mb-4">Assign this provider to a Property Partner or region.</p>
+            {
+                showAssignModal && selectedProvider && (
+                    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+                        <div className="bg-white rounded-lg shadow-xl max-w-md w-full p-6">
+                            <h2 className="text-xl font-bold text-gray-900 mb-4">Assign {selectedProvider?.firstName} {selectedProvider?.lastName}</h2>
+                            <p className="text-gray-600 mb-4">Assign this provider to a Property Partner or region.</p>
 
-                        <div className="space-y-4">
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Select Property Partner</label>
-                                <select className="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                                    <option>Select a builder...</option>
-                                    <option>Property Partner A</option>
-                                    <option>Property Partner B</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Select Region</label>
-                                <select className="w-full px-4 py-2 border border-gray-300 rounded-lg">
-                                    <option>Select a region...</option>
-                                    <option>Mumbai North</option>
-                                    <option>Mumbai South</option>
-                                </select>
-                            </div>
-                        </div>
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Select Property Partner</label>
+                                    <select className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                        <option>Select a builder...</option>
+                                        <option>Property Partner A</option>
+                                        <option>Property Partner B</option>
+                                    </select>
+                                </div>
 
-                        <div className="flex gap-3 mt-6">
-                            <button
-                                onClick={() => setShowAssignModal(false)}
-                                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={() => {
-                                    alert(`Assigned ${selectedProvider.firstName} ${selectedProvider.lastName} successfully!`);
-                                    setShowAssignModal(false);
-                                }}
-                                className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-                            >
-                                Confirm Assignment
-                            </button>
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1">Select Region</label>
+                                    <select className="w-full px-4 py-2 border border-gray-300 rounded-lg">
+                                        <option>Select a region...</option>
+                                        <option>Mumbai North</option>
+                                        <option>Mumbai South</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="flex gap-3 mt-6">
+                                <button
+                                    onClick={() => setShowAssignModal(false)}
+                                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={() => {
+                                        alert(`Assigned ${selectedProvider?.firstName} ${selectedProvider?.lastName} successfully!`);
+                                        setShowAssignModal(false);
+                                    }}
+                                    className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                                >
+                                    Confirm Assignment
+                                </button>
+                            </div>
                         </div>
                     </div>
-                </div>
-            )}
-        </div>
+                )
+            }
+        </div >
     );
 }

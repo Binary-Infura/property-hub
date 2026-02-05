@@ -14,6 +14,8 @@ export default function MyPropertyPartnersPage() {
     const [isAddModalOpen, setIsAddModalOpen] = useState(false);
     const [activeTab, setActiveTab] = useState<'my' | 'all'>('my');
     const [searchQuery, setSearchQuery] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 7; // Matching the UI height nicely
 
     const [formData, setFormData] = useState({
         firstName: '',
@@ -49,7 +51,12 @@ export default function MyPropertyPartnersPage() {
 
     useEffect(() => {
         fetchPartners();
+        setCurrentPage(1); // Reset pagination on tab/region change
     }, [token, activeContext.activeRegion.code, activeTab]);
+
+    useEffect(() => {
+        setCurrentPage(1); // Reset on search
+    }, [searchQuery]);
 
     const handleOpenAdd = () => {
         setFormData({
@@ -203,77 +210,137 @@ export default function MyPropertyPartnersPage() {
                                     </div>
                                 </td>
                             </tr>
-                        ) : partners.filter(p => {
-                            const searchStr = `${p.firstName} ${p.lastName} ${p.email} ${p.phone} ${p.propertyPartnerProfile?.companyName || ''} ${p.agencyName || ''} ${p.propertyPartnerProfile?.taxId || ''} ${p.propertyPartnerProfile?.licenseNumber || ''}`.toLowerCase();
-                            return searchStr.includes(searchQuery.toLowerCase());
-                        }).length === 0 ? (
-                            <tr>
-                                <td colSpan={6} className="px-6 py-10 text-center text-gray-400">
-                                    {searchQuery ? `No partners matching "${searchQuery}"` : 'No property partners found.'}
-                                </td>
-                            </tr>
-                        ) : partners.filter(p => {
-                            const searchStr = `${p.firstName} ${p.lastName} ${p.email} ${p.phone} ${p.propertyPartnerProfile?.companyName || ''} ${p.agencyName || ''} ${p.propertyPartnerProfile?.taxId || ''} ${p.propertyPartnerProfile?.licenseNumber || ''}`.toLowerCase();
-                            return searchStr.includes(searchQuery.toLowerCase());
-                        }).map((partner) => (
-                            <tr key={partner.id} className="hover:bg-gray-50/50 transition-colors group">
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="flex items-center">
-                                        <div className="h-10 w-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-700 font-bold shadow-sm">
-                                            {(partner.propertyPartnerProfile?.companyName || partner.agencyName || partner.firstName || 'P').charAt(0)}
-                                        </div>
-                                        <div className="ml-4">
-                                            <div className="text-sm font-bold text-gray-900">{partner.propertyPartnerProfile?.companyName || partner.agencyName || 'No Agency'}</div>
-                                            <div className="text-xs text-gray-500">{partner.firstName} {partner.lastName}</div>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="flex flex-col">
-                                        <span className="text-sm text-gray-900 font-medium">{partner.email}</span>
-                                        <span className="text-xs text-gray-500">{partner.phone}</span>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="flex flex-col gap-1">
-                                        {partner.propertyPartnerProfile?.taxId && (
-                                            <span className="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded w-fit font-medium">PAN: {partner.propertyPartnerProfile.taxId}</span>
-                                        )}
-                                        {partner.propertyPartnerProfile?.licenseNumber && (
-                                            <span className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-600 rounded w-fit font-medium">RERA: {partner.propertyPartnerProfile.licenseNumber}</span>
-                                        )}
-                                        {!partner.propertyPartnerProfile?.taxId && !partner.propertyPartnerProfile?.licenseNumber && (
-                                            <span className="text-xs text-gray-400 italic">Not set</span>
-                                        )}
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="flex flex-col">
-                                        <span className="text-sm text-gray-900 font-medium">{(partner as any).onboardedBy?.firstName ? `${(partner as any).onboardedBy.firstName} ${(partner as any).onboardedBy.lastName || ''}` : 'System'}</span>
-                                        <span className="text-xs text-gray-500">{new Date(partner.createdAt).toLocaleDateString()}</span>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${partner.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
-                                        }`}>
-                                        {partner.status}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                    <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                        {activeTab === 'my' && (
-                                            <button
-                                                onClick={() => handleOpenEdit(partner)}
-                                                className="text-blue-600 hover:text-blue-800 font-bold transition-colors"
-                                            >
-                                                Edit Info
-                                            </button>
-                                        )}
-                                        <button className="text-gray-600 hover:text-gray-900 transition-colors font-medium">View Projects</button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
+                        ) : (() => {
+                            const filtered = partners.filter(p => {
+                                const searchStr = `${p.firstName} ${p.lastName} ${p.email} ${p.phone} ${p.propertyPartnerProfile?.companyName || ''} ${p.agencyName || ''} ${p.propertyPartnerProfile?.taxId || ''} ${p.propertyPartnerProfile?.licenseNumber || ''}`.toLowerCase();
+                                return searchStr.includes(searchQuery.toLowerCase());
+                            });
+
+                            if (filtered.length === 0) {
+                                return (
+                                    <tr>
+                                        <td colSpan={6} className="px-6 py-10 text-center text-gray-400">
+                                            {searchQuery ? `No partners matching "${searchQuery}"` : 'No property partners found.'}
+                                        </td>
+                                    </tr>
+                                );
+                            }
+
+                            const totalPages = Math.ceil(filtered.length / itemsPerPage);
+                            const startIndex = (currentPage - 1) * itemsPerPage;
+                            const paginatedData = filtered.slice(startIndex, startIndex + itemsPerPage);
+
+                            return (
+                                <>
+                                    {paginatedData.map((partner) => (
+                                        <tr key={partner.id} className="hover:bg-gray-50/50 transition-colors group">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center">
+                                                    <div className="h-10 w-10 bg-blue-100 rounded-xl flex items-center justify-center text-blue-700 font-bold shadow-sm">
+                                                        {(partner.propertyPartnerProfile?.companyName || partner.agencyName || partner.firstName || 'P').charAt(0)}
+                                                    </div>
+                                                    <div className="ml-4">
+                                                        <div className="text-sm font-bold text-gray-900">{partner.propertyPartnerProfile?.companyName || partner.agencyName || 'No Agency'}</div>
+                                                        <div className="text-xs text-gray-500">{partner.firstName} {partner.lastName}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm text-gray-900 font-medium">{partner.email}</span>
+                                                    <span className="text-xs text-gray-500">{partner.phone}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex flex-col gap-1">
+                                                    {partner.propertyPartnerProfile?.taxId && (
+                                                        <span className="text-[10px] px-2 py-0.5 bg-gray-100 text-gray-600 rounded w-fit font-medium">PAN: {partner.propertyPartnerProfile.taxId}</span>
+                                                    )}
+                                                    {partner.propertyPartnerProfile?.licenseNumber && (
+                                                        <span className="text-[10px] px-2 py-0.5 bg-blue-50 text-blue-600 rounded w-fit font-medium">RERA: {partner.propertyPartnerProfile.licenseNumber}</span>
+                                                    )}
+                                                    {!partner.propertyPartnerProfile?.taxId && !partner.propertyPartnerProfile?.licenseNumber && (
+                                                        <span className="text-xs text-gray-400 italic">Not set</span>
+                                                    )}
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex flex-col">
+                                                    <span className="text-sm text-gray-900 font-medium">{(partner as any).onboardedBy?.firstName ? `${(partner as any).onboardedBy.firstName} ${(partner as any).onboardedBy.lastName || ''}` : 'System'}</span>
+                                                    <span className="text-xs text-gray-500">{new Date(partner.createdAt).toLocaleDateString()}</span>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${partner.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
+                                                    }`}>
+                                                    {partner.status}
+                                                </span>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                                <div className="flex justify-end gap-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                                                    {activeTab === 'my' && (
+                                                        <button
+                                                            onClick={() => handleOpenEdit(partner)}
+                                                            className="text-blue-600 hover:text-blue-800 font-bold transition-colors"
+                                                        >
+                                                            Edit Info
+                                                        </button>
+                                                    )}
+                                                    <button className="text-gray-600 hover:text-gray-900 transition-colors font-medium">View Projects</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ))}
+
+                                    {/* Pagination Controls */}
+                                    {totalPages > 1 && (
+                                        <tr>
+                                            <td colSpan={6} className="px-6 py-4 border-t border-gray-100 bg-gray-50/30">
+                                                <div className="flex items-center justify-between">
+                                                    <p className="text-sm text-gray-500 font-medium">
+                                                        Showing <span className="text-gray-900">{startIndex + 1}</span> to <span className="text-gray-900">{Math.min(startIndex + itemsPerPage, filtered.length)}</span> of <span className="text-gray-900">{filtered.length}</span> partners
+                                                    </p>
+                                                    <div className="flex items-center gap-2">
+                                                        <button
+                                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                                            disabled={currentPage === 1}
+                                                            className="p-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white transition-all shadow-sm"
+                                                        >
+                                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                                            </svg>
+                                                        </button>
+                                                        <div className="flex items-center gap-1">
+                                                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                                                <button
+                                                                    key={page}
+                                                                    onClick={() => setCurrentPage(page)}
+                                                                    className={`w-8 h-8 rounded-lg text-sm font-bold transition-all ${currentPage === page
+                                                                        ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
+                                                                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                                                                        }`}
+                                                                >
+                                                                    {page}
+                                                                </button>
+                                                            ))}
+                                                        </div>
+                                                        <button
+                                                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                                            disabled={currentPage === totalPages}
+                                                            className="p-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white transition-all shadow-sm"
+                                                        >
+                                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </>
+                            );
+                        })()}
                     </tbody>
                 </table>
             </div>

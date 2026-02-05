@@ -12,6 +12,8 @@ export default function OnboardingPropertiesPage() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'my' | 'all'>('my');
     const [searchQuery, setSearchQuery] = useState('');
+    const [currentPage, setCurrentPage] = useState(1);
+    const itemsPerPage = 7;
 
     const fetchProperties = async () => {
         if (!token || activeContext.activeRegion.code === 'no-region') return;
@@ -32,7 +34,12 @@ export default function OnboardingPropertiesPage() {
 
     useEffect(() => {
         fetchProperties();
+        setCurrentPage(1);
     }, [token, activeContext.activeRegion.code, activeTab]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery]);
 
     return (
         <div className="space-y-6">
@@ -113,61 +120,121 @@ export default function OnboardingPropertiesPage() {
                                         </div>
                                     </td>
                                 </tr>
-                            ) : properties.filter(prop => {
-                                const searchStr = `${prop.name} ${prop.location} ${prop.propertyType} ${prop.onboardedBy?.name || ''}`.toLowerCase();
-                                return searchStr.includes(searchQuery.toLowerCase());
-                            }).length === 0 ? (
-                                <tr>
-                                    <td colSpan={5} className="px-6 py-10 text-center text-gray-400">
-                                        {searchQuery ? `No properties matching "${searchQuery}"` : 'No properties found.'}
-                                    </td>
-                                </tr>
-                            ) : properties.filter(prop => {
-                                const searchStr = `${prop.name} ${prop.location} ${prop.propertyType} ${prop.onboardedBy?.name || ''}`.toLowerCase();
-                                return searchStr.includes(searchQuery.toLowerCase());
-                            }).map((property) => (
-                                <tr key={property.id} className="hover:bg-gray-50/50 transition-colors">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex flex-col">
-                                            <span className="text-sm font-bold text-gray-900">{property.name}</span>
-                                            <span className="text-xs text-gray-500">{property.location}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex flex-col">
-                                            <span className="text-sm text-gray-700">{property.propertyType}</span>
-                                            <span className="text-xs font-semibold text-blue-600">₹{(Number(property.price) / 100000).toFixed(2)} Lacs</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex flex-col">
-                                            <span className="text-sm text-gray-900 font-medium">{property.onboardedBy?.name || 'Unknown'}</span>
-                                            <span className="text-xs text-gray-500">{new Date(property.createdAt).toLocaleDateString()}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${property.status === 'AVAILABLE' ? 'bg-green-100 text-green-700' :
-                                            property.status === 'RESERVED' ? 'bg-blue-100 text-blue-700' :
-                                                property.status === 'UNDER_CONSTRUCTION' ? 'bg-yellow-100 text-yellow-700' :
-                                                    'bg-gray-100 text-gray-700'
-                                            }`}>
-                                            {property.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
-                                        <div className="flex justify-end gap-3">
-                                            {activeTab === 'my' && (
-                                                <button className="text-blue-600 hover:text-blue-800 font-semibold transition-colors">Edit</button>
-                                            )}
-                                            <button className="text-gray-400 hover:text-gray-600 transition-colors">
-                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
-                                                </svg>
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                            ))}
+                            ) : (() => {
+                                const filtered = properties.filter(prop => {
+                                    const searchStr = `${prop.name} ${prop.location} ${prop.propertyType || ''} ${prop.onboardedBy?.name || ''}`.toLowerCase();
+                                    return searchStr.includes(searchQuery.toLowerCase());
+                                });
+
+                                if (filtered.length === 0) {
+                                    return (
+                                        <tr>
+                                            <td colSpan={5} className="px-6 py-10 text-center text-gray-400">
+                                                {searchQuery ? `No properties matching "${searchQuery}"` : 'No properties found.'}
+                                            </td>
+                                        </tr>
+                                    );
+                                }
+
+                                const totalPages = Math.ceil(filtered.length / itemsPerPage);
+                                const startIndex = (currentPage - 1) * itemsPerPage;
+                                const paginatedData = filtered.slice(startIndex, startIndex + itemsPerPage);
+
+                                return (
+                                    <>
+                                        {paginatedData.map((property) => (
+                                            <tr key={property.id} className="hover:bg-gray-50/50 transition-colors">
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm font-bold text-gray-900">{property.name}</span>
+                                                        <span className="text-xs text-gray-500">{property.location}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm text-gray-700">{property.propertyType}</span>
+                                                        <span className="text-xs font-semibold text-blue-600">₹{(Number(property.price) / 100000).toFixed(2)} Lacs</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <div className="flex flex-col">
+                                                        <span className="text-sm text-gray-900 font-medium">{property.onboardedBy?.name || 'Unknown'}</span>
+                                                        <span className="text-xs text-gray-500">{new Date(property.createdAt).toLocaleDateString()}</span>
+                                                    </div>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap">
+                                                    <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${property.status === 'AVAILABLE' ? 'bg-green-100 text-green-700' :
+                                                        property.status === 'RESERVED' ? 'bg-blue-100 text-blue-700' :
+                                                            property.status === 'UNDER_CONSTRUCTION' ? 'bg-yellow-100 text-yellow-700' :
+                                                                'bg-gray-100 text-gray-700'
+                                                        }`}>
+                                                        {property.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm">
+                                                    <div className="flex justify-end gap-3">
+                                                        {activeTab === 'my' && (
+                                                            <button className="text-blue-600 hover:text-blue-800 font-semibold transition-colors">Edit</button>
+                                                        )}
+                                                        <button className="text-gray-400 hover:text-gray-600 transition-colors">
+                                                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                                                            </svg>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+
+                                        {/* Pagination Controls */}
+                                        {totalPages > 1 && (
+                                            <tr>
+                                                <td colSpan={5} className="px-6 py-4 border-t border-gray-100 bg-gray-50/30">
+                                                    <div className="flex items-center justify-between">
+                                                        <p className="text-sm text-gray-500 font-medium">
+                                                            Showing <span className="text-gray-900">{startIndex + 1}</span> to <span className="text-gray-900">{Math.min(startIndex + itemsPerPage, filtered.length)}</span> of <span className="text-gray-900">{filtered.length}</span> properties
+                                                        </p>
+                                                        <div className="flex items-center gap-2">
+                                                            <button
+                                                                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                                                                disabled={currentPage === 1}
+                                                                className="p-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white transition-all shadow-sm"
+                                                            >
+                                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                                                </svg>
+                                                            </button>
+                                                            <div className="flex items-center gap-1">
+                                                                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                                                    <button
+                                                                        key={page}
+                                                                        onClick={() => setCurrentPage(page)}
+                                                                        className={`w-8 h-8 rounded-lg text-sm font-bold transition-all ${currentPage === page
+                                                                            ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
+                                                                            : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                                                                            }`}
+                                                                    >
+                                                                        {page}
+                                                                    </button>
+                                                                ))}
+                                                            </div>
+                                                            <button
+                                                                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                                                                disabled={currentPage === totalPages}
+                                                                className="p-1.5 rounded-lg border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:hover:bg-white transition-all shadow-sm"
+                                                            >
+                                                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                                                                </svg>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        )}
+                                    </>
+                                );
+                            })()}
                         </tbody>
                     </table>
                 </div>
