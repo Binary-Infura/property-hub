@@ -3,6 +3,10 @@ import { PropertyStatus, PropertyType } from '@prisma/client';
 
 export class CreatePropertyDto {
     @IsString()
+    @IsOptional()
+    videoUrl?: string;
+
+    @IsString()
     name: string;
 
     @IsString()
@@ -76,6 +80,10 @@ export class CreatePropertyDto {
 }
 
 export class UpdatePropertyDto {
+    @IsString()
+    @IsOptional()
+    videoUrl?: string;
+
     @IsString()
     @IsOptional()
     name?: string;

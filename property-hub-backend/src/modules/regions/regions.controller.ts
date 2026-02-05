@@ -32,7 +32,13 @@ export class RegionsController {
     @Get()
     @Public()
     findAll(@Query() query: GetAllRegionsQueryDto) {
-        return this.regionsService.findAll(query);
+        return this.regionsService.findAll(query, { includeInactive: false });
+    }
+
+    @Get('managed')
+    @RequireRoles('central-authority')
+    findAllManaged(@Query() query: GetAllRegionsQueryDto) {
+        return this.regionsService.findAll(query, { includeInactive: true });
     }
 
     @Get(':id')
@@ -63,7 +69,7 @@ export class RegionsController {
     @Get('allocations/all')
     @RequireRoles('central-authority')
     getAllocations(@Query() filters: GetRegionAllocationsQueryDto) {
-        return this.regionsService.getAllocations(filters);
+        return this.regionsService.getAllocations(filters, { includeInactive: true });
     }
 
     @Get('allocations/users/search')

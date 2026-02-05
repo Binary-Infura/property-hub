@@ -13,6 +13,24 @@ interface SelectPropertyModalProps {
     onSuccess: () => void;
 }
 
+interface Country {
+    id: string;
+    code: string;
+    name: string;
+    emoji?: string;
+}
+
+interface State {
+    id: string;
+    name: string;
+    code?: string;
+}
+
+interface City {
+    id: string;
+    name: string;
+}
+
 export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: SelectPropertyModalProps) {
     const { token } = useAuth();
     const { activeContext } = useUnifiedApp();
@@ -24,7 +42,15 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
     const [submittingId, setSubmittingId] = useState<string | null>(null);
     const [properties, setProperties] = useState<Property[]>([]);
 
-    // Form Data for Step 2
+    // Form Data for Step 2 (Address)
+    const [addressData, setAddressData] = useState({
+        location: '',
+        address: '',
+        city: '',
+        state: '',
+    });
+
+    // Form Data for Step 3 (Pricing)
     const [pricingData, setPricingData] = useState({
         startingPrice: '',
         description: '',
@@ -37,15 +63,147 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
         specification: null as File | null,
     });
 
+    const [videoUrl, setVideoUrl] = useState<string>('');
+    const [uploadingVideo, setUploadingVideo] = useState(false);
+
+    // Location Data States
+    const [continents, setContinents] = useState<string[]>([]);
+    const [countries, setCountries] = useState<Country[]>([]);
+    const [states, setStates] = useState<State[]>([]);
+    const [cities, setCities] = useState<City[]>([]);
+
+    const [selectedContinent, setSelectedContinent] = useState('Asia');
+    const [selectedCountryCode, setSelectedCountryCode] = useState('');
+    const [selectedStateCode, setSelectedStateCode] = useState('');
+    const [loadingLocations, setLoadingLocations] = useState(false);
+
     useEffect(() => {
         if (isOpen) {
             setStep(1);
             setSelectedPropertyId(null);
+            setAddressData({ location: '', address: '', city: '', state: '' });
             setPricingData({ startingPrice: '', description: '', amenities: [] });
             setFiles({ images: [], brochure: null, specification: null });
+            setVideoUrl('');
+
+            if (token) {
+                fetchContinents();
+                fetchCountries('Asia');
+            }
             fetchAvailableProperties();
         }
     }, [isOpen]);
+
+    // Fetch States when Country Selected
+    useEffect(() => {
+        if (selectedCountryCode && token) {
+            fetchStates(selectedCountryCode);
+        } else {
+            setStates([]);
+            setCities([]);
+        }
+    }, [selectedCountryCode, token]);
+
+    // Fetch Cities when State Selected
+    useEffect(() => {
+        if (selectedCountryCode && selectedStateCode && token) {
+            fetchCities(selectedCountryCode, selectedStateCode);
+        } else {
+            setCities([]);
+        }
+    }, [selectedCountryCode, selectedStateCode, token]);
+
+    const fetchContinents = async () => {
+        try {
+            const res = await fetch(`${API_URL}/api/locations/continents`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) setContinents(await res.json());
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const fetchCountries = async (continent?: string) => {
+        try {
+            const url = continent
+                ? `${API_URL}/api/locations/countries?continent=${encodeURIComponent(continent)}`
+                : `${API_URL}/api/locations/countries`;
+            const res = await fetch(url, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setCountries(data);
+
+                // Auto-select India if available and generic default
+                const india = data.find((c: Country) => c.name === 'India');
+                if (india && !selectedCountryCode) {
+                    setSelectedCountryCode(india.code);
+                }
+            }
+        } catch (e) {
+            console.error(e);
+        }
+    };
+
+    const fetchStates = async (cCode: string) => {
+        setLoadingLocations(true);
+        try {
+            const res = await fetch(`${API_URL}/api/locations/states/${cCode}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) setStates(await res.json());
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoadingLocations(false);
+        }
+    };
+
+    const fetchCities = async (cCode: string, sCode: string) => {
+        setLoadingLocations(true);
+        try {
+            const res = await fetch(`${API_URL}/api/locations/cities/${cCode}/${sCode}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) setCities(await res.json());
+        } catch (e) {
+            console.error(e);
+        } finally {
+            setLoadingLocations(false);
+        }
+    };
+
+    const handleLocationChange = (type: 'continent' | 'country' | 'state' | 'city', value: string) => {
+        if (type === 'continent') {
+            setSelectedContinent(value);
+            fetchCountries(value);
+            setSelectedCountryCode('');
+            setSelectedStateCode('');
+            setStates([]);
+            setCities([]);
+        } else if (type === 'country') {
+            setSelectedCountryCode(value);
+            setSelectedStateCode('');
+            setStates([]);
+            setCities([]);
+            setAddressData(prev => ({ ...prev, state: '', city: '' }));
+        } else if (type === 'state') {
+            const state = states.find(s => s.code === value);
+            setSelectedStateCode(value);
+            setAddressData(prev => ({ ...prev, state: state?.name || '' }));
+            setCities([]);
+            setAddressData(prev => ({ ...prev, city: '' }));
+        } else if (type === 'city') {
+            setAddressData(prev => ({ ...prev, city: value }));
+        }
+    };
+
+    const handleAddressChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setAddressData(prev => ({ ...prev, [name]: value }));
+    };
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'images' | 'brochure' | 'specification') => {
         if (e.target.files && e.target.files.length > 0) {
@@ -72,6 +230,39 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
             }
         });
     };
+
+    const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setUploadingVideo(true);
+
+        const formData = new FormData();
+        formData.append('file', file);
+
+        try {
+            const res = await fetch(`${API_URL}/api/uploads`, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setVideoUrl(data.url);
+            } else {
+                throw new Error('Failed to upload video');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Failed to upload video');
+        } finally {
+            setUploadingVideo(false);
+        }
+    };
+
 
     const fetchAvailableProperties = async () => {
         if (!token || !regionCode) return;
@@ -103,9 +294,16 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
         if (step === 1 && selectedPropertyId) {
             setStep(2);
         } else if (step === 2) {
-            // Validate Step 2
-            if (pricingData.startingPrice && pricingData.description && pricingData.amenities.length > 0) {
+            // Validate Step 2 (Address)
+            if (selectedContinent && selectedCountryCode && selectedStateCode && addressData.city && addressData.location && addressData.address) {
                 setStep(3);
+            } else {
+                alert("Please fill all location details including Region and Street Address.");
+            }
+        } else if (step === 3) {
+            // Validate Step 3 (Pricing)
+            if (pricingData.startingPrice && pricingData.description && pricingData.amenities.length > 0) {
+                setStep(4);
             } else {
                 alert("Please fill all pricing details including description and amenities.");
             }
@@ -125,6 +323,13 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
                 status: 'SUBMITTED',
                 price: parseFloat(pricingData.startingPrice) || 0,
                 description: fullDescription,
+                videoUrl: videoUrl || undefined,
+                location: addressData.location,
+                address: addressData.address,
+                city: addressData.city,
+                state: addressData.state,
+                country: countries.find(c => c.code === selectedCountryCode)?.name || '',
+                continent: selectedContinent,
             };
 
             const res = await fetch(`${API_URL}/api/${regionCode}/properties/${selectedPropertyId}`, {
@@ -153,8 +358,9 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
     const getStepTitle = () => {
         switch (step) {
             case 1: return 'Select Property';
-            case 2: return 'Pricing & Details';
-            case 3: return 'Upload Documents';
+            case 2: return 'Address & Location';
+            case 3: return 'Pricing & Details';
+            case 4: return 'Upload Documents';
             default: return '';
         }
     };
@@ -170,7 +376,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
 
                 <div className="relative overflow-hidden rounded-2xl bg-white text-left shadow-2xl sm:my-8 sm:w-full sm:max-w-3xl">
                     <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                        <h3 className="text-xl font-bold text-gray-900">{getStepTitle()} <span className="text-gray-400 text-sm font-normal ml-2">(Step {step} of 3)</span></h3>
+                        <h3 className="text-xl font-bold text-gray-900">{getStepTitle()} <span className="text-gray-400 text-sm font-normal ml-2">(Step {step} of 4)</span></h3>
                         <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
                             <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -201,10 +407,10 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
                                                 key={property.id}
                                                 onClick={() => !isAlreadySubmitted && setSelectedPropertyId(property.id)}
                                                 className={`flex items-center justify-between p-4 border rounded-xl transition-all ${isAlreadySubmitted
-                                                        ? 'bg-gray-50 border-gray-100 cursor-not-allowed opacity-75'
-                                                        : isSelected
-                                                            ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500 cursor-pointer'
-                                                            : 'border-gray-200 hover:bg-gray-50 cursor-pointer'
+                                                    ? 'bg-gray-50 border-gray-100 cursor-not-allowed opacity-75'
+                                                    : isSelected
+                                                        ? 'border-blue-500 bg-blue-50 ring-1 ring-blue-500 cursor-pointer'
+                                                        : 'border-gray-200 hover:bg-gray-50 cursor-pointer'
                                                     }`}
                                             >
                                                 <div className="flex-1">
@@ -239,7 +445,90 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
                                 </div>
                             )
                         ) : step === 2 ? (
-                            // Step 2: Pricing
+                            // Step 2: Address
+                            <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Continent</label>
+                                        <select
+                                            value={selectedContinent}
+                                            onChange={(e) => handleLocationChange('continent', e.target.value)}
+                                            className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+                                        >
+                                            <option value="">Select Continent</option>
+                                            {continents.map(c => <option key={c} value={c}>{c}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Country</label>
+                                        <select
+                                            value={selectedCountryCode}
+                                            onChange={(e) => handleLocationChange('country', e.target.value)}
+                                            className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+                                        >
+                                            <option value="">Select Country</option>
+                                            {countries.map(c => <option key={c.id} value={c.code}>{c.emoji ? `${c.emoji} ` : ''}{c.name}</option>)}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                                            State
+                                            {loadingLocations && states.length === 0 && <span className="ml-1 text-xs text-gray-400">Loading...</span>}
+                                        </label>
+                                        <select
+                                            value={selectedStateCode}
+                                            onChange={(e) => handleLocationChange('state', e.target.value)}
+                                            className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+                                        >
+                                            <option value="">Select State</option>
+                                            {states.map(state => (
+                                                <option key={state.id} value={state.code}>{state.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
+                                            City
+                                            {loadingLocations && cities.length === 0 && selectedStateCode && <span className="ml-1 text-xs text-gray-400">Loading...</span>}
+                                        </label>
+                                        <select
+                                            value={addressData.city}
+                                            onChange={(e) => handleLocationChange('city', e.target.value)}
+                                            disabled={!selectedStateCode}
+                                            className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
+                                        >
+                                            <option value="">Select City</option>
+                                            {cities.map(city => (
+                                                <option key={city.id} value={city.name}>{city.name}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Region / Locality *</label>
+                                    <input
+                                        type="text"
+                                        name="location"
+                                        value={addressData.location}
+                                        onChange={handleAddressChange}
+                                        placeholder="e.g., Bandra West, Powai"
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Street Address *</label>
+                                    <textarea
+                                        name="address"
+                                        value={addressData.address}
+                                        onChange={handleAddressChange}
+                                        placeholder="Full street address"
+                                        rows={3}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
+                                    />
+                                </div>
+                            </div>
+                        ) : step === 3 ? (
+                            // Step 3: Pricing
                             <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Starting Price (₹) *</label>
@@ -295,7 +584,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
                                 </div>
                             </div>
                         ) : (
-                            // Step 3: Documents
+                            // Step 4: Documents
                             <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                                 <div className="p-6 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100/50 transition-colors">
                                     <svg className="w-12 h-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -333,6 +622,47 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
                                         />
                                     </div>
                                 </div>
+
+                                {/* Video Upload Section */}
+                                <div className="p-6 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 hover:bg-gray-100/50 transition-colors">
+                                    <h4 className="text-sm font-bold text-gray-900 mb-4">Property Video</h4>
+                                    {videoUrl ? (
+                                        <div className="relative">
+                                            <video src={videoUrl} controls className="w-full max-h-64 rounded-lg bg-black mx-auto" />
+                                            <button
+                                                type="button"
+                                                onClick={() => setVideoUrl('')}
+                                                className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700 shadow-lg"
+                                            >
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center justify-center">
+                                            <div className="mx-auto w-12 h-12 text-gray-400 mb-3">
+                                                <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                </svg>
+                                            </div>
+                                            <p className="text-sm font-medium text-gray-900 mb-1">Upload Property Video</p>
+                                            <p className="text-xs text-gray-500 mb-4">MP4, WebM up to 50MB</p>
+                                            <label className="inline-block">
+                                                <input
+                                                    type="file"
+                                                    accept="video/*"
+                                                    onChange={handleVideoUpload}
+                                                    className="hidden"
+                                                    disabled={uploadingVideo}
+                                                />
+                                                <span className={`px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer shadow-sm ${uploadingVideo ? 'opacity-50 cursor-not-allowed' : ''}`}>
+                                                    {uploadingVideo ? 'Uploading...' : 'Select Video'}
+                                                </span>
+                                            </label>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
                     </div>
@@ -354,13 +684,13 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
                             </button>
                         )}
 
-                        {step < 3 ? (
+                        {step < 4 ? (
                             <button
                                 onClick={handleNextStep}
                                 disabled={step === 1 && !selectedPropertyId}
                                 className="px-6 py-2 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50 transition shadow-lg shadow-blue-200"
                             >
-                                Next: {step === 1 ? 'Pricing' : 'Documents'}
+                                Next: {step === 1 ? 'Location' : step === 2 ? 'Pricing' : 'Documents'}
                             </button>
                         ) : (
                             <button

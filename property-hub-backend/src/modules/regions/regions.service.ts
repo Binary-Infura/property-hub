@@ -21,7 +21,7 @@ export class RegionsService {
         private keycloakAdmin: KeycloakAdminService
     ) { }
 
-    async findAll(query: GetAllRegionsQueryDto): Promise<{ data: Region[], total: number }> {
+    async findAll(query: GetAllRegionsQueryDto, options: { includeInactive?: boolean } = {}): Promise<{ data: Region[], total: number }> {
         // Auto-sync missing continents for legacy data
         await this.syncMissingContinents();
 
@@ -29,7 +29,10 @@ export class RegionsService {
         const limit = Number(query.limit) || 10;
         const skip = (page - 1) * limit;
 
-        const where: any = { active: true };
+        const where: any = {};
+        if (!options.includeInactive) {
+            where.active = true;
+        }
 
         if (query.continent || query.country || query.state || query.city) {
             where.location = {};
@@ -252,7 +255,7 @@ export class RegionsService {
     /**
      * Get all regions with their assigned users, with optional filtering
      */
-    async getAllocations(filters: GetRegionAllocationsQueryDto): Promise<RegionPaginatedAllocationResponseDto> {
+    async getAllocations(filters: GetRegionAllocationsQueryDto, options: { includeInactive?: boolean } = {}): Promise<RegionPaginatedAllocationResponseDto> {
         // Ensure data is synced
         await this.syncMissingContinents();
 
@@ -281,7 +284,10 @@ export class RegionsService {
         }
 
         // Build where clause for regions
-        const regionWhere: any = { active: true };
+        const regionWhere: any = {};
+        if (!options.includeInactive) {
+            regionWhere.active = true;
+        }
         if (filters.regionId) {
             regionWhere.id = filters.regionId;
         }

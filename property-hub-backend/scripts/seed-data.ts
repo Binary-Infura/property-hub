@@ -1,0 +1,318 @@
+
+import { PrismaClient, PropertyStatus, PropertyType } from '@prisma/client';
+import { v4 as uuidv4 } from 'uuid';
+
+const prisma = new PrismaClient();
+
+async function main() {
+    console.log('🌱 Starting database seed...');
+
+    // 1. Locations
+    console.log('Creating Locations...');
+    const locations = [
+        { continent: 'Asia', country: 'India', state: 'Maharashtra', city: 'Mumbai' },
+        { continent: 'Asia', country: 'India', state: 'Maharashtra', city: 'Pune' },
+        { continent: 'Asia', country: 'India', state: 'Karnataka', city: 'Bangalore' },
+        { continent: 'Asia', country: 'India', state: 'Delhi', city: 'New Delhi' },
+    ];
+
+    for (const loc of locations) {
+        await prisma.location.upsert({
+            where: {
+                continent_country_state_city: loc,
+            },
+            update: {},
+            create: loc,
+        });
+    }
+
+    // 2. Regions
+    console.log('Creating Regions...');
+    const regionsData = [
+        { name: 'Mumbai South', code: 'MH-MUM-SO-01', city: 'Mumbai', state: 'Maharashtra', country: 'India' },
+        { name: 'Pune West', code: 'MH-PUN-WE-01', city: 'Pune', state: 'Maharashtra', country: 'India' },
+        { name: 'Bangalore North', code: 'KA-BLR-NO-01', city: 'Bangalore', state: 'Karnataka', country: 'India' },
+        { name: 'Delhi NCR', code: 'DL-NCR-01', city: 'New Delhi', state: 'Delhi', country: 'India' },
+    ];
+
+    const createdRegions: any[] = [];
+    for (const r of regionsData) {
+        // Find location first
+        const location = await prisma.location.findFirst({
+            where: { city: r.city, state: r.state }
+        });
+
+        const region = await prisma.region.upsert({
+            where: { code: r.code },
+            update: {},
+            create: {
+                name: r.name,
+                code: r.code,
+                active: true,
+                city: r.city,
+                state: r.state,
+                country: r.country,
+                locationId: location?.id
+            },
+        });
+        createdRegions.push(region);
+    }
+
+    // 3. Central Authority
+    console.log('Creating Central Authority...');
+    const caUser = await prisma.user.upsert({
+        where: { email: 'central@propertyhub.com' },
+        update: {},
+        create: {
+            email: 'central@propertyhub.com',
+            firstName: 'Central',
+            lastName: 'Authority',
+            role: 'central-authority',
+            keycloakId: uuidv4(),
+            status: 'active',
+        },
+    });
+
+    await prisma.centralAuthorityProfile.upsert({
+        where: { userId: caUser.id },
+        update: {},
+        create: {
+            userId: caUser.id,
+            department: 'Operations',
+            accessLevel: 'Admin'
+        }
+    });
+
+
+    // 4. Regional Managers
+    console.log('Creating Regional Managers...');
+    // Map specific Keycloak emails to regions
+    const rmEmails = [
+        'regional@propertyhub.com', // Maps to Mumbai South
+        'rm.pune@propertyhub.com',  // Maps to Pune West
+        'rm.bangalore@propertyhub.com', // Maps to Bangalore North
+        'rm.delhi@propertyhub.com' // Maps to Delhi NCR
+    ];
+
+    for (let i = 0; i < createdRegions.length; i++) {
+        const region = createdRegions[i];
+        const email = rmEmails[i] || `rm.${region.code.toLowerCase()}@propertyhub.com`;
+
+        // Check if user exists by email to avoid overwriting if already synced
+        const existing = await prisma.user.findUnique({ where: { email } });
+        if (existing) {
+            console.log(`User ${email} already exists, updating regions...`);
+            await prisma.user.update({
+                where: { email },
+                data: {
+                    role: 'regional-manager',
+                    regions: { connect: { id: region.id } }
+                }
+            });
+            await prisma.regionalManagerProfile.upsert({
+                where: { userId: existing.id },
+                update: {},
+                create: {
+                    userId: existing.id,
+                    territory: region.name,
+                    kpiTargets: { targets: { sales: 1000000 } }
+                }
+            });
+            continue;
+        }
+
+        const user = await prisma.user.create({
+            data: {
+                email,
+                firstName: `RM`,
+                lastName: `${region.name}`,
+                role: 'regional-manager',
+                keycloakId: uuidv4(),
+                status: 'active',
+                regions: {
+                    connect: { id: region.id }
+                }
+            },
+        });
+
+        await prisma.regionalManagerProfile.create({
+            data: {
+                userId: user.id,
+                territory: region.name,
+                kpiTargets: { targets: { sales: 1000000 } }
+            }
+        });
+    }
+
+    // 5. Property Partner
+    console.log('Creating Property Partner...');
+    const ppEmail = 'property@propertyhub.com';
+    const ppUser = await prisma.user.upsert({
+        where: { email: ppEmail },
+        update: { role: 'property-partner' },
+        create: {
+            email: ppEmail,
+            firstName: 'Property',
+            lastName: 'Partner',
+            role: 'property-partner',
+            keycloakId: uuidv4(),
+            status: 'active',
+            agencyName: 'Prestige Builders'
+        }
+    });
+
+    await prisma.propertyPartnerProfile.upsert({
+        where: { userId: ppUser.id },
+        update: {},
+        create: {
+            userId: ppUser.id,
+            companyName: 'Prestige Builders',
+            companyAddress: '123 Builder Lane, Mumbai',
+            isPremium: true
+        }
+    });
+
+    // 5b. Onboarding Manager
+    console.log('Creating Onboarding Manager...');
+    const obEmail = 'onboard@propertyhub.com';
+    await prisma.user.upsert({
+        where: { email: obEmail },
+        update: {
+            role: 'onboarding-manager',
+            regions: { connect: { id: createdRegions[0].id } }
+        },
+        create: {
+            email: obEmail,
+            firstName: 'Onboarding',
+            lastName: 'Manager',
+            role: 'onboarding-manager',
+            keycloakId: uuidv4(),
+            status: 'active',
+            regions: { connect: { id: createdRegions[0].id } }
+        }
+    });
+
+    // 5c. Consultant
+    console.log('Creating Consultant...');
+    const consEmail = 'testconsultant@gmail.com';
+    const consUser = await prisma.user.upsert({
+        where: { email: consEmail },
+        update: { role: 'consultant' },
+        create: {
+            email: consEmail,
+            firstName: 'Test',
+            lastName: 'Consultant',
+            role: 'consultant',
+            keycloakId: uuidv4(),
+            status: 'active'
+        }
+    });
+
+    await prisma.consultantProfile.upsert({
+        where: { userId: consUser.id },
+        update: {},
+        create: {
+            userId: consUser.id,
+            specialization: ['Residential'],
+            experienceYears: 5
+        }
+    });
+
+    // 6. Properties
+    console.log('Creating Properties...');
+    await prisma.property.create({
+        data: {
+            name: 'Luxury Sea View Apartment',
+            description: 'Beautiful 3BHK facing the sea',
+            location: 'Worli, Mumbai',
+            address: 'Worli Sea Face',
+            price: 45000000,
+            area: 1800,
+            propertyType: 'APARTMENT',
+            status: 'PUBLISHED',
+            regionId: createdRegions[0].id,
+            onboardedById: ppUser.id,
+            bedrooms: 3,
+            bathrooms: 3,
+            category: 'flat'
+        }
+    });
+
+    await prisma.property.create({
+        data: {
+            name: 'Green Valley Plot',
+            description: 'Lush green plot for villa',
+            location: 'Lonavala, Pune',
+            price: 8000000,
+            area: 5000,
+            propertyType: 'PLOT',
+            status: 'AVAILABLE',
+            regionId: createdRegions[1].id,
+            onboardedById: ppUser.id,
+            category: 'plot'
+        }
+    });
+
+    // 7. Commission Managers
+    console.log('Creating Commission Managers...');
+    for (let i = 1; i <= 2; i++) {
+        const user = await prisma.user.upsert({
+            where: { email: `finance${i}@propertyhub.com` },
+            update: {},
+            create: {
+                email: `finance${i}@propertyhub.com`,
+                firstName: 'Finance',
+                lastName: `Manager ${i}`,
+                role: 'commission-manager',
+                keycloakId: uuidv4(),
+                status: 'active'
+            }
+        });
+
+        await prisma.commissionManagerProfile.upsert({
+            where: { userId: user.id },
+            update: {},
+            create: {
+                userId: user.id,
+                paymentAuthorityLimit: 500000
+            }
+        });
+    }
+
+    // 8. Marketing Managers
+    console.log('Creating Marketing Managers...');
+    for (let i = 1; i <= 2; i++) {
+        const user = await prisma.user.upsert({
+            where: { email: `marketing${i}@propertyhub.com` },
+            update: {},
+            create: {
+                email: `marketing${i}@propertyhub.com`,
+                firstName: 'Marketing',
+                lastName: `Head ${i}`,
+                role: 'marketing-manager',
+                keycloakId: uuidv4(),
+                status: 'active'
+            }
+        });
+
+        await prisma.marketingManagerProfile.upsert({
+            where: { userId: user.id },
+            update: {},
+            create: {
+                userId: user.id,
+                campaignBudgetLimit: 1000000
+            }
+        });
+    }
+
+    console.log('✅ Seeding completed successfully.');
+}
+
+main()
+    .catch((e) => {
+        console.error(e);
+        process.exit(1);
+    })
+    .finally(async () => {
+        await prisma.$disconnect();
+    });

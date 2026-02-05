@@ -45,7 +45,8 @@ export default function RegionsPage() {
     const fetchRegions = async (page: number = currentPage) => {
         setLoading(true);
         try {
-            const response = await fetch(`${API_URL}/api/regions?page=${page}&limit=${limit}`, {
+            const endpoint = `${API_URL}/api/regions/managed?page=${page}&limit=${limit}`;
+            const response = await fetch(endpoint, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }

@@ -36,24 +36,6 @@ interface AddPropertyModalProps {
     onSuccess: () => void;
 }
 
-interface Country {
-    id: string;
-    code: string;
-    name: string;
-    emoji?: string;
-}
-
-interface State {
-    id: string;
-    name: string;
-    code?: string;
-}
-
-interface City {
-    id: string;
-    name: string;
-}
-
 export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }: AddPropertyModalProps) {
     const { token } = useAuth();
     const { activeContext } = useUnifiedApp();
@@ -68,11 +50,6 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
     const [formData, setFormData] = useState({
         title: '',
         propertyType: 'residential' as any,
-        location: '',
-        address: '',
-        city: '',
-        state: '',
-        pincode: '',
         totalArea: '',
         totalBuildings: '',
         totalUnits: '',
@@ -87,134 +64,12 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
         specification: null as File | null,
     });
 
-    // Location Data States
-    const [continents, setContinents] = useState<string[]>([]);
-    const [countries, setCountries] = useState<Country[]>([]);
-    const [states, setStates] = useState<State[]>([]);
-    const [cities, setCities] = useState<City[]>([]);
-
-    const [selectedContinent, setSelectedContinent] = useState('Asia'); // Default to Asia
-    const [selectedCountryCode, setSelectedCountryCode] = useState('');
-    const [selectedStateCode, setSelectedStateCode] = useState('');
-    const [loadingLocations, setLoadingLocations] = useState(false);
-
-    // Initial Fetch (Continents & Default Country)
+    // Initial Fetch
     useEffect(() => {
         if (isOpen && token) {
-            fetchContinents();
-            // Pre-fetch countries for Asia by default or just all countries
-            fetchCountries('Asia');
+            // No location pre-fetching needed here anymore
         }
     }, [isOpen, token]);
-
-    // Fetch States when Country Selected
-    useEffect(() => {
-        if (selectedCountryCode && token) {
-            fetchStates(selectedCountryCode);
-        } else {
-            setStates([]);
-            setCities([]);
-        }
-    }, [selectedCountryCode, token]);
-
-    // Fetch Cities when State Selected
-    useEffect(() => {
-        if (selectedCountryCode && selectedStateCode && token) {
-            fetchCities(selectedCountryCode, selectedStateCode);
-        } else {
-            setCities([]);
-        }
-    }, [selectedCountryCode, selectedStateCode, token]);
-
-    const fetchContinents = async () => {
-        try {
-            const res = await fetch(`${API_URL}/api/locations/continents`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.ok) setContinents(await res.json());
-        } catch (e) {
-            console.error(e);
-        }
-    };
-
-    const fetchCountries = async (continent?: string) => {
-        try {
-            const url = continent
-                ? `${API_URL}/api/locations/countries?continent=${encodeURIComponent(continent)}`
-                : `${API_URL}/api/locations/countries`;
-            const res = await fetch(url, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setCountries(data);
-
-                // Auto-select India if available and generic default
-                const india = data.find((c: Country) => c.name === 'India');
-                if (india && !selectedCountryCode) {
-                    setSelectedCountryCode(india.code);
-                }
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    };
-
-    const fetchStates = async (cCode: string) => {
-        setLoadingLocations(true);
-        try {
-            const res = await fetch(`${API_URL}/api/locations/states/${cCode}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.ok) setStates(await res.json());
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setLoadingLocations(false);
-        }
-    };
-
-    const fetchCities = async (cCode: string, sCode: string) => {
-        setLoadingLocations(true);
-        try {
-            const res = await fetch(`${API_URL}/api/locations/cities/${cCode}/${sCode}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.ok) setCities(await res.json());
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setLoadingLocations(false);
-        }
-    };
-
-    const handleLocationChange = (type: 'continent' | 'country' | 'state' | 'city', value: string) => {
-        if (type === 'continent') {
-            setSelectedContinent(value);
-            fetchCountries(value);
-            setSelectedCountryCode('');
-            setSelectedStateCode('');
-            setStates([]);
-            setCities([]);
-        } else if (type === 'country') {
-            const country = countries.find(c => c.code === value);
-            setSelectedCountryCode(value);
-            // Reset downstreams
-            setSelectedStateCode('');
-            setStates([]);
-            setCities([]);
-            setFormData(prev => ({ ...prev, state: '', city: '' }));
-        } else if (type === 'state') {
-            const state = states.find(s => s.code === value);
-            setSelectedStateCode(value);
-            setFormData(prev => ({ ...prev, state: state?.name || '' }));
-            // Reset city
-            setCities([]);
-            setFormData(prev => ({ ...prev, city: '' }));
-        } else if (type === 'city') {
-            setFormData(prev => ({ ...prev, city: value }));
-        }
-    };
 
     // Re-declare handleInputChange locally to avoid shadowing or just use existing
 
@@ -227,18 +82,12 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
             return;
         }
 
-        if (editId) {
-            fetchProperty(editId);
-        } else {
+        if (isOpen && editId && token && regionCode) {
+            fetchPropertyDetails();
+        } else if (isOpen && !editId) {
             setFormData({
                 title: '',
-                propertyType: 'residential',
-                location: '',
-                address: '',
-                // Pre-fill from context if available
-                city: activeContext.activeRegion.city || '',
-                state: activeContext.activeRegion.state || '',
-                pincode: '',
+                propertyType: 'residential' as any,
                 totalArea: '',
                 totalBuildings: '',
                 totalUnits: '',
@@ -246,41 +95,33 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                 description: '',
                 amenities: [],
             });
-            setPropertyId(null);
+            setCurrentStep(1);
+            setPropertyCategory('');
         }
-    }, [editId, isOpen, activeContext.activeRegion]);
+    }, [isOpen, editId, token, regionCode]);
 
-    const fetchProperty = async (id: string) => {
-        if (!token || !regionCode) return;
-
+    const fetchPropertyDetails = async () => {
+        if (!token || !regionCode || !editId) return;
+        setLoading(true);
         try {
-            setLoading(true);
-            const res = await fetch(`${API_URL}/api/${regionCode}/properties/${id}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+            const res = await fetch(`${API_URL}/api/${regionCode}/properties/${editId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (res.ok) {
                 const data = await res.json();
-                setPropertyId(data.id);
 
-                let description = data.description || '';
-                let amenities: string[] = [];
-                if (description.includes('Amenities:')) {
-                    const parts = description.split('Amenities:');
-                    description = parts[0].trim();
-                    amenities = parts[1].split(',').map((a: string) => a.trim());
-                }
+                // Set Category based on backend propertyType or other logic
+                // For now, mapping residential -> flat, etc. or keeping it simple
+                setPropertyCategory(data.propertyType?.toLowerCase() || '');
+
+                const description = data.description || '';
+                const amenitiesPart = description.split('\n\nAmenities: ')[1];
+                const amenities = amenitiesPart ? amenitiesPart.split(', ') : [];
 
                 setFormData({
-                    title: data.name,
-                    propertyType: (data.propertyType === 'COMMERCIAL' ? 'commercial' : 'residential') as any,
-                    location: data.location,
-                    address: data.address || '',
-                    city: data.locationRel?.city || data.city || '',
-                    state: data.locationRel?.state || '',
-                    pincode: '',
+                    title: data.name || '',
+                    propertyType: data.propertyType || 'residential',
                     totalArea: data.area?.toString() || '',
                     totalBuildings: '',
                     totalUnits: '',
@@ -288,23 +129,15 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                     description: description,
                     amenities: amenities.length > 0 ? amenities : [],
                 });
-
-                if (data.locationRel) {
-                    if (data.locationRel.continent) setSelectedContinent(data.locationRel.continent);
-                    const country = countries.find(c => c.name === data.locationRel.country);
-                    if (country && country.code) setSelectedCountryCode(country.code);
-
-                    const state = states.find(s => s.name === data.locationRel.state);
-                    if (state && state.code) setSelectedStateCode(state.code);
-                }
             }
-        } catch (err) {
-            console.error(err);
+        } catch (e) {
+            console.error(e);
             setError('Failed to fetch property details');
         } finally {
             setLoading(false);
         }
     };
+
 
     const saveToApi = async (status: string) => {
         if (!token || !regionCode) return;
@@ -316,24 +149,17 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
         if (formData.propertyType === 'commercial') backendPropertyType = 'COMMERCIAL';
         else if (formData.propertyType === 'mixed-use') backendPropertyType = 'COMMERCIAL';
 
-        const fullAddress = `${formData.address}${formData.city ? ', ' + formData.city : ''}${formData.state ? ', ' + formData.state : ''}${formData.pincode ? ' - ' + formData.pincode : ''}`;
         const fullDescription = `${formData.description}\n\nAmenities: ${formData.amenities.join(', ')}`;
-
-        const country = countries.find(c => c.code === selectedCountryCode);
 
         const payload = {
             name: formData.title,
             description: fullDescription,
-            location: formData.location,
-            address: fullAddress,
             category: propertyCategory.toUpperCase(),
+            location: formData.title, // Provide title as temporary location string (required by backend)
 
-            city: formData.city,
-            state: formData.state,
-            country: country?.name || '',
-            continent: selectedContinent,
-
-            regionId: activeContext.activeRegion.id !== 'no-region' ? activeContext.activeRegion.id : undefined,
+            regionId: !['no-region', 'all-regions'].includes(activeContext.activeRegion.id)
+                ? activeContext.activeRegion.id
+                : undefined,
 
             status: status.toUpperCase(),
             price: parseFloat(formData.startingPrice) || 0,
@@ -418,25 +244,23 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
         } catch (e) { }
     };
 
-    const checkStepValidity = (step: number) => {
-        switch (step) {
-            case 1:
-                return !!propertyCategory; // Must select a category
-            case 2:
-                return !!(formData.title && formData.propertyType && formData.location && formData.address);
-            case 3:
-                // City is auto-filled sometimes, but check generic validity
-                return !!(formData.city && formData.state && formData.pincode && formData.totalArea && formData.totalBuildings && formData.totalUnits);
-            default:
-                return true;
+    const isStepValid = () => {
+        if (currentStep === 1) return !!propertyCategory;
+        if (currentStep === 2) {
+            return !!formData.title && !!formData.propertyType;
         }
+        if (currentStep === 3) {
+            return !!formData.totalArea && !!formData.totalBuildings && !!formData.totalUnits;
+        }
+        return true;
     };
 
-    const isStepValid = () => checkStepValidity(currentStep);
-
     const isFormComplete = () => {
-        // Check all steps including category selection
-        return STEPS.every(step => checkStepValidity(step.number));
+        return !!propertyCategory &&
+            !!formData.title &&
+            !!formData.totalArea &&
+            !!formData.totalBuildings &&
+            !!formData.totalUnits;
     };
 
     if (!isOpen) return null;
@@ -537,66 +361,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                                             />
                                         </div>
 
-                                        {/* Location Context Display */}
-                                        <div className="col-span-2 grid grid-cols-4 gap-4 bg-gray-50/50 p-4 rounded-xl border border-gray-100">
-                                            <div>
-                                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Continent</label>
-                                                <select
-                                                    value={selectedContinent}
-                                                    onChange={(e) => handleLocationChange('continent', e.target.value)}
-                                                    className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-                                                >
-                                                    <option value="">Select Continent</option>
-                                                    {continents.map(c => <option key={c} value={c}>{c}</option>)}
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Country</label>
-                                                <select
-                                                    value={selectedCountryCode}
-                                                    onChange={(e) => handleLocationChange('country', e.target.value)}
-                                                    className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-                                                >
-                                                    <option value="">Select Country</option>
-                                                    {countries.map(c => <option key={c.id} value={c.code}>{c.emoji ? `${c.emoji} ` : ''}{c.name}</option>)}
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                                                    State
-                                                    {loadingLocations && states.length === 0 && <span className="ml-1 text-xs text-gray-400">Loading...</span>}
-                                                </label>
-                                                <select
-                                                    value={selectedStateCode}
-                                                    onChange={(e) => handleLocationChange('state', e.target.value)}
-                                                    className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-                                                >
-                                                    <option value="">Select State</option>
-                                                    {states.map(state => (
-                                                        <option key={state.id} value={state.code}>{state.name}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                            <div>
-                                                <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
-                                                    City
-                                                    {loadingLocations && cities.length === 0 && selectedStateCode && <span className="ml-1 text-xs text-gray-400">Loading...</span>}
-                                                </label>
-                                                <select
-                                                    value={formData.city}
-                                                    onChange={(e) => handleLocationChange('city', e.target.value)}
-                                                    disabled={!selectedStateCode}
-                                                    className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-                                                >
-                                                    <option value="">Select City</option>
-                                                    {cities.map(city => (
-                                                        <option key={city.id} value={city.name}>{city.name}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
-                                        </div>
-
-                                        <div>
+                                        <div className="col-span-2">
                                             <label className="block text-sm font-semibold text-gray-700 mb-1.5">Property Type *</label>
                                             <select
                                                 name="propertyType"
@@ -609,28 +374,6 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                                                 ))}
                                             </select>
                                         </div>
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Region / Locality *</label>
-                                            <input
-                                                type="text"
-                                                name="location"
-                                                value={formData.location}
-                                                onChange={handleInputChange}
-                                                placeholder="e.g., Bandra West, Powai"
-                                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
-                                            />
-                                        </div>
-                                        <div className="col-span-2">
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Street Address *</label>
-                                            <textarea
-                                                name="address"
-                                                value={formData.address}
-                                                onChange={handleInputChange}
-                                                placeholder="Full street address"
-                                                rows={3}
-                                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
-                                            />
-                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -638,53 +381,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
 
                             {currentStep === 3 && (
                                 <div className="space-y-6">
-                                    <div className="grid grid-cols-3 gap-6">
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">City *</label>
-                                            <input
-                                                type="text"
-                                                name="city"
-                                                value={formData.city}
-                                                onChange={handleInputChange}
-                                                placeholder="e.g., Mumbai"
-                                                readOnly={!!activeContext.activeRegion.city}
-                                                className={`w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm ${activeContext.activeRegion.city ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
-                                            />
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">State *</label>
-                                            {activeContext.activeRegion.state ? (
-                                                <input
-                                                    type="text"
-                                                    value={formData.state}
-                                                    readOnly
-                                                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 bg-gray-100 text-gray-500 cursor-not-allowed text-sm focus:outline-none"
-                                                />
-                                            ) : (
-                                                <select
-                                                    name="state"
-                                                    value={formData.state}
-                                                    onChange={handleInputChange}
-                                                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm bg-white"
-                                                >
-                                                    <option value="">Select State</option>
-                                                    {INDIAN_STATES.map(state => (
-                                                        <option key={state} value={state}>{state}</option>
-                                                    ))}
-                                                </select>
-                                            )}
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Pincode *</label>
-                                            <input
-                                                type="text"
-                                                name="pincode"
-                                                value={formData.pincode}
-                                                onChange={handleInputChange}
-                                                placeholder="e.g., 400050"
-                                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
-                                            />
-                                        </div>
+                                    <div className="grid grid-cols-2 gap-6">
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-1.5">Total Area (Sq Ft) *</label>
                                             <input

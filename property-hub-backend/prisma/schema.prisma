@@ -36,6 +36,7 @@ model Property {
   description   String?
   location      String
   address       String?
+  videoUrl      String?
   regionId      String?
   status        PropertyStatus @default(AVAILABLE)
   price         Decimal        @db.Decimal(15, 2)

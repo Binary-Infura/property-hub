@@ -7,6 +7,7 @@ import { PROPERTY_STATUS_CONFIG } from '@/app/constants/property';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import SelectPropertyModal from '@/app/components/property-partner/SelectPropertyModal';
+import ViewListingModal from '@/app/components/property-partner/ViewListingModal';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -24,6 +25,8 @@ export default function PublicListingPage() {
     const [searchQuery, setSearchQuery] = useState('');
 
     const [isSelectModalOpen, setIsSelectModalOpen] = useState(false);
+    const [selectedPropertyForView, setSelectedPropertyForView] = useState<Property | null>(null);
+    const [isViewListingModalOpen, setIsViewListingModalOpen] = useState(false);
 
     const fetchProperties = async () => {
         if (!token || !regionCode) return;
@@ -39,24 +42,37 @@ export default function PublicListingPage() {
 
             if (res.ok) {
                 const data = await res.json();
-                const mapped: Property[] = data.map((p: any) => ({
-                    id: p.id,
-                    title: p.name,
-                    propertyType: p.propertyType === 'COMMERCIAL' ? 'commercial' : 'residential',
-                    location: p.location,
-                    address: p.address || '',
-                    city: '',
-                    state: '',
-                    pincode: '',
-                    totalArea: parseFloat(p.area) || 0,
-                    totalBuildings: 0,
-                    totalUnits: 0,
-                    startingPrice: parseFloat(p.price) || 0,
-                    description: p.description || '',
-                    amenities: [],
-                    status: p.status.toLowerCase() as PropertyStatus,
-                    createdAt: new Date(p.createdAt),
-                }));
+                const mapped: Property[] = data.map((p: any) => {
+                    let description = p.description || '';
+                    let amenities: string[] = [];
+                    if (description.includes('Amenities:')) {
+                        const parts = description.split('Amenities:');
+                        description = parts[0].trim();
+                        amenities = parts[1].split(',').map((a: string) => a.trim());
+                    }
+
+                    return {
+                        id: p.id,
+                        title: p.name,
+                        propertyType: p.propertyType === 'COMMERCIAL' ? 'commercial' : 'residential',
+                        location: p.location,
+                        address: p.address || '',
+                        city: p.locationRel?.city || p.city || '',
+                        state: p.locationRel?.state || p.state || '',
+                        pincode: p.pincode || '',
+                        totalArea: parseFloat(p.area) || 0,
+                        totalBuildings: 0,
+                        totalUnits: 0,
+                        startingPrice: parseFloat(p.price) || 0,
+                        description: description,
+                        amenities: amenities,
+                        status: p.status.toLowerCase() as PropertyStatus,
+                        createdAt: new Date(p.createdAt),
+                        videoUrl: p.videoUrl || '',
+                        continent: p.locationRel?.continent || p.continent || '',
+                        country: p.locationRel?.country || p.country || '',
+                    };
+                });
                 setProperties(mapped);
             } else {
                 console.error('Failed to fetch properties');
@@ -120,6 +136,15 @@ export default function PublicListingPage() {
                 isOpen={isSelectModalOpen}
                 onClose={() => setIsSelectModalOpen(false)}
                 onSuccess={fetchProperties}
+            />
+
+            <ViewListingModal
+                isOpen={isViewListingModalOpen}
+                onClose={() => {
+                    setIsViewListingModalOpen(false);
+                    setSelectedPropertyForView(null);
+                }}
+                property={selectedPropertyForView}
             />
 
             {/* Stats */}
@@ -261,12 +286,23 @@ export default function PublicListingPage() {
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-right">
-                                            <Link
-                                                href={`/property-partner/dashboard/properties/${property.id}`}
-                                                className="text-blue-600 hover:text-blue-700 font-medium text-sm"
-                                            >
-                                                View
-                                            </Link>
+                                            <div className="flex justify-end items-center gap-3">
+                                                <button
+                                                    onClick={() => {
+                                                        setSelectedPropertyForView(property);
+                                                        setIsViewListingModalOpen(true);
+                                                    }}
+                                                    className="text-blue-600 hover:text-blue-700 font-semibold text-xs bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-100 transition"
+                                                >
+                                                    Listing
+                                                </button>
+                                                <Link
+                                                    href={`/property-partner/dashboard/properties/${property.id}`}
+                                                    className="text-gray-600 hover:text-gray-900 font-semibold text-xs bg-gray-50 px-2.5 py-1.5 rounded-lg border border-gray-100 transition"
+                                                >
+                                                    View
+                                                </Link>
+                                            </div>
                                         </td>
                                     </tr>
                                 );
@@ -279,17 +315,46 @@ export default function PublicListingPage() {
                     {filteredProperties.map(property => {
                         const statusConfig = PROPERTY_STATUS_CONFIG[property.status];
                         return (
-                            <div key={property.id} className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden p-4">
-                                <div className="h-32 bg-gray-100 rounded-lg mb-4 flex items-center justify-center">
-                                    <span className="text-3xl">🏠</span>
-                                </div>
-                                <h3 className="font-bold text-gray-900 truncate">{property.title}</h3>
-                                <p className="text-sm text-gray-500 mb-2">{property.location}</p>
-                                <div className="flex justify-between items-center mt-4">
-                                    <span className={`px-2 py-1 rounded text-xs font-semibold ${statusConfig?.bgColor} ${statusConfig?.color}`}>
-                                        {statusConfig?.label}
-                                    </span>
-                                    <Link href={`/property-partner/dashboard/properties/${property.id}`} className="text-blue-600 text-sm font-medium">View Details</Link>
+                            <div key={property.id} className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+                                {/* Video or Placeholder */}
+                                {property.videoUrl ? (
+                                    <div className="relative aspect-video bg-black">
+                                        <video
+                                            className="w-full h-full object-cover"
+                                            controls
+                                            preload="metadata"
+                                        >
+                                            <source src={property.videoUrl} type="video/mp4" />
+                                            Your browser does not support the video tag.
+                                        </video>
+                                    </div>
+                                ) : (
+                                    <div className="h-48 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
+                                        <span className="text-5xl">🏠</span>
+                                    </div>
+                                )}
+
+                                <div className="p-4">
+                                    <h3 className="font-bold text-gray-900 truncate mb-1">{property.title}</h3>
+                                    <p className="text-sm text-gray-500 mb-2">{property.location}</p>
+                                    <p className="text-lg font-bold text-blue-600 mb-3">₹{(property.startingPrice / 100000).toFixed(1)}L+</p>
+                                    <div className="flex justify-between items-center">
+                                        <span className={`px-2 py-1 rounded text-xs font-semibold ${statusConfig?.bgColor} ${statusConfig?.color}`}>
+                                            {statusConfig?.label}
+                                        </span>
+                                        <div className="flex items-center gap-3">
+                                            <button
+                                                onClick={() => {
+                                                    setSelectedPropertyForView(property);
+                                                    setIsViewListingModalOpen(true);
+                                                }}
+                                                className="text-blue-600 text-xs font-bold hover:underline"
+                                            >
+                                                Listing Data
+                                            </button>
+                                            <Link href={`/property-partner/dashboard/properties/${property.id}`} className="text-gray-600 text-xs font-bold hover:underline">View</Link>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         )

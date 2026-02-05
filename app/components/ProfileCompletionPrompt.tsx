@@ -42,7 +42,7 @@ export default function ProfileCompletionPrompt() {
                     <div className="mt-4">
                         <div className="-mx-2 -my-1.5 flex">
                             <Link
-                                href={`/${missingRoles[0]}/profile`}
+                                href={`/${missingRoles[0]}/dashboard/profile`}
                                 className="bg-amber-100 px-3 py-2 rounded-md text-sm font-medium text-amber-800 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-colors"
                             >
                                 Complete Profile Now

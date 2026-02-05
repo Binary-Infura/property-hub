@@ -21,6 +21,9 @@ import { CentralAuthorityModule } from './modules/roles/central-authority/centra
 import { ChatModule } from './modules/chat/chat.module';
 import { PrismaService } from './database/prisma.service';
 import { LocationsModule } from './modules/locations/locations.module';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { UploadsModule } from './modules/uploads/uploads.module';
+import { join } from 'path';
 
 @Module({
     imports: [
@@ -48,6 +51,11 @@ import { LocationsModule } from './modules/locations/locations.module';
         CentralAuthorityModule,
         ChatModule,
         LocationsModule,
+        UploadsModule,
+        ServeStaticModule.forRoot({
+            rootPath: join(__dirname, '..', 'uploads'),
+            serveRoot: '/uploads',
+        }),
     ],
 })
 export class AppModule { }

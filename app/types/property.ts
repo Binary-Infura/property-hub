@@ -61,4 +61,8 @@ export interface Property {
   approvedAt?: Date;
   feedback?: string;
   buildings: Building[];
+  country?: string;
+  continent?: string;
+  regionId?: string;
+  videoUrl?: string;
 }
