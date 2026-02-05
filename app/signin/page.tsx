@@ -157,6 +157,13 @@ export default function SignInPage() {
                     >
                         {isLoading ? 'Signing you in...' : 'Sign In'}
                     </button>
+
+                    <div className="text-center pt-2">
+                        <span className="text-sm text-gray-600">Don't have an account? </span>
+                        <Link href="/consultation" className="font-semibold text-blue-600 hover:text-blue-500 transition-colors">
+                            Get a Free Consultation & Sign Up
+                        </Link>
+                    </div>
                 </form>
 
                 <div className="mt-6 text-center">
