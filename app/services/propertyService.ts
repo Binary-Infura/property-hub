@@ -27,16 +27,19 @@ export interface Property {
 }
 
 export const propertyService = {
-    async getAll(token: string, regionSlug: string, myOnly: boolean = false, city?: string): Promise<Property[]> {
+    async getAll(token: string | null, regionSlug: string, myOnly: boolean = false, city?: string): Promise<Property[]> {
         const params = new URLSearchParams();
         if (myOnly) params.append('myOnly', 'true');
         if (city) params.append('city', city);
         const query = params.toString() ? `?${params.toString()}` : '';
 
+        const headers: any = {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/${regionSlug}/properties${query}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
+            headers,
         });
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ message: 'No error details' }));
@@ -45,11 +48,14 @@ export const propertyService = {
         return response.json();
     },
 
-    async getOne(id: string, token: string, regionSlug: string): Promise<Property> {
+    async getOne(id: string, token: string | null, regionSlug: string): Promise<Property> {
+        const headers: any = {};
+        if (token) {
+            headers['Authorization'] = `Bearer ${token}`;
+        }
+
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/${regionSlug}/properties/${id}`, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
+            headers,
         });
         if (!response.ok) {
             throw new Error('Failed to fetch property details');

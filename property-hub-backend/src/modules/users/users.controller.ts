@@ -9,6 +9,8 @@ import { RequireRoles } from '../../common/decorators/require-roles.decorator';
 import { RequireRegion } from '../../common/decorators/require-region.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 
+import { Public } from '../../common/decorators/public.decorator';
+
 @Controller('api/users')
 @UseGuards(JwtAuthGuard)
 export class UsersController {
@@ -101,6 +103,7 @@ export class UsersController {
     }
 
     @Get(':id')
+    @Public()
     async findOne(@Param('id') id: string) {
         return this.usersService.findOne(id);
     }

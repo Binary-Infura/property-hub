@@ -16,6 +16,7 @@ import { RolesGuard } from '../../auth/guards/roles.guard';
 import { RegionGuard } from '../../auth/guards/region.guard';
 import { RequireRoles } from '../../common/decorators/require-roles.decorator';
 import { RequireRegion } from '../../common/decorators/require-region.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 
@@ -27,7 +28,7 @@ export class PropertiesController {
     constructor(private readonly propertiesService: PropertiesService) { }
 
     @Get()
-    @RequireRoles('central-authority', 'regional-manager', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'property-partner', 'channel-partner', 'consultant', 'buyer', 'loan-adviser', 'visit-executive', 'service-provider')
+    @Public()
     findAll(
         @Param('region') region: string,
         @CurrentUser() user: AuthenticatedUser,
@@ -38,7 +39,7 @@ export class PropertiesController {
     }
 
     @Get(':id')
-    @RequireRoles('central-authority', 'regional-manager', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'property-partner', 'channel-partner', 'consultant', 'buyer', 'loan-adviser', 'visit-executive', 'service-provider')
+    @Public()
     findOne(
         @Param('region') region: string,
         @Param('id') id: string,

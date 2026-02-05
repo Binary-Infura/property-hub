@@ -20,14 +20,14 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
     useEffect(() => {
         const fetchDetails = async () => {
-            if (!token || activeContext.activeRegion.code === 'no-region') return;
+            if (activeContext.activeRegion.code === 'no-region') return;
             try {
                 setLoading(true);
-                const prop = await propertyService.getOne(id, token, activeContext.activeRegion.code);
+                const prop = await propertyService.getOne(id, token || null, activeContext.activeRegion.code);
                 setProperty(prop);
 
                 if (prop.onboardedById) {
-                    const ownerData = await userService.getById(prop.onboardedById, token);
+                    const ownerData = await userService.getById(prop.onboardedById, token || null);
                     setOwner(ownerData);
                 }
             } catch (error) {

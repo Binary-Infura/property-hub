@@ -62,14 +62,15 @@ export default function PropertySearchPage() {
 
   useEffect(() => {
     const fetchRealProperties = async () => {
-      if (!token || activeContext.activeRegion.code === 'no-region') {
+      // Don't block because of token; allow public access
+      if (activeContext.activeRegion.code === 'no-region') {
         setLoading(false);
         return;
       }
       try {
         setLoading(true);
         const data = await propertyService.getAll(
-          token,
+          token || null,
           activeContext.activeRegion.code,
           false
         );

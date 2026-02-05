@@ -21,6 +21,7 @@ import {
     UpdateRegionAssignmentDto,
     ManagerRole,
 } from './regions.dto';
+import { Public } from '../../common/decorators/public.decorator';
 import { Query } from '@nestjs/common';
 
 @Controller('api/regions')
@@ -29,6 +30,7 @@ export class RegionsController {
     constructor(private readonly regionsService: RegionsService) { }
 
     @Get()
+    @Public()
     findAll(@Query() query: GetAllRegionsQueryDto) {
         return this.regionsService.findAll(query);
     }

@@ -1,6 +1,7 @@
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { REQUIRE_REGION_KEY } from '../../common/decorators/require-region.decorator';
+import { IS_PUBLIC_KEY } from '../../common/decorators/public.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 import { PrismaService } from '../../database/prisma.service';
 
@@ -12,6 +13,15 @@ export class RegionGuard implements CanActivate {
     ) { }
 
     async canActivate(context: ExecutionContext): Promise<boolean> {
+        const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+            context.getHandler(),
+            context.getClass(),
+        ]);
+
+        if (isPublic) {
+            return true;
+        }
+
         const isRegionRequired = this.reflector.getAllAndOverride<boolean>(REQUIRE_REGION_KEY, [
             context.getHandler(),
             context.getClass(),

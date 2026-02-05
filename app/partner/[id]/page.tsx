@@ -22,15 +22,14 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
 
     useEffect(() => {
         const fetchData = async () => {
-            if (!token) return;
             try {
                 setLoading(true);
                 // Fetch partner details
-                const partnerData = await userService.getById(id, token);
+                const partnerData = await userService.getById(id, token || null);
                 setPartner(partnerData);
 
                 // Fetch partner's properties
-                const allProps = await propertyService.getAll(token, activeContext.activeRegion.code, false);
+                const allProps = await propertyService.getAll(token || null, activeContext.activeRegion.code, false);
                 setProperties(allProps.filter(p => p.onboardedById === id));
             } catch (error) {
                 console.error('Failed to fetch business page data:', error);
@@ -204,7 +203,7 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
                                                 isSelectedForCompare={false}
                                                 onShortlist={() => { }}
                                                 onToggleCompare={() => { }}
-                                                onViewDetails={(pid) => router.push(`/search/${pid}`)}
+                                                onViewDetails={(pid: string) => router.push(`/search/${pid}`)}
                                             />
                                         </div>
                                     );

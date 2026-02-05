@@ -19,6 +19,14 @@ export default function SignInPage() {
         if (authenticated && user) {
             console.log('User roles for redirection:', roles);
 
+            // Check for explicit redirect request
+            const savedRedirect = localStorage.getItem('redirect_after_auth');
+            if (savedRedirect) {
+                localStorage.removeItem('redirect_after_auth');
+                router.push(savedRedirect);
+                return;
+            }
+
             // 1. Central Authority
             if (roles.includes('central-authority')) {
                 router.push('/central-authority/dashboard');

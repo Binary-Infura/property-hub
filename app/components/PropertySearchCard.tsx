@@ -1,5 +1,7 @@
 'use client';
 
+import { useConsultingBucket } from '../contexts/ConsultingBucketContext';
+
 interface PropertySearchCardData {
   id: string;
   title: string;
@@ -35,6 +37,8 @@ export default function PropertySearchCard({
   onViewDetails,
   onToggleCompare,
 }: PropertySearchCardProps) {
+  const { addItem, isInBucket } = useConsultingBucket();
+  const alreadyInBucket = isInBucket(property.id);
   return (
     <div className={`group bg-white rounded-[2.5rem] overflow-hidden transition-all duration-500 border-2 active:scale-[0.98] ${isSelectedForCompare ? 'border-blue-500 shadow-2xl ring-4 ring-blue-50' : 'border-slate-100 hover:border-blue-200 shadow-xl shadow-slate-200/50'
       }`}>
@@ -136,9 +140,26 @@ export default function PropertySearchCard({
         <div className="flex items-center gap-4 border-t border-slate-50 pt-8 mt-auto">
           <button
             onClick={() => onViewDetails(property.id)}
-            className="flex-1 py-4 bg-slate-900 border-2 border-slate-900 text-white rounded-[1.5rem] font-black text-sm tracking-widest uppercase hover:bg-blue-600 hover:border-blue-600 hover:-translate-y-1 transition-all active:scale-95 shadow-2xl"
+            className="flex-1 py-4 bg-slate-900 border-2 border-slate-900 text-white rounded-[1.5rem] font-black text-sm tracking-widest uppercase hover:bg-white hover:text-slate-900 hover:-translate-y-1 transition-all active:scale-95 shadow-2xl"
           >
-            View Experience
+            Explore
+          </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              addItem({
+                id: property.id,
+                title: property.title,
+                price: property.price,
+                location: property.location
+              });
+            }}
+            className={`flex-1 py-4 border-2 rounded-[1.5rem] font-black text-sm tracking-widest uppercase transition-all active:scale-95 shadow-2xl hover:-translate-y-1 ${alreadyInBucket
+              ? 'bg-blue-50 border-blue-100 text-blue-600 cursor-default'
+              : 'bg-blue-600 border-blue-600 text-white hover:bg-blue-700 hover:border-blue-700'
+              }`}
+          >
+            {alreadyInBucket ? 'In Bucket' : 'Consult Free'}
           </button>
         </div>
       </div>

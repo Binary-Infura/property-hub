@@ -12,15 +12,15 @@ export class PropertiesService {
         private usersService: UsersService,
     ) { }
 
-    async findAll(user: AuthenticatedUser, regionCode: string, myOnly?: boolean, city?: string): Promise<Property[]> {
-        const isCentralAuthority = user.roles.includes('central-authority');
-        const isPropertyPartner = user.roles.includes('property-partner');
-        const isGlobalRole = user.roles.some(role =>
+    async findAll(user: AuthenticatedUser | undefined, regionCode: string, myOnly?: boolean, city?: string): Promise<Property[]> {
+        const isCentralAuthority = user?.roles?.includes('central-authority') || false;
+        const isPropertyPartner = user?.roles?.includes('property-partner') || false;
+        const isGlobalRole = user?.roles?.some(role =>
             ['central-authority', 'property-partner', 'buyer', 'consultant', 'loan-adviser', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'regional-manager', 'channel-partner', 'visit-executive', 'service-provider'].includes(role)
-        );
+        ) || false;
 
         // Check if user has access to the requested region or city
-        if (!isGlobalRole) {
+        if (user && !isGlobalRole) {
             let hasAccess = (user.groups || []).some(g => g.endsWith(`/${regionCode}`));
 
             if (!hasAccess && city) {
@@ -72,7 +72,7 @@ export class PropertiesService {
         return results;
     }
 
-    async findOne(id: string, user: AuthenticatedUser): Promise<Property> {
+    async findOne(id: string, user?: AuthenticatedUser): Promise<Property> {
         const property = await this.prisma.property.findUnique({
             where: { id },
             include: {
@@ -86,20 +86,22 @@ export class PropertiesService {
             throw new NotFoundException(`Property with ID ${id} not found`);
         }
 
-        const isCentralAuthority = user.roles.includes('central-authority');
-        const userRegions = (user.groups || []).map(g => g.split('/').pop());
+        if (user) {
+            const isCentralAuthority = user.roles.includes('central-authority');
+            const userRegions = (user.groups || []).map(g => g.split('/').pop());
 
-        // Check ownership
-        const internalUser = await this.usersService.ensureUserSynced(user);
-        const isOwner = property.onboardedById === internalUser.id;
+            // Check ownership
+            const internalUser = await this.usersService.ensureUserSynced(user);
+            const isOwner = property.onboardedById === internalUser.id;
 
-        // Check region/city access (skip if owner or central authority)
-        if (!isCentralAuthority && !isOwner) {
-            const hasRegionAccess = property.region && userRegions.includes(property.region.code);
-            const hasLocationCityAccess = property.locationRel?.city && userRegions.some(g => g.toLowerCase() === property.locationRel.city.toLowerCase());
+            // Check region/city access (skip if owner or central authority)
+            if (!isCentralAuthority && !isOwner) {
+                const hasRegionAccess = property.region && userRegions.includes(property.region.code);
+                const hasLocationCityAccess = property.locationRel?.city && userRegions.some(g => g.toLowerCase() === property.locationRel.city.toLowerCase());
 
-            if (!hasRegionAccess && !hasLocationCityAccess) {
-                throw new NotFoundException(`Property with ID ${id} not found`);
+                if (!hasRegionAccess && !hasLocationCityAccess) {
+                    throw new NotFoundException(`Property with ID ${id} not found`);
+                }
             }
         }
 

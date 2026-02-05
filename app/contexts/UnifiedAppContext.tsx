@@ -162,34 +162,42 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
 
     // Sync context with Auth state
     useEffect(() => {
-        if (!initialized || !authenticated || !user) return;
+        if (!initialized) return;
 
-        // 1. Map roles from AuthContext to UserRole objects
-        const userRoles = KNOWN_ROLES.filter(knownRole =>
-            roles.includes(knownRole.id)
-        );
-        if (userRoles.length > 0) {
-            setAvailableRoles(userRoles);
-        }
+        const syncAppData = async () => {
+            let roleList: UserRole[] = [];
+            let isGlobal = false;
 
-        // 2. Map regions
-        const isGlobal = roles.some(role =>
-            ['central-authority', 'property-partner', 'buyer', 'consultant', 'loan-adviser', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'regional-manager', 'channel-partner', 'visit-executive', 'service-provider'].includes(role)
-        );
-        const isCentralAuthority = roles.includes('central-authority');
+            // 1. Determine Roles
+            if (authenticated && user) {
+                roleList = KNOWN_ROLES.filter(knownRole =>
+                    roles.includes(knownRole.id)
+                );
+                isGlobal = roles.some(role =>
+                    ['central-authority', 'property-partner', 'buyer', 'consultant', 'loan-adviser', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'regional-manager', 'channel-partner', 'visit-executive', 'service-provider'].includes(role)
+                );
+            } else {
+                // Guests are treated as buyers for discovery purposes
+                roleList = [KNOWN_ROLES[KNOWN_ROLES.length - 1]];
+                isGlobal = true; // Guests can see everything (discovery)
+            }
 
-        const updateRegions = async () => {
-            let allRegions: Region[] = [];
-            let userRegions: Region[] = [];
+            if (roleList.length > 0) {
+                setAvailableRoles(roleList);
+            }
 
-            // 1. Fetch all operational regions from Global API (Required for all users to resolve names/codes)
+            // 2. Determine Regions
+            let allOperationalRegions: Region[] = [];
+            let userAccessibleRegions: Region[] = [];
+
             try {
-                const response = await fetch(`${API_URL}/api/regions?limit=1000`, {
-                    headers: { Authorization: `Bearer ${token}` }
-                });
+                const headers: any = {};
+                if (token) headers.Authorization = `Bearer ${token}`;
+
+                const response = await fetch(`${API_URL}/api/regions?limit=1000`, { headers });
                 if (response.ok) {
                     const result = await response.json();
-                    allRegions = result.data.map((r: any) => ({
+                    allOperationalRegions = result.data.map((r: any) => ({
                         id: r.id,
                         name: r.name,
                         code: r.code,
@@ -197,38 +205,28 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
                         state: r.state
                     })).sort((a: any, b: any) => a.name.localeCompare(b.name));
 
-                    // Always prepend "All Regions" for discovery
-                    allRegions = [ALL_REGIONS, ...allRegions];
+                    // Always include "All Regions" for discovery
+                    allOperationalRegions = [ALL_REGIONS, ...allOperationalRegions];
                 }
             } catch (e) {
                 console.error("Failed to fetch regions from API:", e);
+                allOperationalRegions = [ALL_REGIONS];
             }
 
-            if (isGlobal) {
-                userRegions = allRegions;
+            if (isGlobal || !user) {
+                userAccessibleRegions = allOperationalRegions;
             } else {
                 try {
-                    // 2. Filter available regions based on Keycloak groups
                     const groups = (user.groups || []) as string[];
+                    const userRegionCodes = groups.filter(g => g.startsWith('/regions/')).map(g => g.replace('/regions/', ''));
+                    const userCitySlugs = groups.filter(g => g.startsWith('/cities/')).map(g => g.replace('/cities/', ''));
 
-                    const userRegionCodes = groups
-                        .filter(g => g.startsWith('/regions/'))
-                        .map(g => g.replace('/regions/', ''));
-
-                    const userCitySlugs = groups
-                        .filter(g => g.startsWith('/cities/'))
-                        .map(g => g.replace('/cities/', ''));
-
-                    userRegions = allRegions.filter(region => {
-                        // Check if direct region match
+                    userAccessibleRegions = allOperationalRegions.filter(region => {
                         if (userRegionCodes.includes(region.code)) return true;
-
-                        // Check if city match (converting city name to slug like backend does)
                         if (region.city) {
                             const citySlug = region.city.toLowerCase().replace(/\s+/g, '-');
                             if (userCitySlugs.includes(citySlug)) return true;
                         }
-
                         return false;
                     });
                 } catch (e) {
@@ -236,33 +234,37 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
                 }
             }
 
-            if (userRegions.length === 0) {
-                userRegions = [ALL_REGIONS];
-            } else if (!userRegions.find(r => r.id === ALL_REGIONS.id)) {
-                userRegions = [ALL_REGIONS, ...userRegions];
+            // Fallback to All Regions if none assigned
+            if (userAccessibleRegions.length === 0) {
+                userAccessibleRegions = [ALL_REGIONS];
+            } else if (!userAccessibleRegions.find(r => r.id === ALL_REGIONS.id)) {
+                userAccessibleRegions = [ALL_REGIONS, ...userAccessibleRegions];
             }
 
-            setAvailableRegions(userRegions);
+            setAvailableRegions(userAccessibleRegions);
 
             // 3. Set Active Context Defaults
-            // Set role
-            if (userRoles.length > 0 && !userRoles.find(r => r.id === activeRole.id)) {
-                setActiveRole(userRoles[0]);
+            // Select Role
+            const savedRoleId = localStorage.getItem('activeRoleId');
+            const recoveredRole = roleList.find(r => r.id === savedRoleId);
+            if (recoveredRole) {
+                setActiveRole(recoveredRole);
+            } else if (roleList.length > 0) {
+                setActiveRole(roleList[0]);
             }
 
-            // Set region
+            // Select Region
             const savedRegionId = localStorage.getItem('activeRegionId');
-            const recoveredRegion = userRegions.find(r => r.id === savedRegionId);
-
+            const recoveredRegion = userAccessibleRegions.find(r => r.id === savedRegionId);
             if (recoveredRegion) {
                 setActiveRegion(recoveredRegion);
-            } else if (userRegions.length > 0 && !userRegions.find(r => r.id === activeRegion.id)) {
-                setActiveRegion(userRegions[0]);
+            } else if (userAccessibleRegions.length > 0) {
+                // Default to All Regions (which is at index 0)
+                setActiveRegion(userAccessibleRegions[0]);
             }
         };
 
-        updateRegions();
-
+        syncAppData();
     }, [initialized, authenticated, user, roles, token]);
 
     const switchContext = (regionId: string, roleId: RoleId) => {
