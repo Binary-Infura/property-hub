@@ -71,7 +71,7 @@ export default function PropertySearchPage() {
         setLoading(true);
         const data = await propertyService.getAll(
           token || null,
-          activeContext.activeRegion.code,
+          'all',
           false
         );
 
@@ -103,7 +103,7 @@ export default function PropertySearchPage() {
     };
 
     fetchRealProperties();
-  }, [token, activeContext.activeRegion.code]);
+  }, [token]);
 
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
 
@@ -194,7 +194,7 @@ export default function PropertySearchPage() {
                 <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Discovery</h1>
               </div>
               <p className="text-sm font-bold text-slate-400 ml-1">
-                Showing <span className="text-blue-600">{filteredProperties.length}</span> curated residences in <span className="text-slate-900">{activeContext.activeRegion.code === 'all' ? 'All Operational Regions' : activeContext.activeRegion.city}</span>
+                Showing <span className="text-blue-600">{filteredProperties.length}</span> curated residences in <span className="text-slate-900">All Operational Regions</span>
               </p>
             </div>
 
@@ -256,7 +256,7 @@ export default function PropertySearchPage() {
                 </div>
                 <h3 className="text-4xl font-black text-slate-900 mb-4 tracking-tighter">No Units Matched</h3>
                 <p className="text-slate-400 font-bold mb-12 max-w-sm mx-auto text-lg leading-relaxed">
-                  We couldn't find any premium properties matching your selection in {activeContext.activeRegion.city}.
+                  We couldn't find any premium properties matching your selection.
                 </p>
                 <button
                   onClick={handleResetFilters}
