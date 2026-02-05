@@ -15,6 +15,7 @@ export default function ListingRequestsPage() {
     const [requests, setRequests] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [selectedCity, setSelectedCity] = useState<string>('all');
+    const [searchQuery, setSearchQuery] = useState('');
     const [processingId, setProcessingId] = useState<string | null>(null);
 
     const fetchRequests = async () => {
@@ -82,32 +83,54 @@ export default function ListingRequestsPage() {
     // Extract unique cities from requests
     const cities = ['all', ...Array.from(new Set(requests.map(r => r.location.split(',').pop()?.trim() || 'Unknown')))];
 
-    const filteredRequests = selectedCity === 'all'
+    const filteredRequestsByCity = selectedCity === 'all'
         ? requests
         : requests.filter(r => {
             const propCity = r.location.split(',').pop()?.trim().toLowerCase() || 'unknown';
             return propCity === selectedCity.toLowerCase();
         });
 
+    const filteredRequests = filteredRequestsByCity.filter(r => {
+        const searchStr = `${r.name} ${r.location} ${r.onboardedBy?.name || ''}`.toLowerCase();
+        return searchStr.includes(searchQuery.toLowerCase());
+    });
+
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-end">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">Listing Requests</h1>
                     <p className="text-gray-600 mt-1">Review and approve property listings from partners</p>
                 </div>
 
-                <div className="flex flex-col gap-1.5 min-w-[200px]">
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">Filter by City</label>
-                    <select
-                        value={selectedCity}
-                        onChange={(e) => setSelectedCity(e.target.value)}
-                        className="w-full px-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm font-medium"
-                    >
-                        {cities.map(city => (
-                            <option key={city} value={city}>{city.charAt(0).toUpperCase() + city.slice(1)}</option>
-                        ))}
-                    </select>
+                <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
+                    <div className="relative flex-1 sm:min-w-[300px]">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Search by name, location..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="block w-full pl-10 pr-3 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm font-medium"
+                        />
+                    </div>
+
+                    <div className="flex flex-col gap-1.5 min-w-[200px]">
+                        <select
+                            value={selectedCity}
+                            onChange={(e) => setSelectedCity(e.target.value)}
+                            className="w-full px-4 py-2 bg-white border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 text-sm font-medium"
+                        >
+                            <option value="all">All Cities</option>
+                            {cities.filter(c => c !== 'all').map(city => (
+                                <option key={city} value={city}>{city.charAt(0).toUpperCase() + city.slice(1)}</option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
             </div>
 
