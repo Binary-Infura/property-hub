@@ -2,6 +2,7 @@ import Image from "next/image";
 import ConsultantProfile from "./components/ConsultantProfile";
 import RecommendedProperties from "./components/RecommendedProperties";
 import Navbar from "./components/Navbar";
+import LoanCalculator from "./components/LoanCalculator";
 
 export default function Home() {
   return (
@@ -192,6 +193,9 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Loan Calculator Section */}
+      <LoanCalculator />
 
       {/* Featured Properties */}
       <section id="properties" className="py-20 md:py-32 bg-gray-50">
