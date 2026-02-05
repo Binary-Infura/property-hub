@@ -41,7 +41,7 @@ export default function PropertiesPage() {
     try {
       setLoading(true);
       // Fetch "my" properties
-      const res = await fetch(`${API_URL}/api/${regionCode}/properties?myOnly=true`, {
+      const res = await fetch(`${API_URL}/api/${regionCode}/properties/my`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

@@ -27,15 +27,23 @@ import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface
 export class PropertiesController {
     constructor(private readonly propertiesService: PropertiesService) { }
 
+    @Get('my')
+    findAllMy(
+        @Param('region') region: string,
+        @CurrentUser() user: AuthenticatedUser,
+        @Query('city') city?: string
+    ) {
+        return this.propertiesService.findAll(user, region, true, city);
+    }
+
     @Get()
     @Public()
     findAll(
         @Param('region') region: string,
         @CurrentUser() user: AuthenticatedUser,
-        @Query('myOnly') myOnly?: string,
         @Query('city') city?: string
     ) {
-        return this.propertiesService.findAll(user, region, myOnly === 'true', city);
+        return this.propertiesService.findAll(user, region, false, city);
     }
 
     @Get(':id')
