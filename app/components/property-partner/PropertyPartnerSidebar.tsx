@@ -37,7 +37,7 @@ export default function PropertyPartnerSidebar() {
     <aside className="w-64 bg-white border-r border-gray-200 min-h-screen flex flex-col shrink-0">
       {/* Sidebar Header */}
       <div className="h-16 flex items-center px-6 border-b border-gray-200">
-        <Link href="/property-partner/dashboard" className="flex items-center gap-2 font-bold text-xl text-gray-900">
+        <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-900">
           <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
           <span>PropertyHub</span>
         </Link>

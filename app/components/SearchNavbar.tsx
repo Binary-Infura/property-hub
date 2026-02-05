@@ -13,6 +13,7 @@ export default function SearchNavbar() {
             'central-authority',
             'regional-manager',
             'consultant',
+            'property-partner',
             'marketing-manager',
             'onboarding-manager',
             'loan-adviser',
