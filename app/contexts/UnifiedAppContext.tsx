@@ -129,6 +129,7 @@ const KNOWN_ROLES: UserRole[] = [
 ];
 
 const NO_REGION: Region = { id: 'no-region', name: 'No Region Allocated', code: 'no-region' };
+const ALL_REGIONS: Region = { id: 'all-regions', name: 'All Regions', code: 'all', city: 'Global' };
 
 const DEFAULT_CONTEXT: UnifiedAppContextType = {
     currentUser: {
@@ -172,7 +173,9 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
         }
 
         // 2. Map regions
-        const isGlobal = roles.includes('central-authority') || roles.includes('property-partner');
+        const isGlobal = roles.some(role =>
+            ['central-authority', 'property-partner', 'buyer', 'consultant', 'loan-adviser', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'regional-manager', 'channel-partner', 'visit-executive', 'service-provider'].includes(role)
+        );
         const isCentralAuthority = roles.includes('central-authority');
 
         const updateRegions = async () => {
@@ -192,7 +195,10 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
                         code: r.code,
                         city: r.city,
                         state: r.state
-                    }));
+                    })).sort((a: any, b: any) => a.name.localeCompare(b.name));
+
+                    // Always prepend "All Regions" for discovery
+                    allRegions = [ALL_REGIONS, ...allRegions];
                 }
             } catch (e) {
                 console.error("Failed to fetch regions from API:", e);
@@ -231,7 +237,9 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
             }
 
             if (userRegions.length === 0) {
-                userRegions = [NO_REGION];
+                userRegions = [ALL_REGIONS];
+            } else if (!userRegions.find(r => r.id === ALL_REGIONS.id)) {
+                userRegions = [ALL_REGIONS, ...userRegions];
             }
 
             setAvailableRegions(userRegions);
@@ -243,7 +251,12 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
             }
 
             // Set region
-            if (userRegions.length > 0 && !userRegions.find(r => r.id === activeRegion.id)) {
+            const savedRegionId = localStorage.getItem('activeRegionId');
+            const recoveredRegion = userRegions.find(r => r.id === savedRegionId);
+
+            if (recoveredRegion) {
+                setActiveRegion(recoveredRegion);
+            } else if (userRegions.length > 0 && !userRegions.find(r => r.id === activeRegion.id)) {
                 setActiveRegion(userRegions[0]);
             }
         };
@@ -261,6 +274,9 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
 
         setActiveRegion(region);
         setActiveRole(role);
+
+        localStorage.setItem('activeRegionId', regionId);
+        localStorage.setItem('activeRoleId', roleId);
 
         console.log(`Switching context to: ${region.name} - ${role.name}`);
         router.push(role.dashboardUrl);

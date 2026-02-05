@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import SearchNavbar from '../components/SearchNavbar';
+import Navbar from '../components/Navbar';
 
 export const metadata = {
   title: 'Search Properties - PropertyHub',
@@ -13,7 +13,7 @@ export default function SearchLayout({
 }) {
   return (
     <div className="min-h-screen bg-gray-50">
-      <SearchNavbar />
+      <Navbar />
 
       {/* Main Content */}
       {children}

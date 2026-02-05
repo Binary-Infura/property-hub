@@ -1,4 +1,4 @@
-export type PropertyStatus = 'AVAILABLE' | 'SOLD' | 'RESERVED' | 'UNDER_CONSTRUCTION';
+export type PropertyStatus = 'AVAILABLE' | 'SOLD' | 'RESERVED' | 'UNDER_CONSTRUCTION' | 'APPROVED';
 export type PropertyType = 'APARTMENT' | 'VILLA' | 'PLOT' | 'COMMERCIAL' | 'INDUSTRIAL';
 
 export interface Property {
@@ -39,7 +39,20 @@ export const propertyService = {
             },
         });
         if (!response.ok) {
-            throw new Error('Failed to fetch properties');
+            const errorData = await response.json().catch(() => ({ message: 'No error details' }));
+            throw new Error(errorData.message || `Failed to fetch properties (${response.status})`);
+        }
+        return response.json();
+    },
+
+    async getOne(id: string, token: string, regionSlug: string): Promise<Property> {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/${regionSlug}/properties/${id}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+        if (!response.ok) {
+            throw new Error('Failed to fetch property details');
         }
         return response.json();
     },

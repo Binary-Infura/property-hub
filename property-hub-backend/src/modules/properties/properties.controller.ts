@@ -21,13 +21,13 @@ import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface
 
 @Controller('api/:region/properties')
 @UseGuards(JwtAuthGuard, RolesGuard, RegionGuard)
-@RequireRoles('central-authority', 'regional-manager', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'property-partner', 'channel-partner', 'consultant')
+@RequireRoles('central-authority', 'regional-manager', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'property-partner', 'channel-partner', 'consultant', 'buyer', 'loan-adviser', 'visit-executive', 'service-provider')
 @RequireRegion()
 export class PropertiesController {
     constructor(private readonly propertiesService: PropertiesService) { }
 
     @Get()
-    @RequireRoles('regional-manager', 'onboarding-manager', 'property-partner')
+    @RequireRoles('central-authority', 'regional-manager', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'property-partner', 'channel-partner', 'consultant', 'buyer', 'loan-adviser', 'visit-executive', 'service-provider')
     findAll(
         @Param('region') region: string,
         @CurrentUser() user: AuthenticatedUser,
@@ -38,7 +38,7 @@ export class PropertiesController {
     }
 
     @Get(':id')
-    @RequireRoles('regional-manager', 'onboarding-manager', 'consultant', 'property-partner')
+    @RequireRoles('central-authority', 'regional-manager', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'property-partner', 'channel-partner', 'consultant', 'buyer', 'loan-adviser', 'visit-executive', 'service-provider')
     findOne(
         @Param('region') region: string,
         @Param('id') id: string,

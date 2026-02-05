@@ -18,13 +18,13 @@ model Region {
   city        String?
   tags        String[]
   description String?
-  locationId  String?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
+  locationId  String?
   leads       Lead[]
   properties  Property[]
-  managers    User[]     @relation("RegionToUser")
   location    Location?  @relation(fields: [locationId], references: [id])
+  managers    User[]     @relation("RegionToUser")
 
   @@index([locationId])
   @@map("regions")
@@ -37,23 +37,23 @@ model Property {
   location      String
   address       String?
   regionId      String?
-  locationId    String?
   status        PropertyStatus @default(AVAILABLE)
   price         Decimal        @db.Decimal(15, 2)
   area          Decimal?       @db.Decimal(10, 2)
   bedrooms      Int?
   bathrooms     Int?
   propertyType  PropertyType
-  category      String?
-  city          String?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   onboardedById String?
+  category      String?
+  city          String?
+  locationId    String?
   commissions   Commission[]
   leads         Lead[]
+  locationRel   Location?      @relation(fields: [locationId], references: [id])
   onboardedBy   User?          @relation("UserOnboardedProperties", fields: [onboardedById], references: [id])
   region        Region?        @relation(fields: [regionId], references: [id])
-  locationRel   Location?      @relation(fields: [locationId], references: [id])
 
   @@index([regionId])
   @@index([locationId])
@@ -201,8 +201,8 @@ model Location {
   country    String
   state      String
   city       String
-  regions    Region[]
   properties Property[]
+  regions    Region[]
 
   @@unique([continent, country, state, city])
   @@map("locations")
@@ -238,8 +238,6 @@ model MarketingManagerProfile {
 
   @@map("marketing_manager_profiles")
 }
-
-
 
 model ConsultantProfile {
   id              String   @id @default(uuid())
@@ -364,5 +362,3 @@ enum CommissionStatus {
   PAID
   REJECTED
 }
-
-

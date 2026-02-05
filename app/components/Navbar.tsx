@@ -37,10 +37,10 @@ export default function Navbar() {
                         <span className="font-bold text-lg text-gray-900">PropertyHub</span>
                     </Link>
                     <div className="hidden md:flex gap-8">
-                        <a href="#how" className="text-gray-600 hover:text-gray-900">How It Works</a>
-                        <a href="#why" className="text-gray-600 hover:text-gray-900">Why Us</a>
-                        <a href="#consultants" className="text-gray-600 hover:text-gray-900">Consultants</a>
-                        <a href="#recommended" className="text-gray-600 hover:text-gray-900">Properties</a>
+                        <Link href="/#how" className="text-gray-600 hover:text-gray-900">How It Works</Link>
+                        <Link href="/#why" className="text-gray-600 hover:text-gray-900">Why Us</Link>
+                        <Link href="/search" className="text-gray-600 hover:text-gray-900">Explore All Regions</Link>
+                        <Link href="/#recommended" className="text-gray-600 hover:text-gray-900">Properties</Link>
                     </div>
                     <div className="flex gap-3 min-w-[200px] justify-end">
                         <Link href="/search" className="text-gray-600 hover:text-gray-900 px-4 py-2 text-sm font-medium">

@@ -31,7 +31,9 @@ export class RegionGuard implements CanActivate {
         }
 
         // 1. Check for global region access or roles that don't use region context
-        const isGlobalRole = user.roles.includes('central-authority') || user.roles.includes('property-partner');
+        const isGlobalRole = user.roles.some(role =>
+            ['central-authority', 'property-partner', 'buyer', 'consultant', 'loan-adviser', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'regional-manager', 'channel-partner', 'visit-executive', 'service-provider'].includes(role)
+        );
         const regionGroup = `/regions/${regionSlug}`;
 
         if (isGlobalRole || (regionSlug && user.groups.includes(regionGroup))) {

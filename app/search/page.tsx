@@ -1,9 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import PropertyFilters from '@/app/components/PropertyFilters';
 import PropertySearchCard from '@/app/components/PropertySearchCard';
 import PropertyComparison from '@/app/components/PropertyComparison';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+import { propertyService, Property as BackendProperty } from '@/app/services/propertyService';
 
 interface FilterState {
   location: string;
@@ -16,7 +20,7 @@ interface FilterState {
 }
 
 interface Property {
-  id: number;
+  id: string;
   title: string;
   config: string;
   location: string;
@@ -35,147 +39,105 @@ interface Property {
 }
 
 export default function PropertySearchPage() {
+  const router = useRouter();
+  const { token } = useAuth();
+  const { activeContext } = useUnifiedApp();
+  const [loading, setLoading] = useState(true);
+  const [allProperties, setAllProperties] = useState<Property[]>([]);
+
   const [filters, setFilters] = useState<FilterState>({
     location: '',
     propertyType: [],
     budgetMin: 0,
-    budgetMax: 1000,
+    budgetMax: 5000, // lac
     bhk: [],
     propertyAge: 'Both',
     constructionStatus: 'Both',
   });
 
-  const [shortlistedIds, setShortlistedIds] = useState<number[]>([]);
-  const [compareIds, setCompareIds] = useState<number[]>([]);
+  const [shortlistedIds, setShortlistedIds] = useState<string[]>([]);
+  const [compareIds, setCompareIds] = useState<string[]>([]);
   const [showComparison, setShowComparison] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
-  // Sample properties data
-  const [allProperties] = useState<Property[]>([
-    {
-      id: 1,
-      title: 'Sunset Towers',
-      config: '3 BHK',
-      location: 'Bandra, Mumbai',
-      area: '1800 sqft',
-      price: '₹85L',
-      propertyType: 'Flat',
-      bhk: '3 BHK',
-      isNew: false,
-      isReadyToMove: true,
-      highlights: ['Swimming Pool', 'Gym', 'Parking', 'Security'],
-      amenities: ['Swimming Pool', 'Gym', 'Parking', 'Security', 'Garden'],
-      legalVerified: true,
-      recommendationTag: 'Perfect Match',
-      recommendationReason: 'Matches your budget perfectly with excellent location and amenities.',
-    },
-    {
-      id: 2,
-      title: 'Green Valley Homes',
-      config: '2 BHK',
-      location: 'Powai, Mumbai',
-      area: '1200 sqft',
-      price: '₹52L',
-      propertyType: 'Flat',
-      bhk: '2 BHK',
-      isNew: true,
-      isReadyToMove: false,
-      highlights: ['Modern Design', 'Good Connectivity', 'Affordable'],
-      amenities: ['Parking', 'Community Hall', 'Garden'],
-      legalVerified: false,
-      recommendationTag: 'Budget Friendly',
-      recommendationReason: 'Great value for money in a developing area with good future prospects.',
-    },
-    {
-      id: 3,
-      title: 'Luxury Heights',
-      config: '4 BHK',
-      location: 'Worli, Mumbai',
-      area: '2500 sqft',
-      price: '₹1.2Cr',
-      propertyType: 'Villa',
-      bhk: '4 BHK',
-      isNew: true,
-      isReadyToMove: true,
-      highlights: ['Premium Location', 'Luxury Amenities', 'High ROI'],
-      amenities: ['Swimming Pool', 'Gym', 'Clubhouse', 'Security', 'Garden', 'Parking'],
-      legalVerified: true,
-      recommendationTag: 'Best Investment',
-      recommendationReason: 'Premium property in prime location with excellent rental yield potential.',
-    },
-    {
-      id: 4,
-      title: 'City View Apartments',
-      config: '1 BHK',
-      location: 'Andheri, Mumbai',
-      area: '650 sqft',
-      price: '₹35L',
-      propertyType: 'Flat',
-      bhk: '1 BHK',
-      isNew: false,
-      isReadyToMove: true,
-      highlights: ['Compact', 'Affordable', 'Good Location'],
-      amenities: ['Parking', 'Security'],
-      legalVerified: true,
-    },
-    {
-      id: 5,
-      title: 'Garden Estates',
-      config: '3 BHK',
-      location: 'Thane, Mumbai',
-      area: '1600 sqft',
-      price: '₹48L',
-      propertyType: 'Villa',
-      bhk: '3 BHK',
-      isNew: true,
-      isReadyToMove: false,
-      highlights: ['Spacious', 'Green Surroundings', 'Family Friendly'],
-      amenities: ['Garden', 'Parking', 'Security', 'Playground'],
-      legalVerified: false,
-    },
-  ]);
+  useEffect(() => {
+    const fetchRealProperties = async () => {
+      if (!token || activeContext.activeRegion.code === 'no-region') {
+        setLoading(false);
+        return;
+      }
+      try {
+        setLoading(true);
+        const data = await propertyService.getAll(
+          token,
+          activeContext.activeRegion.code,
+          false
+        );
 
-  const [filteredProperties, setFilteredProperties] = useState<Property[]>(allProperties);
+        const mapped: Property[] = data.map(p => ({
+          id: p.id,
+          title: p.name,
+          config: `${p.bedrooms || 2} BHK`,
+          location: p.location,
+          area: `${p.area || 1200} sqft`,
+          price: `₹${(Number(p.price) / 100000).toFixed(1)}L`,
+          propertyType: (p.propertyType === 'APARTMENT' ? 'Flat' :
+            p.propertyType === 'VILLA' ? 'Villa' :
+              p.propertyType === 'PLOT' ? 'Plot' : 'Commercial') as any,
+          bhk: `${p.bedrooms || 2} BHK`,
+          isNew: true,
+          isReadyToMove: p.status === 'AVAILABLE' || p.status === 'APPROVED',
+          highlights: ['Legal Verified', 'Premium Location', 'High ROI'],
+          amenities: ['Parking', 'Security', 'Water Supply'],
+          legalVerified: true,
+          image: undefined
+        }));
 
-  // Filter properties based on filter state
+        setAllProperties(mapped);
+      } catch (error) {
+        console.error('Failed to fetch properties:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRealProperties();
+  }, [token, activeContext.activeRegion.code]);
+
+  const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
+
   useEffect(() => {
     let filtered = [...allProperties];
 
-    // Location filter
     if (filters.location) {
       filtered = filtered.filter(p =>
         p.location.toLowerCase().includes(filters.location.toLowerCase())
       );
     }
 
-    // Property type filter
     if (filters.propertyType.length > 0) {
       filtered = filtered.filter(p =>
         filters.propertyType.includes(p.propertyType)
       );
     }
 
-    // Budget filter
     filtered = filtered.filter(p => {
-      const priceNum = parseInt(p.price.replace(/[₹L,]/g, ''));
+      const priceNum = parseFloat(p.price.replace(/[₹L,]/g, ''));
       return priceNum >= filters.budgetMin && priceNum <= filters.budgetMax;
     });
 
-    // BHK filter
     if (filters.bhk.length > 0) {
       filtered = filtered.filter(p =>
         filters.bhk.includes(p.bhk)
       );
     }
 
-    // Property age filter
     if (filters.propertyAge !== 'Both') {
       filtered = filtered.filter(p =>
         filters.propertyAge === 'New' ? p.isNew : !p.isNew
       );
     }
 
-    // Construction status filter
     if (filters.constructionStatus !== 'Both') {
       filtered = filtered.filter(p =>
         filters.constructionStatus === 'Ready' ? p.isReadyToMove : !p.isReadyToMove
@@ -185,26 +147,20 @@ export default function PropertySearchPage() {
     setFilteredProperties(filtered);
   }, [filters, allProperties]);
 
-  const handleShortlist = (id: number) => {
+  const handleShortlist = (id: string) => {
     setShortlistedIds(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
-    // Update journey step to "Shortlist" if first shortlist
-    if (!shortlistedIds.includes(id) && shortlistedIds.length === 0) {
-      // This would integrate with journey state management
-      console.log('Journey moved to Shortlist step');
-    }
   };
 
-  const handleToggleCompare = (id: number) => {
+  const handleToggleCompare = (id: string) => {
     setCompareIds(prev =>
       prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
 
-  const handleViewDetails = (id: number) => {
-    // Navigate to property details page
-    console.log('View details for property:', id);
+  const handleViewDetails = (id: string) => {
+    router.push(`/search/${id}`);
   };
 
   const handleResetFilters = () => {
@@ -212,7 +168,7 @@ export default function PropertySearchPage() {
       location: '',
       propertyType: [],
       budgetMin: 0,
-      budgetMax: 1000,
+      budgetMax: 5000,
       bhk: [],
       propertyAge: 'Both',
       constructionStatus: 'Both',
@@ -222,92 +178,116 @@ export default function PropertySearchPage() {
   const propertiesForComparison = allProperties.filter(p => compareIds.includes(p.id));
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex justify-between items-center">
+    <div className="min-h-screen bg-[#FDFDFF]">
+      {/* Premium Search Header */}
+      <div className="bg-white/80 backdrop-blur-xl border-b border-slate-100 sticky top-0 z-40">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Search Properties</h1>
-              <p className="text-sm text-gray-600 mt-1">
-                {filteredProperties.length} property{filteredProperties.length !== 1 ? 'ies' : ''} found
+              <div className="flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Discovery</h1>
+              </div>
+              <p className="text-sm font-bold text-slate-400 ml-1">
+                Showing <span className="text-blue-600">{filteredProperties.length}</span> curated residences in <span className="text-slate-900">{activeContext.activeRegion.code === 'all' ? 'All Operational Regions' : activeContext.activeRegion.city}</span>
               </p>
             </div>
-            <div className="flex gap-3">
+
+            <div className="flex items-center gap-4 w-full md:w-auto">
               {compareIds.length > 0 && (
                 <button
                   onClick={() => setShowComparison(true)}
-                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium text-sm transition flex items-center gap-2"
+                  className="px-6 py-4 bg-blue-50 text-blue-600 rounded-2xl font-black text-xs uppercase tracking-widest border border-blue-100 hover:bg-blue-600 hover:text-white transition-all shadow-xl shadow-blue-100 flex items-center gap-3 active:scale-95"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
                   </svg>
-                  Compare ({compareIds.length})
+                  Compare Portfolio ({compareIds.length})
                 </button>
               )}
               <button
                 onClick={() => setShowFilters(!showFilters)}
-                className="md:hidden px-4 py-2 border-2 border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium text-sm transition"
+                className="md:hidden w-full px-6 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-xl"
               >
-                Filters
+                Toggle Filters
               </button>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        <div className="grid lg:grid-cols-4 gap-6">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        <div className="grid lg:grid-cols-12 gap-12">
           {/* Filters Sidebar */}
-          <div className={`lg:col-span-1 ${showFilters ? 'block' : 'hidden lg:block'}`}>
+          <aside className={`lg:col-span-4 ${showFilters ? 'block' : 'hidden lg:block'}`}>
             <PropertyFilters
               filters={filters}
               onFiltersChange={setFilters}
               onReset={handleResetFilters}
             />
-          </div>
+          </aside>
 
-          {/* Results */}
-          <div className="lg:col-span-3">
-            {filteredProperties.length === 0 ? (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-                <svg
-                  className="w-16 h-16 text-gray-400 mx-auto mb-4"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                </svg>
-                <h3 className="text-xl font-bold text-gray-900 mb-2">No properties found</h3>
-                <p className="text-gray-600 mb-6">
-                  Try adjusting your filters to see more results.
+          {/* Results Grid */}
+          <div className="lg:col-span-8">
+            {loading ? (
+              <div className="flex flex-col items-center justify-center py-40 bg-white rounded-[3rem] border border-slate-50 shadow-2xl shadow-slate-100">
+                <div className="relative mb-8">
+                  <div className="w-20 h-20 border-4 border-blue-50 rounded-full"></div>
+                  <div className="w-20 h-20 border-4 border-blue-600 border-t-transparent rounded-full animate-spin absolute top-0 left-0"></div>
+                </div>
+                <p className="text-slate-400 font-black uppercase text-xs tracking-[0.4em] animate-pulse">Syncing Inventory...</p>
+              </div>
+            ) : filteredProperties.length === 0 ? (
+              <div className="bg-white rounded-[3.5rem] shadow-2xl shadow-slate-100 border border-slate-50 p-24 text-center">
+                <div className="w-32 h-32 bg-slate-50 rounded-[2.5rem] flex items-center justify-center mx-auto mb-10 shadow-inner">
+                  <svg
+                    className="w-16 h-16 text-slate-200"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                  </svg>
+                </div>
+                <h3 className="text-4xl font-black text-slate-900 mb-4 tracking-tighter">No Units Matched</h3>
+                <p className="text-slate-400 font-bold mb-12 max-w-sm mx-auto text-lg leading-relaxed">
+                  We couldn't find any premium properties matching your selection in {activeContext.activeRegion.city}.
                 </p>
                 <button
                   onClick={handleResetFilters}
-                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition"
+                  className="px-12 py-5 bg-blue-600 text-white rounded-[2rem] font-black text-sm uppercase tracking-widest hover:bg-blue-700 transition-all shadow-2xl shadow-blue-100 active:scale-95"
                 >
-                  Reset Filters
+                  Reset Parameters
                 </button>
               </div>
             ) : (
-              <div className="space-y-6">
+              <div className="space-y-12">
                 {filteredProperties.map((property) => (
-                  <PropertySearchCard
-                    key={property.id}
-                    property={property}
-                    isShortlisted={shortlistedIds.includes(property.id)}
-                    isSelectedForCompare={compareIds.includes(property.id)}
-                    onShortlist={handleShortlist}
-                    onViewDetails={handleViewDetails}
-                    onToggleCompare={handleToggleCompare}
-                  />
+                  <div key={property.id} className="hover:scale-[1.01] transition-transform duration-500">
+                    <PropertySearchCard
+                      property={property}
+                      isShortlisted={shortlistedIds.includes(property.id)}
+                      isSelectedForCompare={compareIds.includes(property.id)}
+                      onShortlist={handleShortlist}
+                      onViewDetails={handleViewDetails}
+                      onToggleCompare={handleToggleCompare}
+                    />
+                  </div>
                 ))}
+
+                {/* Premium Footer Hint */}
+                <div className="py-20 text-center">
+                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.6em]">End of Collection • Premium Plus Exclusive</p>
+                </div>
               </div>
             )}
           </div>
         </div>
-      </div>
+      </main>
 
       {/* Comparison Modal */}
       {showComparison && (
@@ -320,4 +300,3 @@ export default function PropertySearchPage() {
     </div>
   );
 }
-

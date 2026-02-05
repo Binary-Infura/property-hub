@@ -1,7 +1,7 @@
 'use client';
 
 interface PropertyForComparison {
-  id: number;
+  id: string;
   title: string;
   price: string;
   location: string;
@@ -17,7 +17,7 @@ interface PropertyForComparison {
 interface PropertyComparisonProps {
   properties: PropertyForComparison[];
   onClose: () => void;
-  onRemove: (id: number) => void;
+  onRemove: (id: string) => void;
 }
 
 export default function PropertyComparison({ properties, onClose, onRemove }: PropertyComparisonProps) {

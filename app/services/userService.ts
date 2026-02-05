@@ -101,4 +101,13 @@ export const userService = {
         }
         return response.json();
     },
+    async getById(id: string, token: string): Promise<User> {
+        const response = await fetch(`${API_URL}/api/users/${id}`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        if (!response.ok) throw new Error('Failed to fetch user');
+        return response.json();
+    },
 };

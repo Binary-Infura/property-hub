@@ -15,10 +15,12 @@ export class PropertiesService {
     async findAll(user: AuthenticatedUser, regionCode: string, myOnly?: boolean, city?: string): Promise<Property[]> {
         const isCentralAuthority = user.roles.includes('central-authority');
         const isPropertyPartner = user.roles.includes('property-partner');
-        const userRegions = (user.groups || []).map(g => g.split('/').pop());
+        const isGlobalRole = user.roles.some(role =>
+            ['central-authority', 'property-partner', 'buyer', 'consultant', 'loan-adviser', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'regional-manager', 'channel-partner', 'visit-executive', 'service-provider'].includes(role)
+        );
 
         // Check if user has access to the requested region or city
-        if (!isCentralAuthority && !isPropertyPartner) {
+        if (!isGlobalRole) {
             let hasAccess = (user.groups || []).some(g => g.endsWith(`/${regionCode}`));
 
             if (!hasAccess && city) {
@@ -46,9 +48,7 @@ export class PropertiesService {
                 { address: { contains: city, mode: 'insensitive' } },
                 { locationRel: { city: { contains: city, mode: 'insensitive' } } }
             ];
-        } else if (isPropertyPartner && myOnly) {
-            // Global view for property partners
-        } else {
+        } else if (regionCode !== 'all') {
             where.region = { code: regionCode };
         }
 
