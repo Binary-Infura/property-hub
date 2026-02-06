@@ -1,6 +1,6 @@
 import { Controller, Post, Req, UseGuards, BadRequestException } from '@nestjs/common';
 import { FastifyRequest } from 'fastify';
-import { multipart } from '@fastify/multipart';
+// Removed unused multipart import causing compilation error
 import { pipeline } from 'stream';
 import { promisify } from 'util';
 import * as fs from 'fs';

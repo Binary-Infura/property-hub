@@ -41,27 +41,10 @@ export class RegionsController {
         return this.regionsService.findAll(query, { includeInactive: true });
     }
 
-    @Get(':id')
-    findOne(@Param('id') id: string) {
-        return this.regionsService.findOne(id);
-    }
-
     @Post()
     @RequireRoles('central-authority')
     create(@Body() createRegionDto: CreateRegionDto) {
         return this.regionsService.create(createRegionDto);
-    }
-
-    @Patch(':id')
-    @RequireRoles('central-authority')
-    update(@Param('id') id: string, @Body() updateRegionDto: UpdateRegionDto) {
-        return this.regionsService.update(id, updateRegionDto);
-    }
-
-    @Delete(':id')
-    @RequireRoles('central-authority')
-    remove(@Param('id') id: string) {
-        return this.regionsService.remove(id);
     }
 
     // --- Region Allocation Endpoints ---
@@ -85,6 +68,25 @@ export class RegionsController {
     @RequireRoles('central-authority')
     assignUserToRegions(@Body() dto: AssignRegionDto) {
         return this.regionsService.assignUserToRegions(dto);
+    }
+
+    // --- Parameterized Routes (Defined last to avoid shadowing) ---
+
+    @Get(':id')
+    findOne(@Param('id') id: string) {
+        return this.regionsService.findOne(id);
+    }
+
+    @Patch(':id')
+    @RequireRoles('central-authority')
+    update(@Param('id') id: string, @Body() updateRegionDto: UpdateRegionDto) {
+        return this.regionsService.update(id, updateRegionDto);
+    }
+
+    @Delete(':id')
+    @RequireRoles('central-authority')
+    remove(@Param('id') id: string) {
+        return this.regionsService.remove(id);
     }
 
     @Patch('allocations/:userId')
