@@ -158,10 +158,10 @@ export default function CampaignsPage() {
                                         <span className="text-gray-400">•</span>
                                         <span
                                             className={`px-2 py-1 rounded-full text-xs font-medium ${campaign.status === 'active'
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : campaign.status === 'paused'
-                                                        ? 'bg-yellow-100 text-yellow-800'
-                                                        : 'bg-gray-100 text-gray-800'
+                                                ? 'bg-green-100 text-green-800'
+                                                : campaign.status === 'paused'
+                                                    ? 'bg-yellow-100 text-yellow-800'
+                                                    : 'bg-gray-100 text-gray-800'
                                                 }`}
                                         >
                                             {campaign.status}
@@ -273,22 +273,22 @@ export default function CampaignsPage() {
 
             {/* Create Campaign Modal */}
             {showCreateForm && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-                    <div className="bg-white rounded-xl p-8 max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-                        <h2 className="text-2xl font-bold text-gray-900 mb-6">Create New Campaign</h2>
-                        <form className="space-y-4">
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-[2rem] p-10 max-w-2xl w-full shadow-2xl ring-1 ring-black/5 max-h-[95vh] overflow-y-auto">
+                        <h2 className="text-3xl font-extrabold text-gray-900 mb-8">Create New Campaign</h2>
+                        <form className="space-y-6">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Campaign Name</label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Campaign Name</label>
                                 <input
                                     type="text"
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none text-gray-900 placeholder:text-gray-400"
                                     placeholder="Enter campaign name"
                                 />
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Platform</label>
-                                    <select className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Platform</label>
+                                    <select className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none text-gray-900 appearance-none">
                                         <option value="">Select platform</option>
                                         <option value="google-ads">Google Ads</option>
                                         <option value="facebook">Facebook</option>
@@ -297,49 +297,49 @@ export default function CampaignsPage() {
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Budget (₹)</label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Budget (₹)</label>
                                     <input
                                         type="number"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none text-gray-900 placeholder:text-gray-400"
                                         placeholder="Enter budget"
                                     />
                                 </div>
                             </div>
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-2 gap-6">
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Start Date</label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Start Date</label>
                                     <input
                                         type="date"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none text-gray-900"
                                     />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">End Date</label>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-2">End Date</label>
                                     <input
                                         type="date"
-                                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                        className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none text-gray-900"
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
                                 <textarea
-                                    rows={3}
-                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                                    rows={4}
+                                    className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none text-gray-900 placeholder:text-gray-400 resize-none"
                                     placeholder="Enter campaign description"
                                 ></textarea>
                             </div>
-                            <div className="flex gap-3 mt-6">
+                            <div className="flex gap-4 pt-4">
                                 <button
                                     type="button"
                                     onClick={() => setShowCreateForm(false)}
-                                    className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium"
+                                    className="flex-1 px-8 py-4 border-2 border-gray-200 text-gray-700 rounded-2xl hover:bg-gray-50 hover:border-gray-300 transition-all font-bold text-lg"
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium"
+                                    className="flex-1 px-8 py-4 bg-[#a855f7] text-white rounded-2xl hover:bg-[#9333ea] shadow-xl shadow-purple-200 hover:shadow-purple-300 transition-all font-bold text-lg"
                                 >
                                     Create Campaign
                                 </button>

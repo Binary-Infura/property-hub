@@ -36,15 +36,15 @@ export default function ReportsPage() {
             </div>
 
             {/* Report Type Selector */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-                <h2 className="text-lg font-bold text-gray-900 mb-4">Report Configuration</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="bg-white rounded-3xl shadow-xl shadow-gray-200/50 border border-gray-100 p-8 mb-8">
+                <h2 className="text-xl font-extrabold text-gray-900 mb-6">Report Configuration</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Report Type</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Report Type</label>
                         <select
                             value={selectedReport}
                             onChange={(e) => setSelectedReport(e.target.value)}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none text-gray-900 appearance-none"
                         >
                             <option value="monthly">Monthly Performance</option>
                             <option value="campaign">Campaign Breakdown</option>
@@ -54,36 +54,33 @@ export default function ReportsPage() {
                         </select>
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Start Date</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">Start Date</label>
                         <input
                             type="date"
                             value={dateRange.start}
                             onChange={(e) => setDateRange({ ...dateRange, start: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none text-gray-900"
                         />
                     </div>
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">End Date</label>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">End Date</label>
                         <input
                             type="date"
                             value={dateRange.end}
                             onChange={(e) => setDateRange({ ...dateRange, end: e.target.value })}
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                            className="w-full px-5 py-3 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none text-gray-900"
                         />
                     </div>
                 </div>
-                <div className="flex gap-3">
-                    <button className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium">
+                <div className="flex flex-wrap gap-4">
+                    <button className="px-8 py-3.5 bg-[#a855f7] text-white rounded-2xl hover:bg-[#9333ea] shadow-lg shadow-purple-200 transition-all font-bold">
                         Generate Report
                     </button>
-                    <button className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium">
+                    <button className="px-8 py-3.5 border-2 border-gray-100 text-gray-700 rounded-2xl hover:bg-gray-50 hover:border-gray-200 transition-all font-bold">
                         Export PDF
                     </button>
-                    <button className="px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition font-medium">
+                    <button className="px-8 py-3.5 border-2 border-gray-100 text-gray-700 rounded-2xl hover:bg-gray-50 hover:border-gray-200 transition-all font-bold">
                         Export Excel
-                    </button>
-                    <button className="px-6 py-2 border border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50 transition font-medium">
-                        Share with Central Authority
                     </button>
                 </div>
             </div>
