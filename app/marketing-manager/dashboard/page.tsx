@@ -1,60 +1,62 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { marketingService } from '@/app/services/marketingService';
+
+interface Campaign {
+    id: string;
+    name: string;
+    description?: string;
+    status: string;
+    platform: string;
+    budget: number;
+    spent: number;
+    startDate: string;
+    endDate: string;
+    targetRegions: { id: string, name: string }[];
+    assignedTo: { id: string, firstName: string, lastName: string }[];
+    impressions: number;
+    clicks: number;
+    leadsCount: number;
+    conversions: number;
+    createdAt: string;
+}
 
 export default function MarketingManagerDashboard() {
+    const { token } = useAuth();
     const [timeRange, setTimeRange] = useState('30d');
+    const [campaigns, setCampaigns] = useState<Campaign[]>([]);
+    const [loading, setLoading] = useState(true);
 
-    // Mock data - in production, this would come from API
-    const stats = {
-        activeCampaigns: 12,
-        totalLeads: 1250,
-        costPerLead: 245,
-        conversionRate: 18.5,
-        budgetUtilization: 78,
-        monthlyBudget: 500000,
-    };
+    useEffect(() => {
+        const fetchCampaigns = async () => {
+            if (!token) return;
+            try {
+                const data = await marketingService.getCampaigns(token);
+                setCampaigns(data);
+            } catch (error) {
+                console.error("Failed to fetch campaigns:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    const campaigns = [
-        {
-            id: '1',
-            name: 'Mumbai Premium Properties',
-            status: 'active',
-            platform: 'Google Ads',
-            budget: 150000,
-            spent: 98500,
-            leads: 420,
-            cpl: 234,
-            conversions: 78,
-            conversionRate: 18.6,
-        },
-        {
-            id: '2',
-            name: 'Pune Luxury Villas',
-            status: 'active',
-            platform: 'Facebook',
-            budget: 100000,
-            spent: 67800,
-            leads: 280,
-            cpl: 242,
-            conversions: 52,
-            conversionRate: 18.5,
-        },
-        {
-            id: '3',
-            name: 'Bangalore Tech City',
-            status: 'paused',
-            platform: 'Instagram',
-            budget: 80000,
-            spent: 45200,
-            leads: 190,
-            cpl: 238,
-            conversions: 34,
-            conversionRate: 17.9,
-        },
-    ];
+        fetchCampaigns();
+    }, [token]);
 
+    const activeCampaigns = campaigns.filter(c => c.status.toLowerCase() === 'active');
+    const totalLeads = campaigns.reduce((sum, c) => sum + (c.leadsCount || 0), 0);
+    const totalSpent = campaigns.reduce((sum, c) => sum + Number(c.spent), 0);
+    const totalBudget = campaigns.reduce((sum, c) => sum + Number(c.budget), 0);
+    const avgCpl = totalLeads > 0 ? Math.round(totalSpent / totalLeads) : 0;
+    const totalConversions = campaigns.reduce((sum, c) => sum + (c.conversions || 0), 0);
+    const avgConvRate = totalLeads > 0 ? ((totalConversions / totalLeads) * 100).toFixed(1) : '0';
+    const budgetUtilization = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
 
+    if (loading) {
+        return <div className="p-8 flex items-center justify-center min-h-screen">Loading dashboard...</div>;
+    }
 
     return (
         <div className="p-8 bg-gray-50 min-h-screen">
@@ -90,8 +92,8 @@ export default function MarketingManagerDashboard() {
                         <span className="text-gray-600 text-sm font-medium">Active Campaigns</span>
                         <span className="text-2xl">📢</span>
                     </div>
-                    <div className="text-3xl font-bold text-gray-900">{stats.activeCampaigns}</div>
-                    <div className="text-green-600 text-sm mt-1">+2 from last month</div>
+                    <div className="text-3xl font-bold text-gray-900">{activeCampaigns.length}</div>
+                    <div className="text-green-600 text-sm mt-1">Total: {campaigns.length}</div>
                 </div>
 
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
@@ -99,8 +101,8 @@ export default function MarketingManagerDashboard() {
                         <span className="text-gray-600 text-sm font-medium">Total Leads</span>
                         <span className="text-2xl">👥</span>
                     </div>
-                    <div className="text-3xl font-bold text-gray-900">{stats.totalLeads.toLocaleString()}</div>
-                    <div className="text-green-600 text-sm mt-1">+12% from last month</div>
+                    <div className="text-3xl font-bold text-gray-900">{totalLeads.toLocaleString()}</div>
+                    <div className="text-green-600 text-sm mt-1">Overall performance</div>
                 </div>
 
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
@@ -108,8 +110,8 @@ export default function MarketingManagerDashboard() {
                         <span className="text-gray-600 text-sm font-medium">Cost Per Lead</span>
                         <span className="text-2xl">💰</span>
                     </div>
-                    <div className="text-3xl font-bold text-gray-900">₹{stats.costPerLead}</div>
-                    <div className="text-green-600 text-sm mt-1">-8% from last month</div>
+                    <div className="text-3xl font-bold text-gray-900">₹{avgCpl}</div>
+                    <div className="text-gray-600 text-sm mt-1">Weighted average</div>
                 </div>
 
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
@@ -117,8 +119,8 @@ export default function MarketingManagerDashboard() {
                         <span className="text-gray-600 text-sm font-medium">Conversion Rate</span>
                         <span className="text-2xl">📈</span>
                     </div>
-                    <div className="text-3xl font-bold text-gray-900">{stats.conversionRate}%</div>
-                    <div className="text-green-600 text-sm mt-1">+2.3% from last month</div>
+                    <div className="text-3xl font-bold text-gray-900">{avgConvRate}%</div>
+                    <div className="text-gray-600 text-sm mt-1">Leads to Conversions</div>
                 </div>
 
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
@@ -126,14 +128,11 @@ export default function MarketingManagerDashboard() {
                         <span className="text-gray-600 text-sm font-medium">Budget Used</span>
                         <span className="text-2xl">💳</span>
                     </div>
-                    <div className="text-3xl font-bold text-gray-900">{stats.budgetUtilization}%</div>
+                    <div className="text-3xl font-bold text-gray-900">{budgetUtilization}%</div>
                     <div className="text-gray-600 text-sm mt-1">
-                        ₹{((stats.monthlyBudget * stats.budgetUtilization) / 100).toLocaleString()} / ₹
-                        {stats.monthlyBudget.toLocaleString()}
+                        ₹{totalSpent.toLocaleString()} / ₹{totalBudget.toLocaleString()}
                     </div>
                 </div>
-
-
             </div>
 
             {/* Campaign Performance */}
@@ -184,7 +183,7 @@ export default function MarketingManagerDashboard() {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span
-                                            className={`px-3 py-1 rounded-full text-xs font-medium ${campaign.status === 'active'
+                                            className={`px-3 py-1 rounded-full text-xs font-medium uppercase ${campaign.status.toLowerCase() === 'active'
                                                 ? 'bg-green-100 text-green-800'
                                                 : 'bg-yellow-100 text-yellow-800'
                                                 }`}
@@ -196,23 +195,25 @@ export default function MarketingManagerDashboard() {
                                         {campaign.platform}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        <div>₹{campaign.spent.toLocaleString()} / ₹{campaign.budget.toLocaleString()}</div>
+                                        <div>₹{Number(campaign.spent).toLocaleString()} / ₹{Number(campaign.budget).toLocaleString()}</div>
                                         <div className="text-xs text-gray-500">
-                                            {Math.round((campaign.spent / campaign.budget) * 100)}% used
+                                            {Math.round((Number(campaign.spent) / Number(campaign.budget)) * 100)}% used
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {campaign.leads}
+                                        {campaign.leadsCount}
                                     </td>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{campaign.cpl}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {campaign.conversionRate}%
+                                        ₹{campaign.leadsCount > 0 ? Math.round(Number(campaign.spent) / campaign.leadsCount) : 0}
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                        {campaign.clicks > 0 ? ((campaign.conversions / campaign.clicks) * 100).toFixed(1) : 0}%
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                                         <div className="flex gap-2">
                                             <button className="text-purple-600 hover:text-purple-800 font-medium">Edit</button>
                                             <button className="text-gray-600 hover:text-gray-800 font-medium">
-                                                {campaign.status === 'active' ? 'Pause' : 'Resume'}
+                                                {campaign.status.toLowerCase() === 'active' ? 'Pause' : 'Resume'}
                                             </button>
                                         </div>
                                     </td>
@@ -222,9 +223,6 @@ export default function MarketingManagerDashboard() {
                     </table>
                 </div>
             </div>
-
-            {/* Team Performance */}
-
         </div>
     );
 }

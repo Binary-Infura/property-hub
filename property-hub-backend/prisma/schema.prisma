@@ -25,6 +25,7 @@ model Region {
   properties  Property[]
   location    Location?  @relation(fields: [locationId], references: [id])
   managers    User[]     @relation("RegionToUser")
+  campaigns   MarketingCampaign[] @relation("CampaignToRegion")
 
   @@index([locationId])
   @@map("regions")
@@ -155,6 +156,7 @@ model User {
   onboardedBy         User?      @relation("UserOnboardedUsers", fields: [onboardedById], references: [id])
   onboardedUsers      User[]     @relation("UserOnboardedUsers")
   regions             Region[]   @relation("RegionToUser")
+  campaigns           MarketingCampaign[] @relation("CampaignToUser")
 
   @@map("users")
 }
@@ -362,4 +364,29 @@ enum CommissionStatus {
   APPROVED
   PAID
   REJECTED
+}
+
+model MarketingCampaign {
+  id             String    @id @default(uuid())
+  name           String
+  description    String?
+  status         String    @default("DRAFT") // ACTIVE, PAUSED, COMPLETED, DRAFT
+  platform       String
+  budget         Decimal   @db.Decimal(15, 2)
+  spent          Decimal   @default(0) @db.Decimal(15, 2)
+  startDate      DateTime
+  endDate        DateTime
+  targetRegions  Region[]  @relation("CampaignToRegion")
+  assignedTo     User[]    @relation("CampaignToUser")
+  
+  // Performance metrics
+  impressions    Int       @default(0)
+  clicks         Int       @default(0)
+  leadsCount     Int       @default(0)
+  conversions    Int       @default(0)
+  
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  @@map("marketing_campaigns")
 }

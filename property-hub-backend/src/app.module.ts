@@ -23,6 +23,7 @@ import { PrismaService } from './database/prisma.service';
 import { LocationsModule } from './modules/locations/locations.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { UploadsModule } from './modules/uploads/uploads.module';
+import { MarketingModule } from './modules/marketing/marketing.module';
 import { join } from 'path';
 
 @Module({
@@ -52,6 +53,7 @@ import { join } from 'path';
         ChatModule,
         LocationsModule,
         UploadsModule,
+        MarketingModule,
         ServeStaticModule.forRoot({
             rootPath: join(__dirname, '..', 'uploads'),
             serveRoot: '/uploads',
