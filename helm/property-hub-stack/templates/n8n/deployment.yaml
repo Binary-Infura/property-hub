@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "property-hub-stack.fullname" . }}-n8n
+  labels:
+    {{- include "property-hub-stack.labels" . | nindent 4 }}
+    app.kubernetes.io/component: n8n
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "property-hub-stack.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: n8n
+  template:
+    metadata:
+      labels:
+        {{- include "property-hub-stack.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: n8n
+    spec:
+      securityContext:
+        runAsUser: {{ .Values.n8n.securityContext.runAsUser }}
+        fsGroup: {{ .Values.n8n.securityContext.fsGroup }}
+      containers:
+        - name: n8n
+          image: "{{ .Values.n8n.image.repository }}:{{ .Values.n8n.image.tag }}"
+          ports:
+            - name: http
+              containerPort: 5678
+              protocol: TCP
+          env:
+            - name: GENERIC_TIMEZONE
+              value: {{ .Values.n8n.env.GENERIC_TIMEZONE | quote }}
+            - name: N8N_PORT
+              value: {{ .Values.n8n.env.N8N_PORT | quote }}
+          volumeMounts:
+            - name: n8n-data
+              mountPath: /home/node/.n8n
+      volumes:
+        - name: n8n-data
+          persistentVolumeClaim:
+            claimName: {{ include "property-hub-stack.fullname" . }}-n8n

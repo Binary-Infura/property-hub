@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "property-hub-stack.fullname" . }}-mattermost
+  labels:
+    {{- include "property-hub-stack.labels" . | nindent 4 }}
+    app.kubernetes.io/component: mattermost
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "property-hub-stack.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: mattermost
+  template:
+    metadata:
+      labels:
+        {{- include "property-hub-stack.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: mattermost
+    spec:
+      containers:
+        - name: mattermost
+          image: "{{ .Values.mattermost.image.repository }}:{{ .Values.mattermost.image.tag }}"
+          ports:
+            - name: http
+              containerPort: 8065
+              protocol: TCP
+          env:
+            - name: MM_SQLSETTINGS_DRIVERNAME
+              value: {{ .Values.mattermost.env.MM_SQLSETTINGS_DRIVERNAME | quote }}
+            - name: MM_SQLSETTINGS_DATASOURCE
+              value: {{ .Values.mattermost.env.MM_SQLSETTINGS_DATASOURCE | quote }}
+            - name: MM_SERVICESETTINGS_ENABLELOCALMODE
+              value: {{ .Values.mattermost.env.MM_SERVICESETTINGS_ENABLELOCALMODE | quote }}

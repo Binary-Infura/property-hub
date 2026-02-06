@@ -1,0 +1,133 @@
+global:
+  domain: "property-hub.local"
+
+# PostgreSQL Dependency Configuration
+postgresql:
+  enabled: true
+  auth:
+    username: postgres
+    password: "changeme"
+    database: property_hub
+  # Create additional databases on init
+  primary:
+    initdb:
+      scripts:
+        create_databases.sql: |
+          CREATE DATABASE keycloak;
+          CREATE DATABASE mattermost;
+
+# Property Hub Backend
+backend:
+  enabled: true
+  image:
+    repository: property-hub-backend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3001
+  env:
+    # Database connection
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: "changeme"
+    POSTGRES_DB: property_hub
+    # Host is the release name + -postgresql defined by the dependency
+    POSTGRES_HOST: "property-hub-stack-postgresql" 
+
+# Keycloak
+keycloak:
+  enabled: true
+  image:
+    repository: quay.io/keycloak/keycloak
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 8080
+  adminUser: admin
+  adminPassword: admin
+  env:
+    KC_DB: postgres
+    KC_DB_URL_HOST: "property-hub-stack-postgresql"
+    KC_DB_URL_DATABASE: keycloak
+    KC_DB_USERNAME: postgres
+    KC_DB_PASSWORD: "changeme"
+    KC_HOSTNAME_STRICT: "false"
+    KC_HTTP_ENABLED: "true"
+
+# Mattermost
+mattermost:
+  enabled: true
+  image:
+    repository: mattermost/mattermost-team-edition
+    tag: 7.7.0
+  service:
+    type: ClusterIP
+    port: 8065
+  env:
+    MM_SQLSETTINGS_DRIVERNAME: postgres
+    # Connection string format
+    MM_SQLSETTINGS_DATASOURCE: "postgres://postgres:changeme@property-hub-stack-postgresql:5432/mattermost?sslmode=disable"
+    MM_SERVICESETTINGS_ENABLELOCALMODE: "true"
+
+# n8n
+n8n:
+  enabled: true
+  image:
+    repository: n8nio/n8n
+    tag: latest
+  service:
+    type: ClusterIP
+    port: 5678
+  securityContext:
+    runAsUser: 1000
+    fsGroup: 1000
+  persistence:
+    enabled: true
+    storageClass: "" # default
+    size: 1Gi
+  env:
+    GENERIC_TIMEZONE: "UTC"
+    N8N_PORT: "5678"
+
+# Jitsi Meet
+jitsi:
+  enabled: true
+  # Common configuration
+  publicUrl: "https://meet.property-hub.local"
+  timeZone: "UTC"
+  
+  web:
+    image: jitsi/web:stable-10741
+    service:
+      httpPort: 80
+      httpsPort: 443
+  
+  prosody:
+    image: jitsi/prosody:stable-10741
+    service:
+      xmppClientPort: 5222
+      xmppServerPort: 5269
+      httpPort: 5280
+  
+  jicofo:
+    image: jitsi/jicofo:stable-10741
+    auth:
+      user: focus
+      password: "focuspassword"
+  
+  jvb:
+    image: jitsi/jvb:stable-10741
+    auth:
+      user: jvb
+      password: "jvbpassword"
+    service:
+      udpPort: 10000
+      tcpPort: 4443
+    # JVB Needs public IP in some configs, usually passed via Docker env DOCKER_HOST_ADDRESS
+    # Kubernetes often handles this differently. 
+
+  # Shared secrets
+  secrets:
+    jicofoComponentSecret: "jicofo-secret"
+    jvbComponentSecret: "jvb-secret"
+    jwtAppSecret: "jwt-app-secret"

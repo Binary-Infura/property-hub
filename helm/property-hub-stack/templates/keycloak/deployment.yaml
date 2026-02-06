@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "property-hub-stack.fullname" . }}-keycloak
+  labels:
+    {{- include "property-hub-stack.labels" . | nindent 4 }}
+    app.kubernetes.io/component: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "property-hub-stack.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: keycloak
+  template:
+    metadata:
+      labels:
+        {{- include "property-hub-stack.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: keycloak
+    spec:
+      containers:
+        - name: keycloak
+          image: "{{ .Values.keycloak.image.repository }}:{{ .Values.keycloak.image.tag }}"
+          args: ["start-dev"] # Using start-dev for simplicity as per docker-compose
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: KEYCLOAK_ADMIN
+              value: {{ .Values.keycloak.adminUser | quote }}
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              value: {{ .Values.keycloak.adminPassword | quote }}
+            - name: KC_DB
+              value: {{ .Values.keycloak.env.KC_DB | quote }}
+            - name: KC_DB_URL
+              value: "jdbc:postgresql://{{ .Values.keycloak.env.KC_DB_URL_HOST }}:5432/{{ .Values.keycloak.env.KC_DB_URL_DATABASE }}"
+            - name: KC_DB_USERNAME
+              value: {{ .Values.keycloak.env.KC_DB_USERNAME | quote }}
+            - name: KC_DB_PASSWORD
+              value: {{ .Values.keycloak.env.KC_DB_PASSWORD | quote }}
+            - name: KC_HOSTNAME_STRICT
+              value: {{ .Values.keycloak.env.KC_HOSTNAME_STRICT | quote }}
+            - name: KC_HTTP_ENABLED
+              value: {{ .Values.keycloak.env.KC_HTTP_ENABLED | quote }}
+          readinessProbe:
+            httpGet:
+              path: /realms/master
+              port: http
