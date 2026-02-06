@@ -235,7 +235,7 @@ export class RegionsService {
             await this.keycloakAdmin.removeUserFromAllCityGroups(user.email);
 
             // Add to new groups based on role
-            if (user.role === 'onboarding-manager') {
+            if (user.role === 'onboarding-manager' || user.role === 'marketing-manager') {
                 // Onboarding Managers get access at city level
                 const cities = [...new Set(user.regions.map(r => r.city).filter(Boolean))];
                 for (const city of cities) {

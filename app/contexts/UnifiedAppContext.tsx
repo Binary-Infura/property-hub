@@ -174,7 +174,7 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
                     roles.includes(knownRole.id)
                 );
                 isGlobal = roles.some(role =>
-                    ['central-authority', 'property-partner', 'buyer', 'consultant', 'loan-adviser', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'regional-manager', 'channel-partner', 'visit-executive', 'service-provider'].includes(role)
+                    ['central-authority', 'buyer'].includes(role)
                 );
             } else {
                 // Guests are treated as buyers for discovery purposes
@@ -253,6 +253,7 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
                 setActiveRole(roleList[0]);
             }
 
+            const isCityBased = activeRole?.id === 'onboarding-manager' || activeRole?.id === 'marketing-manager';
             // Select Region
             const savedRegionId = localStorage.getItem('activeRegionId');
             const recoveredRegion = userAccessibleRegions.find(r => r.id === savedRegionId);

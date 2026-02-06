@@ -28,7 +28,7 @@ interface RegionAllocation {
     assignedUsers: AssignedUser[];
 }
 
-type ManagerRole = 'onboarding-manager';
+type ManagerRole = 'onboarding-manager' | 'marketing-manager' | '';
 
 export default function CityAllocationPage() {
     const { token } = useAuth();
@@ -37,7 +37,12 @@ export default function CityAllocationPage() {
     const [loading, setLoading] = useState(true);
 
     // Filters with LocalStorage persistence
-    const [roleFilter] = useState<ManagerRole>('onboarding-manager');
+    const [roleFilter, setRoleFilter] = useState<ManagerRole>(() => {
+        if (typeof window !== 'undefined') {
+            return (localStorage.getItem('ca_city_roleFilter') as ManagerRole) || 'onboarding-manager';
+        }
+        return 'onboarding-manager';
+    });
     const [regionFilter, setRegionFilter] = useState(() => {
         if (typeof window !== 'undefined') {
             return localStorage.getItem('ca_city_regionFilter') || '';
@@ -99,6 +104,7 @@ export default function CityAllocationPage() {
 
     // Persist filters
     useEffect(() => {
+        localStorage.setItem('ca_city_roleFilter', roleFilter);
         localStorage.setItem('ca_city_regionFilter', regionFilter);
         localStorage.setItem('ca_city_searchQuery', searchQuery);
         localStorage.setItem('ca_city_continentFilter', continentFilter);
@@ -106,7 +112,7 @@ export default function CityAllocationPage() {
         localStorage.setItem('ca_city_stateFilter', stateFilter);
         localStorage.setItem('ca_city_cityFilter', cityFilter);
         localStorage.setItem('ca_city_currentPage', String(currentPage));
-    }, [regionFilter, searchQuery, continentFilter, countryFilter, stateFilter, cityFilter, currentPage]);
+    }, [roleFilter, regionFilter, searchQuery, continentFilter, countryFilter, stateFilter, cityFilter, currentPage]);
 
     // Fetch filters options
     useEffect(() => {
@@ -184,7 +190,7 @@ export default function CityAllocationPage() {
         setLoading(true);
         try {
             const params = new URLSearchParams();
-            params.append('role', 'onboarding-manager');
+            if (roleFilter) params.append('role', roleFilter);
             if (regionFilter) params.append('regionId', regionFilter);
             if (searchQuery) params.append('search', searchQuery);
             if (continentFilter) params.append('continent', continentFilter);
@@ -218,11 +224,11 @@ export default function CityAllocationPage() {
     useEffect(() => {
         setCurrentPage(1);
         setRegionFilter('');
-    }, [searchQuery, continentFilter, countryFilter, stateFilter, cityFilter]);
+    }, [roleFilter, searchQuery, continentFilter, countryFilter, stateFilter, cityFilter]);
 
     useEffect(() => {
         fetchAllocations();
-    }, [token, regionFilter, searchQuery, continentFilter, countryFilter, stateFilter, cityFilter, currentPage]);
+    }, [token, roleFilter, regionFilter, searchQuery, continentFilter, countryFilter, stateFilter, cityFilter, currentPage]);
 
     const handleRemove = (user: AssignedUser, regionId: string) => {
         setSelectedUser(user);
@@ -257,11 +263,25 @@ export default function CityAllocationPage() {
     };
 
     const getRoleColor = (role: string) => {
-        return 'bg-orange-100 text-orange-700';
+        switch (role) {
+            case 'onboarding-manager':
+                return 'bg-orange-100 text-orange-700';
+            case 'marketing-manager':
+                return 'bg-purple-100 text-purple-700';
+            default:
+                return 'bg-gray-100 text-gray-700';
+        }
     };
 
     const getRoleName = (role: string) => {
-        return 'Onboarding Manager';
+        switch (role) {
+            case 'onboarding-manager':
+                return 'Onboarding Manager';
+            case 'marketing-manager':
+                return 'Marketing Manager';
+            default:
+                return role;
+        }
     };
 
     const totalPages = Math.ceil(totalAllocations / itemsPerPage);
@@ -274,8 +294,8 @@ export default function CityAllocationPage() {
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900 tracking-tight">City Allocation</h1>
                     <p className="text-gray-500 mt-2 text-sm max-w-lg leading-relaxed">
-                        Exclusively manage city assignments for <span className="text-orange-600 font-bold underline decoration-orange-200 underline-offset-4">Onboarding Managers</span>.
-                        Streamline the property onboarding process by assigning experts to specific metropolitan zones.
+                        Exclusively manage city assignments for <span className="text-orange-600 font-bold underline decoration-orange-200 underline-offset-4">Onboarding Managers</span> & <span className="text-purple-600 font-bold underline decoration-purple-200 underline-offset-4">Marketing Managers</span>.
+                        Streamline the process by assigning experts to specific metropolitan zones.
                     </p>
                 </div>
                 <button
@@ -285,7 +305,7 @@ export default function CityAllocationPage() {
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
-                    Assign Onboarding Manager
+                    Assign New Manager
                 </button>
             </div>
 
@@ -335,6 +355,18 @@ export default function CityAllocationPage() {
                         {availableCities.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
                     </select>
                 </div>
+                <div className="flex-1 min-w-[200px]">
+                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Filter by Role</label>
+                    <select
+                        value={roleFilter}
+                        onChange={(e) => setRoleFilter(e.target.value as ManagerRole)}
+                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm font-medium"
+                    >
+                        <option value="">All Managerial Roles</option>
+                        <option value="onboarding-manager">Onboarding Manager</option>
+                        <option value="marketing-manager">Marketing Manager</option>
+                    </select>
+                </div>
                 <div className="flex-[1.5] min-w-[300px]">
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Search Assignments</label>
                     <div className="relative">
@@ -372,6 +404,7 @@ export default function CityAllocationPage() {
                         <p className="text-sm text-gray-400 mt-1 max-w-xs mx-auto">We couldn't find any Onboarding Manager assignments for these cities.</p>
                         <button
                             onClick={() => {
+                                setRoleFilter('');
                                 setSearchQuery('');
                                 setContinentFilter('');
                                 setCountryFilter('');
@@ -390,8 +423,8 @@ export default function CityAllocationPage() {
                             <thead className="bg-gray-50/50 border-b border-gray-100">
                                 <tr>
                                     <th className="px-8 py-5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">City Details</th>
-                                    <th className="px-8 py-5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">Assigned Onboarding Managers</th>
-                                    <th className="px-8 py-5 text-right text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">Headcount</th>
+                                    <th className="px-8 py-5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">Current Assignments</th>
+                                    <th className="px-8 py-5 text-right text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">Capacity</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-50">
@@ -439,7 +472,7 @@ export default function CityAllocationPage() {
                                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
                                                     </svg>
-                                                    <span className="text-sm font-medium italic text-orange-200">No onboarding managers assigned</span>
+                                                    <span className="text-sm font-medium italic text-gray-200">Pending assignments</span>
                                                 </div>
                                             ) : (
                                                 <div className="flex flex-col gap-3">
@@ -534,8 +567,8 @@ export default function CityAllocationPage() {
                 isOpen={showAssignModal}
                 onClose={() => setShowAssignModal(false)}
                 onSuccess={fetchAllocations}
-                initialRole="onboarding-manager"
-                fixedRole={true}
+                initialRole={roleFilter || 'onboarding-manager'}
+                fixedRole={false}
                 isCityContext={true}
             />
             <EditAssignmentModal

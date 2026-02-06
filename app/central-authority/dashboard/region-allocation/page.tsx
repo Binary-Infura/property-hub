@@ -28,7 +28,7 @@ interface RegionAllocation {
     assignedUsers: AssignedUser[];
 }
 
-type ManagerRole = 'regional-manager' | 'marketing-manager' | 'commission-manager' | '';
+type ManagerRole = 'regional-manager' | 'commission-manager' | '';
 
 export default function RegionAllocationPage() {
     const { token } = useAuth();
@@ -289,8 +289,6 @@ export default function RegionAllocationPage() {
         switch (role) {
             case 'regional-manager':
                 return 'bg-blue-100 text-blue-700';
-            case 'marketing-manager':
-                return 'bg-purple-100 text-purple-700';
             case 'commission-manager':
                 return 'bg-green-100 text-green-700';
             default:
@@ -302,8 +300,6 @@ export default function RegionAllocationPage() {
         switch (role) {
             case 'regional-manager':
                 return 'Regional Manager';
-            case 'marketing-manager':
-                return 'Marketing Manager';
             case 'commission-manager':
                 return 'Commission Manager';
             default:
@@ -390,7 +386,6 @@ export default function RegionAllocationPage() {
                     >
                         <option value="">All Managerial Roles</option>
                         <option value="regional-manager">Regional Manager</option>
-                        <option value="marketing-manager">Marketing Manager</option>
                         <option value="commission-manager">Commission Manager</option>
                     </select>
                 </div>

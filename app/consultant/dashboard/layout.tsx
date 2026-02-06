@@ -17,7 +17,7 @@ import RouteGuard from '@/app/components/auth/RouteGuard';
 import ProfileCompletionPrompt from '@/app/components/ProfileCompletionPrompt';
 
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
-import NoRegionAllocated from '@/app/components/dashboard/NoRegionAllocated';
+import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
 
 function ConsultantDashboardLayoutContent({
   children,
@@ -39,12 +39,12 @@ function ConsultantDashboardLayoutContent({
     return pathname?.startsWith(href);
   };
 
-  const isNoRegion = activeContext.activeRegion.id === 'no-region';
+  const isNoAllocation = activeContext.activeRegion.id === 'no-region' || activeContext.activeRegion.id === 'all-regions';
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* Sidebar */}
-      {!isNoRegion && (
+      {!isNoAllocation && (
         <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0">
           <div className="h-16 flex items-center px-6 border-b border-gray-100">
             <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-900">
@@ -83,11 +83,11 @@ function ConsultantDashboardLayoutContent({
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <DashboardHeader title="Consultant Dashboard" showLogo={isNoRegion} />
+        <DashboardHeader title="Consultant Dashboard" showLogo={isNoAllocation} />
 
-        <main className={`flex-1 overflow-y-auto ${isNoRegion ? 'flex items-center justify-center p-8' : 'p-8'}`}>
+        <main className={`flex-1 overflow-y-auto ${isNoAllocation ? 'flex items-center justify-center p-8' : 'p-8'}`}>
           <ProfileCompletionPrompt />
-          {isNoRegion ? <NoRegionAllocated /> : children}
+          {isNoAllocation ? <NoAllocationPlaceholder /> : children}
         </main>
       </div>
     </div>

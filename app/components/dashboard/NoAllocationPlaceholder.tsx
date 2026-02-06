@@ -3,12 +3,13 @@
 import React from 'react';
 import { useUnifiedApp } from '../../contexts/UnifiedAppContext';
 
-export default function NoRegionAllocated() {
+export default function NoAllocationPlaceholder() {
     const { activeContext } = useUnifiedApp();
-    const isOM = activeContext.activeRole.id === 'onboarding-manager';
-    const label = isOM ? 'City' : 'Region';
-    const pluralLabel = isOM ? 'Cities' : 'Regions';
-    const scopeLabel = isOM ? 'city-wide' : 'regional';
+    const activeRoleId = activeContext.activeRole.id;
+    const isCityBased = activeRoleId === 'onboarding-manager' || activeRoleId === 'marketing-manager';
+    const label = isCityBased ? 'City' : 'Region';
+    const pluralLabel = isCityBased ? 'Cities' : 'Regions';
+    const scopeLabel = isCityBased ? 'city-wide' : 'regional';
 
     return (
         <div className="flex flex-col items-center justify-center min-h-[70vh] p-4">
@@ -30,7 +31,7 @@ export default function NoRegionAllocated() {
                     </div>
 
                     <h1 className="text-4xl font-black text-gray-900 mb-4 tracking-tight">
-                        No {label} Allocated
+                        Allocation Required
                     </h1>
 
                     <p className="text-gray-500 text-lg max-w-md leading-relaxed mb-10">

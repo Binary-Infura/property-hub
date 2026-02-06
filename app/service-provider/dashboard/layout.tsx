@@ -7,7 +7,7 @@ import RouteGuard from '@/app/components/auth/RouteGuard';
 import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
 
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
-import NoRegionAllocated from '@/app/components/dashboard/NoRegionAllocated';
+import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
 
 export default function ServiceProviderLayout({
     children,
@@ -43,7 +43,7 @@ function ServiceProviderLayoutContent({
         return pathname?.startsWith(href);
     };
 
-    const isNoRegion = activeContext.activeRegion.id === 'no-region';
+    const isNoAllocation = activeContext.activeRegion.id === 'no-region' || activeContext.activeRegion.id === 'all-regions';
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
@@ -55,7 +55,7 @@ function ServiceProviderLayoutContent({
                             <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-lg">🛠️</div>
                             Service Provider Portal
                         </Link>
-                        {!isNoRegion && (
+                        {!isNoAllocation && (
                             <div className="flex items-center gap-6">
                                 <div className="flex items-center gap-2">
                                     <div className="text-right hidden sm:block">
@@ -70,9 +70,9 @@ function ServiceProviderLayoutContent({
                 </div>
             </nav>
 
-            <div className={`flex flex-1 ${isNoRegion ? 'items-center justify-center' : ''}`}>
+            <div className={`flex flex-1 ${isNoAllocation ? 'items-center justify-center' : ''}`}>
                 {/* Left Sidebar */}
-                {!isNoRegion && (
+                {!isNoAllocation && (
                     <aside className="w-64 bg-white border-r border-gray-200 min-h-[calc(100vh-4rem)] sticky top-16 hidden md:block">
                         <nav className="p-4 space-y-2">
                             {navigation.map((item) => {
@@ -96,8 +96,8 @@ function ServiceProviderLayoutContent({
                 )}
 
                 {/* Main Content */}
-                <main className={`flex-1 ${isNoRegion ? 'flex items-center justify-center p-8 max-w-4xl mx-auto' : 'p-6'}`}>
-                    {isNoRegion ? <NoRegionAllocated /> : children}
+                <main className={`flex-1 ${isNoAllocation ? 'flex items-center justify-center p-8 max-w-4xl mx-auto' : 'p-6'}`}>
+                    {isNoAllocation ? <NoAllocationPlaceholder /> : children}
                 </main>
             </div>
         </div>

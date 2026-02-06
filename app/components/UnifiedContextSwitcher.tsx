@@ -17,8 +17,11 @@ export default function UnifiedContextSwitcher() {
     const displayName = firstName || lastName ? `${firstName} ${lastName}`.trim() : (user?.name || 'User');
     const isCentralAuthority = roles.includes('central-authority');
     const activeRoleName = activeContext.activeRole.name;
-    const isOM = activeContext.activeRole.id === 'onboarding-manager';
-    const activeRegionName = isOM ? (activeContext.activeRegion.city || activeContext.activeRegion.name) : activeContext.activeRegion.name;
+    const isCityBased = activeContext.activeRole.id === 'onboarding-manager' || activeContext.activeRole.id === 'marketing-manager';
+    const isNoAllocation = activeContext.activeRegion.id === 'no-region' || activeContext.activeRegion.id === 'all-regions';
+    const activeRegionName = isCityBased
+        ? (isNoAllocation ? 'No City Allocated' : (activeContext.activeRegion.city || activeContext.activeRegion.name))
+        : activeContext.activeRegion.name;
 
     // Avatar URL - use user's name for a better fallback
     const avatarUrl = user ? `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0D8ABC&color=fff` : currentUser.avatar;
@@ -88,7 +91,7 @@ export default function UnifiedContextSwitcher() {
                         </span>
                         {!isRestricted && (
                             <span className="text-[10px] text-blue-600 font-medium">
-                                {activeContext.activeRegion.id === 'no-region' && isOM ? 'No City Allocated' : activeRegionName}
+                                {activeRegionName}
                             </span>
                         )}
                     </div>
@@ -109,19 +112,21 @@ export default function UnifiedContextSwitcher() {
                     {!isRestricted && (
                         <div className="flex flex-col h-[320px]">
                             <div className="p-3 border-b border-gray-100 bg-gray-50">
-                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{isOM ? 'Cities' : 'Regions'}</span>
+                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{isCityBased ? 'Cities' : 'Regions'}</span>
                             </div>
                             <div className="flex-1 overflow-y-auto p-2 space-y-1">
                                 {(() => {
-                                    const displayedItems = isOM
-                                        ? currentUser.availableRegions.filter((region, index, self) =>
-                                            index === self.findIndex((r) => (r.city || r.name) === (region.city || region.name))
-                                        )
+                                    const displayedItems = isCityBased
+                                        ? currentUser.availableRegions
+                                            .filter(r => r.id !== 'all-regions')
+                                            .filter((region, index, self) =>
+                                                index === self.findIndex((r) => (r.city || r.name) === (region.city || region.name))
+                                            )
                                         : currentUser.availableRegions;
 
                                     return displayedItems.map(region => {
-                                        const displayName = isOM ? (region.city || region.name) : region.name;
-                                        const isSelected = isOM
+                                        const displayName = isCityBased ? (region.city || region.name) : region.name;
+                                        const isSelected = isCityBased
                                             ? (currentRegionDisplay?.city || currentRegionDisplay?.name) === displayName
                                             : selectedRegionId === region.id;
 
@@ -135,7 +140,7 @@ export default function UnifiedContextSwitcher() {
                                                     }`}
                                             >
                                                 <div className="flex justify-between items-center font-bold">
-                                                    <span>{region.id === 'no-region' && isOM ? 'No City Allocated' : displayName}</span>
+                                                    <span>{region.id === 'no-region' && isCityBased ? 'No City Allocated' : displayName}</span>
                                                     {isSelected && (
                                                         <div className="w-1.5 h-1.5 rounded-full bg-blue-600 ring-4 ring-blue-50"></div>
                                                     )}
@@ -156,7 +161,9 @@ export default function UnifiedContextSwitcher() {
                                     <span className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold mb-1">Switching to</span>
                                     <div className="flex items-center gap-2 text-sm text-gray-900">
                                         <span className="font-semibold">
-                                            {currentRegionDisplay?.id === 'no-region' && isOM ? 'No City Allocated' : (isOM ? (currentRegionDisplay?.city || currentRegionDisplay?.name) : currentRegionDisplay?.name)}
+                                            {isCityBased && (currentRegionDisplay?.id === 'no-region' || currentRegionDisplay?.id === 'all-regions')
+                                                ? 'No City Allocated'
+                                                : (isCityBased ? (currentRegionDisplay?.city || currentRegionDisplay?.name) : currentRegionDisplay?.name)}
                                         </span>
                                     </div>
                                 </div>

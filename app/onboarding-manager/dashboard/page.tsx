@@ -10,6 +10,7 @@ import Link from 'next/link';
 export default function OnboardingManagerDashboard() {
     const { user, token } = useAuth();
     const { activeContext } = useUnifiedApp();
+
     const [stats, setStats] = useState([
         {
             label: 'My Properties', value: '...', change: 'Inventory', icon: (
@@ -165,9 +166,9 @@ export default function OnboardingManagerDashboard() {
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-6">
                                             <div className={`w-14 h-14 rounded-2xl flex items-center justify-center text-xl shadow-lg shadow-black/5 ${activity.type === 'property' ? 'bg-blue-50 text-blue-600' :
-                                                    activity.type === 'partner' ? 'bg-emerald-50 text-emerald-600' :
-                                                        activity.type === 'service' ? 'bg-purple-50 text-purple-600' :
-                                                            'bg-slate-50 text-slate-600'
+                                                activity.type === 'partner' ? 'bg-emerald-50 text-emerald-600' :
+                                                    activity.type === 'service' ? 'bg-purple-50 text-purple-600' :
+                                                        'bg-slate-50 text-slate-600'
                                                 }`}>
                                                 {activity.type === 'property' ? '🏠' : activity.type === 'partner' ? '🤝' : activity.type === 'service' ? '🔧' : '⚙️'}
                                             </div>
