@@ -21,6 +21,8 @@ function MarketingManagerDashboardLayoutContent({
     const navigation = [
         { name: 'Dashboard', href: '/marketing-manager/dashboard', icon: '📊' },
         { name: 'Campaigns', href: '/marketing-manager/dashboard/campaigns', icon: '📢' },
+        { name: 'Campaign Leads', href: '/marketing-manager/dashboard/leads', icon: '👥' },
+        { name: 'Ads Requests', href: '/marketing-manager/dashboard/ads-requests', icon: '📝' },
         { name: 'Budget & Performance', href: '/marketing-manager/dashboard/budget', icon: '💰' },
         { name: 'Reports', href: '/marketing-manager/dashboard/reports', icon: '📈' },
     ];

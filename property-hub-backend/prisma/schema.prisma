@@ -26,6 +26,7 @@ model Region {
   location    Location?  @relation(fields: [locationId], references: [id])
   managers    User[]     @relation("RegionToUser")
   campaigns   MarketingCampaign[] @relation("CampaignToRegion")
+  adsRequests AdsRequest[]
 
   @@index([locationId])
   @@map("regions")
@@ -56,6 +57,7 @@ model Property {
   locationRel   Location?      @relation(fields: [locationId], references: [id])
   onboardedBy   User?          @relation("UserOnboardedProperties", fields: [onboardedById], references: [id])
   region        Region?        @relation(fields: [regionId], references: [id])
+  adsRequests   AdsRequest[]
 
   @@index([regionId])
   @@index([locationId])
@@ -77,6 +79,8 @@ model Lead {
   notes      String?
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
+  campaignId String?
+  campaign   MarketingCampaign? @relation(fields: [campaignId], references: [id])
   property   Property?  @relation(fields: [propertyId], references: [id])
   region     Region     @relation(fields: [regionId], references: [id])
   visits     Visit[]
@@ -157,6 +161,7 @@ model User {
   onboardedUsers      User[]     @relation("UserOnboardedUsers")
   regions             Region[]   @relation("RegionToUser")
   campaigns           MarketingCampaign[] @relation("CampaignToUser")
+  adsRequests         AdsRequest[]
 
   @@map("users")
 }
@@ -384,9 +389,30 @@ model MarketingCampaign {
   clicks         Int       @default(0)
   leadsCount     Int       @default(0)
   conversions    Int       @default(0)
+  leads          Lead[]
   
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
   @@map("marketing_campaigns")
+}
+
+model AdsRequest {
+  id            String   @id @default(uuid())
+  title         String
+  description   String?
+  status        String   @default("PENDING") // PENDING, APPROVED, REJECTED, COMPLETED
+  priority      String   @default("MEDIUM")  // LOW, MEDIUM, HIGH
+  regionId      String
+  propertyId    String?
+  requestedById String
+  
+  region        Region    @relation(fields: [regionId], references: [id])
+  property      Property? @relation(fields: [propertyId], references: [id])
+  requestedBy   User      @relation(fields: [requestedById], references: [id])
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@map("ads_requests")
 }
