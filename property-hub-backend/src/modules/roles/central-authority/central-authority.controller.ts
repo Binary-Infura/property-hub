@@ -13,6 +13,11 @@ import { UpdateCentralAuthorityProfileDto, CreateCentralAuthorityUserDto } from 
 export class CentralAuthorityController {
     constructor(private readonly centralAuthorityService: CentralAuthorityService) { }
 
+    @Get('dashboard-stats')
+    async getDashboardStats() {
+        return this.centralAuthorityService.getDashboardStats();
+    }
+
     @Get('profile')
     async getProfile(@CurrentUser() user: AuthenticatedUser) {
         return this.centralAuthorityService.getProfile(user.userId);

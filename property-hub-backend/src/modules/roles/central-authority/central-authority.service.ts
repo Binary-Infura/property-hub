@@ -77,4 +77,83 @@ export class CentralAuthorityService {
         ]);
         return { data: data as any, total };
     }
+
+    async getDashboardStats() {
+        const [
+            totalRegions,
+            propertyStats,
+            userStats,
+            recentRegions
+        ] = await Promise.all([
+            this.prisma.region.count(),
+            this.prisma.property.groupBy({
+                by: ['status'],
+                _count: {
+                    _all: true
+                }
+            }),
+            this.prisma.user.groupBy({
+                by: ['role'],
+                _count: {
+                    _all: true
+                }
+            }),
+            this.prisma.region.findMany({
+                take: 5,
+                orderBy: {
+                    createdAt: 'desc'
+                },
+                include: {
+                    managers: {
+                        take: 2,
+                        select: {
+                            firstName: true,
+                            lastName: true
+                        }
+                    },
+                    _count: {
+                        select: {
+                            properties: true,
+                            leads: true
+                        }
+                    }
+                }
+            })
+        ]);
+
+        // Process property stats
+        const properties = {
+            total: propertyStats.reduce((sum, item) => sum + item._count._all, 0),
+            active: propertyStats.find(i => i.status === 'AVAILABLE' || i.status === 'PUBLISHED' || i.status === 'APPROVED')?._count._all || 0,
+            pending: propertyStats.find(i => i.status === 'SUBMITTED')?._count._all || 0
+        };
+
+        // Process user stats
+        const users = {
+            total: userStats.reduce((sum, item) => sum + item._count._all, 0),
+            partners: userStats.find(i => i.role === 'property-partner')?._count._all || 0,
+            consultants: userStats.find(i => i.role === 'consultant')?._count._all || 0,
+            channelPartners: userStats.find(i => i.role === 'channel-partner')?._count._all || 0
+        };
+
+        // Simplified recent activity (replace with actual audit logs if available later)
+        const recentActivity = [
+            { id: '1', type: 'info', action: 'System Sync', target: 'Keycloak & Mattermost', timestamp: new Date() }
+        ];
+
+        return {
+            totalRegions,
+            properties,
+            users,
+            leads: { monthly: 0 }, // Placeholder for now
+            regions: recentRegions.map(r => ({
+                id: r.id,
+                name: r.name,
+                managers: r.managers.map(m => `${m.firstName} ${m.lastName || ''}`.trim()),
+                propertiesCount: r._count.properties,
+                leadsGenerated: r._count.leads
+            })),
+            recentActivity
+        };
+    }
 }
