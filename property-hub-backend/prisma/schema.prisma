@@ -416,3 +416,21 @@ model AdsRequest {
 
   @@map("ads_requests")
 }
+
+model WebhookLog {
+  id              String   @id @default(uuid())
+  method          String
+  endpoint        String
+  idempotencyKey  String?  @unique
+  requestPayload  Json
+  responseStatus  Int
+  responseBody    Json?
+  executionTimeMs Int
+  errorMessage    String?
+  createdAt       DateTime @default(now())
+  
+  @@index([idempotencyKey])
+  @@index([endpoint])
+  @@index([createdAt])
+  @@map("webhook_logs")
+}
