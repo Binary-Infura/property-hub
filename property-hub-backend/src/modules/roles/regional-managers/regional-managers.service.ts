@@ -12,9 +12,8 @@ export class RegionalManagersService {
 
     async create(dto: CreateRegionalManagerDto) {
         // 1. Validate regions exist if provided
-        let regions: any[] = [];
         if (dto.regionIds && dto.regionIds.length > 0) {
-            regions = await this.prisma.region.findMany({
+            const regions = await this.prisma.region.findMany({
                 where: {
                     id: { in: dto.regionIds },
                 },
@@ -25,28 +24,15 @@ export class RegionalManagersService {
             }
         }
 
-        // 2. Prepare regions for Keycloak invitation
-        const regionRoles: { [key: string]: { roles: string[] } } = {};
-        for (const region of regions) {
-            regionRoles[region.code] = { roles: ['regional-manager'] };
-        }
-
-        // 3. Invite user in Keycloak
-        const invitation = await this.usersService.inviteUser({
-            email: dto.email,
-            firstName: dto.firstName,
-            lastName: dto.lastName,
-            regions: regionRoles as any,
-            role: 'regional-manager',
-        });
-
-        // 4. Create in Database
+        // 2. Create in Database
         const regionalManagerData: any = {
-            keycloakId: invitation.userId,
             firstName: dto.firstName,
             lastName: dto.lastName,
             email: dto.email,
             phone: dto.phone,
+            role: 'regional-manager',
+            passwordHash: await this.usersService['hashPassword']('password'),
+            status: 'active',
         };
 
         if (dto.regionIds && dto.regionIds.length > 0) {
@@ -56,10 +42,7 @@ export class RegionalManagersService {
         }
 
         const regionalManager = await this.prisma.user.create({
-            data: {
-                ...regionalManagerData,
-                role: 'regional-manager',
-            },
+            data: regionalManagerData,
             include: {
                 regions: true,
             },
@@ -115,7 +98,7 @@ export class RegionalManagersService {
                 email: manager.email,
                 firstName: manager.firstName,
                 lastName: manager.lastName,
-                keycloakId: manager.keycloakId,
+                // keycloakId removed
                 status: manager.status,
                 phone: manager.phone,
                 createdAt: manager.createdAt,

@@ -2,41 +2,33 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { passportJwtSecret } from 'jwks-rsa';
 import { JwtPayload, AuthenticatedUser } from '../common/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
     constructor(private configService: ConfigService) {
-        const keycloakRealmUrl = configService.get<string>('KEYCLOAK_REALM_URL');
-        const clientId = configService.get<string>('KEYCLOAK_CLIENT_ID');
-
         super({
-            secretOrKeyProvider: passportJwtSecret({
-                cache: true,
-                rateLimit: true,
-                jwksRequestsPerMinute: 5,
-                jwksUri: `${keycloakRealmUrl}/protocol/openid-connect/certs`,
-            }),
             jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-            algorithms: ['RS256'],
+            ignoreExpiration: false,
+            secretOrKey: configService.get<string>('JWT_SECRET') || 'fallback_secret',
         });
     }
 
-    async validate(payload: JwtPayload): Promise<AuthenticatedUser> {
-        const userId = payload.sub || payload.email || payload.preferred_username;
+    async validate(payload: any): Promise<AuthenticatedUser> {
+        // The payload usually contains 'sub' as ID, 'email', 'roles', etc.
+        const userId = payload.sub || payload.id;
 
         if (!userId) {
-            throw new UnauthorizedException('Invalid token payload: missing sub, email, or preferred_username');
+            throw new UnauthorizedException('Invalid token payload');
         }
 
         return {
             userId: userId,
             email: payload.email,
-            username: payload.preferred_username,
-            firstName: payload.given_name,
-            lastName: payload.family_name,
-            roles: payload.realm_access?.roles || [],
+            username: payload.preferred_username || payload.email,
+            firstName: payload.firstName || payload.given_name,
+            lastName: payload.lastName || payload.family_name,
+            roles: payload.realm_access?.roles || payload.roles || [],
             groups: payload.groups || [],
         };
     }

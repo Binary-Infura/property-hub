@@ -132,6 +132,10 @@ model UserMetadata {
   lastName         String?
   phone            String?
   regionPreference String?
+  theme            String?  @default("light")
+  notifications    Json?    @default("{}")
+  onboardingStatus String?  @default("pending")
+  language         String?  @default("en")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -148,6 +152,9 @@ model User {
   phone               String?
   role                String
   status              String     @default("active")
+  passwordHash        String?
+  isEmailVerified     Boolean    @default(false)
+  resetToken          String?
   createdAt           DateTime   @default(now())
   updatedAt           DateTime   @updatedAt
   agencyName          String?

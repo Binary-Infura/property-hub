@@ -13,7 +13,6 @@ postgresql:
     initdb:
       scripts:
         create_databases.sql: |
-          CREATE DATABASE keycloak;
           CREATE DATABASE mattermost;
 
 # Property Hub Backend
@@ -34,25 +33,6 @@ backend:
     # Host is the release name + -postgresql defined by the dependency
     POSTGRES_HOST: "property-hub-stack-postgresql" 
 
-# Keycloak
-keycloak:
-  enabled: true
-  image:
-    repository: quay.io/keycloak/keycloak
-    tag: latest
-  service:
-    type: ClusterIP
-    port: 8080
-  adminUser: admin
-  adminPassword: admin
-  env:
-    KC_DB: postgres
-    KC_DB_URL_HOST: "property-hub-stack-postgresql"
-    KC_DB_URL_DATABASE: keycloak
-    KC_DB_USERNAME: postgres
-    KC_DB_PASSWORD: "changeme"
-    KC_HOSTNAME_STRICT: "false"
-    KC_HTTP_ENABLED: "true"
 
 # Mattermost
 mattermost:

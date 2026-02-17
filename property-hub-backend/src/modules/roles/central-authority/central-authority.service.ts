@@ -36,26 +36,20 @@ export class CentralAuthorityService {
     }
 
     async create(dto: CreateCentralAuthorityUserDto) {
-        // 1. Invite user in Keycloak
-        const invitation = await this.usersService.inviteCentralAuthorityUser({
-            email: dto.email,
-            firstName: dto.firstName,
-            lastName: dto.lastName,
-        });
-
-        // 2. Create in Database
-        const globalUser = await this.prisma.user.create({
+        // 1. Create in Database
+        const user = await this.prisma.user.create({
             data: {
-                keycloakId: invitation.userId,
                 firstName: dto.firstName,
                 lastName: dto.lastName,
                 email: dto.email,
                 phone: dto.phone,
                 role: 'central-authority',
+                passwordHash: await this.usersService['hashPassword']('password'), // Or generate temporary
+                status: 'active',
             },
         });
 
-        return globalUser;
+        return user;
     }
 
     async findAll(page: number = 1, limit: number = 10): Promise<{ data: CentralAuthorityUserDto[], total: number }> {

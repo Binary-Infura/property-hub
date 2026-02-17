@@ -11,24 +11,16 @@ export class MarketingManagersService {
     ) { }
 
     async create(dto: CreateMarketingManagerDto) {
-        // 1. Invite user in Keycloak
-        const invitation = await this.usersService.inviteUser({
-            email: dto.email,
-            firstName: dto.firstName,
-            lastName: dto.lastName,
-            regions: {}, // No regions for Marketing Manager
-            role: 'marketing-manager',
-        });
-
-        // 2. Create in Database
+        // 1. Create in Database
         const marketingManager = await this.prisma.user.create({
             data: {
-                keycloakId: invitation.userId,
                 firstName: dto.firstName,
                 lastName: dto.lastName,
                 email: dto.email,
                 phone: dto.phone,
                 role: 'marketing-manager',
+                passwordHash: await this.usersService['hashPassword']('password'),
+                status: 'active',
             },
         });
 

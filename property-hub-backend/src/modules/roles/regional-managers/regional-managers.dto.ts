@@ -24,7 +24,7 @@ export class CreateRegionalManagerDto {
 
 export class RegionalManagerDto {
     id: string;
-    keycloakId: string | null;
+    keycloakId?: string | null;
     firstName: string;
     lastName: string | null;
     email: string;

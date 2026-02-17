@@ -5,11 +5,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: '/auth/:path*',
-        destination: 'http://localhost:8080/realms/property-hub/protocol/openid-connect/:path*',
-      },
-      {
-        source: '/keycloak/:path*',
-        destination: 'http://localhost:8080/:path*',
+        destination: 'http://localhost:3001/auth/:path*',
       },
       {
         source: '/api/:path*',

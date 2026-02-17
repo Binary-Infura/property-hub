@@ -1,11 +1,12 @@
-
 import { PrismaClient, PropertyStatus, PropertyType } from '@prisma/client';
 import { v4 as uuidv4 } from 'uuid';
+import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 async function main() {
     console.log('🌱 Starting database seed...');
+    const passwordHash = await bcrypt.hash('password123', 10);
 
     // 1. Locations
     console.log('Creating Locations...');
@@ -70,6 +71,7 @@ async function main() {
             role: 'central-authority',
             keycloakId: uuidv4(),
             status: 'active',
+            passwordHash,
         },
     });
 
@@ -106,7 +108,8 @@ async function main() {
                 where: { email },
                 data: {
                     role: 'regional-manager',
-                    regions: { connect: { id: region.id } }
+                    regions: { connect: { id: region.id } },
+                    passwordHash,
                 }
             });
             await prisma.regionalManagerProfile.upsert({
@@ -129,6 +132,7 @@ async function main() {
                 role: 'regional-manager',
                 keycloakId: uuidv4(),
                 status: 'active',
+                passwordHash,
                 regions: {
                     connect: { id: region.id }
                 }
@@ -157,7 +161,8 @@ async function main() {
             role: 'property-partner',
             keycloakId: uuidv4(),
             status: 'active',
-            agencyName: 'Prestige Builders'
+            agencyName: 'Prestige Builders',
+            passwordHash,
         }
     });
 
@@ -188,6 +193,7 @@ async function main() {
             role: 'onboarding-manager',
             keycloakId: uuidv4(),
             status: 'active',
+            passwordHash,
             regions: { connect: { id: createdRegions[0].id } }
         }
     });
@@ -204,7 +210,8 @@ async function main() {
             lastName: 'Consultant',
             role: 'consultant',
             keycloakId: uuidv4(),
-            status: 'active'
+            status: 'active',
+            passwordHash,
         }
     });
 
@@ -265,7 +272,8 @@ async function main() {
                 lastName: `Manager ${i}`,
                 role: 'commission-manager',
                 keycloakId: uuidv4(),
-                status: 'active'
+                status: 'active',
+                passwordHash,
             }
         });
 
@@ -291,7 +299,8 @@ async function main() {
                 lastName: `Head ${i}`,
                 role: 'marketing-manager',
                 keycloakId: uuidv4(),
-                status: 'active'
+                status: 'active',
+                passwordHash,
             }
         });
 
@@ -304,6 +313,85 @@ async function main() {
             }
         });
     }
+
+    // 9. Buyer
+    console.log('Creating Buyer...');
+    const buyerEmail = 'buyer@test.com';
+    await prisma.user.upsert({
+        where: { email: buyerEmail },
+        update: {},
+        create: {
+            email: buyerEmail,
+            firstName: 'Test',
+            lastName: 'Buyer',
+            role: 'buyer',
+            keycloakId: uuidv4(),
+            status: 'active',
+            passwordHash,
+        }
+    });
+
+    // 10. Loan Adviser
+    console.log('Creating Loan Adviser...');
+    const loanEmail = 'loan@propertyhub.com';
+    await prisma.user.upsert({
+        where: { email: loanEmail },
+        update: {},
+        create: {
+            email: loanEmail,
+            firstName: 'Expert',
+            lastName: 'Loaner',
+            role: 'loan-adviser',
+            keycloakId: uuidv4(),
+            status: 'active',
+            passwordHash,
+        }
+    });
+
+    // 11. Visit Executive
+    console.log('Creating Visit Executive...');
+    const visitEmail = 'visit@propertyhub.com';
+    await prisma.user.upsert({
+        where: { email: visitEmail },
+        update: {},
+        create: {
+            email: visitEmail,
+            firstName: 'Visit',
+            lastName: 'Executive',
+            role: 'visit-executive',
+            keycloakId: uuidv4(),
+            status: 'active',
+            passwordHash,
+        }
+    });
+
+    // 12. Channel Partner
+    console.log('Creating Channel Partner...');
+    const cpEmail = 'cp@test.com';
+    const cpUser = await prisma.user.upsert({
+        where: { email: cpEmail },
+        update: {},
+        create: {
+            email: cpEmail,
+            firstName: 'Channel',
+            lastName: 'Partner',
+            role: 'channel-partner',
+            keycloakId: uuidv4(),
+            status: 'active',
+            passwordHash,
+        }
+    });
+
+    await prisma.channelPartnerProfile.upsert({
+        where: { userId: cpUser.id },
+        update: {},
+        create: {
+            userId: cpUser.id,
+            agencyBusinessName: 'Top Channel Agency',
+            reraNumber: 'RERA12345',
+            officeAddress: '456 Business Blvd, Mumbai'
+        }
+    });
 
     console.log('✅ Seeding completed successfully.');
 }

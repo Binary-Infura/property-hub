@@ -12,13 +12,10 @@ import {
     ManagerRole,
 } from './regions.dto';
 import { Region } from '@prisma/client';
-import { KeycloakAdminService } from '../../common/services/keycloak/keycloak-admin.service';
-
 @Injectable()
 export class RegionsService {
     constructor(
         private prisma: PrismaService,
-        private keycloakAdmin: KeycloakAdminService
     ) { }
 
     async findAll(query: GetAllRegionsQueryDto, options: { includeInactive?: boolean } = {}): Promise<{ data: Region[], total: number }> {
@@ -181,14 +178,6 @@ export class RegionsService {
             include: { location: true },
         });
 
-        await this.keycloakAdmin.createRegionGroup(region.code, region.name);
-
-        if (region.city) {
-            await this.keycloakAdmin.createCityGroup(region.city);
-        } else if (region.location?.city) {
-            await this.keycloakAdmin.createCityGroup(region.location.city);
-        }
-
         return region;
     }
 
@@ -219,38 +208,8 @@ export class RegionsService {
     }
 
     /**
-     * Sync user regions to Keycloak groups
+     * Internal methods for maintenance can go here
      */
-    private async syncToKeycloak(userId: string) {
-        try {
-            const user = await this.prisma.user.findUnique({
-                where: { id: userId },
-                include: { regions: true }
-            });
-
-            if (!user) return;
-
-            // First remove from all groups to ensure fresh state
-            await this.keycloakAdmin.removeUserFromAllRegionGroups(user.email);
-            await this.keycloakAdmin.removeUserFromAllCityGroups(user.email);
-
-            // Add to new groups based on role
-            if (user.role === 'onboarding-manager' || user.role === 'marketing-manager') {
-                // Onboarding Managers get access at city level
-                const cities = [...new Set(user.regions.map(r => r.city).filter(Boolean))];
-                for (const city of cities) {
-                    await this.keycloakAdmin.addUserToCityGroup(user.email, city);
-                }
-            } else {
-                // Strategic Managers (Regional, Marketing, Commission) get access at regional code level
-                for (const region of user.regions) {
-                    await this.keycloakAdmin.addUserToRegionGroup(user.email, region.code);
-                }
-            }
-        } catch (error) {
-            console.error(`Failed to sync user ${userId} to Keycloak:`, error);
-        }
-    }
 
     /**
      * Get all regions with their assigned users, with optional filtering
@@ -383,8 +342,7 @@ export class RegionsService {
             },
         });
 
-        // Sync to Keycloak
-        await this.syncToKeycloak(dto.userId);
+        // Local mapping only
 
         return updatedUser;
     }
@@ -427,8 +385,7 @@ export class RegionsService {
             },
         });
 
-        // Sync to Keycloak
-        await this.syncToKeycloak(userId);
+        // Local mapping only
 
         return updatedUser;
     }
@@ -466,8 +423,7 @@ export class RegionsService {
             },
         });
 
-        // Sync to Keycloak
-        await this.syncToKeycloak(userId);
+        // Local mapping only
 
         return updatedUser;
     }

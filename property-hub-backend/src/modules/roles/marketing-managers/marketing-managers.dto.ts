@@ -19,7 +19,7 @@ export class CreateMarketingManagerDto {
 
 export class MarketingManagerDto {
     id: string;
-    keycloakId: string | null;
+    keycloakId?: string | null;
     firstName: string;
     lastName: string | null;
     email: string;

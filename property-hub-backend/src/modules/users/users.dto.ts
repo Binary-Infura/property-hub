@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEmail, IsArray, IsNumber, IsNotEmpty, IsObject, ValidateNested } from 'class-validator';
+import { IsString, IsOptional, IsEmail, IsArray, IsNumber, IsNotEmpty, IsObject, ValidateNested, MinLength } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class RegionRoleDto {
@@ -64,6 +64,22 @@ export class UpdateUserMetadataDto {
     @IsString()
     @IsOptional()
     regionPreference?: string;
+
+    @IsString()
+    @IsOptional()
+    theme?: string;
+
+    @IsObject()
+    @IsOptional()
+    notifications?: any;
+
+    @IsString()
+    @IsOptional()
+    onboardingStatus?: string;
+
+    @IsString()
+    @IsOptional()
+    language?: string;
 }
 
 export class CreateUserDto {
@@ -100,6 +116,11 @@ export class CreateUserDto {
     @IsArray()
     @IsOptional()
     regionIds?: string[];
+
+    @IsString()
+    @IsOptional()
+    @MinLength(6)
+    password?: string;
 
     // Service Provider Profile Fields
     @IsString()

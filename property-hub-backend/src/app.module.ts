@@ -7,7 +7,6 @@ import { LeadsModule } from './modules/leads/leads.module';
 import { CommissionsModule } from './modules/commissions/commissions.module';
 import { UsersModule } from './modules/users/users.module';
 import { RegionsModule } from './modules/regions/regions.module';
-import { KeycloakModule } from './common/services/keycloak/keycloak.module';
 import { MattermostModule } from './common/services/mattermost/mattermost.module';
 import { CommissionManagersModule } from './modules/roles/commission-managers/commission-managers.module';
 import { MarketingManagersModule } from './modules/roles/marketing-managers/marketing-managers.module';
@@ -35,7 +34,6 @@ import { join } from 'path';
             envFilePath: '.env',
         }),
         CommonModule,
-        KeycloakModule,
         MattermostModule,
         AuthModule,
         PropertiesModule,

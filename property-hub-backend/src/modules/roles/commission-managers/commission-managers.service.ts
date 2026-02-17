@@ -11,25 +11,16 @@ export class CommissionManagersService {
     ) { }
 
     async create(dto: CreateCommissionManagerDto) {
-        // ... omitted for brevity in replace_file_content but I'll do a focused replace
-        // 1. Invite user in Keycloak
-        const invitation = await this.usersService.inviteUser({
-            email: dto.email,
-            firstName: dto.firstName,
-            lastName: dto.lastName,
-            regions: {}, // No regions for Commission Manager
-            role: 'commission-manager',
-        });
-
-        // 2. Create in Database
+        // 1. Create in Database
         const commissionManager = await this.prisma.user.create({
             data: {
-                keycloakId: invitation.userId,
                 firstName: dto.firstName,
                 lastName: dto.lastName,
                 email: dto.email,
                 phone: dto.phone,
                 role: 'commission-manager',
+                passwordHash: await this.usersService['hashPassword']('password'),
+                status: 'active',
             },
         });
 

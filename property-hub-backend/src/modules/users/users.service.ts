@@ -3,28 +3,19 @@ import { PrismaService } from '../../database/prisma.service';
 import { UpdateUserMetadataDto, CreateUserDto, UpdateUserDto, InviteUserDto, InviteCentralAuthorityDto, InvitationResponse, UpdateProfileDto } from './users.dto';
 import { UserMetadata, User } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
-import { KeycloakAdminService } from '../../common/services/keycloak/keycloak-admin.service';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 import { UserRole } from '../../common/enums/role.enum';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
     constructor(
         private prisma: PrismaService,
         private configService: ConfigService,
-        private keycloakAdmin: KeycloakAdminService
     ) { }
 
-    private async getClient() {
-        return this.keycloakAdmin.getClient();
-    }
-
-    private get realm() {
-        return this.keycloakAdmin.getRealmName();
-    }
-
-    private generateTemporaryPassword(): string {
-        return "password";
+    private async hashPassword(password: string): Promise<string> {
+        return bcrypt.hash(password, 10);
     }
 
     /**
@@ -32,151 +23,50 @@ export class UsersService {
      */
     async inviteUser(dto: InviteUserDto): Promise<InvitationResponse> {
         try {
-            const client = await this.getClient();
-            const temporaryPassword = this.generateTemporaryPassword();
-            const username = dto.email; // Use email as username to avoid collisions
+            const tempPassword = "password"; // Or generate random
+            const passwordHash = await this.hashPassword(tempPassword);
 
             // Check if user already exists
-            const existingUsers = await client.users.find({ realm: this.realm, email: dto.email });
-            if (existingUsers.length > 0) {
+            const existingUser = await this.prisma.user.findUnique({
+                where: { email: dto.email }
+            });
+
+            if (existingUser) {
                 throw new BadRequestException('User with this email already exists');
             }
 
-            // Create user in Keycloak
-            const createdUser = await client.users.create({
-                realm: this.realm,
-                username,
-                email: dto.email,
-                firstName: dto.firstName,
-                lastName: dto.lastName,
-                enabled: true,
-                emailVerified: false,
-                credentials: [
-                    {
-                        type: 'password',
-                        value: temporaryPassword,
-                        temporary: false, // Set to false to avoid "Account is not fully set up" errors in headless login
-                    },
-                ],
-                attributes: {},
-            });
-
-            const userId = createdUser.id;
-
-            // Add to region groups
-            const regionCodes = Object.keys(dto.regions || {});
-            for (const code of regionCodes) {
-                await this.keycloakAdmin.addUserToRegionGroup(dto.email, code);
-            }
-
-            const roleName = dto.role;
-            if (!roleName) {
-                console.log(`No role provided for user ${dto.email}, skipping realm role mapping.`);
-                return {
-                    userId,
+            // Create user in internal DB
+            const user = await this.prisma.user.create({
+                data: {
                     email: dto.email,
-                    temporaryPassword,
-                };
-            }
-
-            const realmRole = await this.keycloakAdmin.ensureRoleExists(roleName);
-
-            if (!realmRole) {
-                throw new InternalServerErrorException(`Failed to retrieve or create role '${roleName}'`);
-            }
-
-            // Assign realm role to user
-            await client.users.addRealmRoleMappings({
-                realm: this.realm,
-                id: userId,
-                roles: [
-                    {
-                        id: realmRole.id,
-                        name: realmRole.name,
-                    },
-                ],
+                    firstName: dto.firstName,
+                    lastName: dto.lastName,
+                    passwordHash,
+                    role: dto.role,
+                    status: 'active',
+                }
             });
 
             return {
-                userId,
+                userId: user.id,
                 email: dto.email,
-                temporaryPassword,
+                temporaryPassword: tempPassword,
             };
         } catch (error: any) {
             console.error('Error inviting user:', error);
             if (error instanceof HttpException) {
                 throw error;
             }
-            const errorMessage = error.response?.data?.errorMessage || error.message || 'Failed to invite user';
-            throw new InternalServerErrorException(errorMessage);
+            throw new InternalServerErrorException(error.message || 'Failed to invite user');
         }
     }
 
-    /**
-     * Invite a central authority user
-     */
     async inviteCentralAuthorityUser(dto: InviteCentralAuthorityDto): Promise<InvitationResponse> {
-        try {
-            const client = await this.getClient();
-            const temporaryPassword = this.generateTemporaryPassword();
-            const username = dto.email.split('@')[0];
-
-            // Create user in Keycloak
-            const createdUser = await client.users.create({
-                realm: this.realm,
-                username,
-                email: dto.email,
-                firstName: dto.firstName,
-                lastName: dto.lastName,
-                enabled: true,
-                emailVerified: false,
-                credentials: [
-                    {
-                        type: 'password',
-                        value: temporaryPassword,
-                        temporary: false,
-                    },
-                ],
-                attributes: {},
-            });
-
-            const userId = createdUser.id;
-
-            // Assign realm role to user
-            const realmRole = await this.keycloakAdmin.ensureRoleExists('central-authority');
-
-            if (realmRole) {
-                await client.users.addRealmRoleMappings({
-                    realm: this.realm,
-                    id: userId,
-                    roles: [
-                        {
-                            id: realmRole.id,
-                            name: realmRole.name,
-                        },
-                    ],
-                });
-            }
-
-            return {
-                userId,
-                email: dto.email,
-                temporaryPassword,
-            };
-
-        } catch (error: any) {
-            console.error('Error inviting central authority user:', error);
-            if (error instanceof HttpException) {
-                throw error;
-            }
-            const errorMessage = error.responseData?.errorMessage || error.message || 'Failed to invite central authority user';
-
-            if (errorMessage.includes('User exists')) {
-                throw new BadRequestException('A user with this email already exists');
-            }
-
-            throw new InternalServerErrorException(errorMessage);
-        }
+        return this.inviteUser({
+            ...dto,
+            role: 'central-authority' as any,
+            regions: {}
+        });
     }
 
     // --- User Metadata Methods (Current User) ---
@@ -195,20 +85,34 @@ export class UsersService {
         return userMetadata;
     }
 
-    async updateUserMetadata(
-        keycloakId: string,
-        updateUserMetadataDto: UpdateUserMetadataDto,
-    ): Promise<UserMetadata> {
-        await this.findOrCreateUserMetadata(keycloakId);
+    async updateUserMetadata(userId: string, dto: UpdateUserMetadataDto): Promise<UserMetadata> {
+        const metadata = await this.getUserMetadata(userId);
+        if (!metadata) throw new NotFoundException('User metadata not found');
 
         return this.prisma.userMetadata.update({
-            where: { keycloakId },
-            data: updateUserMetadataDto,
+            where: { id: metadata.id },
+            data: {
+                theme: dto.theme,
+                notifications: dto.notifications as any,
+                onboardingStatus: dto.onboardingStatus,
+                language: dto.language,
+            },
         });
     }
 
-    async getUserMetadata(keycloakId: string): Promise<UserMetadata> {
-        return this.findOrCreateUserMetadata(keycloakId);
+    async getUserMetadata(userId: string): Promise<UserMetadata> {
+        let userMetadata = await this.prisma.userMetadata.findUnique({
+            where: { id: userId }, // Fallback to id mapping if keycloakId removed
+        });
+
+        if (!userMetadata) {
+            // For consistency during transition, try keycloakId as well
+            userMetadata = await this.prisma.userMetadata.findFirst({
+                where: { keycloakId: userId }
+            });
+        }
+
+        return userMetadata;
     }
 
     /**
@@ -297,14 +201,8 @@ export class UsersService {
             regionRoles[r.code] = { roles: [dto.role] };
         });
 
-        // 3. Invite in Keycloak
-        const invitation = await this.inviteUser({
-            email: dto.email,
-            firstName,
-            lastName,
-            regions: regionRoles,
-            role: dto.role
-        });
+        // 3. Hash password and prepare user
+        const passwordHash = await this.hashPassword(dto.password || 'password');
 
         // 4. Find internal onboarder ID
         let onboardedById = null;
@@ -320,7 +218,7 @@ export class UsersService {
         // 5. Save in Local DB
         const createdUser = await this.prisma.user.create({
             data: {
-                keycloakId: invitation.userId,
+                passwordHash,
                 firstName: dto.firstName,
                 lastName: dto.lastName,
                 email: dto.email,
