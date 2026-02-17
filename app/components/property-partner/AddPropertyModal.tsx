@@ -157,7 +157,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
             category: propertyCategory.toUpperCase(),
             location: formData.title, // Provide title as temporary location string (required by backend)
 
-            regionId: !['no-region', 'all-regions'].includes(activeContext.activeRegion.id)
+            regionId: activeContext.activeRegion.id !== 'no-region'
                 ? activeContext.activeRegion.id
                 : undefined,
 

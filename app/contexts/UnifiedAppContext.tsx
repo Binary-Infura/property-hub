@@ -129,7 +129,6 @@ const KNOWN_ROLES: UserRole[] = [
 ];
 
 const NO_REGION: Region = { id: 'no-region', name: 'No Region Allocated', code: 'no-region' };
-const ALL_REGIONS: Region = { id: 'all-regions', name: 'All Regions', code: 'all', city: 'Global' };
 
 const DEFAULT_CONTEXT: UnifiedAppContextType = {
     currentUser: {
@@ -204,13 +203,10 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
                         city: r.city,
                         state: r.state
                     })).sort((a: any, b: any) => a.name.localeCompare(b.name));
-
-                    // Always include "All Regions" for discovery
-                    allOperationalRegions = [ALL_REGIONS, ...allOperationalRegions];
                 }
             } catch (e) {
                 console.error("Failed to fetch regions from API:", e);
-                allOperationalRegions = [ALL_REGIONS];
+                allOperationalRegions = [];
             }
 
             if (isGlobal || !user) {
@@ -234,11 +230,9 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
                 }
             }
 
-            // Fallback to All Regions if none assigned
+            // Fallback to No Region if none assigned and not global
             if (userAccessibleRegions.length === 0) {
-                userAccessibleRegions = [ALL_REGIONS];
-            } else if (!userAccessibleRegions.find(r => r.id === ALL_REGIONS.id)) {
-                userAccessibleRegions = [ALL_REGIONS, ...userAccessibleRegions];
+                userAccessibleRegions = [NO_REGION];
             }
 
             setAvailableRegions(userAccessibleRegions);
@@ -260,18 +254,7 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
             if (recoveredRegion) {
                 setActiveRegion(recoveredRegion);
             } else if (userAccessibleRegions.length > 0) {
-                // If it's an operational role (not global), try to find a specific region (not 'all-regions')
-                if (!isGlobal) {
-                    const specificRegion = userAccessibleRegions.find(r => r.id !== ALL_REGIONS.id && r.id !== NO_REGION.id);
-                    if (specificRegion) {
-                        setActiveRegion(specificRegion);
-                    } else {
-                        setActiveRegion(userAccessibleRegions[0]);
-                    }
-                } else {
-                    // Default to All Regions (which is at index 0)
-                    setActiveRegion(userAccessibleRegions[0]);
-                }
+                setActiveRegion(userAccessibleRegions[0]);
             }
         };
 

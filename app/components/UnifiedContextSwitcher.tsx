@@ -18,7 +18,7 @@ export default function UnifiedContextSwitcher() {
     const isCentralAuthority = roles.includes('central-authority');
     const activeRoleName = activeContext.activeRole.name;
     const isCityBased = activeContext.activeRole.id === 'onboarding-manager' || activeContext.activeRole.id === 'marketing-manager';
-    const isNoAllocation = activeContext.activeRegion.id === 'no-region' || activeContext.activeRegion.id === 'all-regions';
+    const isNoAllocation = activeContext.activeRegion.id === 'no-region';
     const activeRegionName = isCityBased
         ? (isNoAllocation ? 'No City Allocated' : (activeContext.activeRegion.city || activeContext.activeRegion.name))
         : activeContext.activeRegion.name;
@@ -118,7 +118,7 @@ export default function UnifiedContextSwitcher() {
                                 {(() => {
                                     const displayedItems = isCityBased
                                         ? currentUser.availableRegions
-                                            .filter(r => r.id !== 'all-regions')
+                                            
                                             .filter((region, index, self) =>
                                                 index === self.findIndex((r) => (r.city || r.name) === (region.city || region.name))
                                             )
@@ -161,7 +161,7 @@ export default function UnifiedContextSwitcher() {
                                     <span className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold mb-1">Switching to</span>
                                     <div className="flex items-center gap-2 text-sm text-gray-900">
                                         <span className="font-semibold">
-                                            {isCityBased && (currentRegionDisplay?.id === 'no-region' || currentRegionDisplay?.id === 'all-regions')
+                                            {isCityBased && currentRegionDisplay?.id === 'no-region'
                                                 ? 'No City Allocated'
                                                 : (isCityBased ? (currentRegionDisplay?.city || currentRegionDisplay?.name) : currentRegionDisplay?.name)}
                                         </span>

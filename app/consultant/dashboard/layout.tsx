@@ -39,7 +39,7 @@ function ConsultantDashboardLayoutContent({
     return pathname?.startsWith(href);
   };
 
-  const isNoAllocation = activeContext.activeRegion.id === 'no-region' || activeContext.activeRegion.id === 'all-regions';
+  const isNoAllocation = activeContext.activeRegion.id === 'no-region';
 
   return (
     <div className="flex h-screen bg-gray-50 overflow-hidden">
