@@ -44,14 +44,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    const decodeToken = (t: string) => {
+        try {
+            const base64Url = t.split('.')[1];
+            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+            return JSON.parse(window.atob(base64));
+        } catch (e) {
+            console.error('Failed to decode token:', e);
+            return null;
+        }
+    };
+
     useEffect(() => {
         const storedToken = localStorage.getItem('auth_token');
         if (storedToken) {
-            try {
-                const base64Url = storedToken.split('.')[1];
-                const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-                const payload = JSON.parse(window.atob(base64));
-
+            const payload = decodeToken(storedToken);
+            if (payload) {
                 const now = Math.floor(Date.now() / 1000);
                 if (payload.exp > now) {
                     setAuthenticated(true);
@@ -62,8 +70,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 } else {
                     localStorage.removeItem('auth_token');
                 }
-            } catch (e) {
-                console.error('Auth restore failed:', e);
             }
         }
         setInitialized(true);
@@ -82,12 +88,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             const data = await response.json();
 
             if (response.ok) {
-                const { access_token, user: userData } = data;
+                const { access_token } = data;
                 localStorage.setItem('auth_token', access_token);
+
+                const payload = decodeToken(access_token);
+
                 setAuthenticated(true);
                 setToken(access_token);
-                setUser(userData);
-                setRoles([userData.role]);
+                setUser(payload);
+                setRoles(payload?.roles || []);
+
                 refreshProfileStatus(access_token);
                 return { success: true };
             } else {

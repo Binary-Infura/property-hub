@@ -253,15 +253,25 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
                 setActiveRole(roleList[0]);
             }
 
-            const isCityBased = activeRole?.id === 'onboarding-manager' || activeRole?.id === 'marketing-manager';
             // Select Region
             const savedRegionId = localStorage.getItem('activeRegionId');
             const recoveredRegion = userAccessibleRegions.find(r => r.id === savedRegionId);
+
             if (recoveredRegion) {
                 setActiveRegion(recoveredRegion);
             } else if (userAccessibleRegions.length > 0) {
-                // Default to All Regions (which is at index 0)
-                setActiveRegion(userAccessibleRegions[0]);
+                // If it's an operational role (not global), try to find a specific region (not 'all-regions')
+                if (!isGlobal) {
+                    const specificRegion = userAccessibleRegions.find(r => r.id !== ALL_REGIONS.id && r.id !== NO_REGION.id);
+                    if (specificRegion) {
+                        setActiveRegion(specificRegion);
+                    } else {
+                        setActiveRegion(userAccessibleRegions[0]);
+                    }
+                } else {
+                    // Default to All Regions (which is at index 0)
+                    setActiveRegion(userAccessibleRegions[0]);
+                }
             }
         };
 
