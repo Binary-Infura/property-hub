@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { marketingService } from '@/app/services/marketingService';
 
@@ -140,9 +141,12 @@ export default function MarketingManagerDashboard() {
                 <div className="p-6 border-b border-gray-200">
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-bold text-gray-900">Campaign Performance</h2>
-                        <button className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium">
+                        <Link
+                            href="/marketing-manager/dashboard/campaigns?action=create"
+                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium"
+                        >
                             + New Campaign
-                        </button>
+                        </Link>
                     </div>
                 </div>
                 <div className="overflow-x-auto">

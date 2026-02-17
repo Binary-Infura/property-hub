@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { marketingService } from '@/app/services/marketingService';
 
@@ -24,11 +25,26 @@ interface Campaign {
 }
 
 export default function CampaignsPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <CampaignsContent />
+        </Suspense>
+    );
+}
+
+function CampaignsContent() {
     const { token } = useAuth();
     const [filter, setFilter] = useState('all');
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [loading, setLoading] = useState(true);
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        if (searchParams.get('action') === 'create') {
+            setShowCreateForm(true);
+        }
+    }, [searchParams]);
 
     useEffect(() => {
         const fetchCampaigns = async () => {
