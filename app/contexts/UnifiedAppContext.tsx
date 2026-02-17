@@ -174,7 +174,7 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
                     roles.includes(knownRole.id)
                 );
                 isGlobal = roles.some(role =>
-                    ['central-authority', 'buyer'].includes(role)
+                    ['central-authority', 'buyer', 'property-partner'].includes(role)
                 );
             } else {
                 // Guests are treated as buyers for discovery purposes

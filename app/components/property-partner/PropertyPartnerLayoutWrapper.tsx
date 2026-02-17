@@ -13,7 +13,7 @@ export default function PropertyPartnerLayoutWrapper({
   children: React.ReactNode;
 }) {
   const { activeContext } = useUnifiedApp();
-  const isNoAllocation = activeContext.activeRegion.id === 'no-region' || activeContext.activeRegion.id === 'all-regions';
+  const isNoAllocation = activeContext.activeRegion.id === 'no-region';
 
   return (
     <RouteGuard requiredRole="property-partner">
