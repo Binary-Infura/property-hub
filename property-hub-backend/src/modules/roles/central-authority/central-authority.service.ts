@@ -75,11 +75,13 @@ export class CentralAuthorityService {
     async getDashboardStats() {
         const [
             totalRegions,
+            totalPostalCodes,
             propertyStats,
             userStats,
             recentRegions
         ] = await Promise.all([
             this.prisma.region.count(),
+            this.prisma.postalCode.count(),
             this.prisma.property.groupBy({
                 by: ['status'],
                 _count: {
@@ -137,6 +139,7 @@ export class CentralAuthorityService {
 
         return {
             totalRegions,
+            totalPostalCodes,
             properties,
             users,
             leads: { monthly: 0 }, // Placeholder for now

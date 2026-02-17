@@ -50,9 +50,7 @@ async function main() {
                 name: r.name,
                 code: r.code,
                 active: true,
-                city: r.city,
-                state: r.state,
-                country: r.country,
+
                 locationId: location?.id
             },
         });

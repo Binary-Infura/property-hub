@@ -8,25 +8,23 @@ datasource db {
 }
 
 model Region {
-  id          String     @id @default(uuid())
-  code        String     @unique
-  name        String
-  active      Boolean    @default(true)
-  continent   String?
-  country     String?
-  state       String?
-  city        String?
+  id     String  @id @default(uuid())
+  code   String  @unique
+  name   String
+  active Boolean @default(true)
+
   tags        String[]
   description String?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
   locationId  String?
   leads       Lead[]
   properties  Property[]
-  location    Location?  @relation(fields: [locationId], references: [id])
-  managers    User[]     @relation("RegionToUser")
+  location    Location?           @relation(fields: [locationId], references: [id])
+  managers    User[]              @relation("RegionToUser")
   campaigns   MarketingCampaign[] @relation("CampaignToRegion")
   adsRequests AdsRequest[]
+  postalCodes PostalCode[]
 
   @@index([locationId])
   @@map("regions")
@@ -57,32 +55,35 @@ model Property {
   locationRel   Location?      @relation(fields: [locationId], references: [id])
   onboardedBy   User?          @relation("UserOnboardedProperties", fields: [onboardedById], references: [id])
   region        Region?        @relation(fields: [regionId], references: [id])
+  postalCodeId  String?
+  postalCode    PostalCode?    @relation("PropertyPostalCode", fields: [postalCodeId], references: [id])
   adsRequests   AdsRequest[]
 
   @@index([regionId])
   @@index([locationId])
+  @@index([postalCodeId])
   @@index([status])
   @@index([onboardedById])
   @@map("properties")
 }
 
 model Lead {
-  id         String     @id @default(uuid())
+  id         String             @id @default(uuid())
   name       String
   email      String?
   phone      String
   regionId   String
   propertyId String?
-  status     LeadStatus @default(NEW)
+  status     LeadStatus         @default(NEW)
   source     String?
   assignedTo String?
   notes      String?
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
+  createdAt  DateTime           @default(now())
+  updatedAt  DateTime           @updatedAt
   campaignId String?
   campaign   MarketingCampaign? @relation(fields: [campaignId], references: [id])
-  property   Property?  @relation(fields: [propertyId], references: [id])
-  region     Region     @relation(fields: [regionId], references: [id])
+  property   Property?          @relation(fields: [propertyId], references: [id])
+  region     Region             @relation(fields: [regionId], references: [id])
   visits     Visit[]
 
   @@index([regionId])
@@ -144,29 +145,29 @@ model UserMetadata {
 }
 
 model User {
-  id                  String     @id @default(uuid())
-  keycloakId          String?    @unique
+  id                  String              @id @default(uuid())
+  keycloakId          String?             @unique
   firstName           String
   lastName            String?
-  email               String     @unique
+  email               String              @unique
   phone               String?
   role                String
-  status              String     @default("active")
+  status              String              @default("active")
   passwordHash        String?
-  isEmailVerified     Boolean    @default(false)
+  isEmailVerified     Boolean             @default(false)
   resetToken          String?
-  createdAt           DateTime   @default(now())
-  updatedAt           DateTime   @updatedAt
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
   agencyName          String?
   metadata            Json?
   rating              Float?
   reraId              String?
-  visitsConducted     Int?       @default(0)
+  visitsConducted     Int?                @default(0)
   onboardedById       String?
-  onboardedProperties Property[] @relation("UserOnboardedProperties")
-  onboardedBy         User?      @relation("UserOnboardedUsers", fields: [onboardedById], references: [id])
-  onboardedUsers      User[]     @relation("UserOnboardedUsers")
-  regions             Region[]   @relation("RegionToUser")
+  onboardedProperties Property[]          @relation("UserOnboardedProperties")
+  onboardedBy         User?               @relation("UserOnboardedUsers", fields: [onboardedById], references: [id])
+  onboardedUsers      User[]              @relation("UserOnboardedUsers")
+  regions             Region[]            @relation("RegionToUser")
   campaigns           MarketingCampaign[] @relation("CampaignToUser")
   adsRequests         AdsRequest[]
 
@@ -379,47 +380,47 @@ enum CommissionStatus {
 }
 
 model MarketingCampaign {
-  id             String    @id @default(uuid())
-  name           String
-  description    String?
-  status         String    @default("DRAFT") // ACTIVE, PAUSED, COMPLETED, DRAFT
-  platform       String
-  budget         Decimal   @db.Decimal(15, 2)
-  spent          Decimal   @default(0) @db.Decimal(15, 2)
-  startDate      DateTime
-  endDate        DateTime
-  targetRegions  Region[]  @relation("CampaignToRegion")
-  assignedTo     User[]    @relation("CampaignToUser")
-  
+  id            String   @id @default(uuid())
+  name          String
+  description   String?
+  status        String   @default("DRAFT") // ACTIVE, PAUSED, COMPLETED, DRAFT
+  platform      String
+  budget        Decimal  @db.Decimal(15, 2)
+  spent         Decimal  @default(0) @db.Decimal(15, 2)
+  startDate     DateTime
+  endDate       DateTime
+  targetRegions Region[] @relation("CampaignToRegion")
+  assignedTo    User[]   @relation("CampaignToUser")
+
   // Performance metrics
-  impressions    Int       @default(0)
-  clicks         Int       @default(0)
-  leadsCount     Int       @default(0)
-  conversions    Int       @default(0)
-  leads          Lead[]
-  
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @updatedAt
+  impressions Int    @default(0)
+  clicks      Int    @default(0)
+  leadsCount  Int    @default(0)
+  conversions Int    @default(0)
+  leads       Lead[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("marketing_campaigns")
 }
 
 model AdsRequest {
-  id            String   @id @default(uuid())
+  id            String  @id @default(uuid())
   title         String
   description   String?
-  status        String   @default("PENDING") // PENDING, APPROVED, REJECTED, COMPLETED
-  priority      String   @default("MEDIUM")  // LOW, MEDIUM, HIGH
+  status        String  @default("PENDING") // PENDING, APPROVED, REJECTED, COMPLETED
+  priority      String  @default("MEDIUM") // LOW, MEDIUM, HIGH
   regionId      String
   propertyId    String?
   requestedById String
-  
-  region        Region    @relation(fields: [regionId], references: [id])
-  property      Property? @relation(fields: [propertyId], references: [id])
-  requestedBy   User      @relation(fields: [requestedById], references: [id])
-  
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+
+  region      Region    @relation(fields: [regionId], references: [id])
+  property    Property? @relation(fields: [propertyId], references: [id])
+  requestedBy User      @relation(fields: [requestedById], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("ads_requests")
 }
@@ -435,9 +436,42 @@ model WebhookLog {
   executionTimeMs Int
   errorMessage    String?
   createdAt       DateTime @default(now())
-  
+
   @@index([idempotencyKey])
   @@index([endpoint])
   @@index([createdAt])
   @@map("webhook_logs")
+}
+
+model PostalCode {
+  id           String  @id @default(uuid())
+  code         String // Postal/Zip code
+  circleName   String?
+  regionName   String?
+  divisionName String?
+  officeName   String?
+  officeType   String?
+  delivery     String?
+  district     String?
+  stateName    String?
+  latitude     String?
+  longitude    String?
+
+  // Generic fields for multi-country support
+  continent String?
+  city      String?
+  state     String?
+  country   String?
+
+  regionId   String?
+  region     Region?    @relation(fields: [regionId], references: [id])
+  properties Property[] @relation("PropertyPostalCode")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([code])
+  @@index([regionId])
+  @@index([district])
+  @@map("postal_codes")
 }

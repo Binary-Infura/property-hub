@@ -29,8 +29,11 @@ export class PropertiesService {
             }
 
             if (!hasAccess && regionCode !== 'no-region') {
-                const region = await this.prisma.region.findUnique({ where: { code: regionCode } });
-                const citySlug = region?.city?.toLowerCase().replace(/\s+/g, '-');
+                const region = await this.prisma.region.findUnique({
+                    where: { code: regionCode },
+                    include: { location: true },
+                });
+                const citySlug = region?.location?.city?.toLowerCase().replace(/\s+/g, '-');
                 hasAccess = citySlug && (user.groups || []).some(g => g.endsWith(`/${citySlug}`));
             }
 

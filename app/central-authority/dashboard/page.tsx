@@ -20,6 +20,7 @@ interface DashboardStats {
     leads: {
         monthly: number;
     };
+    totalPostalCodes: number;
     regions: Array<{
         id: string;
         name: string;
@@ -120,11 +121,23 @@ export default function CentralAuthorityDashboardPage() {
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 font-bold group">
                     <h3 className="text-sm font-medium text-gray-500">Leads Generated</h3>
                     <p className="text-3xl font-bold text-slate-900 mt-2">{stats.leads.monthly}</p>
                     <p className="text-xs text-green-600 mt-1">+12% from last month</p>
                 </div>
+
+                <Link href="/central-authority/dashboard/postal-codes" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-blue-300 transition-all hover:shadow-md group">
+                    <h3 className="text-sm font-medium text-gray-500 group-hover:text-blue-600 transition-colors">Postal Codes</h3>
+                    <p className="text-3xl font-bold text-slate-900 mt-2">{stats.totalPostalCodes.toLocaleString()}</p>
+                    <p className="text-xs text-blue-600 mt-1">Manage platform postal data</p>
+                    <div className="mt-4 text-xs font-semibold text-blue-600 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        View Details
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                </Link>
             </div>
 
             {/* Regional Performance */}

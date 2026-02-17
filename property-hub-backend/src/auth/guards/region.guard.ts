@@ -75,11 +75,12 @@ export class RegionGuard implements CanActivate {
 
         // 3. Check for city-level access for the regionSlug (Onboarding Managers)
         const region = await this.prisma.region.findFirst({
-            where: { code: regionSlug }
+            where: { code: regionSlug },
+            include: { location: true }
         });
 
-        if (region && region.city) {
-            const citySlug = region.city.toLowerCase().replace(/\s+/g, '-');
+        if (region && region.location?.city) {
+            const citySlug = region.location.city.toLowerCase().replace(/\s+/g, '-');
             const cityGroup = `/cities/${citySlug}`;
 
             if (user.groups.includes(cityGroup)) {

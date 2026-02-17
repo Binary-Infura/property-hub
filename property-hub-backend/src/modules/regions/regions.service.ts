@@ -20,7 +20,7 @@ export class RegionsService {
 
     async findAll(query: GetAllRegionsQueryDto, options: { includeInactive?: boolean } = {}): Promise<{ data: Region[], total: number }> {
         // Auto-sync missing continents for legacy data
-        await this.syncMissingContinents();
+
 
         const page = Number(query.page) || 1;
         const limit = Number(query.limit) || 10;
@@ -76,41 +76,7 @@ export class RegionsService {
     /**
      * Helper to populate missing continents for existing regions
      */
-    private async syncMissingContinents() {
-        try {
-            const regionModel = (this.prisma as any).region;
-            const regionsToFix = await regionModel.findMany({
-                where: {
-                    continent: null,
-                    country: { not: null }
-                },
-                take: 100
-            });
 
-            if (regionsToFix.length === 0) return;
-
-            for (const region of regionsToFix) {
-                if (region.country) {
-                    let continent = '';
-                    const c = region.country.toLowerCase();
-                    // Basic mapping for legacy data fix
-                    if (c === 'india' || c === 'brunei' || c === 'sri lanka' || c === 'pakistan') continent = 'Asia';
-                    else if (c === 'belarus' || c === 'russia' || c === 'ukraine') continent = 'Europe';
-                    else if (c === 'nigeria' || c === 'egypt') continent = 'Africa';
-                    else if (c === 'united states' || c === 'usa' || c === 'canada') continent = 'Americas';
-
-                    if (continent) {
-                        await regionModel.update({
-                            where: { id: region.id },
-                            data: { continent }
-                        });
-                    }
-                }
-            }
-        } catch (e) {
-            // Background sync failure is okay
-        }
-    }
 
     private async resolveLocationId(dto: CreateRegionDto | UpdateRegionDto): Promise<string | undefined> {
         if (dto.continent && dto.country && dto.state && dto.city) {
@@ -137,12 +103,28 @@ export class RegionsService {
     }
 
     async create(createRegionDto: CreateRegionDto): Promise<Region> {
+        let { postalCode, continent, country, state, city, ...rest } = createRegionDto;
+
+        // If postal code is provided, fetch details and override location fields
+        if (postalCode) {
+            const pcData = await (this.prisma as any).postalCode.findFirst({
+                where: { code: { equals: postalCode, mode: 'insensitive' } },
+            });
+
+            if (pcData) {
+                continent = pcData.continent || continent || 'Asia'; // Default to Asia if not found
+                country = pcData.country || pcData.countryName || country;
+                state = pcData.state || pcData.stateName || state;
+                city = pcData.city || pcData.officeName || pcData.district || city;
+            }
+        }
+
         let baseCode = '';
 
         if (createRegionDto.countryCode && createRegionDto.stateCode && createRegionDto.cityCode && createRegionDto.name) {
             const cCode = createRegionDto.countryCode.toLowerCase();
             const sCode = createRegionDto.stateCode.toLowerCase();
-            const ciPrefix = createRegionDto.cityCode?.substring(0, 2).toLowerCase() || createRegionDto.city?.substring(0, 2).toLowerCase();
+            const ciPrefix = createRegionDto.cityCode?.substring(0, 2).toLowerCase() || city?.substring(0, 2).toLowerCase();
             const loPrefix = createRegionDto.name.substring(0, 2).toLowerCase();
             baseCode = `${cCode}-${sCode}-${ciPrefix}-${loPrefix}`;
         } else {
@@ -165,17 +147,37 @@ export class RegionsService {
             finalCode = `${baseCode}-${suffix}`;
         }
 
-        const locationId = await this.resolveLocationId(createRegionDto);
+        const locationId = await this.resolveLocationId({
+            ...createRegionDto,
+            continent,
+            country,
+            state,
+            city
+        });
 
-        const { countryCode, stateCode, cityCode, ...dbData } = createRegionDto as any;
+        const { countryCode, stateCode, cityCode, ...dbData } = rest as any;
+
+        // Build postal codes connection
+        const postalCodesConnect: any = {};
+        if (postalCode) {
+            postalCodesConnect.connect = [{ code: postalCode }];
+        }
+        if (createRegionDto.postalCodes && createRegionDto.postalCodes.length > 0) {
+            postalCodesConnect.connect = [
+                ...(postalCodesConnect.connect || []),
+                ...createRegionDto.postalCodes.map(code => ({ code }))
+            ].filter((v, i, a) => a.findIndex(t => t.code === v.code) === i); // Remove duplicates
+        }
 
         const region = await this.prisma.region.create({
             data: {
                 ...(dbData as any),
+                name: createRegionDto.name,
                 locationId,
                 code: finalCode,
+                ...(postalCodesConnect.connect && postalCodesConnect.connect.length > 0 ? { postalCodes: postalCodesConnect } : {})
             },
-            include: { location: true },
+            include: { location: true, postalCodes: true } as any,
         });
 
         return region;
@@ -216,7 +218,7 @@ export class RegionsService {
      */
     async getAllocations(filters: GetRegionAllocationsQueryDto, options: { includeInactive?: boolean } = {}): Promise<RegionPaginatedAllocationResponseDto> {
         // Ensure data is synced
-        await this.syncMissingContinents();
+
 
         const page = Number(filters.page) || 1;
         const limit = Number(filters.limit) || 10;
@@ -264,6 +266,7 @@ export class RegionsService {
             (this.prisma.region as any).findMany({
                 where: regionWhere,
                 include: {
+                    location: true,
                     managers: {
                         where: userWhere,
                         select: {
@@ -294,10 +297,10 @@ export class RegionsService {
                 name: region.name,
                 code: region.code,
                 active: region.active,
-                continent: region.location?.continent || region.continent || '',
-                country: region.location?.country || region.country || '',
-                state: region.location?.state || region.state || '',
-                city: region.location?.city || region.city || '',
+                continent: region.location?.continent || '',
+                country: region.location?.country || '',
+                state: region.location?.state || '',
+                city: region.location?.city || '',
                 assignedUsers: region.managers,
             })),
             total,

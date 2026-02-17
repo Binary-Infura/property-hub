@@ -45,6 +45,17 @@ export class CreateRegionDto {
     @IsOptional()
     description?: string;
 
+    @ApiProperty({ example: '400050', description: 'Postal code for the region', required: false })
+    @IsString()
+    @IsOptional()
+    postalCode?: string;
+
+    @ApiProperty({ example: ['400050', '400051'], description: 'Array of postal codes covered by this region', required: false })
+    @IsArray()
+    @IsString({ each: true })
+    @IsOptional()
+    postalCodes?: string[];
+
     @IsString()
     @IsOptional()
     countryCode?: string;
@@ -93,6 +104,10 @@ export class UpdateRegionDto {
     @IsString()
     @IsOptional()
     city?: string;
+
+    @IsString()
+    @IsOptional()
+    postalCode?: string;
 }
 
 export class GetAllRegionsQueryDto {

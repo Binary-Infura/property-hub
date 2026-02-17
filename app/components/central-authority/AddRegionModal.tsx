@@ -43,6 +43,13 @@ export default function AddRegionModal({ isOpen, onClose, onSuccess, initialData
     const [selectedCountryCode, setSelectedCountryCode] = useState('');
     const [selectedStateCode, setSelectedStateCode] = useState('');
     const [selectedStateId, setSelectedStateId] = useState('');
+    const [postalCode, setPostalCode] = useState('');
+    const [isFetchingPostalCode, setIsFetchingPostalCode] = useState(false);
+    const [searchQuery, setSearchQuery] = useState('');
+    const [searchResults, setSearchResults] = useState<any[]>([]);
+    const [isSearching, setIsSearching] = useState(false);
+    const [showResults, setShowResults] = useState(false);
+    const [selectedPostalCodes, setSelectedPostalCodes] = useState<any[]>([]);
 
     // Data lists
     const [continents, setContinents] = useState<string[]>([]);
@@ -72,8 +79,79 @@ export default function AddRegionModal({ isOpen, onClose, onSuccess, initialData
             if (loc.continent) {
                 setSelectedContinent(loc.continent);
             }
+            if (initialData.postalCode) {
+                setPostalCode(initialData.postalCode);
+            }
         }
     }, [isOpen, initialData]);
+
+    const fetchPostalCodeDetails = async (code: string) => {
+        if (!code || code.length < 3) return;
+        setIsFetchingPostalCode(true);
+        try {
+            const res = await fetch(`${API_URL}/api/postal-codes/${code}`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data) {
+                    setSelectedContinent(data.continent || 'Asia');
+                    setCountryName(data.country || data.countryName || '');
+                    setStateName(data.state || data.stateName || '');
+                    setCityName(data.city || data.officeName || data.district || '');
+                    if (!name) setName(data.city || data.officeName || data.district || '');
+                }
+            }
+        } catch (e) {
+            console.error('Failed to fetch postal code details', e);
+        } finally {
+            setIsFetchingPostalCode(false);
+        }
+    };
+
+    const searchLocations = async (query: string) => {
+        if (!query || query.length < 2) {
+            setSearchResults([]);
+            setShowResults(false);
+            return;
+        }
+        setIsSearching(true);
+        try {
+            const res = await fetch(`${API_URL}/api/postal-codes?search=${encodeURIComponent(query)}&limit=10`, {
+                headers: { Authorization: `Bearer ${token}` }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                setSearchResults(data.items || []);
+                setShowResults(true);
+            }
+        } catch (e) {
+            console.error('Failed to search locations', e);
+        } finally {
+            setIsSearching(false);
+        }
+    };
+
+    const handleSelectLocation = (loc: any) => {
+        // Set primary location details for region creation
+        setPostalCode(loc.code || '');
+        setSelectedContinent(loc.continent || 'Asia');
+        setCountryName(loc.country || loc.countryName || 'India');
+        setStateName(loc.state || loc.stateName || '');
+        setCityName(loc.city || loc.officeName || loc.district || '');
+        if (!name) setName(loc.city || loc.officeName || loc.district || '');
+        setSearchQuery('');
+        setShowResults(false);
+
+        // Add to selected postal codes if not already there
+        if (!selectedPostalCodes.find(pc => pc.code === loc.code)) {
+            setSelectedPostalCodes([...selectedPostalCodes, loc]);
+        }
+    };
+
+    const removePostalCode = (code: string) => {
+        setSelectedPostalCodes(selectedPostalCodes.filter(pc => pc.code !== code));
+    };
 
     // 1. Fetch Continents on load
     useEffect(() => {
@@ -228,6 +306,20 @@ export default function AddRegionModal({ isOpen, onClose, onSuccess, initialData
         if (cName) setName(cName);
     };
 
+    const handlePostalCodeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        setPostalCode(val);
+        if (val.length >= 6) {
+            fetchPostalCodeDetails(val);
+        }
+    };
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const val = e.target.value;
+        setSearchQuery(val);
+        searchLocations(val);
+    };
+
     const handleNameChange = (val: string) => {
         setName(val);
     };
@@ -271,6 +363,8 @@ export default function AddRegionModal({ isOpen, onClose, onSuccess, initialData
                     country: countryName,
                     state: stateName,
                     city: cityName,
+                    postalCode,
+                    postalCodes: selectedPostalCodes.map(pc => pc.code),
                     description,
                     tags
                 })
@@ -300,6 +394,10 @@ export default function AddRegionModal({ isOpen, onClose, onSuccess, initialData
         setStateName('');
         setCityName('');
         setSelectedContinent('');
+        setPostalCode('');
+        setSearchQuery('');
+        setSearchResults([]);
+        setSelectedPostalCodes([]);
         setSelectedCountryCode('');
         setSelectedStateId('');
         setSelectedStateCode('');
@@ -333,72 +431,130 @@ export default function AddRegionModal({ isOpen, onClose, onSuccess, initialData
                     )}
 
                     <div className="space-y-4">
-                        {/* Location Dropdowns - Only show on Create */}
+                        {/* flexible Search - NEW */}
                         {!initialData && (
+                            <div className="space-y-4">
+                                <div className="relative">
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                        Search Location (City, Postal Code, or Area)
+                                        {isSearching && <span className="text-xs font-normal text-gray-400 ml-2 animate-pulse">(Searching...)</span>}
+                                    </label>
+                                    <input
+                                        type="text"
+                                        value={searchQuery}
+                                        onChange={handleSearchChange}
+                                        onFocus={() => searchQuery.length >= 2 && setShowResults(true)}
+                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
+                                        placeholder="Enter City, Postal Code, or District..."
+                                        required
+                                    />
+
+                                    {showResults && searchResults.length > 0 && (
+                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-xl max-h-60 overflow-y-auto animate-in fade-in slide-in-from-top-1 duration-200">
+                                            {searchResults.map((loc) => (
+                                                <button
+                                                    key={loc.id}
+                                                    type="button"
+                                                    onClick={() => handleSelectLocation(loc)}
+                                                    className="w-full px-4 py-3 text-left hover:bg-blue-50 transition-colors border-b border-gray-50 last:border-0 flex flex-col"
+                                                >
+                                                    <span className="text-sm font-semibold text-gray-900">
+                                                        {loc.officeName || loc.district}, {loc.stateName}
+                                                    </span>
+                                                    <span className="text-xs text-gray-500">
+                                                        Postal Code: {loc.code} • {loc.district}
+                                                    </span>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {showResults && searchQuery.length >= 2 && !isSearching && searchResults.length === 0 && (
+                                        <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg p-4 text-center text-sm text-gray-500">
+                                            No locations found.
+                                        </div>
+                                    )}
+                                </div>
+
+                                {cityName && (
+                                    <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border border-blue-100 shadow-sm space-y-2 animate-in slide-in-from-top-2 duration-300">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <div className="text-[10px] text-blue-600 font-bold uppercase tracking-wider mb-1">Region Location Identified</div>
+                                                <div className="text-base font-bold text-gray-900 leading-tight">
+                                                    {cityName}
+                                                </div>
+                                                <div className="text-xs text-gray-600 font-medium">
+                                                    {stateName}, {countryName}
+                                                </div>
+                                            </div>
+                                            {postalCode && (
+                                                <div className="bg-white/80 backdrop-blur-sm px-2 py-1 rounded text-[10px] font-bold text-indigo-600 border border-indigo-100 uppercase tracking-tighter">
+                                                    {postalCode}
+                                                </div>
+                                            )}
+                                        </div>
+                                        <div className="text-[10px] text-gray-400 italic">
+                                            This region will be created within {cityName}.
+                                        </div>
+                                    </div>
+                                )}
+
+                                {selectedPostalCodes.length > 0 && (
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                            Postal Codes Covered ({selectedPostalCodes.length})
+                                        </label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {selectedPostalCodes.map(pc => (
+                                                <span key={pc.code} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 text-xs font-medium rounded-lg border border-indigo-200 animate-in zoom-in-95">
+                                                    <span className="font-bold">{pc.code}</span>
+                                                    <span className="text-indigo-400">•</span>
+                                                    <span>{pc.officeName || pc.district}</span>
+                                                    <button type="button" onClick={() => removePostalCode(pc.code)} className="ml-1 hover:text-indigo-900">
+                                                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                    </button>
+                                                </span>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
+                        {!initialData && !cityName && !isSearching && (
+                            <div className="p-6 text-center border-2 border-dashed border-gray-100 rounded-2xl">
+                                <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3">
+                                    <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    </svg>
+                                </div>
+                                <p className="text-sm text-gray-500 font-medium">Ready to search</p>
+                                <p className="text-xs text-gray-400 mt-1">Start typing a city or area name above</p>
+                            </div>
+                        )}
+
+                        {initialData && (
                             <div className="grid grid-cols-2 gap-4">
-                                <div className="col-span-2">
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                                        Continent
-                                    </label>
-                                    <select
-                                        value={selectedContinent}
-                                        onChange={handleContinentChange}
-                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm bg-white"
-                                        required
-                                    >
-                                        <option value="">Select Continent</option>
-                                        {continents.map(cont => <option key={cont} value={cont}>{cont}</option>)}
-                                    </select>
-                                </div>
-
-                                <div className="col-span-2">
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
-                                        Country
-                                        {loadingLocations && !countries.length && <span className="text-xs font-normal text-gray-400 ml-2">(Loading...)</span>}
-                                    </label>
-                                    <select
-                                        value={selectedCountryCode}
-                                        onChange={handleCountryChange}
-                                        disabled={!selectedContinent}
-                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm bg-white disabled:bg-gray-50 disabled:text-gray-400"
-                                        required
-                                    >
-                                        <option value="">Select Country</option>
-                                        {countries.map(c => <option key={c.id} value={c.code}>{(c as any).emoji} {c.name}</option>)}
-                                    </select>
-                                </div>
-
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">State</label>
-                                    <select
-                                        value={selectedStateCode}
-                                        onChange={handleStateChange}
-                                        disabled={!selectedCountryCode}
-                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm bg-white disabled:bg-gray-50 disabled:text-gray-400"
-                                        required
-                                    >
-                                        <option value="">Select State</option>
-                                        {states.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-                                    </select>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5 text-gray-400">City</label>
+                                    <div className="px-4 py-2.5 rounded-xl border border-gray-100 bg-gray-50 text-sm text-gray-500 italic">
+                                        {cityName}
+                                    </div>
                                 </div>
-
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">City</label>
-                                    <select
-                                        value={cityName}
-                                        onChange={handleCityChange}
-                                        disabled={!selectedStateCode}
-                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm bg-white disabled:bg-gray-50 disabled:text-gray-400"
-                                        required
-                                    >
-                                        <option value="">Select City</option>
-                                        {cities.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
-                                    </select>
+                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5 text-gray-400">State</label>
+                                    <div className="px-4 py-2.5 rounded-xl border border-gray-100 bg-gray-50 text-sm text-gray-500 italic">
+                                        {stateName}
+                                    </div>
                                 </div>
                             </div>
                         )}
 
-                        <hr className="border-gray-100" />
+                        <hr className="border-gray-50" />
 
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-1.5">Region Name</label>
