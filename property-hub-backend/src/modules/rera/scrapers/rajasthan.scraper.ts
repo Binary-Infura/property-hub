@@ -137,25 +137,45 @@ export class RajasthanScraper implements IReraScraper {
             await page.goto(`${this.baseUrl}/ProjectSearch?status=3`, { waitUntil: 'networkidle' });
 
             if (options?.district) {
-                await page.selectOption('#DistrictId', { label: options.district });
-                await page.click('#btn_SearchProjectSubmit');
-                await page.waitForTimeout(2000);
-                await page.waitForLoadState('networkidle');
+                // Find option by text content case-insensitively
+                const districtValue = await page.evaluate((district) => {
+                    const select = document.querySelector('#DistrictId') as HTMLSelectElement;
+                    if (!select) return null;
+                    const options = Array.from(select.options);
+                    const target = options.find(o => o.text.trim().toLowerCase() === district.toLowerCase());
+                    return target ? target.value : null;
+                }, options.district);
+
+                if (districtValue) {
+                    await page.selectOption('#DistrictId', districtValue);
+                    await page.click('#btn_SearchProjectSubmit');
+
+                    // Wait for grid to load and update
+                    try {
+                        await page.waitForSelector('.ds4u-grid', { timeout: 15000 });
+                        await page.waitForTimeout(2000); // Wait for pagination to settle
+                    } catch (e) {
+                        this.logger.warn(`Grid didn't load in search, continuing anyway: ${e.message}`);
+                    }
+                } else {
+                    this.logger.warn(`District "${options.district}" not found in dropdown`);
+                }
+            } else {
+                // If no district, just wait for initial grid
+                await page.waitForSelector('.ds4u-grid', { timeout: 15000 });
             }
 
-            // Extract count from footer text like "1 - 10 of 4739 items"
-            const countText = await page.evaluate(() => {
+            // Robust count extraction: Try specific selector first, then whole body
+            const totalCount = await page.evaluate(() => {
                 const footer = document.querySelector('.ds4u-pagination-info');
-                return footer ? footer.textContent : null;
+                const text = footer ? footer.textContent : document.body.innerText;
+                const match = text?.match(/of\s+(\d+)\s+items/i);
+                return match ? parseInt(match[1], 10) : 0;
             });
 
-            if (countText) {
-                const match = countText.match(/of\s+(\d+)\s+items/i);
-                if (match && match[1]) {
-                    const count = parseInt(match[1], 10);
-                    this.logger.log(`Total projects found: ${count}`);
-                    return count;
-                }
+            if (totalCount > 0) {
+                this.logger.log(`Total projects found: ${totalCount}`);
+                return totalCount;
             }
 
             return 0;

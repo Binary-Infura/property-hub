@@ -151,11 +151,7 @@ export default function ReraScraperPage() {
         }
     };
 
-    useEffect(() => {
-        if (selectedState && selectedState.id === 'rajasthan' && activeTab === 'status') {
-            fetchPortalCount('rajasthan', selectedState.selectedDistrict);
-        }
-    }, [selectedViewStateId, activeTab]);
+    // Portal count automatic fetch removed - manual trigger now.
 
     const selectedState = states.find(s => s.id === selectedViewStateId);
     const filteredProjects = selectedState?.projects.filter(p => {
@@ -238,6 +234,7 @@ export default function ReraScraperPage() {
                                 onChange={(e) => {
                                     setSelectedViewStateId(e.target.value);
                                     setSelectedViewDistrict('');
+                                    setPortalCount(null); // Reset portal count on state change
                                 }}
                                 className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
                             >
@@ -293,27 +290,32 @@ export default function ReraScraperPage() {
                                     {selectedState.id === 'rajasthan' && (
                                         <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex items-center justify-between">
                                             <div>
-                                                <div className="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-0.5">Total Projects on Portal</div>
+                                                <div className="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-0.5">Total Projects on RERA Portal</div>
                                                 <div className="text-xl font-extrabold text-slate-900">
                                                     {fetchingCount ? (
                                                         <div className="h-7 w-20 bg-slate-200 animate-pulse rounded" />
                                                     ) : portalCount !== null ? (
                                                         portalCount.toLocaleString()
                                                     ) : (
-                                                        '---'
+                                                        <button
+                                                            onClick={() => fetchPortalCount(selectedState.id, selectedState.selectedDistrict)}
+                                                            className="text-xs px-3 py-1.5 bg-indigo-50 text-indigo-600 rounded-lg hover:bg-indigo-100 transition-all font-bold"
+                                                        >
+                                                            Check Total on Portal
+                                                        </button>
                                                     )}
                                                 </div>
                                             </div>
-                                            <button
-                                                onClick={() => fetchPortalCount(selectedState.id, selectedState.selectedDistrict)}
-                                                disabled={fetchingCount || selectedState.status === 'syncing'}
-                                                className="p-2 hover:bg-slate-200 rounded-lg transition-colors text-slate-500 disabled:opacity-30"
-                                                title="Refresh Count"
-                                            >
-                                                {fetchingCount ? (
-                                                    <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
-                                                ) : '🔄'}
-                                            </button>
+                                            {portalCount !== null && !fetchingCount && (
+                                                <button
+                                                    onClick={() => fetchPortalCount(selectedState.id, selectedState.selectedDistrict)}
+                                                    disabled={fetchingCount || selectedState.status === 'syncing'}
+                                                    className="p-2 hover:bg-slate-200 rounded-lg transition-colors text-slate-500 disabled:opacity-30"
+                                                    title="Refresh Count"
+                                                >
+                                                    🔄
+                                                </button>
+                                            )}
                                         </div>
                                     )}
                                 </div>
@@ -525,7 +527,6 @@ export default function ReraScraperPage() {
                                 </div>
                             </div>
                         )}
-                )}
                     </div>
 
                     {/* Scheduler Info */}
@@ -554,7 +555,7 @@ export default function ReraScraperPage() {
                         </div>
                     </div>
                 </div>
-            );
-};
-
-            export default ReraScraperPage;
+            )}
+        </div>
+    );
+}
