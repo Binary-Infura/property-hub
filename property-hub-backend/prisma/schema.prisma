@@ -475,3 +475,20 @@ model PostalCode {
   @@index([district])
   @@map("postal_codes")
 }
+
+model ReraProject {
+  id               String    @id @default(uuid())
+  state            String
+  reraNumber       String    @unique
+  projectName      String
+  promoterName     String
+  status           String?
+  district         String?
+  address          String?
+  registrationDate DateTime?
+  completionDate   DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("rera_projects")
+}
