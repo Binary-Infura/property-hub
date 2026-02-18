@@ -119,4 +119,9 @@ export class MaharashtraScraper implements IReraScraper {
             await browser.close();
         }
     }
+
+    async getTotalCount(options?: ScrapeOptions): Promise<number> {
+        // Implement when needed
+        return 0;
+    }
 }

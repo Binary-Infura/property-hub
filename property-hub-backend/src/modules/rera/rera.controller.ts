@@ -31,4 +31,10 @@ export class ReraController {
     async getProjectsByState(@Param('state') state: string) {
         return await this.reraService.getProjects(state);
     }
+
+    @Get('count/:state')
+    @ApiOperation({ summary: 'Get total project count from RERA portal' })
+    async getCount(@Param('state') state: string, @Body() body: { district?: string }) {
+        return { count: await this.reraService.getTotalCount(state, body?.district) };
+    }
 }

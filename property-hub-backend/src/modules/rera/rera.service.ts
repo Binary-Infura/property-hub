@@ -69,4 +69,12 @@ export class ReraService {
             take: limit,
         });
     }
+
+    async getTotalCount(state: string, district?: string): Promise<number> {
+        const scraper = this.scrapers.find((s) => s.getState().toLowerCase() === state.toLowerCase());
+        if (!scraper || !scraper.getTotalCount) {
+            return 0;
+        }
+        return scraper.getTotalCount({ district });
+    }
 }

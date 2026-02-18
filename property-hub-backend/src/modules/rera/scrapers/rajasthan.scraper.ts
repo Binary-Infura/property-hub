@@ -13,15 +13,14 @@ export class RajasthanScraper implements IReraScraper {
     }
 
     async scrape(options?: ScrapeOptions): Promise<Partial<ReraProject>[]> {
-        this.logger.log('Starting Rajasthan RERA scrape...');
+        this.logger.log(`Starting Rajasthan RERA scrape${options?.district ? ` for district: ${options.district}` : ''}...`);
         const browser: Browser = await chromium.launch({ headless: true });
         try {
             const page: Page = await browser.newPage();
+            page.setDefaultTimeout(60000);
 
-            // 1. Navigate to Registered Projects search page
-            // status=3 corresponds to "Registered Projects"
+            // Navigate to Advanced search page
             await page.goto(`${this.baseUrl}/ProjectSearch?status=3`, { waitUntil: 'networkidle' });
-            this.logger.log('Navigation to project search page successful.');
 
             // Apply district filter if provided
             if (options?.district) {
@@ -40,8 +39,8 @@ export class RajasthanScraper implements IReraScraper {
                 if (pageSizeBtn) {
                     await pageSizeBtn.click();
                     await page.waitForSelector('.odropdown-content div');
-                    const options = await page.$$('.odropdown-content div');
-                    for (const opt of options) {
+                    const optionsList = await page.$$('.odropdown-content div');
+                    for (const opt of optionsList) {
                         const text = await opt.innerText();
                         if (text.includes('50')) {
                             await opt.click();
@@ -56,17 +55,15 @@ export class RajasthanScraper implements IReraScraper {
             }
 
             const projects: Partial<ReraProject>[] = [];
-            const maxProjects = 100;
             let currentPage = 1;
 
-            while (projects.length < maxProjects) {
+            while (true) {
                 // Wait for the grid rows to be present
                 await page.waitForSelector('.ds4u-row');
                 const projectRows = await page.$$('.ds4u-content.ds4u-tablc .ds4u-row');
                 this.logger.log(`Found ${projectRows.length} projects on page ${currentPage}.`);
 
                 for (const row of projectRows) {
-                    if (projects.length >= maxProjects) break;
                     try {
                         const cells = await row.$$('td');
                         if (cells.length < 6) continue;
@@ -97,13 +94,11 @@ export class RajasthanScraper implements IReraScraper {
                             completionDate: detailData.completionDate,
                         });
 
-                        this.logger.log(`Scraped project [${projects.length}/${maxProjects}]: ${reraNumber}`);
+                        this.logger.log(`Scraped project [${projects.length}]: ${reraNumber}`);
                     } catch (err) {
                         this.logger.error(`Error scraping project row: ${err.message}`);
                     }
                 }
-
-                if (projects.length >= maxProjects) break;
 
                 // Try to go to next page
                 try {
@@ -119,7 +114,7 @@ export class RajasthanScraper implements IReraScraper {
                         break;
                     }
                 } catch (err) {
-                    this.logger.warn(`Pagination failed: ${err.message}`);
+                    this.logger.warn(`Pagination failed or reached end: ${err.message}`);
                     break;
                 }
             }
@@ -127,8 +122,46 @@ export class RajasthanScraper implements IReraScraper {
             this.logger.log(`Returning ${projects.length} projects.`);
             return projects;
         } catch (error) {
-            this.logger.error(`Scraping failed: ${error.message}`);
+            this.logger.error(`Rajasthan Scraping failed: ${error.message}`);
             throw error;
+        } finally {
+            await browser.close();
+        }
+    }
+
+    async getTotalCount(options?: ScrapeOptions): Promise<number> {
+        this.logger.log(`Fetching total count for Rajasthan${options?.district ? ` (District: ${options.district})` : ''}...`);
+        const browser: Browser = await chromium.launch({ headless: true });
+        try {
+            const page: Page = await browser.newPage();
+            await page.goto(`${this.baseUrl}/ProjectSearch?status=3`, { waitUntil: 'networkidle' });
+
+            if (options?.district) {
+                await page.selectOption('#DistrictId', { label: options.district });
+                await page.click('#btn_SearchProjectSubmit');
+                await page.waitForTimeout(2000);
+                await page.waitForLoadState('networkidle');
+            }
+
+            // Extract count from footer text like "1 - 10 of 4739 items"
+            const countText = await page.evaluate(() => {
+                const footer = document.querySelector('.ds4u-pagination-info');
+                return footer ? footer.textContent : null;
+            });
+
+            if (countText) {
+                const match = countText.match(/of\s+(\d+)\s+items/i);
+                if (match && match[1]) {
+                    const count = parseInt(match[1], 10);
+                    this.logger.log(`Total projects found: ${count}`);
+                    return count;
+                }
+            }
+
+            return 0;
+        } catch (error) {
+            this.logger.error(`Failed to get total count: ${error.message}`);
+            return 0;
         } finally {
             await browser.close();
         }

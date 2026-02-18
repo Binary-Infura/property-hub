@@ -16,4 +16,9 @@ export interface IReraScraper {
      * The state this scraper handles (e.g., 'Rajasthan', 'Maharashtra').
      */
     getState(): string;
+
+    /**
+     * Get the total number of projects available on the portal without scraping them.
+     */
+    getTotalCount?(options?: ScrapeOptions): Promise<number>;
 }

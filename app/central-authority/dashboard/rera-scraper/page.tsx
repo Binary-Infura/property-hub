@@ -61,6 +61,8 @@ export default function ReraScraperPage() {
     const [selectedViewDistrict, setSelectedViewDistrict] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
     const [searchQuery, setSearchQuery] = useState('');
+    const [portalCount, setPortalCount] = useState<number | null>(null);
+    const [fetchingCount, setFetchingCount] = useState(false);
     const RECORDS_PER_PAGE = 10;
 
     const fetchStateProjects = async (stateId: string) => {
@@ -132,7 +134,28 @@ export default function ReraScraperPage() {
         setStates(current =>
             current.map(s => s.id === stateId ? { ...s, selectedDistrict: district } : s)
         );
+        // Reset portal count when district changes
+        setPortalCount(null);
     };
+
+    const fetchPortalCount = async (stateId: string, district?: string) => {
+        if (!token) return;
+        setFetchingCount(true);
+        try {
+            const count = await reraService.getTotalCount(token, stateId, district);
+            setPortalCount(count);
+        } catch (error) {
+            console.error('Failed to fetch portal count', error);
+        } finally {
+            setFetchingCount(false);
+        }
+    };
+
+    useEffect(() => {
+        if (selectedState && selectedState.id === 'rajasthan' && activeTab === 'status') {
+            fetchPortalCount('rajasthan', selectedState.selectedDistrict);
+        }
+    }, [selectedViewStateId, activeTab]);
 
     const selectedState = states.find(s => s.id === selectedViewStateId);
     const filteredProjects = selectedState?.projects.filter(p => {
@@ -259,50 +282,77 @@ export default function ReraScraperPage() {
                                             onChange={(e) => handleDistrictChange(selectedState.id, e.target.value)}
                                             className="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
                                         >
-                                            <option value="">All Regions</option>
+                                            <option value="">All Rajasthan</option>
                                             {selectedState.availableDistricts.map(d => (
                                                 <option key={d} value={d}>{d}</option>
                                             ))}
                                         </select>
                                     </div>
 
-                                    <div className="flex justify-between text-xs py-2 border-b border-slate-50">
-                                        <span className="text-slate-400">Total Scraped</span>
-                                        <span className="text-slate-700 font-semibold">{selectedState.projects.length} Projects</span>
-                                    </div>
-                                    <div className="flex justify-between text-xs py-2 border-b border-slate-50">
-                                        <span className="text-slate-400">Last Sync</span>
-                                        <span className="text-slate-700 font-semibold">
-                                            {selectedState.lastSync ? new Date(selectedState.lastSync).toLocaleString() : 'Never'}
-                                        </span>
-                                    </div>
-                                    {selectedState.error && (
-                                        <div className="p-3 bg-rose-50 rounded-lg text-[11px] text-rose-600 border border-rose-100 font-medium font-mono whitespace-pre-wrap">
-                                            ⚠️ {selectedState.error}
+                                    {/* Portal Count Display */}
+                                    {selectedState.id === 'rajasthan' && (
+                                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex items-center justify-between">
+                                            <div>
+                                                <div className="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-0.5">Total Projects on Portal</div>
+                                                <div className="text-xl font-extrabold text-slate-900">
+                                                    {fetchingCount ? (
+                                                        <div className="h-7 w-20 bg-slate-200 animate-pulse rounded" />
+                                                    ) : portalCount !== null ? (
+                                                        portalCount.toLocaleString()
+                                                    ) : (
+                                                        '---'
+                                                    )}
+                                                </div>
+                                            </div>
+                                            <button
+                                                onClick={() => fetchPortalCount(selectedState.id, selectedState.selectedDistrict)}
+                                                disabled={fetchingCount || selectedState.status === 'syncing'}
+                                                className="p-2 hover:bg-slate-200 rounded-lg transition-colors text-slate-500 disabled:opacity-30"
+                                                title="Refresh Count"
+                                            >
+                                                {fetchingCount ? (
+                                                    <div className="w-4 h-4 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+                                                ) : '🔄'}
+                                            </button>
                                         </div>
                                     )}
                                 </div>
-
-                                <button
-                                    onClick={() => handleSyncState(selectedState.id)}
-                                    disabled={selectedState.status === 'syncing'}
-                                    className={`w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${selectedState.status === 'syncing'
-                                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                                        : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200 hover:scale-[1.02] active:scale-95'
-                                        }`}
-                                >
-                                    {selectedState.status === 'syncing' ? (
-                                        <>
-                                            <div className="w-4 h-4 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
-                                            Fetching Data...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <span className="text-lg">⚡</span> Start Scrapping
-                                        </>
-                                    )}
-                                </button>
+                                <div className="flex justify-between text-xs py-2 border-b border-slate-50">
+                                    <span className="text-slate-400">Total Scraped</span>
+                                    <span className="text-slate-700 font-semibold">{selectedState.projects.length} Projects</span>
+                                </div>
+                                <div className="flex justify-between text-xs py-2 border-b border-slate-50">
+                                    <span className="text-slate-400">Last Sync</span>
+                                    <span className="text-slate-700 font-semibold">
+                                        {selectedState.lastSync ? new Date(selectedState.lastSync).toLocaleString() : 'Never'}
+                                    </span>
+                                </div>
+                                {selectedState.error && (
+                                    <div className="p-3 bg-rose-50 rounded-lg text-[11px] text-rose-600 border border-rose-100 font-medium font-mono whitespace-pre-wrap">
+                                        ⚠️ {selectedState.error}
+                                    </div>
+                                )}
                             </div>
+
+                            <button
+                                onClick={() => handleSyncState(selectedState.id)}
+                                disabled={selectedState.status === 'syncing'}
+                                className={`w-full py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 ${selectedState.status === 'syncing'
+                                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
+                                    : 'bg-indigo-600 text-white hover:bg-indigo-700 shadow-lg shadow-indigo-200 hover:scale-[1.02] active:scale-95'
+                                    }`}
+                            >
+                                {selectedState.status === 'syncing' ? (
+                                    <>
+                                        <div className="w-4 h-4 border-2 border-indigo-200 border-t-indigo-600 rounded-full animate-spin" />
+                                        Fetching Data...
+                                    </>
+                                ) : (
+                                    <>
+                                        <span className="text-lg">⚡</span> Start Scrapping
+                                    </>
+                                )}
+                            </button>
                         </div>
                     )}
                 </div>
@@ -475,35 +525,36 @@ export default function ReraScraperPage() {
                                 </div>
                             </div>
                         )}
+                )}
                     </div>
-                </div>
-            )
-            }
 
-            <div className="bg-indigo-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl shadow-indigo-200">
-                <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-800 rounded-full -mr-20 -mt-20 opacity-50" />
-                <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-800 rounded-full -ml-16 -mb-16 opacity-30" />
+                    {/* Scheduler Info */}
+                    <div className="bg-indigo-900 rounded-3xl p-8 text-white relative overflow-hidden shadow-2xl shadow-indigo-200">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-800 rounded-full -mr-20 -mt-20 opacity-50" />
+                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-800 rounded-full -ml-16 -mb-16 opacity-30" />
 
-                <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-                    <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center text-3xl backdrop-blur-sm border border-white/10">
-                        🤖
-                    </div>
-                    <div className="flex-1 text-center md:text-left">
-                        <h2 className="text-2xl font-bold mb-2">Automated Synchronization</h2>
-                        <p className="text-indigo-200 text-sm max-w-2xl leading-relaxed">
-                            The system is configured to automatically run these scrapers every 24 hours at midnight.
-                            Manual triggers are recommended only when immediate updates are required for specific regional analysis.
-                        </p>
-                    </div>
-                    <div className="flex flex-col items-center">
-                        <span className="text-[10px] uppercase font-black tracking-widest text-indigo-300 mb-2">Scheduler Status</span>
-                        <div className="px-4 py-2 bg-emerald-500/20 text-emerald-300 rounded-full text-xs font-bold border border-emerald-500/30 flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
-                            ACTIVE
+                        <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
+                            <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center text-3xl backdrop-blur-sm border border-white/10">
+                                🤖
+                            </div>
+                            <div className="flex-1 text-center md:text-left">
+                                <h2 className="text-2xl font-bold mb-2">Automated Synchronization</h2>
+                                <p className="text-indigo-200 text-sm max-w-2xl leading-relaxed">
+                                    The system is configured to automatically run these scrapers every 24 hours at midnight.
+                                    Manual triggers are recommended only when immediate updates are required for specific regional analysis.
+                                </p>
+                            </div>
+                            <div className="flex flex-col items-center">
+                                <span className="text-[10px] uppercase font-black tracking-widest text-indigo-300 mb-2">Scheduler Status</span>
+                                <div className="px-4 py-2 bg-emerald-500/20 text-emerald-300 rounded-full text-xs font-bold border border-emerald-500/30 flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 bg-emerald-400 rounded-full animate-pulse" />
+                                    ACTIVE
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div >
-    );
-}
+            );
+};
+
+            export default ReraScraperPage;

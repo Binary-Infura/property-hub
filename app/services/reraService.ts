@@ -58,5 +58,24 @@ export const reraService = {
         }
 
         return response.json();
+    },
+
+    async getTotalCount(token: string, state: string, district?: string): Promise<number> {
+        const url = `${API_URL}/rera/count/${state.toLowerCase()}`;
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ district }),
+        });
+
+        if (!response.ok) {
+            return 0;
+        }
+
+        const data = await response.json();
+        return data.count || 0;
     }
 };
