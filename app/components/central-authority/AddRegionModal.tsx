@@ -35,12 +35,12 @@ export default function AddRegionModal({ isOpen, onClose, onSuccess, initialData
     const [tagInput, setTagInput] = useState('');
 
     // Values for form submission (names)
-    const [countryName, setCountryName] = useState('');
+    const [countryName, setCountryName] = useState('India');
     const [stateName, setStateName] = useState('');
     const [cityName, setCityName] = useState('');
 
-    const [selectedContinent, setSelectedContinent] = useState('');
-    const [selectedCountryCode, setSelectedCountryCode] = useState('');
+    const [selectedContinent, setSelectedContinent] = useState('Asia');
+    const [selectedCountryCode, setSelectedCountryCode] = useState('IN');
     const [selectedStateCode, setSelectedStateCode] = useState('');
     const [selectedStateId, setSelectedStateId] = useState('');
     const [postalCode, setPostalCode] = useState('');
@@ -95,8 +95,8 @@ export default function AddRegionModal({ isOpen, onClose, onSuccess, initialData
             if (res.ok) {
                 const data = await res.json();
                 if (data) {
-                    setSelectedContinent(data.continent || 'Asia');
-                    setCountryName(data.country || data.countryName || '');
+                    setSelectedContinent('Asia');
+                    setCountryName('India');
                     setStateName(data.state || data.stateName || '');
                     setCityName(data.city || data.officeName || data.district || '');
                     if (!name) setName(data.city || data.officeName || data.district || '');
@@ -135,8 +135,8 @@ export default function AddRegionModal({ isOpen, onClose, onSuccess, initialData
     const handleSelectLocation = (loc: any) => {
         // Set primary location details for region creation
         setPostalCode(loc.code || '');
-        setSelectedContinent(loc.continent || 'Asia');
-        setCountryName(loc.country || loc.countryName || 'India');
+        setSelectedContinent('Asia');
+        setCountryName('India');
         setStateName(loc.state || loc.stateName || '');
         setCityName(loc.city || loc.officeName || loc.district || '');
         if (!name) setName(loc.city || loc.officeName || loc.district || '');
@@ -156,14 +156,14 @@ export default function AddRegionModal({ isOpen, onClose, onSuccess, initialData
     // 1. Fetch Continents on load
     useEffect(() => {
         if (isOpen && token && !initialData) {
-            fetchContinents();
+            // fetchContinents(); // Removed
         }
     }, [isOpen, token, initialData]);
 
     // 2. Fetch Countries when Continent changes
     useEffect(() => {
         if (isOpen && token) {
-            fetchCountries(selectedContinent);
+            // fetchCountries(selectedContinent); // Removed
         }
     }, [selectedContinent, isOpen, token]);
 
@@ -185,42 +185,6 @@ export default function AddRegionModal({ isOpen, onClose, onSuccess, initialData
             setCities([]);
         }
     }, [selectedCountryCode, selectedStateCode, token]);
-
-    const fetchContinents = async () => {
-        setLoadingLocations(true);
-        try {
-            const res = await fetch(`${API_URL}/api/locations/continents`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.ok) {
-                setContinents(await res.json());
-            }
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setLoadingLocations(false);
-        }
-    };
-
-    const fetchCountries = async (continent?: string) => {
-        setLoadingLocations(true);
-        try {
-            const url = continent
-                ? `${API_URL}/api/locations/countries?continent=${encodeURIComponent(continent)}`
-                : `${API_URL}/api/locations/countries`;
-
-            const res = await fetch(url, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.ok) {
-                setCountries(await res.json());
-            }
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setLoadingLocations(false);
-        }
-    };
 
     const fetchStates = async (cCode: string) => {
         setLoadingLocations(true);
@@ -390,15 +354,15 @@ export default function AddRegionModal({ isOpen, onClose, onSuccess, initialData
         setDescription('');
         setTags([]);
         setTagInput('');
-        setCountryName('');
+        setCountryName('India');
         setStateName('');
         setCityName('');
-        setSelectedContinent('');
+        setSelectedContinent('Asia');
         setPostalCode('');
         setSearchQuery('');
         setSearchResults([]);
         setSelectedPostalCodes([]);
-        setSelectedCountryCode('');
+        setSelectedCountryCode('IN');
         setSelectedStateId('');
         setSelectedStateCode('');
         setError(null);

@@ -39,12 +39,10 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
     const [users, setUsers] = useState<User[]>([]);
     const [regions, setRegions] = useState<Region[]>([]);
     const [userSearch, setUserSearch] = useState('');
-    const [continentFilter, setContinentFilter] = useState('');
-    const [countryFilter, setCountryFilter] = useState('');
+
     const [stateFilter, setStateFilter] = useState('');
     const [cityFilter, setCityFilter] = useState('');
-    const [availableContinents, setAvailableContinents] = useState<string[]>([]);
-    const [availableCountries, setAvailableCountries] = useState<{ code: string; name: string }[]>([]);
+
     const [availableStates, setAvailableStates] = useState<{ id: string; name: string; code: string }[]>([]);
     const [availableCities, setAvailableCities] = useState<{ id: string; name: string }[]>([]);
     const [loading, setLoading] = useState(false);
@@ -72,7 +70,8 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
     useEffect(() => {
         if (isOpen) {
             fetchRegions();
-            fetchContinents();
+            // Default to India
+            fetchStates('IN');
         }
     }, [isOpen]);
 
@@ -80,31 +79,18 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
         if (isOpen) {
             fetchRegions();
         }
-    }, [isOpen, continentFilter, countryFilter, stateFilter, cityFilter]);
+    }, [isOpen, stateFilter, cityFilter]);
 
     useEffect(() => {
-        if (isOpen) {
-            fetchCountries(continentFilter);
-        }
-    }, [isOpen, continentFilter]);
-
-    useEffect(() => {
-        if (isOpen && countryFilter) {
-            fetchStates(countryFilter);
-        } else {
-            setAvailableStates([]);
-            setAvailableCities([]);
-        }
-    }, [isOpen, countryFilter]);
-
-    useEffect(() => {
-        if (isOpen && countryFilter && stateFilter) {
+        if (isOpen && stateFilter) {
+            // Assume India (IN)
+            // Need to find state code from avaialbleStates
             const stateObj = availableStates.find(s => s.code === stateFilter || s.id === stateFilter || s.name === stateFilter);
-            if (stateObj) fetchCities(countryFilter, stateObj.code);
+            if (stateObj) fetchCities('IN', stateObj.code);
         } else {
             setAvailableCities([]);
         }
-    }, [isOpen, countryFilter, stateFilter]);
+    }, [isOpen, stateFilter]);
 
     useEffect(() => {
         if (role && userSearch.length >= 2) {
@@ -119,11 +105,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
         try {
             const params = new URLSearchParams();
             params.append('limit', '1000');
-            if (continentFilter) params.append('continent', continentFilter);
-            if (countryFilter) {
-                const country = availableCountries.find(c => c.code === countryFilter || c.name === countryFilter);
-                if (country) params.append('country', country.name);
-            }
+            params.append('country', 'India');
             if (stateFilter) {
                 const state = availableStates.find(s => s.code === stateFilter || s.id === stateFilter || s.name === stateFilter);
                 if (state) params.append('state', state.name);
@@ -142,26 +124,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
         }
     };
 
-    const fetchContinents = async () => {
-        try {
-            const res = await fetch(`${API_URL}/api/locations/continents`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.ok) setAvailableContinents(await res.json());
-        } catch (e) { console.error(e); }
-    };
 
-    const fetchCountries = async (continent?: string) => {
-        try {
-            const url = continent
-                ? `${API_URL}/api/locations/countries?continent=${encodeURIComponent(continent)}`
-                : `${API_URL}/api/locations/countries`;
-            const res = await fetch(url, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.ok) setAvailableCountries(await res.json());
-        } catch (e) { console.error(e); }
-    };
 
     const fetchStates = async (cCode: string) => {
         try {
@@ -356,22 +319,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
                         <div className="flex items-center justify-between">
                             <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] ml-1">3. Scope Selection ({selectedRegionIds.length} {isCityContext ? 'Cities' : 'Regions'})</label>
                             <div className="flex flex-wrap gap-2 justify-end max-w-[60%]">
-                                <select
-                                    value={continentFilter}
-                                    onChange={(e) => { setContinentFilter(e.target.value); setCountryFilter(''); setStateFilter(''); setCityFilter(''); }}
-                                    className="px-2 py-1 text-[9px] font-black uppercase border rounded bg-white outline-none focus:ring-1 focus:ring-blue-500 max-w-[100px] overflow-hidden truncate"
-                                >
-                                    <option value="">All Continents</option>
-                                    {availableContinents.map(c => <option key={c} value={c}>{c}</option>)}
-                                </select>
-                                <select
-                                    value={countryFilter}
-                                    onChange={(e) => { setCountryFilter(e.target.value); setStateFilter(''); setCityFilter(''); }}
-                                    className="px-2 py-1 text-[9px] font-black uppercase border rounded bg-white outline-none focus:ring-1 focus:ring-blue-500 max-w-[100px] overflow-hidden truncate"
-                                >
-                                    <option value="">All Countries</option>
-                                    {availableCountries.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
-                                </select>
+
                                 <select
                                     value={stateFilter}
                                     onChange={(e) => { setStateFilter(e.target.value); setCityFilter(''); }}

@@ -73,7 +73,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
     const [cities, setCities] = useState<City[]>([]);
 
     const [selectedContinent, setSelectedContinent] = useState('Asia');
-    const [selectedCountryCode, setSelectedCountryCode] = useState('');
+    const [selectedCountryCode, setSelectedCountryCode] = useState('IN'); // Default to India
     const [selectedStateCode, setSelectedStateCode] = useState('');
     const [loadingLocations, setLoadingLocations] = useState(false);
 
@@ -87,8 +87,9 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
             setVideoUrl('');
 
             if (token) {
-                fetchContinents();
-                fetchCountries('Asia');
+                // fetchContinents(); // Removed
+                // fetchCountries('Asia'); // Removed
+                fetchStates('IN'); // Directly fetch states for India
             }
             fetchAvailableProperties();
         }
@@ -113,39 +114,8 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
         }
     }, [selectedCountryCode, selectedStateCode, token]);
 
-    const fetchContinents = async () => {
-        try {
-            const res = await fetch(`${API_URL}/api/locations/continents`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.ok) setContinents(await res.json());
-        } catch (e) {
-            console.error(e);
-        }
-    };
+    // fetchContinents and fetchCountries removed/unused
 
-    const fetchCountries = async (continent?: string) => {
-        try {
-            const url = continent
-                ? `${API_URL}/api/locations/countries?continent=${encodeURIComponent(continent)}`
-                : `${API_URL}/api/locations/countries`;
-            const res = await fetch(url, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                setCountries(data);
-
-                // Auto-select India if available and generic default
-                const india = data.find((c: Country) => c.name === 'India');
-                if (india && !selectedCountryCode) {
-                    setSelectedCountryCode(india.code);
-                }
-            }
-        } catch (e) {
-            console.error(e);
-        }
-    };
 
     const fetchStates = async (cCode: string) => {
         setLoadingLocations(true);
@@ -176,20 +146,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
     };
 
     const handleLocationChange = (type: 'continent' | 'country' | 'state' | 'city', value: string) => {
-        if (type === 'continent') {
-            setSelectedContinent(value);
-            fetchCountries(value);
-            setSelectedCountryCode('');
-            setSelectedStateCode('');
-            setStates([]);
-            setCities([]);
-        } else if (type === 'country') {
-            setSelectedCountryCode(value);
-            setSelectedStateCode('');
-            setStates([]);
-            setCities([]);
-            setAddressData(prev => ({ ...prev, state: '', city: '' }));
-        } else if (type === 'state') {
+        if (type === 'state') {
             const state = states.find(s => s.code === value);
             setSelectedStateCode(value);
             setAddressData(prev => ({ ...prev, state: state?.name || '' }));
@@ -328,8 +285,8 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
                 address: addressData.address,
                 city: addressData.city,
                 state: addressData.state,
-                country: countries.find(c => c.code === selectedCountryCode)?.name || '',
-                continent: selectedContinent,
+                country: 'India',
+                continent: 'Asia',
             };
 
             const res = await fetch(`${API_URL}/api/${regionCode}/properties/${selectedPropertyId}`, {
@@ -448,28 +405,8 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
                             // Step 2: Address
                             <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                                 <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Continent</label>
-                                        <select
-                                            value={selectedContinent}
-                                            onChange={(e) => handleLocationChange('continent', e.target.value)}
-                                            className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-                                        >
-                                            <option value="">Select Continent</option>
-                                            {continents.map(c => <option key={c} value={c}>{c}</option>)}
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">Country</label>
-                                        <select
-                                            value={selectedCountryCode}
-                                            onChange={(e) => handleLocationChange('country', e.target.value)}
-                                            className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
-                                        >
-                                            <option value="">Select Country</option>
-                                            {countries.map(c => <option key={c.id} value={c.code}>{c.emoji ? `${c.emoji} ` : ''}{c.name}</option>)}
-                                        </select>
-                                    </div>
+                                    {/* Continent and Country Removed from UI */}
+
                                     <div>
                                         <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">
                                             State

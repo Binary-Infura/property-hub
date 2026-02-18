@@ -55,18 +55,9 @@ export default function RegionAllocationPage() {
         }
         return '';
     });
-    const [continentFilter, setContinentFilter] = useState(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('ra_continentFilter') || '';
-        }
-        return '';
-    });
-    const [countryFilter, setCountryFilter] = useState(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('ra_countryFilter') || '';
-        }
-        return '';
-    });
+    // Country hardcoded to India
+    const countryName = 'India';
+    const countryCode = 'IN';
     const [stateFilter, setStateFilter] = useState(() => {
         if (typeof window !== 'undefined') {
             return localStorage.getItem('ra_stateFilter') || '';
@@ -80,8 +71,7 @@ export default function RegionAllocationPage() {
         return '';
     });
     const [regions, setRegions] = useState<{ id: string; name: string; code: string }[]>([]);
-    const [availableContinents, setAvailableContinents] = useState<string[]>([]);
-    const [availableCountries, setAvailableCountries] = useState<{ code: string; name: string }[]>([]);
+
     const [availableStates, setAvailableStates] = useState<{ id: string; name: string; code: string }[]>([]);
     const [availableCities, setAvailableCities] = useState<{ id: string; name: string }[]>([]);
 
@@ -108,78 +98,40 @@ export default function RegionAllocationPage() {
         localStorage.setItem('ra_roleFilter', roleFilter);
         localStorage.setItem('ra_regionFilter', regionFilter);
         localStorage.setItem('ra_searchQuery', searchQuery);
-        localStorage.setItem('ra_continentFilter', continentFilter);
-        localStorage.setItem('ra_countryFilter', countryFilter);
         localStorage.setItem('ra_stateFilter', stateFilter);
         localStorage.setItem('ra_cityFilter', cityFilter);
         localStorage.setItem('ra_currentPage', String(currentPage));
-    }, [roleFilter, regionFilter, searchQuery, continentFilter, countryFilter, stateFilter, cityFilter, currentPage]);
+    }, [roleFilter, regionFilter, searchQuery, stateFilter, cityFilter, currentPage]);
 
     // Fetch filters options
     useEffect(() => {
         if (token) {
-            fetchContinents();
+            fetchStates();
         }
     }, [token]);
 
     useEffect(() => {
-        if (token) {
-            fetchCountries(continentFilter);
-        }
-    }, [token, continentFilter]);
-
-    useEffect(() => {
-        if (token && countryFilter) {
-            fetchStates(countryFilter);
-        } else {
-            setAvailableStates([]);
-            setAvailableCities([]);
-        }
-    }, [token, countryFilter]);
-
-    useEffect(() => {
-        if (token && countryFilter && stateFilter) {
+        if (token && stateFilter) {
             // Find state code if needed
             const stateObj = availableStates.find(s => s.code === stateFilter || s.id === stateFilter || s.name === stateFilter);
-            if (stateObj) fetchCities(countryFilter, stateObj.code);
+            if (stateObj) fetchCities(stateObj.code);
         } else {
             setAvailableCities([]);
         }
-    }, [token, countryFilter, stateFilter]);
+    }, [token, stateFilter, availableStates]);
 
-    const fetchContinents = async () => {
+    const fetchStates = async () => {
         try {
-            const res = await fetch(`${API_URL}/api/locations/continents`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.ok) setAvailableContinents(await res.json());
-        } catch (e) { console.error(e); }
-    };
-
-    const fetchCountries = async (continent?: string) => {
-        try {
-            const url = continent
-                ? `${API_URL}/api/locations/countries?continent=${encodeURIComponent(continent)}`
-                : `${API_URL}/api/locations/countries`;
-            const res = await fetch(url, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.ok) setAvailableCountries(await res.json());
-        } catch (e) { console.error(e); }
-    };
-
-    const fetchStates = async (cCode: string) => {
-        try {
-            const res = await fetch(`${API_URL}/api/locations/states/${cCode}`, {
+            const res = await fetch(`${API_URL}/api/locations/states/${countryCode}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) setAvailableStates(await res.json());
         } catch (e) { console.error(e); }
     };
 
-    const fetchCities = async (cCode: string, sCode: string) => {
+    const fetchCities = async (sCode: string) => {
         try {
-            const res = await fetch(`${API_URL}/api/locations/cities/${cCode}/${sCode}`, {
+            const res = await fetch(`${API_URL}/api/locations/cities/${countryCode}/${sCode}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) setAvailableCities(await res.json());
@@ -195,11 +147,7 @@ export default function RegionAllocationPage() {
             if (roleFilter) params.append('role', roleFilter);
             if (regionFilter) params.append('regionId', regionFilter);
             if (searchQuery) params.append('search', searchQuery);
-            if (continentFilter) params.append('continent', continentFilter);
-            if (countryFilter) {
-                const country = availableCountries.find(c => c.code === countryFilter || c.name === countryFilter);
-                if (country) params.append('country', country.name);
-            }
+            params.append('country', countryName);
             if (stateFilter) {
                 const state = availableStates.find(s => s.code === stateFilter || s.id === stateFilter || s.name === stateFilter);
                 if (state) params.append('state', state.name);
@@ -247,11 +195,11 @@ export default function RegionAllocationPage() {
         setCurrentPage(1);
         // Clear specific region filter when geographic filters change to prevent conflicts
         setRegionFilter('');
-    }, [roleFilter, searchQuery, continentFilter, countryFilter, stateFilter, cityFilter]);
+    }, [roleFilter, searchQuery, stateFilter, cityFilter]);
 
     useEffect(() => {
         fetchAllocations();
-    }, [token, roleFilter, regionFilter, searchQuery, continentFilter, countryFilter, stateFilter, cityFilter, currentPage]);
+    }, [token, roleFilter, regionFilter, searchQuery, stateFilter, cityFilter, currentPage]);
 
     const handleRemove = (user: AssignedUser, regionId: string) => {
         setSelectedUser(user);
@@ -333,28 +281,7 @@ export default function RegionAllocationPage() {
 
             {/* Filters */}
             <div className="bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-wrap gap-4 items-end">
-                <div className="flex-1 min-w-[150px]">
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Continent</label>
-                    <select
-                        value={continentFilter}
-                        onChange={(e) => { setContinentFilter(e.target.value); setCountryFilter(''); }}
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-medium"
-                    >
-                        <option value="">All Continents</option>
-                        {availableContinents.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                </div>
-                <div className="flex-1 min-w-[150px]">
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Country</label>
-                    <select
-                        value={countryFilter}
-                        onChange={(e) => { setCountryFilter(e.target.value); setStateFilter(''); setCityFilter(''); }}
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm font-medium"
-                    >
-                        <option value="">All Countries</option>
-                        {availableCountries.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
-                    </select>
-                </div>
+
                 <div className="flex-1 min-w-[150px]">
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">State</label>
                     <select
@@ -429,8 +356,6 @@ export default function RegionAllocationPage() {
                                 setRoleFilter('');
                                 setRegionFilter('');
                                 setSearchQuery('');
-                                setContinentFilter('');
-                                setCountryFilter('');
                                 setStateFilter('');
                                 setCityFilter('');
                                 setCurrentPage(1);

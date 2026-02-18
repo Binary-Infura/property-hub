@@ -5,7 +5,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import AssignRoleModal from '@/app/components/central-authority/AssignRoleModal';
 import EditAssignmentModal from '@/app/components/central-authority/EditAssignmentModal';
 import RemoveAssignmentDialog from '@/app/components/central-authority/RemoveAssignmentDialog';
-
+import AddCityModal from '@/app/components/central-authority/AddCityModal';
 interface AssignedUser {
     id: string;
     firstName: string;
@@ -55,18 +55,9 @@ export default function CityAllocationPage() {
         }
         return '';
     });
-    const [continentFilter, setContinentFilter] = useState(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('ca_city_continentFilter') || '';
-        }
-        return '';
-    });
-    const [countryFilter, setCountryFilter] = useState(() => {
-        if (typeof window !== 'undefined') {
-            return localStorage.getItem('ca_city_countryFilter') || '';
-        }
-        return '';
-    });
+    // Country is hardcoded to India
+    const countryName = 'India';
+    const countryCode = 'IN';
     const [stateFilter, setStateFilter] = useState(() => {
         if (typeof window !== 'undefined') {
             return localStorage.getItem('ca_city_stateFilter') || '';
@@ -79,8 +70,6 @@ export default function CityAllocationPage() {
         }
         return '';
     });
-    const [availableContinents, setAvailableContinents] = useState<string[]>([]);
-    const [availableCountries, setAvailableCountries] = useState<{ code: string; name: string }[]>([]);
     const [availableStates, setAvailableStates] = useState<{ id: string; name: string; code: string }[]>([]);
     const [availableCities, setAvailableCities] = useState<{ id: string; name: string }[]>([]);
 
@@ -88,6 +77,7 @@ export default function CityAllocationPage() {
     const [showAssignModal, setShowAssignModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+    const [showAddCityModal, setShowAddCityModal] = useState(false);
     const [selectedUser, setSelectedUser] = useState<AssignedUser | null>(null);
     const [selectedRegionId, setSelectedRegionId] = useState<string>('');
 
@@ -107,77 +97,39 @@ export default function CityAllocationPage() {
         localStorage.setItem('ca_city_roleFilter', roleFilter);
         localStorage.setItem('ca_city_regionFilter', regionFilter);
         localStorage.setItem('ca_city_searchQuery', searchQuery);
-        localStorage.setItem('ca_city_continentFilter', continentFilter);
-        localStorage.setItem('ca_city_countryFilter', countryFilter);
         localStorage.setItem('ca_city_stateFilter', stateFilter);
         localStorage.setItem('ca_city_cityFilter', cityFilter);
         localStorage.setItem('ca_city_currentPage', String(currentPage));
-    }, [roleFilter, regionFilter, searchQuery, continentFilter, countryFilter, stateFilter, cityFilter, currentPage]);
+    }, [roleFilter, regionFilter, searchQuery, stateFilter, cityFilter, currentPage]);
 
     // Fetch filters options
     useEffect(() => {
         if (token) {
-            fetchContinents();
+            fetchStates();
         }
     }, [token]);
 
     useEffect(() => {
-        if (token) {
-            fetchCountries(continentFilter);
-        }
-    }, [token, continentFilter]);
-
-    useEffect(() => {
-        if (token && countryFilter) {
-            fetchStates(countryFilter);
-        } else {
-            setAvailableStates([]);
-            setAvailableCities([]);
-        }
-    }, [token, countryFilter]);
-
-    useEffect(() => {
-        if (token && countryFilter && stateFilter) {
+        if (token && stateFilter) {
             const stateObj = availableStates.find(s => s.code === stateFilter || s.id === stateFilter || s.name === stateFilter);
-            if (stateObj) fetchCities(countryFilter, stateObj.code);
+            if (stateObj) fetchCities(stateObj.code);
         } else {
             setAvailableCities([]);
         }
-    }, [token, countryFilter, stateFilter]);
+    }, [token, stateFilter, availableStates]);
 
-    const fetchContinents = async () => {
+    const fetchStates = async () => {
         try {
-            const res = await fetch(`${API_URL}/api/locations/continents`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.ok) setAvailableContinents(await res.json());
-        } catch (e) { console.error(e); }
-    };
-
-    const fetchCountries = async (continent?: string) => {
-        try {
-            const url = continent
-                ? `${API_URL}/api/locations/countries?continent=${encodeURIComponent(continent)}`
-                : `${API_URL}/api/locations/countries`;
-            const res = await fetch(url, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.ok) setAvailableCountries(await res.json());
-        } catch (e) { console.error(e); }
-    };
-
-    const fetchStates = async (cCode: string) => {
-        try {
-            const res = await fetch(`${API_URL}/api/locations/states/${cCode}`, {
+            const res = await fetch(`${API_URL}/api/locations/states/${countryCode}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) setAvailableStates(await res.json());
         } catch (e) { console.error(e); }
     };
 
-    const fetchCities = async (cCode: string, sCode: string) => {
+    const fetchCities = async (sCode: string) => {
         try {
-            const res = await fetch(`${API_URL}/api/locations/cities/${cCode}/${sCode}`, {
+            const res = await fetch(`${API_URL}/api/locations/cities/${countryCode}/${sCode}`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) setAvailableCities(await res.json());
@@ -193,11 +145,8 @@ export default function CityAllocationPage() {
             if (roleFilter) params.append('role', roleFilter);
             if (regionFilter) params.append('regionId', regionFilter);
             if (searchQuery) params.append('search', searchQuery);
-            if (continentFilter) params.append('continent', continentFilter);
-            if (countryFilter) {
-                const country = availableCountries.find(c => c.code === countryFilter || c.name === countryFilter);
-                if (country) params.append('country', country.name);
-            }
+            // Hardcode country filter to India
+            params.append('country', countryName);
             if (stateFilter) {
                 const state = availableStates.find(s => s.code === stateFilter || s.id === stateFilter || s.name === stateFilter);
                 if (state) params.append('state', state.name);
@@ -224,11 +173,11 @@ export default function CityAllocationPage() {
     useEffect(() => {
         setCurrentPage(1);
         setRegionFilter('');
-    }, [roleFilter, searchQuery, continentFilter, countryFilter, stateFilter, cityFilter]);
+    }, [roleFilter, searchQuery, stateFilter, cityFilter]);
 
     useEffect(() => {
         fetchAllocations();
-    }, [token, roleFilter, regionFilter, searchQuery, continentFilter, countryFilter, stateFilter, cityFilter, currentPage]);
+    }, [token, roleFilter, regionFilter, searchQuery, stateFilter, cityFilter, currentPage]);
 
     const handleRemove = (user: AssignedUser, regionId: string) => {
         setSelectedUser(user);
@@ -298,41 +247,31 @@ export default function CityAllocationPage() {
                         Streamline the process by assigning experts to specific metropolitan zones.
                     </p>
                 </div>
-                <button
-                    onClick={() => setShowAssignModal(true)}
-                    className="bg-orange-600 text-white px-6 py-3 rounded-xl hover:bg-orange-700 hover:shadow-lg hover:shadow-orange-200 transition-all transform active:scale-95 flex items-center gap-2 font-bold text-sm"
-                >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                    </svg>
-                    Assign New Manager
-                </button>
+                <div className="flex items-center gap-3">
+                    <button
+                        onClick={() => setShowAddCityModal(true)}
+                        className="bg-white border border-gray-200 text-gray-700 px-5 py-3 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all font-bold text-sm flex items-center gap-2 shadow-sm"
+                    >
+                        <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg>
+                        Onboard New City
+                    </button>
+                    <button
+                        onClick={() => setShowAssignModal(true)}
+                        className="bg-orange-600 text-white px-6 py-3 rounded-xl hover:bg-orange-700 hover:shadow-lg hover:shadow-orange-200 transition-all transform active:scale-95 flex items-center gap-2 font-bold text-sm"
+                    >
+                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        Assign New Manager
+                    </button>
+                </div>
             </div>
 
             {/* Filters */}
             <div className="bg-white/70 backdrop-blur-md rounded-2xl shadow-sm border border-gray-100 p-6 flex flex-wrap gap-4 items-end">
-                <div className="flex-1 min-w-[150px]">
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Continent</label>
-                    <select
-                        value={continentFilter}
-                        onChange={(e) => { setContinentFilter(e.target.value); setCountryFilter(''); }}
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm font-medium"
-                    >
-                        <option value="">All Continents</option>
-                        {availableContinents.map(c => <option key={c} value={c}>{c}</option>)}
-                    </select>
-                </div>
-                <div className="flex-1 min-w-[150px]">
-                    <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">Country</label>
-                    <select
-                        value={countryFilter}
-                        onChange={(e) => { setCountryFilter(e.target.value); setStateFilter(''); setCityFilter(''); }}
-                        className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all text-sm font-medium"
-                    >
-                        <option value="">All Countries</option>
-                        {availableCountries.map(c => <option key={c.code} value={c.code}>{c.name}</option>)}
-                    </select>
-                </div>
+
                 <div className="flex-1 min-w-[150px]">
                     <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 ml-1">State</label>
                     <select
@@ -406,8 +345,6 @@ export default function CityAllocationPage() {
                             onClick={() => {
                                 setRoleFilter('');
                                 setSearchQuery('');
-                                setContinentFilter('');
-                                setCountryFilter('');
                                 setStateFilter('');
                                 setCityFilter('');
                                 setCurrentPage(1);
@@ -527,39 +464,41 @@ export default function CityAllocationPage() {
                             </tbody>
                         </table>
                     </div>
-                )}
+                )
+                }
 
                 {/* Always show pagination status if there are allocations */}
-                {!loading && totalAllocations > 0 && (
-                    <div className="px-8 py-5 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
-                        <div className="text-[12px] font-medium text-gray-400 tracking-wide">
-                            Showing <span className="text-gray-900 font-bold">{Math.min((currentPage - 1) * itemsPerPage + 1, totalAllocations)}</span> to <span className="text-gray-900 font-bold">{Math.min(currentPage * itemsPerPage, totalAllocations)}</span> of <span className="text-gray-900 font-bold">{totalAllocations}</span> cities
+                {
+                    !loading && totalAllocations > 0 && (
+                        <div className="px-8 py-5 bg-gray-50/50 border-t border-gray-100 flex items-center justify-between">
+                            <div className="text-[12px] font-medium text-gray-400 tracking-wide">
+                                Showing <span className="text-gray-900 font-bold">{Math.min((currentPage - 1) * itemsPerPage + 1, totalAllocations)}</span> to <span className="text-gray-900 font-bold">{Math.min(currentPage * itemsPerPage, totalAllocations)}</span> of <span className="text-gray-900 font-bold">{totalAllocations}</span> cities
+                            </div>
+                            {totalPages > 1 && (
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                                        disabled={currentPage === 1}
+                                        className="px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        Previous
+                                    </button>
+                                    <button
+                                        onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                                        disabled={currentPage === totalPages}
+                                        className="px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                                    >
+                                        Next
+                                    </button>
+                                </div>
+                            )}
+                            {totalPages <= 1 && (
+                                <div className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
+                                    End of List
+                                </div>
+                            )}
                         </div>
-                        {totalPages > 1 && (
-                            <div className="flex gap-2">
-                                <button
-                                    onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                                    disabled={currentPage === 1}
-                                    className="px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                >
-                                    Previous
-                                </button>
-                                <button
-                                    onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                                    disabled={currentPage === totalPages}
-                                    className="px-5 py-2.5 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-600 hover:bg-gray-50 hover:shadow-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                                >
-                                    Next
-                                </button>
-                            </div>
-                        )}
-                        {totalPages <= 1 && (
-                            <div className="text-[10px] font-bold text-gray-300 uppercase tracking-widest">
-                                End of List
-                            </div>
-                        )}
-                    </div>
-                )}
+                    )}
             </div>
 
             {/* Modals */}
@@ -592,6 +531,14 @@ export default function CityAllocationPage() {
                 onConfirm={confirmRemove}
                 isCityContext={true}
             />
-        </div>
+            <AddCityModal
+                isOpen={showAddCityModal}
+                onClose={() => setShowAddCityModal(false)}
+                onSuccess={() => {
+                    fetchAllocations();
+                    setShowAddCityModal(false);
+                }}
+            />
+        </div >
     );
 }
