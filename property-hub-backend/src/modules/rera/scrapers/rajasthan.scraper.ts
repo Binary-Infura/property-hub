@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ReraProject } from '@prisma/client';
 import { chromium, Browser, Page } from 'playwright';
-import { IReraScraper } from '../interfaces/rera-scraper.interface';
+import { IReraScraper, ScrapeOptions } from '../interfaces/rera-scraper.interface';
 
 @Injectable()
 export class RajasthanScraper implements IReraScraper {
@@ -12,7 +12,7 @@ export class RajasthanScraper implements IReraScraper {
         return 'Rajasthan';
     }
 
-    async scrape(): Promise<Partial<ReraProject>[]> {
+    async scrape(options?: ScrapeOptions): Promise<Partial<ReraProject>[]> {
         this.logger.log('Starting Rajasthan RERA scrape...');
         const browser: Browser = await chromium.launch({ headless: true });
         try {
@@ -23,60 +23,104 @@ export class RajasthanScraper implements IReraScraper {
             await page.goto(`${this.baseUrl}/ProjectSearch?status=3`, { waitUntil: 'networkidle' });
             this.logger.log('Navigation to project search page successful.');
 
-            // Wait for the grid to load
-            await page.waitForSelector('.ds4u-content.ds4u-tablc .ds4u-row', { timeout: 30000 });
-            this.logger.log('Project grid loaded.');
+            // Apply district filter if provided
+            if (options?.district) {
+                this.logger.log(`Filtering by district: ${options.district}`);
+                await page.selectOption('#DistrictId', { label: options.district });
+                await page.click('#btn_SearchProjectSubmit');
+                // Wait for the total count to likely update and table to refresh
+                await page.waitForTimeout(2000);
+                await page.waitForLoadState('networkidle');
+                this.logger.log(`Filter applied for district: ${options.district}`);
+            }
 
-            // For this implementation, we'll scrape the first page of results.
-            // In a production environment, we would handle full pagination.
-            const projectRows = await page.$$('.ds4u-content.ds4u-tablc .ds4u-row');
-            this.logger.log(`Found ${projectRows.length} projects on initial page.`);
+            // Set page size to 50 to get more records efficiently
+            try {
+                const pageSizeBtn = await page.$('.odropbtn.ds4u-btn');
+                if (pageSizeBtn) {
+                    await pageSizeBtn.click();
+                    await page.waitForSelector('.odropdown-content div');
+                    const options = await page.$$('.odropdown-content div');
+                    for (const opt of options) {
+                        const text = await opt.innerText();
+                        if (text.includes('50')) {
+                            await opt.click();
+                            break;
+                        }
+                    }
+                    await page.waitForTimeout(2000);
+                    await page.waitForLoadState('networkidle');
+                }
+            } catch (err) {
+                this.logger.warn(`Could not set page size to 50: ${err.message}`);
+            }
 
             const projects: Partial<ReraProject>[] = [];
+            const maxProjects = 100;
+            let currentPage = 1;
 
-            // Limit to first 10 for demonstration/efficiency in this step
-            // In production, loop through all pages
-            for (let i = 0; i < Math.min(projectRows.length, 10); i++) {
+            while (projects.length < maxProjects) {
+                // Wait for the grid rows to be present
+                await page.waitForSelector('.ds4u-row');
+                const projectRows = await page.$$('.ds4u-content.ds4u-tablc .ds4u-row');
+                this.logger.log(`Found ${projectRows.length} projects on page ${currentPage}.`);
+
+                for (const row of projectRows) {
+                    if (projects.length >= maxProjects) break;
+                    try {
+                        const cells = await row.$$('td');
+                        if (cells.length < 6) continue;
+
+                        const district = (await cells[0].innerText()).trim();
+                        const projectName = (await cells[1].innerText()).trim();
+                        const promoterName = (await cells[3].innerText()).trim();
+                        const reraNumber = (await cells[5].innerText()).trim();
+
+                        const viewButton = await cells[cells.length - 1].$('a');
+                        const detailHref = await viewButton?.getAttribute('href');
+
+                        if (!detailHref) continue;
+                        const projectId = detailHref.split('=')[1];
+                        if (!projectId) continue;
+
+                        const detailData = await this.scrapeProjectDetails(browser, projectId);
+
+                        projects.push({
+                            state: this.getState(),
+                            reraNumber,
+                            projectName,
+                            promoterName,
+                            district,
+                            status: detailData.status,
+                            address: detailData.address,
+                            registrationDate: detailData.registrationDate,
+                            completionDate: detailData.completionDate,
+                        });
+
+                        this.logger.log(`Scraped project [${projects.length}/${maxProjects}]: ${reraNumber}`);
+                    } catch (err) {
+                        this.logger.error(`Error scraping project row: ${err.message}`);
+                    }
+                }
+
+                if (projects.length >= maxProjects) break;
+
+                // Try to go to next page
                 try {
-                    const row = projectRows[i];
-                    const cells = await row.$$('td');
-
-                    if (cells.length < 6) continue;
-
-                    const district = (await cells[0].innerText()).trim();
-                    const projectName = (await cells[1].innerText()).trim();
-                    const promoterName = (await cells[3].innerText()).trim();
-                    const reraNumber = (await cells[5].innerText()).trim();
-
-                    // Get the detail link
-                    const viewButton = await cells[cells.length - 1].$('a');
-                    const detailHref = await viewButton?.getAttribute('href');
-
-                    if (!detailHref) continue;
-
-                    // Extract ID from href (e.g., /Home/ProjectDtls?id=ID)
-                    const projectId = detailHref.split('=')[1];
-
-                    if (!projectId) continue;
-
-                    // Now fetch full details from ViewProject page
-                    const detailData = await this.scrapeProjectDetails(browser, projectId);
-
-                    projects.push({
-                        state: this.getState(),
-                        reraNumber,
-                        projectName,
-                        promoterName,
-                        district,
-                        status: detailData.status,
-                        address: detailData.address,
-                        registrationDate: detailData.registrationDate,
-                        completionDate: detailData.completionDate,
-                    });
-
-                    this.logger.log(`Scraped project: ${reraNumber} - ${projectName}`);
+                    const nextBtn = await page.$('.ds4u-pager-btn.ds4u-selected + a.ds4u-pager-btn');
+                    if (nextBtn) {
+                        currentPage++;
+                        this.logger.log(`Navigating to page ${currentPage}...`);
+                        await nextBtn.click();
+                        await page.waitForTimeout(2000);
+                        await page.waitForLoadState('networkidle');
+                    } else {
+                        this.logger.log('No more pages found.');
+                        break;
+                    }
                 } catch (err) {
-                    this.logger.error(`Error scraping project row ${i}: ${err.message}`);
+                    this.logger.warn(`Pagination failed: ${err.message}`);
+                    break;
                 }
             }
 

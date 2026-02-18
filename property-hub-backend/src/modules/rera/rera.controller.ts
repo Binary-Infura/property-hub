@@ -16,11 +16,19 @@ export class ReraController {
 
     @Post('sync/:state')
     @ApiOperation({ summary: 'Trigger RERA sync for a specific state' })
-    async syncState(@Param('state') state: string) {
-        // We call syncState directly for manual immediate trigger from API
-        // Or we could queue it. For responsiveness, we queue it.
-        // However, the user might want immediate result for a single state.
-        // Let's queue it to follow the architecture.
-        return await this.reraService.syncState(state);
+    async syncState(@Param('state') state: string, @Body() body: { district?: string }) {
+        return await this.reraService.syncState(state, body?.district);
+    }
+
+    @Get('projects')
+    @ApiOperation({ summary: 'Get scraped RERA projects' })
+    async getProjects(@Param('state') state?: string) {
+        return await this.reraService.getProjects(state);
+    }
+
+    @Get('projects/:state')
+    @ApiOperation({ summary: 'Get scraped RERA projects for a specific state' })
+    async getProjectsByState(@Param('state') state: string) {
+        return await this.reraService.getProjects(state);
     }
 }

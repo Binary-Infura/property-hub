@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ReraProject } from '@prisma/client';
 import { chromium, Browser, Page } from 'playwright';
-import { IReraScraper } from '../interfaces/rera-scraper.interface';
+import { IReraScraper, ScrapeOptions } from '../interfaces/rera-scraper.interface';
 
 @Injectable()
 export class MaharashtraScraper implements IReraScraper {
@@ -12,15 +12,55 @@ export class MaharashtraScraper implements IReraScraper {
         return 'Maharashtra';
     }
 
-    async scrape(): Promise<Partial<ReraProject>[]> {
+    async scrape(options?: ScrapeOptions): Promise<Partial<ReraProject>[]> {
         this.logger.log('Starting Maharashtra RERA scrape...');
         const browser: Browser = await chromium.launch({ headless: true });
         try {
             const page: Page = await browser.newPage();
 
-            // Navigate to search results page directly to skip initial form interaction
-            // page=1 and op=Search lists projects
-            await page.goto(`${this.baseUrl}/projects-search-result?page=1&op=Search`, { waitUntil: 'networkidle' });
+            // Set a longer timeout for Maharashtra RERA as it can be slow
+            page.setDefaultTimeout(60000);
+
+            // Navigate to Advanced search page
+            await page.goto(`${this.baseUrl}/projects-search-result`, { waitUntil: 'networkidle' });
+
+            // Apply district filter if provided
+            if (options?.district) {
+                this.logger.log(`Filtering by district: ${options.district}`);
+
+                // On MahaRERA, you must select a Division first for District to populate.
+                // Since we don't know the division, we'll try to find which division contains this district.
+                const divisions = await page.$$eval('#edit-project-division option', (options) =>
+                    options.map(o => ({ value: (o as HTMLOptionElement).value, text: (o as HTMLOptionElement).text })).filter(o => o.value !== '')
+                );
+
+                let districtFound = false;
+                for (const division of divisions) {
+                    await page.selectOption('#edit-project-division', division.value);
+                    await page.waitForTimeout(1000); // Wait for results to populate
+
+                    const districts = await page.$$eval('#edit-project-district option', (options) =>
+                        options.map(o => (o as HTMLOptionElement).text.trim())
+                    );
+
+                    if (districts.some(d => d.toLowerCase() === options.district?.toLowerCase())) {
+                        await page.selectOption('#edit-project-district', { label: options.district });
+                        districtFound = true;
+                        this.logger.log(`Found district ${options.district} in division ${division.text}`);
+                        break;
+                    }
+                }
+
+                if (districtFound) {
+                    await page.click('#edit-submit--2');
+                    await page.waitForLoadState('networkidle');
+                } else {
+                    this.logger.warn(`District ${options.district} not found across all divisions. Falling back to default search.`);
+                    await page.goto(`${this.baseUrl}/projects-search-result?page=1&op=Search`, { waitUntil: 'networkidle' });
+                }
+            } else {
+                await page.goto(`${this.baseUrl}/projects-search-result?page=1&op=Search`, { waitUntil: 'networkidle' });
+            }
 
             // Wait for results
             await page.waitForSelector('.click-projectmodal');
@@ -30,8 +70,8 @@ export class MaharashtraScraper implements IReraScraper {
 
             const projects: Partial<ReraProject>[] = [];
 
-            // Limit to first 10 for demonstration
-            for (let i = 0; i < Math.min(projectCards.length, 10); i++) {
+            // Limit to first 100 for demonstration
+            for (let i = 0; i < Math.min(projectCards.length, 100); i++) {
                 try {
                     const card = projectCards[i];
 

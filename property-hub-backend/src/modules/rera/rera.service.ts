@@ -27,14 +27,14 @@ export class ReraService {
         }
     }
 
-    async syncState(state: string) {
+    async syncState(state: string, district?: string) {
         const scraper = this.scrapers.find((s) => s.getState().toLowerCase() === state.toLowerCase());
         if (!scraper) {
             throw new Error(`Scraper not found for state: ${state}`);
         }
 
-        this.logger.log(`Starting sync for ${state}...`);
-        const projects = await scraper.scrape();
+        this.logger.log(`Starting sync for ${state}${district ? ` (District: ${district})` : ''}...`);
+        const projects = await scraper.scrape({ district });
         this.logger.log(`Found ${projects.length} projects for ${state}.`);
 
         let updatedCount = 0;
@@ -60,5 +60,13 @@ export class ReraService {
 
         this.logger.log(`Sync completed for ${state}. Processed ${updatedCount} projects.`);
         return { state, processed: updatedCount };
+    }
+
+    async getProjects(state?: string, limit: number = 200) {
+        return this.prisma.reraProject.findMany({
+            where: state ? { state: { equals: state, mode: 'insensitive' } } : {},
+            orderBy: { updatedAt: 'desc' },
+            take: limit,
+        });
     }
 }
