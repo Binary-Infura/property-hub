@@ -33,33 +33,73 @@ export class ReraService {
             throw new Error(`Scraper not found for state: ${state}`);
         }
 
-        this.logger.log(`Starting sync for ${state}${district ? ` (District: ${district})` : ''}...`);
-        const projects = await scraper.scrape({ district });
-        this.logger.log(`Found ${projects.length} projects for ${state}.`);
+        // Create log entry
+        const log = await this.prisma.reraSyncLog.create({
+            data: {
+                state,
+                district,
+                status: 'STARTED',
+                startedAt: new Date(),
+            },
+        });
 
-        let updatedCount = 0;
-        for (const project of projects) {
-            try {
-                if (!project.reraNumber) continue;
+        try {
+            this.logger.log(`Starting sync for ${state}${district ? ` (District: ${district})` : ''}...`);
+            const projects = await scraper.scrape({ district });
+            this.logger.log(`Found ${projects.length} projects for ${state}.`);
 
-                await this.prisma.reraProject.upsert({
-                    where: { reraNumber: project.reraNumber },
-                    update: {
-                        ...project,
-                        updatedAt: new Date(),
-                    },
-                    create: {
-                        ...project as any, // Cast because we know it has required fields
-                    },
-                });
-                updatedCount++;
-            } catch (err) {
-                this.logger.error(`Error upserting project ${project.reraNumber}: ${err.message}`);
+            let updatedCount = 0;
+            for (const project of projects) {
+                try {
+                    if (!project.reraNumber) continue;
+
+                    await this.prisma.reraProject.upsert({
+                        where: { reraNumber: project.reraNumber },
+                        update: {
+                            ...project,
+                            updatedAt: new Date(),
+                        },
+                        create: {
+                            ...project as any,
+                        },
+                    });
+                    updatedCount++;
+                } catch (err) {
+                    this.logger.error(`Error upserting project ${project.reraNumber}: ${err.message}`);
+                }
             }
-        }
 
-        this.logger.log(`Sync completed for ${state}. Processed ${updatedCount} projects.`);
-        return { state, processed: updatedCount };
+            // Update log entry as completed
+            await this.prisma.reraSyncLog.update({
+                where: { id: log.id },
+                data: {
+                    status: 'COMPLETED',
+                    projectsScraped: updatedCount,
+                    completedAt: new Date(),
+                },
+            });
+
+            this.logger.log(`Sync completed for ${state}. Processed ${updatedCount} projects.`);
+            return { state, processed: updatedCount };
+        } catch (error) {
+            // Update log entry as failed
+            await this.prisma.reraSyncLog.update({
+                where: { id: log.id },
+                data: {
+                    status: 'FAILED',
+                    error: error.message,
+                    completedAt: new Date(),
+                },
+            });
+            throw error;
+        }
+    }
+
+    async getActivityLogs(limit: number = 50) {
+        return this.prisma.reraSyncLog.findMany({
+            orderBy: { startedAt: 'desc' },
+            take: limit,
+        });
     }
 
     async getProjects(state?: string, limit: number = 200) {

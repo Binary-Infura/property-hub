@@ -56,7 +56,9 @@ export default function ReraScraperPage() {
         }
     ]);
     const [globalSyncing, setGlobalSyncing] = useState(false);
-    const [activeTab, setActiveTab] = useState<'status' | 'data'>('status');
+    const [activeTab, setActiveTab] = useState<'status' | 'data' | 'logs'>('status');
+    const [activityLogs, setActivityLogs] = useState<any[]>([]);
+    const [fetchingLogs, setFetchingLogs] = useState(false);
     const [selectedViewStateId, setSelectedViewStateId] = useState('rajasthan');
     const [selectedViewDistrict, setSelectedViewDistrict] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -153,6 +155,25 @@ export default function ReraScraperPage() {
 
     // Portal count automatic fetch removed - manual trigger now.
 
+    const fetchActivityLogs = async () => {
+        if (!token) return;
+        setFetchingLogs(true);
+        try {
+            const logs = await reraService.getLogs(token);
+            setActivityLogs(logs);
+        } catch (error) {
+            console.error('Failed to fetch activity logs', error);
+        } finally {
+            setFetchingLogs(false);
+        }
+    };
+
+    useEffect(() => {
+        if (activeTab === 'logs') {
+            fetchActivityLogs();
+        }
+    }, [activeTab]);
+
     const selectedState = states.find(s => s.id === selectedViewStateId);
     const filteredProjects = selectedState?.projects.filter(p => {
         const matchesDistrict = !selectedViewDistrict ||
@@ -218,9 +239,15 @@ export default function ReraScraperPage() {
                 >
                     Fetched Data
                 </button>
+                <button
+                    onClick={() => setActiveTab('logs')}
+                    className={`px-6 py-3 text-sm font-bold transition-all border-b-2 ${activeTab === 'logs' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                >
+                    Scraper Activity
+                </button>
             </div>
 
-            {activeTab === 'status' ? (
+            {activeTab === 'status' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-4xl mx-auto">
                     {/* State Selector for Status */}
                     <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
@@ -358,7 +385,9 @@ export default function ReraScraperPage() {
                         </div>
                     )}
                 </div>
-            ) : (
+            )}
+
+            {activeTab === 'data' && (
                 <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
                     {/* Filter Controls */}
                     <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm space-y-4">
@@ -427,7 +456,7 @@ export default function ReraScraperPage() {
                             </div>
                         </div>
                         <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm">
+                            <table className="w-full text-left text-sm border-collapse">
                                 <thead className="text-[10px] uppercase tracking-widest font-black text-slate-400 bg-slate-50/50">
                                     <tr>
                                         <th className="px-6 py-3">Project Name</th>
@@ -447,23 +476,23 @@ export default function ReraScraperPage() {
                                     ) : (
                                         paginatedProjects.map((project) => (
                                             <tr key={project.id} className="hover:bg-indigo-50/30 transition-colors group">
-                                                <td className="px-6 py-4">
+                                                <td className="px-6 py-4 border-b border-slate-50">
                                                     <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{project.projectName}</div>
                                                     <div className="text-[10px] text-slate-400 mt-0.5">{project.promoterName}</div>
                                                 </td>
-                                                <td className="px-6 py-4 font-mono text-xs font-semibold text-slate-600 bg-slate-50/50">
+                                                <td className="px-6 py-4 font-mono text-xs font-semibold text-slate-600 bg-slate-50/50 border-b border-slate-50">
                                                     {project.reraNumber}
                                                 </td>
-                                                <td className="px-6 py-4 text-slate-500">
+                                                <td className="px-6 py-4 text-slate-500 border-b border-slate-50">
                                                     {project.district || 'N/A'}
                                                 </td>
-                                                <td className="px-3 py-4">
+                                                <td className="px-3 py-4 border-b border-slate-50">
                                                     <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${project.status?.toLowerCase().includes('complete') ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
                                                         }`}>
                                                         {project.status || 'Unknown'}
                                                     </span>
                                                 </td>
-                                                <td className="px-6 py-4 text-right text-slate-400 text-[10px] font-medium">
+                                                <td className="px-6 py-4 text-right text-slate-400 text-[10px] font-medium border-b border-slate-50">
                                                     {new Date(project.updatedAt).toLocaleDateString()}
                                                 </td>
                                             </tr>
@@ -552,6 +581,95 @@ export default function ReraScraperPage() {
                                     ACTIVE
                                 </div>
                             </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {activeTab === 'logs' && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl mx-auto space-y-6">
+                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden">
+                        <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+                            <div>
+                                <h3 className="text-lg font-bold text-slate-900">Scraper Activity Logs</h3>
+                                <p className="text-xs text-slate-500">History of manual and automated scraper execution</p>
+                            </div>
+                            <button
+                                onClick={fetchActivityLogs}
+                                disabled={fetchingLogs}
+                                className="px-4 py-2 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-50 transition-all flex items-center gap-2"
+                            >
+                                {fetchingLogs ? (
+                                    <div className="w-3 h-3 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
+                                ) : '🔄'}
+                                Refresh Logs
+                            </button>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-slate-50 text-[10px] font-black tracking-widest text-slate-400 uppercase">
+                                        <th className="px-6 py-4">State / District</th>
+                                        <th className="px-6 py-4">Status</th>
+                                        <th className="px-6 py-4">Projects</th>
+                                        <th className="px-6 py-4">Started At</th>
+                                        <th className="px-6 py-4">Duration</th>
+                                        <th className="px-6 py-4">Details</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                    {fetchingLogs && activityLogs.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={6} className="px-6 py-12 text-center text-sm text-slate-400">
+                                                <div className="flex flex-col items-center gap-3">
+                                                    <div className="w-8 h-8 border-4 border-slate-100 border-t-indigo-500 rounded-full animate-spin" />
+                                                    Loading activity logs...
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : activityLogs.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={6} className="px-6 py-12 text-center text-sm text-slate-400">
+                                                No activity logs found.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        activityLogs.map((log) => (
+                                            <tr key={log.id} className="hover:bg-slate-50/50 transition-colors">
+                                                <td className="px-6 py-4 border-b border-slate-50">
+                                                    <div className="text-sm font-bold text-slate-900 capitalize">{log.state}</div>
+                                                    <div className="text-[10px] text-slate-400">{log.district || 'All Districts'}</div>
+                                                </td>
+                                                <td className="px-6 py-4 border-b border-slate-50">
+                                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-[10px] font-black tracking-wider uppercase border ${log.status === 'COMPLETED' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                                        log.status === 'FAILED' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                                                            'bg-amber-50 text-amber-600 border-amber-100'
+                                                        }`}>
+                                                        {log.status === 'STARTED' && <div className="w-1 h-1 bg-amber-500 rounded-full animate-pulse mr-1.5" />}
+                                                        {log.status}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 text-sm font-bold text-slate-700 border-b border-slate-50">
+                                                    {log.projectsScraped}
+                                                </td>
+                                                <td className="px-6 py-4 text-xs font-medium text-slate-500 border-b border-slate-50">
+                                                    {new Date(log.startedAt).toLocaleString()}
+                                                </td>
+                                                <td className="px-6 py-4 text-xs font-medium text-slate-500 border-b border-slate-50">
+                                                    {log.completedAt ? (
+                                                        `${Math.round((new Date(log.completedAt).getTime() - new Date(log.startedAt).getTime()) / 1000)}s`
+                                                    ) : '---'}
+                                                </td>
+                                                <td className="px-6 py-4 max-w-xs transition-all border-b border-slate-50">
+                                                    <div className="text-[10px] text-slate-500 truncate" title={log.error}>
+                                                        {log.error || 'Sync successful'}
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

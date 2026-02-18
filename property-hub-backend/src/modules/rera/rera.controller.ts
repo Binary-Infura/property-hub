@@ -37,4 +37,10 @@ export class ReraController {
     async getCount(@Param('state') state: string, @Body() body: { district?: string }) {
         return { count: await this.reraService.getTotalCount(state, body?.district) };
     }
+
+    @Get('logs')
+    @ApiOperation({ summary: 'Get RERA sync activity logs' })
+    async getLogs() {
+        return await this.reraService.getActivityLogs();
+    }
 }

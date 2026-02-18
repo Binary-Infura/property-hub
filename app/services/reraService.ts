@@ -74,8 +74,21 @@ export const reraService = {
         if (!response.ok) {
             return 0;
         }
-
         const data = await response.json();
         return data.count || 0;
+    },
+    async getLogs(token: string): Promise<any[]> {
+        const url = `${API_URL}/rera/logs`;
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to fetch RERA logs');
+        }
+
+        return response.json();
     }
 };
