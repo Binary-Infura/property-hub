@@ -38,7 +38,6 @@ export default function Navbar() {
                     <div className="hidden md:flex gap-8">
                         <Link href="/#how" className="text-gray-600 hover:text-gray-900">How It Works</Link>
                         <Link href="/#why" className="text-gray-600 hover:text-gray-900">Why Us</Link>
-                        <Link href="/search" className="text-gray-600 hover:text-gray-900">Explore All Regions</Link>
                         <Link href="/#recommended" className="text-gray-600 hover:text-gray-900">Properties</Link>
                     </div>
                     <div className="flex gap-3 min-w-[200px] justify-end">
