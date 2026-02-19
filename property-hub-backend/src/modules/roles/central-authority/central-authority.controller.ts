@@ -40,9 +40,10 @@ export class CentralAuthorityController {
     @Get('users')
     @RequireRoles('central-authority')
     findAll(
+        @Query('role') role?: string,
         @Query('page') page: string = '1',
         @Query('limit') limit: string = '10'
     ) {
-        return this.centralAuthorityService.findAll(Number(page), Number(limit));
+        return this.centralAuthorityService.findAll(Number(page), Number(limit), role);
     }
 }

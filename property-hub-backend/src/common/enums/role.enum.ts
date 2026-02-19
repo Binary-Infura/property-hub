@@ -13,4 +13,5 @@ export enum UserRole {
     LOAN_ADVISER = 'loan-adviser',
     VISIT_EXECUTIVE = 'visit-executive',
     SERVICE_PROVIDER = 'service-provider',
+    INFLUENCER = 'influencer',
 }

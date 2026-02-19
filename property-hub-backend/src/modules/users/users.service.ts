@@ -472,6 +472,9 @@ export class UsersService {
                 case UserRole.SERVICE_PROVIDER:
                     profileData = await this.prisma.serviceProviderProfile.findUnique({ where: { userId: internalId } });
                     break;
+                case UserRole.INFLUENCER:
+                    profileData = await this.prisma.influencerProfile.findUnique({ where: { userId: internalId } });
+                    break;
             }
 
             status[role] = {
@@ -540,6 +543,24 @@ export class UsersService {
                         category: dto.category || 'General',
                         location: dto.location || 'N/A',
                         availabilityHours: 'N/A',
+                        ...profileData
+                    },
+                    update: profileData
+                });
+            }
+        }
+
+        if (user.role === 'influencer') {
+            const profileData: any = {};
+            if (dto.socialMediaLinks) profileData.socialMediaLinks = dto.socialMediaLinks;
+            if (dto.reach) profileData.reach = dto.reach;
+            if (dto.niche) profileData.niche = dto.niche;
+
+            if (Object.keys(profileData).length > 0) {
+                await this.prisma.influencerProfile.upsert({
+                    where: { userId: user.id },
+                    create: {
+                        userId: user.id,
                         ...profileData
                     },
                     update: profileData

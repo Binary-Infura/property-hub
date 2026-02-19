@@ -291,4 +291,17 @@ export class UpdateProfileDto {
     @IsString()
     @IsOptional()
     location?: string;
+
+    // Influencer Specific
+    @IsObject()
+    @IsOptional()
+    socialMediaLinks?: any;
+
+    @IsNumber()
+    @IsOptional()
+    reach?: number;
+
+    @IsString()
+    @IsOptional()
+    niche?: string;
 }

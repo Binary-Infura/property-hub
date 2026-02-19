@@ -7,6 +7,7 @@ export type UserRole =
     | 'channel-partner'
     | 'commission-manager'
     | 'marketing-manager'
+    | 'influencer'
 
 
 export interface Permission {
@@ -30,7 +31,7 @@ export const ROLES: Record<UserRole, RoleDefinition> = {
         permissions: [
             { resource: '*', actions: ['create', 'read', 'update', 'delete', 'approve', 'override'] }
         ],
-        canCreateRoles: ['marketing-manager', 'regional-manager']
+        canCreateRoles: ['marketing-manager', 'regional-manager', 'influencer']
     },
 
     'regional-manager': {
@@ -78,6 +79,15 @@ export const ROLES: Record<UserRole, RoleDefinition> = {
             { resource: 'regions', actions: ['read'] },
             { resource: 'builders', actions: ['read'] },
             { resource: 'projects', actions: ['read'] }
+        ]
+    },
+    'influencer': {
+        role: 'influencer',
+        label: 'Influencer',
+        description: 'Marketing influencer responsible for platform promotion',
+        permissions: [
+            { resource: 'marketing-analytics', actions: ['read'] },
+            { resource: 'properties', actions: ['read'] }
         ]
     },
 };

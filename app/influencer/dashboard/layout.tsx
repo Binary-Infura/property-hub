@@ -2,13 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-
 import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
 import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
 import RouteGuard from '@/app/components/auth/RouteGuard';
 import ProfileCompletionPrompt from '@/app/components/ProfileCompletionPrompt';
 
-function CentralAuthorityDashboardLayoutContent({
+function InfluencerDashboardLayoutContent({
     children,
 }: {
     children: React.ReactNode;
@@ -16,22 +15,15 @@ function CentralAuthorityDashboardLayoutContent({
     const pathname = usePathname();
 
     const navigation = [
-        { name: 'Dashboard', href: '/central-authority/dashboard', icon: '📊' },
-        { name: 'Regions', href: '/central-authority/dashboard/regions', icon: '🌍' },
-        { name: 'Region Allocation', href: '/central-authority/dashboard/region-allocation', icon: '🗺️' },
-        { name: 'Regional Managers', href: '/central-authority/dashboard/regional-managers', icon: '👔' },
-        { name: 'Marketing Managers', href: '/central-authority/dashboard/marketing-managers', icon: '📢' },
-        { name: 'Commission Managers', href: '/central-authority/dashboard/commission-managers', icon: '💰' },
-        { name: 'Onboarding Managers', href: '/central-authority/dashboard/onboarding-managers', icon: '👔' },
-        { name: 'City Allocation', href: '/central-authority/dashboard/city-allocation', icon: '🏙️' },
-        { name: 'Postal Codes', href: '/central-authority/dashboard/postal-codes', icon: '📮' },
-        { name: 'Rera Scraper', href: '/central-authority/dashboard/rera-scraper', icon: '🕷️' },
-        { name: 'Influencers', href: '/central-authority/dashboard/influencers', icon: '📱' },
-        { name: 'Global Users', href: '/central-authority/dashboard/global-users', icon: '👥' },
+        { name: 'Overview', href: '/influencer/dashboard', icon: '📊' },
+        { name: 'My Campaigns', href: '/influencer/dashboard/campaigns', icon: '📢' },
+        { name: 'Earnings', href: '/influencer/dashboard/earnings', icon: '💰' },
+        { name: 'Resources', href: '/influencer/dashboard/resources', icon: '📚' },
+        { name: 'Settings', href: '/influencer/dashboard/settings', icon: '⚙️' },
     ];
 
     const isActive = (href: string) => {
-        if (href === '/central-authority/dashboard') {
+        if (href === '/influencer/dashboard') {
             return pathname === href;
         }
         return pathname?.startsWith(href);
@@ -70,7 +62,7 @@ function CentralAuthorityDashboardLayoutContent({
 
             {/* Main Content Area */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                <DashboardHeader title="Central Authority Dashboard" />
+                <DashboardHeader title="Influencer Dashboard" />
 
                 <main className="flex-1 overflow-y-auto p-8">
                     <ProfileCompletionPrompt />
@@ -81,10 +73,12 @@ function CentralAuthorityDashboardLayoutContent({
     );
 }
 
-export default function CentralAuthorityDashboardLayout({ children }: { children: React.ReactNode }) {
+export default function InfluencerDashboardLayout({ children }: { children: React.ReactNode }) {
     return (
-        <RouteGuard requiredRole="central-authority">
-            <CentralAuthorityDashboardLayoutContent>{children}</CentralAuthorityDashboardLayoutContent>
+        <RouteGuard requiredRole="influencer">
+            <UnifiedAppProvider>
+                <InfluencerDashboardLayoutContent>{children}</InfluencerDashboardLayoutContent>
+            </UnifiedAppProvider>
         </RouteGuard>
     );
 }

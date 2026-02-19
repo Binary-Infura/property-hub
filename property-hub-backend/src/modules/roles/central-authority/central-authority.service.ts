@@ -52,13 +52,20 @@ export class CentralAuthorityService {
         return user;
     }
 
-    async findAll(page: number = 1, limit: number = 10): Promise<{ data: CentralAuthorityUserDto[], total: number }> {
+    async findAll(page: number = 1, limit: number = 10, role: string = 'central-authority'): Promise<{ data: CentralAuthorityUserDto[], total: number }> {
         const skip = (page - 1) * limit;
+
+        const where: any = { role };
+        const include: any = {};
+
+        if (role === 'influencer') {
+            include.influencerProfile = true;
+        }
+
         const [data, total] = await Promise.all([
             this.prisma.user.findMany({
-                where: {
-                    role: 'central-authority',
-                },
+                where,
+                include: Object.keys(include).length > 0 ? include : undefined,
                 orderBy: {
                     createdAt: 'desc',
                 },
@@ -66,7 +73,7 @@ export class CentralAuthorityService {
                 take: limit,
             }),
             this.prisma.user.count({
-                where: { role: 'central-authority' }
+                where
             })
         ]);
         return { data: data as any, total };
