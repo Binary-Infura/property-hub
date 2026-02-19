@@ -76,8 +76,8 @@ export class RajasthanScraper implements IReraScraper {
                         const viewButton = await cells[cells.length - 1].$('a');
                         const detailHref = await viewButton?.getAttribute('href');
 
-                        if (!detailHref) continue;
-                        const projectId = detailHref.split('=')[1];
+                        const projectIdMatch = detailHref.match(/id=([^&]+)/);
+                        const projectId = projectIdMatch ? projectIdMatch[1] : null;
                         if (!projectId) continue;
 
                         const detailData = await this.scrapeProjectDetails(browser, projectId);
@@ -190,53 +190,47 @@ export class RajasthanScraper implements IReraScraper {
     private async scrapeProjectDetails(browser: Browser, projectId: string): Promise<Partial<ReraProject>> {
         const page = await browser.newPage();
         try {
-            // Use the full project view page as it has more structured data
-            await page.goto(`${this.baseUrl}/Home/ViewProject?id=${projectId}`, { waitUntil: 'networkidle' });
+            // Use ProjectDtls as it has the modern UI with address clearly visible
+            await page.goto(`${this.baseUrl}/Home/ProjectDtls?id=${projectId}`, { waitUntil: 'networkidle' });
 
             const detail: Partial<ReraProject> = {};
 
-            // Helper to find text in tables
-            const findValueByLabel = async (label: string) => {
-                return await page.evaluate((lbl) => {
-                    const cells = Array.from(document.querySelectorAll('td, th, label, span'));
-                    for (let i = 0; i < cells.length; i++) {
-                        if (cells[i].textContent?.includes(lbl)) {
-                            // Try to get next cell or parent's next sibling or similar
-                            // This is a simplified heuristic
-                            return cells[i].nextElementSibling?.textContent?.trim() ||
-                                cells[i].parentElement?.nextElementSibling?.textContent?.trim() ||
-                                null;
-                        }
-                    }
-                    return null;
-                }, label);
-            };
+            // More robust extraction for the modern UI
+            const pageData = await page.evaluate(() => {
+                const findValueByLabel = (label: string) => {
+                    const elements = Array.from(document.querySelectorAll('span, label, b, td, th'));
+                    const target = elements.find(el => el.textContent?.trim().includes(label));
+                    if (!target) return null;
 
-            // Extract Status
-            detail.status = await findValueByLabel('Status of Project');
+                    // The address and some other fields are in the next sibling element
+                    return target.nextElementSibling?.textContent?.trim() ||
+                        target.parentElement?.nextElementSibling?.textContent?.trim() ||
+                        null;
+                };
 
-            // Extract Address
-            detail.address = await findValueByLabel('Project Address');
+                const bodyText = document.body.innerText;
 
-            // Extract Dates (Heuristic based on page structure)
-            const dateStrings = await page.evaluate(() => {
-                const bodyContent = document.body.innerText;
-                const regDateMatch = bodyContent.match(/Date of Registration\s*:\s*(\d{2}\/\d{2}\/\d{4})/i);
-                const compDateMatch = bodyContent.match(/Estimated Finish Date\s*:\s*(\d{2}\/\d{2}\/\d{4})/i);
+                // Extract Dates using Regex from whole body text
+                const regDateMatch = bodyText.match(/Date of Registration\s*(\d{2}-\d{2}-\d{4})/i);
+                // The site uses DD-MM-YYYY format now
 
                 return {
-                    registration: regDateMatch ? regDateMatch[1] : null,
-                    completion: compDateMatch ? compDateMatch[1] : null,
+                    status: findValueByLabel('Status of Project'),
+                    address: findValueByLabel('Project Address'),
+                    registrationDateStr: regDateMatch ? regDateMatch[1] : null,
                 };
             });
 
-            if (dateStrings.registration) {
-                detail.registrationDate = this.parseDate(dateStrings.registration);
+            detail.status = pageData.status;
+            detail.address = pageData.address;
+
+            if (pageData.registrationDateStr) {
+                // Update parseDate to handle both / and -
+                detail.registrationDate = this.parseDate(pageData.registrationDateStr);
             }
 
-            if (dateStrings.completion) {
-                detail.completionDate = this.parseDate(dateStrings.completion);
-            }
+            // Optional: Fetch completion date from "Quick Facts" tab if needed
+            // For now, focus on the Address which was the primary request
 
             return detail;
         } catch (err) {
@@ -249,7 +243,9 @@ export class RajasthanScraper implements IReraScraper {
 
     private parseDate(dateStr: string): Date | null {
         if (!dateStr) return null;
-        const [day, month, year] = dateStr.split('/').map(Number);
+        // Handle both DD/MM/YYYY and DD-MM-YYYY
+        const separator = dateStr.includes('/') ? '/' : '-';
+        const [day, month, year] = dateStr.split(separator).map(Number);
         if (isNaN(day) || isNaN(month) || isNaN(year)) return null;
         return new Date(year, month - 1, day);
     }

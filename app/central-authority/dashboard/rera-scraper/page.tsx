@@ -462,6 +462,7 @@ export default function ReraScraperPage() {
                                         <th className="px-6 py-3">Project Name</th>
                                         <th className="px-6 py-3">RERA Number</th>
                                         <th className="px-6 py-3">District</th>
+                                        <th className="px-6 py-3">Address</th>
                                         <th className="px-3 py-3">Status</th>
                                         <th className="px-6 py-3 text-right">Last Updated</th>
                                     </tr>
@@ -469,7 +470,7 @@ export default function ReraScraperPage() {
                                 <tbody className="divide-y divide-slate-50">
                                     {paginatedProjects.length === 0 ? (
                                         <tr>
-                                            <td colSpan={5} className="px-6 py-10 text-center text-slate-400 italic">
+                                            <td colSpan={6} className="px-6 py-10 text-center text-slate-400 italic">
                                                 No projects found for the selected filters.
                                             </td>
                                         </tr>
@@ -477,7 +478,7 @@ export default function ReraScraperPage() {
                                         paginatedProjects.map((project) => (
                                             <tr key={project.id} className="hover:bg-indigo-50/30 transition-colors group">
                                                 <td className="px-6 py-4 border-b border-slate-50">
-                                                    <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">{project.projectName}</div>
+                                                    <div className="font-bold text-slate-900 group-hover:text-indigo-600 transition-colors tooltip-trigger" title={project.projectName}>{project.projectName}</div>
                                                     <div className="text-[10px] text-slate-400 mt-0.5">{project.promoterName}</div>
                                                 </td>
                                                 <td className="px-6 py-4 font-mono text-xs font-semibold text-slate-600 bg-slate-50/50 border-b border-slate-50">
@@ -485,6 +486,11 @@ export default function ReraScraperPage() {
                                                 </td>
                                                 <td className="px-6 py-4 text-slate-500 border-b border-slate-50">
                                                     {project.district || 'N/A'}
+                                                </td>
+                                                <td className="px-6 py-4 text-slate-500 border-b border-slate-50 max-w-[200px]">
+                                                    <div className="text-[11px] leading-tight truncate" title={project.address}>
+                                                        {project.address || 'N/A'}
+                                                    </div>
                                                 </td>
                                                 <td className="px-3 py-4 border-b border-slate-50">
                                                     <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-tighter ${project.status?.toLowerCase().includes('complete') ? 'bg-emerald-50 text-emerald-600' : 'bg-amber-50 text-amber-600'
