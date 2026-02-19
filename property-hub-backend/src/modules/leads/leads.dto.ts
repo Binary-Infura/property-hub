@@ -12,8 +12,6 @@ export class CreateLeadDto {
     @IsString()
     phone: string;
 
-    @IsUUID()
-    regionId: string;
 
     @IsUUID()
     @IsOptional()

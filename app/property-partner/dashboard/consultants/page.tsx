@@ -22,7 +22,7 @@ export default function ConsultantsPage() {
             const result = await userService.getAllByRole(
                 'consultant',
                 token,
-                activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined,
+                undefined,
                 true // Always personal view
             );
             setConsultants(result.data);
@@ -36,7 +36,7 @@ export default function ConsultantsPage() {
 
     useEffect(() => {
         fetchConsultants();
-    }, [token, activeContext.activeRegion.code]);
+    }, [token]);
 
     if (!isPremium) {
         return <PremiumLockedOverlay title="Consultants Management" description="Manage your sales consultants, track their performance, and assign leads efficiently with our Premium tools." />;
@@ -217,7 +217,6 @@ export default function ConsultantsPage() {
                                                 email,
                                                 phone,
                                                 role: 'consultant',
-                                                regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : [],
                                             };
 
                                             await userService.create(payload, token);

@@ -26,7 +26,7 @@ export default function ServiceProvidersPage() {
             const result = await userService.getAllByRole(
                 'service-provider',
                 token,
-                activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined,
+                undefined,
                 true // Always personal view
             );
             setServiceProviders(result.data);
@@ -40,7 +40,7 @@ export default function ServiceProvidersPage() {
 
     useEffect(() => {
         fetchProviders();
-    }, [token, activeContext.activeRegion.code]);
+    }, [token]);
 
     const handleAddSubmit = async (data: any) => {
         if (!token) return;
@@ -48,7 +48,6 @@ export default function ServiceProvidersPage() {
             const payload = {
                 ...data,
                 role: 'service-provider',
-                regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : [],
             };
             await userService.create(payload, token);
             fetchProviders();
@@ -93,7 +92,6 @@ export default function ServiceProvidersPage() {
                         <thead className="bg-gray-50/50">
                             <tr>
                                 <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Name / Business</th>
-                                <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Location</th>
                                 <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Contact</th>
                                 <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Onboarded By</th>
                                 <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
@@ -123,9 +121,6 @@ export default function ServiceProvidersPage() {
                                             <p className="text-sm font-bold text-gray-900">{sp.agencyName || sp.name}</p>
                                             <p className="text-xs text-gray-500 capitalize">{sp.role || 'Service'}</p>
                                         </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-sm text-gray-700">{sp.regions?.[0]?.name || 'N/A'}</span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex flex-col">

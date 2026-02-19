@@ -19,10 +19,6 @@ export class InviteUserDto {
     @IsNotEmpty()
     lastName: string;
 
-    @IsObject()
-    @ValidateNested()
-    @Type(() => Object)
-    regions: { [region: string]: RegionRoleDto };
 
     @IsString()
     @IsOptional()
@@ -113,9 +109,6 @@ export class CreateUserDto {
     @IsOptional()
     rating?: number;
 
-    @IsArray()
-    @IsOptional()
-    regionIds?: string[];
 
     @IsString()
     @IsOptional()
@@ -198,9 +191,6 @@ export class UpdateUserDto {
     @IsOptional()
     rating?: number;
 
-    @IsArray()
-    @IsOptional()
-    regionIds?: string[];
 
     // Service Provider Profile Fields
     @IsString()

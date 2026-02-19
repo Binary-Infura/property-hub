@@ -9,37 +9,9 @@ export class CommissionsService {
     constructor(private prisma: PrismaService) { }
 
     async findAll(user: AuthenticatedUser): Promise<Commission[]> {
-        const isCentralAuthority = user.roles.includes('central-authority');
-        // If not central authority, filter by properties in user's regions
-        if (isCentralAuthority) {
-            return this.prisma.commission.findMany({
-                include: {
-                    property: {
-                        include: {
-                            region: true,
-                        },
-                    },
-                },
-                orderBy: {
-                    createdAt: 'desc',
-                },
-            });
-        }
-
         return this.prisma.commission.findMany({
-            where: {
-                property: {
-                    regionId: {
-                        in: user.groups.map(g => g.split('/').pop()),
-                    },
-                },
-            },
             include: {
-                property: {
-                    include: {
-                        region: true,
-                    },
-                },
+                property: true,
             },
             orderBy: {
                 createdAt: 'desc',
@@ -51,11 +23,7 @@ export class CommissionsService {
         const commission = await this.prisma.commission.findUnique({
             where: { id },
             include: {
-                property: {
-                    include: {
-                        region: true,
-                    },
-                },
+                property: true,
             },
         });
 
@@ -63,18 +31,11 @@ export class CommissionsService {
             throw new NotFoundException(`Commission with ID ${id} not found`);
         }
 
-        const isCentralAuthority = user.roles.includes('central-authority');
-        const userRegions = user.groups.map(g => g.split('/').pop());
-
-        if (!isCentralAuthority && !userRegions.includes(commission.property.regionId)) {
-            throw new NotFoundException(`Commission with ID ${id} not found`);
-        }
-
         return commission;
     }
 
     async create(createCommissionDto: CreateCommissionDto, user: AuthenticatedUser): Promise<Commission> {
-        // Verify property exists and user has access to its region
+        // Verify property exists
         const property = await this.prisma.property.findUnique({
             where: { id: createCommissionDto.propertyId },
         });
@@ -83,21 +44,10 @@ export class CommissionsService {
             throw new NotFoundException('Property not found');
         }
 
-        const isCentralAuthority = user.roles.includes('central-authority');
-        const userRegions = user.groups.map(g => g.split('/').pop());
-
-        if (!isCentralAuthority && !userRegions.includes(property.regionId)) {
-            throw new ForbiddenException('You do not have access to create commissions for this property');
-        }
-
         return this.prisma.commission.create({
             data: createCommissionDto,
             include: {
-                property: {
-                    include: {
-                        region: true,
-                    },
-                },
+                property: true,
             },
         });
     }
@@ -109,11 +59,7 @@ export class CommissionsService {
             where: { id },
             data: updateCommissionDto,
             include: {
-                property: {
-                    include: {
-                        region: true,
-                    },
-                },
+                property: true,
             },
         });
     }

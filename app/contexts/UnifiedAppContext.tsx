@@ -119,17 +119,17 @@ const KNOWN_ROLES: UserRole[] = [
     }
 ];
 
-const NO_REGION: Region = { id: 'no-region', name: 'No Region Allocated', code: 'no-region' };
+const GLOBAL_REGION: Region = { id: 'global', name: 'Global', code: 'global' };
 
 const DEFAULT_CONTEXT: UnifiedAppContextType = {
     currentUser: {
         name: 'Guest',
         avatar: 'https://ui-avatars.com/api/?name=Guest&background=0D8ABC&color=fff',
-        availableRegions: [NO_REGION],
+        availableRegions: [GLOBAL_REGION],
         availableRoles: []
     },
     activeContext: {
-        activeRegion: NO_REGION,
+        activeRegion: GLOBAL_REGION,
         activeRole: KNOWN_ROLES[KNOWN_ROLES.length - 1] // Default to buyer
     },
     switchContext: () => { }
@@ -143,9 +143,9 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
     const { user, roles, authenticated, initialized, token } = useAuth();
     const router = useRouter();
 
-    const [activeRegion, setActiveRegion] = useState<Region>(NO_REGION);
+    const [activeRegion, setActiveRegion] = useState<Region>(GLOBAL_REGION);
     const [activeRole, setActiveRole] = useState<UserRole>(KNOWN_ROLES[KNOWN_ROLES.length - 1]);
-    const [availableRegions, setAvailableRegions] = useState<Region[]>([NO_REGION]);
+    const [availableRegions, setAvailableRegions] = useState<Region[]>([GLOBAL_REGION]);
     const [availableRoles, setAvailableRoles] = useState<UserRole[]>([]);
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -156,77 +156,24 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
 
         const syncAppData = async () => {
             let roleList: UserRole[] = [];
-            let isGlobal = false;
 
             // 1. Determine Roles
             if (authenticated && user) {
                 roleList = KNOWN_ROLES.filter(knownRole =>
                     roles.includes(knownRole.id)
                 );
-                isGlobal = roles.some(role =>
-                    ['central-authority', 'buyer', 'property-partner', 'consultant', 'loan-adviser', 'visit-executive', 'dsa'].includes(role)
-                );
             } else {
                 // Guests are treated as buyers for discovery purposes
                 roleList = [KNOWN_ROLES[KNOWN_ROLES.length - 1]];
-                isGlobal = true; // Guests can see everything (discovery)
             }
 
             if (roleList.length > 0) {
                 setAvailableRoles(roleList);
             }
 
-            // 2. Determine Regions
-            let allOperationalRegions: Region[] = [];
-            let userAccessibleRegions: Region[] = [];
-
-            try {
-                const headers: any = {};
-                if (token) headers.Authorization = `Bearer ${token}`;
-
-                const response = await fetch(`${API_URL}/api/regions?limit=1000`, { headers });
-                if (response.ok) {
-                    const result = await response.json();
-                    allOperationalRegions = result.data.map((r: any) => ({
-                        id: r.id,
-                        name: r.name,
-                        code: r.code,
-                        city: r.city,
-                        state: r.state
-                    })).sort((a: any, b: any) => a.name.localeCompare(b.name));
-                }
-            } catch (e) {
-                console.error("Failed to fetch regions from API:", e);
-                allOperationalRegions = [];
-            }
-
-            if (isGlobal || !user) {
-                userAccessibleRegions = allOperationalRegions;
-            } else {
-                try {
-                    const groups = (user.groups || []) as string[];
-                    const userRegionCodes = groups.filter(g => g.startsWith('/regions/')).map(g => g.replace('/regions/', ''));
-                    const userCitySlugs = groups.filter(g => g.startsWith('/cities/')).map(g => g.replace('/cities/', ''));
-
-                    userAccessibleRegions = allOperationalRegions.filter(region => {
-                        if (userRegionCodes.includes(region.code)) return true;
-                        if (region.city) {
-                            const citySlug = region.city.toLowerCase().replace(/\s+/g, '-');
-                            if (userCitySlugs.includes(citySlug)) return true;
-                        }
-                        return false;
-                    });
-                } catch (e) {
-                    console.error("Failed to solve regions from user groups:", e);
-                }
-            }
-
-            // Fallback to No Region if none assigned and not global
-            if (userAccessibleRegions.length === 0) {
-                userAccessibleRegions = [NO_REGION];
-            }
-
-            setAvailableRegions(userAccessibleRegions);
+            // 2. Determine Regions - Simplified to Global
+            setAvailableRegions([GLOBAL_REGION]);
+            setActiveRegion(GLOBAL_REGION);
 
             // 3. Set Active Context Defaults
             // Select Role
@@ -237,35 +184,20 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
             } else if (roleList.length > 0) {
                 setActiveRole(roleList[0]);
             }
-
-            // Select Region
-            const savedRegionId = localStorage.getItem('activeRegionId');
-            const recoveredRegion = userAccessibleRegions.find(r => r.id === savedRegionId);
-
-            if (recoveredRegion) {
-                setActiveRegion(recoveredRegion);
-            } else if (userAccessibleRegions.length > 0) {
-                setActiveRegion(userAccessibleRegions[0]);
-            }
         };
 
         syncAppData();
     }, [initialized, authenticated, user, roles, token]);
 
     const switchContext = (regionId: string, roleId: RoleId) => {
-        const region = availableRegions.find(r => r.id === regionId);
-        if (!region) return;
-
+        // regionId is now ignored, we always stay in GLOBAL_REGION
         const role = availableRoles.find(r => r.id === roleId);
         if (!role) return;
 
-        setActiveRegion(region);
         setActiveRole(role);
-
-        localStorage.setItem('activeRegionId', regionId);
         localStorage.setItem('activeRoleId', roleId);
 
-        console.log(`Switching context to: ${region.name} - ${role.name}`);
+        console.log(`Switching context to role: ${role.name}`);
         router.push(role.dashboardUrl);
     };
 

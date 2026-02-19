@@ -12,23 +12,19 @@ import { LeadsService } from './leads.service';
 import { CreateLeadDto, UpdateLeadDto } from './leads.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
-import { RegionGuard } from '../../auth/guards/region.guard';
 import { RequireRoles } from '../../common/decorators/require-roles.decorator';
-import { RequireRegion } from '../../common/decorators/require-region.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 
-@Controller('api/:region/leads')
-@UseGuards(JwtAuthGuard, RolesGuard, RegionGuard)
+@Controller('api/leads')
+@UseGuards(JwtAuthGuard, RolesGuard)
 @RequireRoles('central-authority', 'regional-manager', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'property-partner', 'channel-partner', 'consultant')
-@RequireRegion()
 export class LeadsController {
     constructor(private readonly leadsService: LeadsService) { }
 
     @Get()
     @RequireRoles('regional-manager', 'leads-manager')
     findAll(
-        @Param('region') region: string,
         @CurrentUser() user: AuthenticatedUser
     ) {
         return this.leadsService.findAll(user);
@@ -37,7 +33,6 @@ export class LeadsController {
     @Get(':id')
     @RequireRoles('regional-manager', 'leads-manager')
     findOne(
-        @Param('region') region: string,
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
     ) {
@@ -47,7 +42,6 @@ export class LeadsController {
     @Post()
     @RequireRoles('regional-manager', 'leads-manager')
     create(
-        @Param('region') region: string,
         @Body() createLeadDto: CreateLeadDto
     ) {
         return this.leadsService.create(createLeadDto);
@@ -56,7 +50,6 @@ export class LeadsController {
     @Patch(':id')
     @RequireRoles('regional-manager', 'leads-manager')
     update(
-        @Param('region') region: string,
         @Param('id') id: string,
         @Body() updateLeadDto: UpdateLeadDto,
         @CurrentUser() user: AuthenticatedUser,
@@ -67,7 +60,6 @@ export class LeadsController {
     @Delete(':id')
     @RequireRoles('regional-manager')
     remove(
-        @Param('region') region: string,
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
     ) {

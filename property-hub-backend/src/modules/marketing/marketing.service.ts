@@ -9,7 +9,6 @@ export class MarketingService {
     async findAll() {
         return this.prisma.marketingCampaign.findMany({
             include: {
-                targetRegions: true,
                 assignedTo: true,
             },
             orderBy: {
@@ -22,7 +21,6 @@ export class MarketingService {
         const campaign = await this.prisma.marketingCampaign.findUnique({
             where: { id },
             include: {
-                targetRegions: true,
                 assignedTo: true,
             },
         });
@@ -35,41 +33,35 @@ export class MarketingService {
     }
 
     async create(dto: CreateCampaignDto) {
-        const { targetRegionIds, assignedUserIds, ...data } = dto;
+        const { assignedUserIds, ...data } = dto;
 
         return this.prisma.marketingCampaign.create({
             data: {
                 ...data,
-                targetRegions: {
-                    connect: targetRegionIds.map((id) => ({ id })),
-                },
+
                 assignedTo: {
                     connect: assignedUserIds.map((id) => ({ id })),
                 },
             },
             include: {
-                targetRegions: true,
                 assignedTo: true,
             },
         });
     }
 
     async update(id: string, dto: UpdateCampaignDto) {
-        const { targetRegionIds, assignedUserIds, ...data } = dto;
+        const { assignedUserIds, ...data } = dto;
 
         return this.prisma.marketingCampaign.update({
             where: { id },
             data: {
                 ...data,
-                targetRegions: targetRegionIds ? {
-                    set: targetRegionIds.map((id) => ({ id })),
-                } : undefined,
+
                 assignedTo: assignedUserIds ? {
                     set: assignedUserIds.map((id) => ({ id })),
                 } : undefined,
             },
             include: {
-                targetRegions: true,
                 assignedTo: true,
             },
         });

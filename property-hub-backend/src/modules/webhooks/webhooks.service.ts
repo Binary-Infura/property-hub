@@ -51,65 +51,38 @@ export class WebhooksService {
                 }
             }
 
-            // Check for duplicate lead (phone + regionId)
+            // Check for duplicate lead (phone)
             const existingLead = await this.prisma.lead.findFirst({
                 where: {
                     phone: dto.phone,
-                    regionId: dto.regionId,
                 },
             });
 
             if (existingLead) {
-                this.logger.warn(
-                    `Duplicate lead detected: phone=${dto.phone}, regionId=${dto.regionId}`,
-                );
                 throw new ConflictException({
                     success: false,
                     error: 'DUPLICATE_LEAD',
-                    message: 'Lead with this phone number already exists in the region',
+                    message: 'Lead with this phone number already exists',
                     existingLeadId: existingLead.id,
                 });
             }
 
-            // Verify region exists
-            const region = await this.prisma.region.findUnique({
-                where: { id: dto.regionId },
-                include: { managers: true },
-            });
-
-            if (!region) {
-                throw new NotFoundException({
-                    success: false,
-                    error: 'REGION_NOT_FOUND',
-                    message: `Region with ID ${dto.regionId} not found`,
-                });
-            }
-
-            // Auto-assign to first region manager
+            // Auto-assign logic could be added here based on other criteria
             let assignedTo: string | undefined;
-            if (region.managers && region.managers.length > 0) {
-                assignedTo = region.managers[0].id;
-                this.logger.log(
-                    `Auto-assigned lead to manager: ${assignedTo}`,
-                );
-            }
+
 
             // Create the lead
+            const { propertyId, campaignId, assignedTo: dtoAssignedTo, ...rest } = dto;
             const lead = await this.prisma.lead.create({
                 data: {
-                    name: dto.name,
-                    email: dto.email,
-                    phone: dto.phone,
-                    regionId: dto.regionId,
-                    propertyId: dto.propertyId,
+                    ...rest,
                     source: dto.source || 'webhook',
-                    campaignId: dto.campaignId,
-                    assignedTo,
-                    notes: dto.notes,
                     status: 'NEW',
+                    assignedToUser: (dtoAssignedTo || assignedTo) ? { connect: { id: dtoAssignedTo || assignedTo } } : undefined,
+                    property: propertyId ? { connect: { id: propertyId } } : undefined,
+                    campaign: campaignId ? { connect: { id: campaignId } } : undefined,
                 },
                 include: {
-                    region: true,
                     property: true,
                     campaign: true,
                 },
@@ -186,7 +159,7 @@ export class WebhooksService {
                         : lead.notes,
                 },
                 include: {
-                    region: true,
+
                     property: true,
                 },
             });

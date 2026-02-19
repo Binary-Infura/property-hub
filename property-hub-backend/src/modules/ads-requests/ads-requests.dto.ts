@@ -11,9 +11,6 @@ export class CreateAdsRequestDto {
     @IsString()
     description?: string;
 
-    @ApiProperty()
-    @IsString()
-    regionId: string;
 
     @ApiProperty({ required: false })
     @IsOptional()

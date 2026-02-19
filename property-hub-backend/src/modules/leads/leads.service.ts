@@ -10,16 +10,12 @@ export class LeadsService {
 
     async findAll(user: AuthenticatedUser): Promise<Lead[]> {
         const isCentralAuthority = user.roles.includes('central-authority');
-        const userRegions = user.groups.map(g => g.split('/').pop());
-
-        const where = isCentralAuthority
-            ? {}
-            : { regionId: { in: userRegions } };
+        const where = {};
 
         return this.prisma.lead.findMany({
             where,
             include: {
-                region: true,
+
                 property: true,
             },
             orderBy: {
@@ -32,7 +28,7 @@ export class LeadsService {
         const lead = await this.prisma.lead.findUnique({
             where: { id },
             include: {
-                region: true,
+
                 property: true,
                 visits: true,
             },
@@ -42,21 +38,27 @@ export class LeadsService {
             throw new NotFoundException(`Lead with ID ${id} not found`);
         }
 
-        const isCentralAuthority = user.roles.includes('central-authority');
+        // No regional check for now, can add city-based check if needed later
+        /*
         const userRegions = user.groups.map(g => g.split('/').pop());
 
         if (!isCentralAuthority && !userRegions.includes(lead.regionId)) {
             throw new NotFoundException(`Lead with ID ${id} not found`);
         }
+        */
 
         return lead;
     }
 
     async create(createLeadDto: CreateLeadDto): Promise<Lead> {
+        const { propertyId, assignedTo, ...rest } = createLeadDto;
         return this.prisma.lead.create({
-            data: createLeadDto,
+            data: {
+                ...rest,
+                assignedToUser: assignedTo ? { connect: { id: assignedTo } } : undefined,
+                property: propertyId ? { connect: { id: propertyId } } : undefined,
+            },
             include: {
-                region: true,
                 property: true,
             },
         });
@@ -64,12 +66,16 @@ export class LeadsService {
 
     async update(id: string, updateLeadDto: UpdateLeadDto, user: AuthenticatedUser): Promise<Lead> {
         await this.findOne(id, user);
+        const { propertyId, assignedTo, ...rest } = updateLeadDto;
 
         return this.prisma.lead.update({
             where: { id },
-            data: updateLeadDto,
+            data: {
+                ...rest,
+                assignedToUser: assignedTo ? { connect: { id: assignedTo } } : undefined,
+                property: propertyId ? { connect: { id: propertyId } } : undefined,
+            },
             include: {
-                region: true,
                 property: true,
             },
         });

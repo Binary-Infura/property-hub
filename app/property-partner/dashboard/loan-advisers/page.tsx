@@ -22,7 +22,7 @@ export default function LoanAdvisersPage() {
             const result = await userService.getAllByRole(
                 'loan-adviser',
                 token,
-                activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined,
+                undefined,
                 true // Always personal view
             );
             setAdvisers(result.data);
@@ -36,7 +36,7 @@ export default function LoanAdvisersPage() {
 
     useEffect(() => {
         fetchAdvisers();
-    }, [token, activeContext.activeRegion.code]);
+    }, [token]);
 
     if (!isPremium) {
         return <PremiumLockedOverlay title="Loan Advisers" description="Provide better financial support to your clients by managing loan advisers and tracking applications." />;
@@ -216,7 +216,6 @@ export default function LoanAdvisersPage() {
                                                 email,
                                                 phone,
                                                 role: 'loan-adviser',
-                                                regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : [],
                                             };
 
                                             await userService.create(payload, token);

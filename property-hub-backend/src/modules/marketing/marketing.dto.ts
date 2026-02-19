@@ -27,10 +27,6 @@ export class CreateCampaignDto {
     @IsDateString()
     endDate: string;
 
-    @ApiProperty({ type: [String] })
-    @IsArray()
-    @IsString({ each: true })
-    targetRegionIds: string[];
 
     @ApiProperty({ type: [String] })
     @IsArray()

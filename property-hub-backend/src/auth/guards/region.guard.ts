@@ -40,54 +40,6 @@ export class RegionGuard implements CanActivate {
             return false;
         }
 
-        // 1. Check for global region access or roles that don't use region context
-        const isGlobalRole = user.roles.some(role =>
-            ['central-authority', 'property-partner', 'buyer', 'consultant', 'loan-adviser', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'regional-manager', 'channel-partner', 'visit-executive', 'service-provider'].includes(role)
-        );
-        const regionGroup = `/regions/${regionSlug}`;
-
-        if (isGlobalRole || (regionSlug && user.groups.includes(regionGroup))) {
-            return true;
-        }
-
-        // 2. Check for city-level access (Onboarding Managers)
-        if (cityQuery) {
-            const citySlug = cityQuery.toLowerCase().replace(/\s+/g, '-');
-            const cityGroup = `/cities/${citySlug}`;
-            if (user.groups.includes(cityGroup)) {
-                return true;
-            }
-        }
-
-        if (!regionSlug || regionSlug === 'no-region') {
-            // Already checked cityQuery, if we are here and no regionSlug, we can't proceed
-            // unless we are CA, Partner or OM with a valid city group (already checked above)
-            if (isGlobalRole) return true;
-
-            // Re-check for internal city access just for the no-region case
-            if (cityQuery) {
-                const citySlug = cityQuery.toLowerCase().replace(/\s+/g, '-');
-                if (user.groups.includes(`/cities/${citySlug}`)) return true;
-            }
-
-            throw new ForbiddenException('Region context is required or access denied for city');
-        }
-
-        // 3. Check for city-level access for the regionSlug (Onboarding Managers)
-        const region = await this.prisma.region.findFirst({
-            where: { code: regionSlug },
-            include: { location: true }
-        });
-
-        if (region && region.location?.city) {
-            const citySlug = region.location.city.toLowerCase().replace(/\s+/g, '-');
-            const cityGroup = `/cities/${citySlug}`;
-
-            if (user.groups.includes(cityGroup)) {
-                return true;
-            }
-        }
-
-        throw new ForbiddenException(`User does not have access to region: ${regionSlug}`);
+        return true;
     }
 }

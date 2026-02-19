@@ -24,7 +24,9 @@ export class CreateWebhookLeadDto {
     phone: string;
 
     @IsUUID()
-    regionId: string;
+    @IsOptional()
+    assignedTo?: string;
+
 
     @IsUUID()
     @IsOptional()

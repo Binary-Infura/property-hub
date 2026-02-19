@@ -108,7 +108,6 @@ export class ChatService {
     async getMyChatSessions(userId: string): Promise<MyChatSessionDto[]> {
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
-            include: { regions: true },
         });
 
         if (!user) {
@@ -117,65 +116,26 @@ export class ChatService {
 
         let chatSessions;
 
-        // Regional managers can see all chats in their region
-        if (user.role === 'regional-manager') {
-            const regionIds = user.regions.map(r => r.id);
-
-            // Get all users in the manager's regions
-            const usersInRegion = await this.prisma.user.findMany({
-                where: {
-                    regions: {
-                        some: {
-                            id: { in: regionIds }
-                        }
+        // Regular users see only their own chats
+        chatSessions = await this.prisma.chatSession.findMany({
+            where: {
+                participants: {
+                    some: {
+                        userId: userId,
+                    },
+                },
+            },
+            include: {
+                participants: {
+                    include: {
+                        chatSession: true
                     }
                 },
-                select: { id: true }
-            });
-
-            const userIdsInRegion = usersInRegion.map(u => u.id);
-
-            chatSessions = await this.prisma.chatSession.findMany({
-                where: {
-                    participants: {
-                        some: {
-                            userId: { in: userIdsInRegion }
-                        }
-                    }
-                },
-                include: {
-                    participants: {
-                        include: {
-                            chatSession: true
-                        }
-                    },
-                },
-                orderBy: {
-                    updatedAt: 'desc',
-                },
-            });
-        } else {
-            // Regular users see only their own chats
-            chatSessions = await this.prisma.chatSession.findMany({
-                where: {
-                    participants: {
-                        some: {
-                            userId: userId,
-                        },
-                    },
-                },
-                include: {
-                    participants: {
-                        include: {
-                            chatSession: true
-                        }
-                    },
-                },
-                orderBy: {
-                    updatedAt: 'desc',
-                },
-            });
-        }
+            },
+            orderBy: {
+                updatedAt: 'desc',
+            },
+        });
 
         const result: MyChatSessionDto[] = [];
 

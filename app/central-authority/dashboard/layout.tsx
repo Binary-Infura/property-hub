@@ -17,8 +17,6 @@ function CentralAuthorityDashboardLayoutContent({
 
     const navigation = [
         { name: 'Dashboard', href: '/central-authority/dashboard', icon: '📊' },
-        { name: 'Regions', href: '/central-authority/dashboard/regions', icon: '🌍' },
-        { name: 'Region Allocation', href: '/central-authority/dashboard/region-allocation', icon: '🗺️' },
         { name: 'Consultants', href: '/central-authority/dashboard/consultants', icon: '👥' },
         { name: 'Loan Advisers', href: '/central-authority/dashboard/loan-advisers', icon: '💳' },
         { name: 'Visit Executives', href: '/central-authority/dashboard/visit-executives', icon: '🚗' },

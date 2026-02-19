@@ -10,15 +10,15 @@ export class AdsRequestsService {
         const where: any = {};
 
         // Marketing managers can see all requests
-        // Regional managers and property partners can only see their own
-        if (userRole === 'regional-manager' || userRole === 'property-partner') {
+        // Property partners can only see their own
+        if (userRole === 'property-partner') {
             where.requestedById = userId;
         }
 
         return this.prisma.adsRequest.findMany({
             where,
             include: {
-                region: true,
+
                 property: true,
                 requestedBy: {
                     select: {
@@ -40,7 +40,7 @@ export class AdsRequestsService {
         const request = await this.prisma.adsRequest.findUnique({
             where: { id },
             include: {
-                region: true,
+
                 property: true,
                 requestedBy: {
                     select: {
@@ -75,7 +75,7 @@ export class AdsRequestsService {
                 requestedById: userId,
             },
             include: {
-                region: true,
+
                 property: true,
                 requestedBy: {
                     select: {
@@ -110,7 +110,7 @@ export class AdsRequestsService {
             where: { id },
             data: dto,
             include: {
-                region: true,
+
                 property: true,
                 requestedBy: {
                     select: {

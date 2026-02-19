@@ -87,7 +87,7 @@ export class CentralAuthorityService {
             userStats,
             recentRegions
         ] = await Promise.all([
-            this.prisma.region.count(),
+            Promise.resolve(0), // Removed totalRegions
             this.prisma.postalCode.count(),
             this.prisma.property.groupBy({
                 by: ['status'],
@@ -101,27 +101,7 @@ export class CentralAuthorityService {
                     _all: true
                 }
             }),
-            this.prisma.region.findMany({
-                take: 5,
-                orderBy: {
-                    createdAt: 'desc'
-                },
-                include: {
-                    managers: {
-                        take: 2,
-                        select: {
-                            firstName: true,
-                            lastName: true
-                        }
-                    },
-                    _count: {
-                        select: {
-                            properties: true,
-                            leads: true
-                        }
-                    }
-                }
-            })
+            [] // Removed recentRegions
         ]);
 
         // Process property stats
@@ -145,18 +125,14 @@ export class CentralAuthorityService {
         ];
 
         return {
-            totalRegions,
+            totalRegions: 0, // Placeholder
+
             totalPostalCodes,
             properties,
             users,
             leads: { monthly: 0 }, // Placeholder for now
-            regions: recentRegions.map(r => ({
-                id: r.id,
-                name: r.name,
-                managers: r.managers.map(m => `${m.firstName} ${m.lastName || ''}`.trim()),
-                propertiesCount: r._count.properties,
-                leadsGenerated: r._count.leads
-            })),
+            regions: [],
+
             recentActivity
         };
     }

@@ -64,8 +64,7 @@ export class UsersService {
     async inviteCentralAuthorityUser(dto: InviteCentralAuthorityDto): Promise<InvitationResponse> {
         return this.inviteUser({
             ...dto,
-            role: 'central-authority' as any,
-            regions: {}
+            role: 'central-authority',
         });
     }
 
@@ -173,15 +172,6 @@ export class UsersService {
     // --- User Management Methods (Admin/Manager) ---
 
     async createUser(dto: CreateUserDto, user?: AuthenticatedUser): Promise<User> {
-        // 1. Validate regions if provided
-        if (dto.regionIds && dto.regionIds.length > 0) {
-            const count = await this.prisma.region.count({
-                where: { id: { in: dto.regionIds } }
-            });
-            if (count !== dto.regionIds.length) {
-                throw new BadRequestException('One or more regions are invalid');
-            }
-        }
 
         // 2. Prepare for Keycloak
         const firstName = dto.firstName;
@@ -191,15 +181,6 @@ export class UsersService {
             throw new BadRequestException('firstName must be provided');
         }
 
-        // Get region codes for group mapping
-        const regions = dto.regionIds ? await this.prisma.region.findMany({
-            where: { id: { in: dto.regionIds } }
-        }) : [];
-
-        const regionRoles: any = {};
-        regions.forEach(r => {
-            regionRoles[r.code] = { roles: [dto.role] };
-        });
 
         // 3. Hash password and prepare user
         const passwordHash = await this.hashPassword(dto.password || 'password');
@@ -228,13 +209,7 @@ export class UsersService {
                 reraId: dto.reraId,
                 rating: dto.rating,
                 onboardedById,
-                regions: dto.regionIds ? {
-                    connect: dto.regionIds.map(id => ({ id }))
-                } : undefined
             },
-            include: {
-                regions: true
-            }
         });
 
         // 6. Create relevant profile based on role
@@ -279,11 +254,6 @@ export class UsersService {
         const skip = (page - 1) * limit;
         const where: any = { role };
 
-        if (regionSlug) {
-            where.regions = {
-                some: { code: regionSlug }
-            };
-        }
 
         if (myOnly && user) {
             const internalUser = await this.prisma.user.findUnique({
@@ -298,7 +268,7 @@ export class UsersService {
             this.prisma.user.findMany({
                 where,
                 include: {
-                    regions: true,
+
                     onboardedBy: {
                         select: {
                             firstName: true,
@@ -340,7 +310,7 @@ export class UsersService {
     async findOne(id: string): Promise<User> {
         const user = await this.prisma.user.findUnique({
             where: { id },
-            include: { regions: true }
+
         });
         if (!user) throw new NotFoundException('User not found');
         return user;
@@ -359,11 +329,6 @@ export class UsersService {
             rating: dto.rating
         };
 
-        if (dto.regionIds) {
-            data.regions = {
-                set: dto.regionIds.map(id => ({ id }))
-            };
-        }
 
         if (existingUser.role === 'property-partner') {
             const profileData: any = {};
@@ -414,7 +379,7 @@ export class UsersService {
         return this.prisma.user.update({
             where: { id },
             data,
-            include: { regions: true }
+
         });
     }
 
@@ -424,7 +389,7 @@ export class UsersService {
         return this.prisma.user.update({
             where: { id },
             data: { status: newStatus },
-            include: { regions: true }
+
         });
     }
 

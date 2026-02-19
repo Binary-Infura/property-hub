@@ -11,19 +11,10 @@ export default function UnifiedContextSwitcher() {
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
-    // Calculate display name and role
     const firstName = user?.given_name || user?.firstName || '';
     const lastName = user?.family_name || user?.lastName || '';
     const displayName = firstName || lastName ? `${firstName} ${lastName}`.trim() : (user?.name || 'User');
-    const isCentralAuthority = roles.includes('central-authority');
     const activeRoleName = activeContext.activeRole.name;
-    const isCityBased = activeContext.activeRole.id === 'onboarding-manager' || activeContext.activeRole.id === 'marketing-manager';
-    const isNoAllocation = activeContext.activeRegion.id === 'no-region';
-    const activeRegionName = isCityBased
-        ? (isNoAllocation ? 'No City Allocated' : (activeContext.activeRegion.city || activeContext.activeRegion.name))
-        : activeContext.activeRegion.name;
-
-    // Avatar URL - use user's name for a better fallback
     const avatarUrl = user ? `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0D8ABC&color=fff` : currentUser.avatar;
 
     // Close dropdown on click outside
@@ -39,35 +30,8 @@ export default function UnifiedContextSwitcher() {
         };
     }, []);
 
-    // Selection State (local state for the dropdown before confirming switch)
-    const [selectedRegionId, setSelectedRegionId] = useState<string>(activeContext.activeRegion.id);
-
-    // Sync local state when dropdown opens
-    useEffect(() => {
-        if (isOpen) {
-            setSelectedRegionId(activeContext.activeRegion.id);
-        }
-    }, [isOpen, activeContext]);
-
     // Check for restricted roles
-    const hasCAAccess = currentUser.availableRoles.some(r => r.id === 'central-authority');
-    const isBuyer = activeContext.activeRole.id === 'buyer';
-    const isPropertyPartner = activeContext.activeRole.id === 'property-partner';
     const isRestricted = true; // Region switching is removed
-
-    const selectedRegion = currentUser.availableRegions.find(r => r.id === selectedRegionId);
-
-    const handleSwitch = () => {
-        // Implementation remains for role switching if needed, 
-        // but since we only have one region now, this is mostly dormant.
-        if (selectedRegion) {
-            switchContext(selectedRegion.id, activeContext.activeRole.id);
-            setIsOpen(false);
-        }
-    };
-
-    // Helper to get selected region details for display
-    const currentRegionDisplay = currentUser.availableRegions.find(r => r.id === selectedRegionId) || activeContext.activeRegion;
 
     return (
         <div className="relative" ref={dropdownRef}>

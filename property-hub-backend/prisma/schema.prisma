@@ -7,28 +7,6 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Region {
-  id     String  @id @default(uuid())
-  code   String  @unique
-  name   String
-  active Boolean @default(true)
-
-  tags        String[]
-  description String?
-  createdAt   DateTime            @default(now())
-  updatedAt   DateTime            @updatedAt
-  locationId  String?
-  leads       Lead[]
-  properties  Property[]
-  location    Location?           @relation(fields: [locationId], references: [id])
-  managers    User[]              @relation("RegionToUser")
-  campaigns   MarketingCampaign[] @relation("CampaignToRegion")
-  adsRequests AdsRequest[]
-  postalCodes PostalCode[]
-
-  @@index([locationId])
-  @@map("regions")
-}
 
 model Property {
   id            String         @id @default(uuid())
@@ -37,7 +15,7 @@ model Property {
   location      String
   address       String?
   videoUrl      String?
-  regionId      String?
+
   status        PropertyStatus @default(AVAILABLE)
   price         Decimal        @db.Decimal(15, 2)
   area          Decimal?       @db.Decimal(10, 2)
@@ -54,12 +32,12 @@ model Property {
   leads         Lead[]
   locationRel   Location?      @relation(fields: [locationId], references: [id])
   onboardedBy   User?          @relation("UserOnboardedProperties", fields: [onboardedById], references: [id])
-  region        Region?        @relation(fields: [regionId], references: [id])
+
   postalCodeId  String?
   postalCode    PostalCode?    @relation("PropertyPostalCode", fields: [postalCodeId], references: [id])
   adsRequests   AdsRequest[]
 
-  @@index([regionId])
+
   @@index([locationId])
   @@index([postalCodeId])
   @@index([status])
@@ -72,21 +50,22 @@ model Lead {
   name       String
   email      String?
   phone      String
-  regionId   String
+
   propertyId String?
   status     LeadStatus         @default(NEW)
   source     String?
-  assignedTo String?
+  assignedTo   String?
   notes      String?
   createdAt  DateTime           @default(now())
   updatedAt  DateTime           @updatedAt
   campaignId String?
   campaign   MarketingCampaign? @relation(fields: [campaignId], references: [id])
   property   Property?          @relation(fields: [propertyId], references: [id])
-  region     Region             @relation(fields: [regionId], references: [id])
+  assignedToUser User?          @relation("LeadAssignee", fields: [assignedTo], references: [id])
+
   visits     Visit[]
 
-  @@index([regionId])
+
   @@index([status])
   @@index([assignedTo])
   @@map("leads")
@@ -159,26 +138,28 @@ model User {
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
   agencyName          String?
-  metadata            Json?
   rating              Float?
   reraId              String?
   visitsConducted     Int?                @default(0)
   onboardedById       String?
-  onboardedProperties Property[]          @relation("UserOnboardedProperties")
   onboardedBy         User?               @relation("UserOnboardedUsers", fields: [onboardedById], references: [id])
   onboardedUsers      User[]              @relation("UserOnboardedUsers")
-  regions             Region[]            @relation("RegionToUser")
-  campaigns           MarketingCampaign[] @relation("CampaignToUser")
+  propertiesOnboarded Property[]          @relation("UserOnboardedProperties")
+
+  // Profile Relations
+  centralAuthorityProfile   CentralAuthorityProfile?
+  propertyPartnerProfile    PropertyPartnerProfile?
+  dsaProfile                DsaProfile?
+  commissionManagerProfile  CommissionManagerProfile?
+  marketingManagerProfile   MarketingManagerProfile?
+  consultantProfile         ConsultantProfile?
+  buyerProfile              BuyerProfile?
+  serviceProviderProfile    ServiceProviderProfile?
+  influencerProfile         InfluencerProfile?
+
+  leads               Lead[]              @relation("LeadAssignee")
+  campaignsAssigned   MarketingCampaign[] @relation("CampaignToUser")
   adsRequests         AdsRequest[]
-  influencerProfile        InfluencerProfile?
-  centralAuthorityProfile  CentralAuthorityProfile?
-  propertyPartnerProfile   PropertyPartnerProfile?
-  dsaProfile               DsaProfile?
-  commissionManagerProfile CommissionManagerProfile?
-  marketingManagerProfile  MarketingManagerProfile?
-  consultantProfile        ConsultantProfile?
-  buyerProfile             BuyerProfile?
-  serviceProviderProfile   ServiceProviderProfile?
 
   @@map("users")
 }
@@ -243,7 +224,7 @@ model Location {
   state      String
   city       String
   properties Property[]
-  regions    Region[]
+
 
   @@unique([continent, country, state, city])
   @@map("locations")
@@ -408,7 +389,7 @@ model MarketingCampaign {
   spent         Decimal  @default(0) @db.Decimal(15, 2)
   startDate     DateTime
   endDate       DateTime
-  targetRegions Region[] @relation("CampaignToRegion")
+
   assignedTo    User[]   @relation("CampaignToUser")
 
   // Performance metrics
@@ -430,11 +411,11 @@ model AdsRequest {
   description   String?
   status        String  @default("PENDING") // PENDING, APPROVED, REJECTED, COMPLETED
   priority      String  @default("MEDIUM") // LOW, MEDIUM, HIGH
-  regionId      String
+
   propertyId    String?
   requestedById String
 
-  region      Region    @relation(fields: [regionId], references: [id])
+
   property    Property? @relation(fields: [propertyId], references: [id])
   requestedBy User      @relation(fields: [requestedById], references: [id])
 
@@ -482,15 +463,14 @@ model PostalCode {
   state     String?
   country   String?
 
-  regionId   String?
-  region     Region?    @relation(fields: [regionId], references: [id])
+
   properties Property[] @relation("PropertyPostalCode")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
   @@index([code])
-  @@index([regionId])
+
   @@index([district])
   @@map("postal_codes")
 }

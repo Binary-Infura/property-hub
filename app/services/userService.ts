@@ -29,7 +29,6 @@ export interface User {
 export const userService = {
     async getAllByRole(role: string, token: string, regionSlug?: string, myOnly: boolean = false, page: number = 1, limit: number = 10): Promise<{ data: User[], total: number }> {
         const params = new URLSearchParams();
-        if (regionSlug) params.append('region', regionSlug);
         if (myOnly) params.append('myOnly', 'true');
         params.append('page', page.toString());
         params.append('limit', limit.toString());

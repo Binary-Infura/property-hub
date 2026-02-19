@@ -28,7 +28,7 @@ const CHAT_PERMISSION_RULES: Record<string, ChatPermissionRule> = {
     },
     'regional-manager': {
         canChatWith: ['buyer', 'consultant', 'property-partner', 'channel-partner', 'marketing-manager', 'commission-manager'],
-        canViewChatsOf: 'all-in-region'
+        canViewChatsOf: 'self'
     },
     'property-partner': {
         canChatWith: ['buyer', 'regional-manager'],
@@ -89,8 +89,7 @@ export class ChatPermissionsService {
     async canAccessChatSession(userId: string, chatSessionId: string): Promise<boolean> {
         try {
             const user = await this.prisma.user.findUnique({
-                where: { id: userId },
-                include: { regions: true }
+                where: { id: userId }
             });
 
             if (!user) {
@@ -118,29 +117,7 @@ export class ChatPermissionsService {
                 return true;
             }
 
-            // Check regional manager override
-            if (user.role === 'regional-manager') {
-                // Get all participant user IDs
-                const participantUserIds = chatSession.participants.map(p => p.userId);
 
-                // Get all participants
-                const participants = await this.prisma.user.findMany({
-                    where: { id: { in: participantUserIds } },
-                    include: { regions: true }
-                });
-
-                // Check if all participants are in the regional manager's regions
-                const managerRegionIds = user.regions.map(r => r.id);
-                const allParticipantsInRegion = participants.every(participant => {
-                    const participantRegionIds = participant.regions.map(r => r.id);
-                    return participantRegionIds.some(id => managerRegionIds.includes(id));
-                });
-
-                if (allParticipantsInRegion) {
-                    this.logger.log(`Regional manager ${userId} granted access to chat ${chatSessionId}`);
-                    return true;
-                }
-            }
 
             return false;
         } catch (error) {

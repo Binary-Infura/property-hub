@@ -22,7 +22,7 @@ export default function VisitExecutivesPage() {
             const result = await userService.getAllByRole(
                 'visit-executive',
                 token,
-                activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined,
+                undefined,
                 true // Always personal view
             );
             setExecutives(result.data);
@@ -36,7 +36,7 @@ export default function VisitExecutivesPage() {
 
     useEffect(() => {
         fetchExecutives();
-    }, [token, activeContext.activeRegion.code]);
+    }, [token]);
 
     if (!isPremium) {
         return <PremiumLockedOverlay title="Visit Executives" description="Coordinate site visits seamlessly by managing your field executives with our premium tools." />;
@@ -217,7 +217,6 @@ export default function VisitExecutivesPage() {
                                                 email,
                                                 phone,
                                                 role: 'visit-executive',
-                                                regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : [],
                                             };
 
                                             await userService.create(payload, token);

@@ -86,17 +86,6 @@ export default function CentralAuthorityDashboardPage() {
 
             {/* Global Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Link href="/central-authority/dashboard/regions" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-blue-300 transition-all hover:shadow-md group">
-                    <h3 className="text-sm font-medium text-gray-500 group-hover:text-blue-600 transition-colors">Total Regions</h3>
-                    <p className="text-3xl font-bold text-slate-900 mt-2">{stats.totalRegions}</p>
-                    <p className="text-xs text-green-600 mt-1">Active across the globe</p>
-                    <div className="mt-4 text-xs font-semibold text-blue-600 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        Manage Regions
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                    </div>
-                </Link>
 
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
                     <h3 className="text-sm font-medium text-gray-500">Total Properties</h3>
@@ -140,63 +129,6 @@ export default function CentralAuthorityDashboardPage() {
                 </Link>
             </div>
 
-            {/* Regional Performance */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-                    <h2 className="text-lg font-semibold text-gray-900">Regional Performance</h2>
-                    <Link href="/central-authority/dashboard/regions" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
-                        View All
-                    </Link>
-                </div>
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left text-sm text-gray-600">
-                        <thead className="bg-[#F8FAFC] text-gray-400 font-bold text-[10px] uppercase tracking-[0.1em] border-b border-gray-100">
-                            <tr>
-                                <th className="px-6 py-4">Region Name</th>
-                                <th className="px-6 py-4">Managers</th>
-                                <th className="px-6 py-4 text-center">Properties</th>
-                                <th className="px-6 py-4 text-center">Leads</th>
-                                <th className="px-6 py-4 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {stats.regions.length === 0 ? (
-                                <tr>
-                                    <td colSpan={5} className="px-6 py-10 text-center text-gray-400 italic">
-                                        No regional data available yet.
-                                    </td>
-                                </tr>
-                            ) : (
-                                stats.regions.map((region) => (
-                                    <tr key={region.id} className="hover:bg-gray-50 transition border-b border-gray-50 last:border-0">
-                                        <td className="px-6 py-4 font-semibold text-gray-900">{region.name}</td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex flex-wrap gap-1">
-                                                {region.managers.length > 0 ? (
-                                                    region.managers.map((m, i) => (
-                                                        <span key={i} className="px-2 py-0.5 bg-gray-100 text-gray-700 text-[10px] font-medium rounded">
-                                                            {m}
-                                                        </span>
-                                                    ))
-                                                ) : (
-                                                    <span className="text-gray-300 italic text-[10px]">Unassigned</span>
-                                                )}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4 text-center font-medium text-gray-900">{region.propertiesCount}</td>
-                                        <td className="px-6 py-4 text-center font-medium text-gray-900">{region.leadsGenerated}</td>
-                                        <td className="px-6 py-4 text-right">
-                                            <Link href={`/central-authority/dashboard/regions`} className="text-blue-600 hover:underline text-xs font-bold uppercase tracking-tighter transition-all hover:text-blue-800">
-                                                Manage
-                                            </Link>
-                                        </td>
-                                    </tr>
-                                ))
-                            )}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
 
             {/* City Allocation & Recent Activity Feed */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

@@ -19,23 +19,10 @@ export class PropertiesService {
             ['central-authority', 'property-partner', 'buyer', 'consultant', 'loan-adviser', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'regional-manager', 'channel-partner', 'visit-executive', 'service-provider'].includes(role)
         ) || false;
 
-        // Check if user has access to the requested region or city
-        if (user && !isGlobalRole) {
-            let hasAccess = (user.groups || []).some(g => g.endsWith(`/${regionCode}`));
-
-            if (!hasAccess && city) {
-                const citySlug = city.toLowerCase().replace(/\s+/g, '-');
-                hasAccess = (user.groups || []).some(g => g.endsWith(`/${citySlug}`));
-            }
-
-            if (!hasAccess && regionCode !== 'no-region') {
-                const region = await this.prisma.region.findUnique({
-                    where: { code: regionCode },
-                    include: { location: true },
-                });
-                const citySlug = region?.location?.city?.toLowerCase().replace(/\s+/g, '-');
-                hasAccess = citySlug && (user.groups || []).some(g => g.endsWith(`/${citySlug}`));
-            }
+        // Check if user has access to the requested city
+        if (user && !isGlobalRole && city) {
+            const citySlug = city.toLowerCase().replace(/\s+/g, '-');
+            const hasAccess = (user.groups || []).some(g => g.endsWith(`/${citySlug}`));
 
             if (!hasAccess) {
                 return []; // Access denied
@@ -51,8 +38,6 @@ export class PropertiesService {
                 { address: { contains: city, mode: 'insensitive' } },
                 { locationRel: { city: { contains: city, mode: 'insensitive' } } }
             ];
-        } else if (regionCode !== 'all') {
-            where.region = { code: regionCode };
         }
 
         if (myOnly) {
@@ -63,7 +48,7 @@ export class PropertiesService {
         const results = await this.prisma.property.findMany({
             where,
             include: {
-                region: true,
+
                 onboardedBy: true,
                 locationRel: true,
             },
@@ -79,7 +64,7 @@ export class PropertiesService {
         const property = await this.prisma.property.findUnique({
             where: { id },
             include: {
-                region: true,
+
                 commissions: true,
                 locationRel: true,
             },
@@ -97,12 +82,11 @@ export class PropertiesService {
             const internalUser = await this.usersService.ensureUserSynced(user);
             const isOwner = property.onboardedById === internalUser.id;
 
-            // Check region/city access (skip if owner or central authority)
+            // Check city access (skip if owner or central authority)
             if (!isCentralAuthority && !isOwner) {
-                const hasRegionAccess = property.region && userRegions.includes(property.region.code);
                 const hasLocationCityAccess = property.locationRel?.city && userRegions.some(g => g.toLowerCase() === property.locationRel.city.toLowerCase());
 
-                if (!hasRegionAccess && !hasLocationCityAccess) {
+                if (!hasLocationCityAccess) {
                     throw new NotFoundException(`Property with ID ${id} not found`);
                 }
             }
@@ -147,7 +131,7 @@ export class PropertiesService {
 
         const locationId = await this.resolveLocationId(createPropertyDto);
 
-        const { regionId, continent, country, state, city, locationId: _, ...rest } = createPropertyDto;
+        const { continent, country, state, city, locationId: _, ...rest } = createPropertyDto;
 
         const data: any = {
             ...rest,
@@ -156,14 +140,12 @@ export class PropertiesService {
             locationId,
         };
 
-        if (regionId) {
-            data.regionId = regionId;
-        }
+
 
         return this.prisma.property.create({
             data,
             include: {
-                region: true,
+
                 locationRel: true,
             },
         });
@@ -186,7 +168,7 @@ export class PropertiesService {
             where: { id },
             data,
             include: {
-                region: true,
+
                 locationRel: true,
             },
         });

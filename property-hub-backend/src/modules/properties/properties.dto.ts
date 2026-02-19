@@ -20,9 +20,6 @@ export class CreatePropertyDto {
     @IsOptional()
     address?: string;
 
-    @IsUUID()
-    @IsOptional()
-    regionId?: string;
 
     @IsEnum(PropertyStatus)
     @IsOptional()

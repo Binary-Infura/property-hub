@@ -38,7 +38,7 @@ export const propertyService = {
             headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/${regionSlug}/properties${query}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/properties${query}`, {
             headers,
         });
         if (!response.ok) {
@@ -54,7 +54,7 @@ export const propertyService = {
             headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/${regionSlug}/properties/${id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/properties/${id}`, {
             headers,
         });
         if (!response.ok) {
@@ -64,7 +64,7 @@ export const propertyService = {
     },
 
     async create(data: Partial<Property>, token: string, regionSlug: string): Promise<Property> {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/${regionSlug}/properties`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/properties`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,

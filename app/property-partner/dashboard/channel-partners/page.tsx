@@ -22,7 +22,7 @@ export default function ChannelPartnersPage() {
             const result = await userService.getAllByRole(
                 'channel-partner',
                 token,
-                activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined,
+                undefined,
                 true // Always personal view
             );
             setPartners(result.data);
@@ -36,7 +36,7 @@ export default function ChannelPartnersPage() {
 
     useEffect(() => {
         fetchPartners();
-    }, [token, activeContext.activeRegion.code]);
+    }, [token]);
 
     if (!isPremium) {
         return <PremiumLockedOverlay title="Channel Partners" description="Expand your reach by managing your network of channel partners and agencies effectively." />;
@@ -216,7 +216,6 @@ export default function ChannelPartnersPage() {
                                                 email,
                                                 phone,
                                                 role: 'channel-partner',
-                                                regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : [],
                                             };
 
                                             await userService.create(payload, token);

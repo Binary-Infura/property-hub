@@ -14,7 +14,6 @@ export class AuthService {
     async validateUser(email: string, pass: string): Promise<any> {
         const user = await this.prisma.user.findUnique({
             where: { email },
-            include: { regions: true },
         });
 
         if (user && user.passwordHash) {
@@ -43,7 +42,7 @@ export class AuthService {
             family_name: user.lastName,
             preferred_username: user.email,
             roles: [user.role],
-            groups: user.regions ? user.regions.map((r: any) => `/regions/${r.code}`) : [],
+            groups: [],
         };
 
         return {

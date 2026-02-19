@@ -82,7 +82,6 @@ export class BuyersService {
             email: dto.email,
             phone: dto.phone,
             role: 'buyer',
-            regionIds: [] // Buyers might not be tied to a region initially or we use location preference
         });
 
         // 3. Create Buyer Profile
