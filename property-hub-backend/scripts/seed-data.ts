@@ -84,67 +84,8 @@ async function main() {
     });
 
 
-    // 4. Regional Managers
-    console.log('Creating Regional Managers...');
-    // Map specific Keycloak emails to regions
-    const rmEmails = [
-        'regional@propertyhub.com', // Maps to Mumbai South
-        'rm.pune@propertyhub.com',  // Maps to Pune West
-        'rm.bangalore@propertyhub.com', // Maps to Bangalore North
-        'rm.delhi@propertyhub.com' // Maps to Delhi NCR
-    ];
-
-    for (let i = 0; i < createdRegions.length; i++) {
-        const region = createdRegions[i];
-        const email = rmEmails[i] || `rm.${region.code.toLowerCase()}@propertyhub.com`;
-
-        // Check if user exists by email to avoid overwriting if already synced
-        const existing = await prisma.user.findUnique({ where: { email } });
-        if (existing) {
-            console.log(`User ${email} already exists, updating regions...`);
-            await prisma.user.update({
-                where: { email },
-                data: {
-                    role: 'regional-manager',
-                    regions: { connect: { id: region.id } },
-                    passwordHash,
-                }
-            });
-            await prisma.regionalManagerProfile.upsert({
-                where: { userId: existing.id },
-                update: {},
-                create: {
-                    userId: existing.id,
-                    territory: region.name,
-                    kpiTargets: { targets: { sales: 1000000 } }
-                }
-            });
-            continue;
-        }
-
-        const user = await prisma.user.create({
-            data: {
-                email,
-                firstName: `RM`,
-                lastName: `${region.name}`,
-                role: 'regional-manager',
-                keycloakId: uuidv4(),
-                status: 'active',
-                passwordHash,
-                regions: {
-                    connect: { id: region.id }
-                }
-            },
-        });
-
-        await prisma.regionalManagerProfile.create({
-            data: {
-                userId: user.id,
-                territory: region.name,
-                kpiTargets: { targets: { sales: 1000000 } }
-            }
-        });
-    }
+    // 4. Regional Managers (REMOVED)
+    console.log('Skipping Regional Managers...');
 
     // 5. Property Partner
     console.log('Creating Property Partner...');
@@ -363,29 +304,29 @@ async function main() {
         }
     });
 
-    // 12. Channel Partner
-    console.log('Creating Channel Partner...');
+    // 12. DSA
+    console.log('Creating DSA...');
     const cpEmail = 'cp@test.com';
     const cpUser = await prisma.user.upsert({
         where: { email: cpEmail },
         update: {},
         create: {
             email: cpEmail,
-            firstName: 'Channel',
-            lastName: 'Partner',
-            role: 'channel-partner',
+            firstName: 'Direct Selling',
+            lastName: 'Agent',
+            role: 'dsa',
             keycloakId: uuidv4(),
             status: 'active',
             passwordHash,
         }
     });
 
-    await prisma.channelPartnerProfile.upsert({
+    await (prisma as any).dsaProfile.upsert({
         where: { userId: cpUser.id },
         update: {},
         create: {
             userId: cpUser.id,
-            agencyBusinessName: 'Top Channel Agency',
+            agencyBusinessName: 'Top DSA Agency',
             reraNumber: 'RERA12345',
             officeAddress: '456 Business Blvd, Mumbai'
         }

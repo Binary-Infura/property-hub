@@ -7,13 +7,11 @@ import { useAuth } from './AuthContext';
 // --- Types ---
 export type RoleId =
     | 'central-authority'
-    | 'regional-manager'
+    | 'dsa'
     | 'marketing-manager'
-
     | 'commission-manager'
     | 'onboarding-manager'
     | 'property-partner'
-    | 'channel-partner'
     | 'consultant'
     | 'loan-adviser'
     | 'visit-executive'
@@ -60,18 +58,11 @@ const KNOWN_ROLES: UserRole[] = [
         dashboardUrl: '/central-authority/dashboard'
     },
     {
-        id: 'regional-manager',
-        name: 'Regional Manager',
-        permissionHint: 'Full access to selected region',
-        dashboardUrl: '/regional-manager/dashboard'
-    },
-    {
         id: 'marketing-manager',
         name: 'Marketing Manager',
         permissionHint: 'Manage campaigns & leads for region',
         dashboardUrl: '/marketing-manager/dashboard'
     },
-
     {
         id: 'commission-manager',
         name: 'Commission Manager',
@@ -91,10 +82,10 @@ const KNOWN_ROLES: UserRole[] = [
         dashboardUrl: '/property-partner/dashboard'
     },
     {
-        id: 'channel-partner',
-        name: 'Channel Partner',
-        permissionHint: 'Referral and lead management',
-        dashboardUrl: '/channel-partner/dashboard'
+        id: 'dsa',
+        name: 'DSA (Direct Selling Agent)',
+        permissionHint: 'Referral, lead management and property creation',
+        dashboardUrl: '/dsa/dashboard'
     },
     {
         id: 'consultant',
@@ -173,7 +164,7 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
                     roles.includes(knownRole.id)
                 );
                 isGlobal = roles.some(role =>
-                    ['central-authority', 'buyer', 'property-partner'].includes(role)
+                    ['central-authority', 'buyer', 'property-partner', 'consultant', 'loan-adviser', 'visit-executive', 'dsa'].includes(role)
                 );
             } else {
                 // Guests are treated as buyers for discovery purposes

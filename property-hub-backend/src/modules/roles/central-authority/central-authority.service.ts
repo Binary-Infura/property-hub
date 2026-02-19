@@ -136,7 +136,7 @@ export class CentralAuthorityService {
             total: userStats.reduce((sum, item) => sum + item._count._all, 0),
             partners: userStats.find(i => i.role === 'property-partner')?._count._all || 0,
             consultants: userStats.find(i => i.role === 'consultant')?._count._all || 0,
-            channelPartners: userStats.find(i => i.role === 'channel-partner')?._count._all || 0
+            channelPartners: userStats.find(i => i.role === 'dsa')?._count._all || 0
         };
 
         // Simplified recent activity (replace with actual audit logs if available later)

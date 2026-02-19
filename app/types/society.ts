@@ -13,7 +13,7 @@ export type HandoverStatus = 'builder-managed' | 'transitioning' | 'fully-handed
 export type MemberType = 'owner' | 'tenant';
 
 // Role types in society
-export type SocietyRoleType = 'regional-manager' | 'manager' | 'supervisor' | 'member' | 'admin';
+export type SocietyRoleType = 'manager' | 'supervisor' | 'member' | 'admin';
 
 /**
  * Tower/Wing structure within a society
@@ -142,9 +142,9 @@ export interface SocietyFormData {
     amenities: string[];
 
     // Step 3: Roles
-    regionalManagerName: string;
-    regionalManagerEmail: string;
-    regionalManagerMobile: string;
+    dsaName: string;
+    dsaEmail: string;
+    dsaMobile: string;
     managerName?: string;
     managerEmail?: string;
     managerMobile?: string;

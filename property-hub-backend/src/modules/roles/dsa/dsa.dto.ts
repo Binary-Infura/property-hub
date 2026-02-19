@@ -1,6 +1,6 @@
 import { IsString, IsOptional } from 'class-validator';
 
-export class UpdateChannelPartnerProfileDto {
+export class UpdateDsaProfileDto {
     @IsString()
     @IsOptional()
     agencyBusinessName?: string;

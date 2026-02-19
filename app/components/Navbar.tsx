@@ -12,14 +12,13 @@ export default function Navbar() {
         // Preference order for redirection
         const priorityRoles: (keyof typeof DASHBOARD_ROUTES)[] = [
             'central-authority',
-            'regional-manager',
+            'dsa',
             'consultant',
             'property-partner',
             'marketing-manager',
             'onboarding-manager',
             'loan-adviser',
             'commission-manager',
-            'channel-partner',
             'visit-executive',
             'buyer'
         ];

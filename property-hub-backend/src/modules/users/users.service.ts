@@ -151,8 +151,8 @@ export class UsersService {
                 ? 'central-authority'
                 : authenticatedUser.roles.includes('onboarding-manager')
                     ? 'onboarding-manager'
-                    : authenticatedUser.roles.includes('regional-manager')
-                        ? 'regional-manager'
+                    : authenticatedUser.roles.includes('dsa')
+                        ? 'dsa'
                         : 'unknown';
 
             user = await this.prisma.user.create({
@@ -451,11 +451,8 @@ export class UsersService {
                 case UserRole.PROPERTY_PARTNER:
                     profileData = await this.prisma.propertyPartnerProfile.findUnique({ where: { userId: internalId } });
                     break;
-                case UserRole.CHANNEL_PARTNER:
-                    profileData = await this.prisma.channelPartnerProfile.findUnique({ where: { userId: internalId } });
-                    break;
-                case UserRole.REGIONAL_MANAGER:
-                    profileData = await this.prisma.regionalManagerProfile.findUnique({ where: { userId: internalId } });
+                case UserRole.DSA:
+                    profileData = await this.prisma.dsaProfile.findUnique({ where: { userId: internalId } });
                     break;
                 case UserRole.COMMISSION_MANAGER:
                     profileData = await this.prisma.commissionManagerProfile.findUnique({ where: { userId: internalId } });

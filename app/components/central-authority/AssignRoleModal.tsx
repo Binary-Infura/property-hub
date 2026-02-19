@@ -33,7 +33,7 @@ interface Region {
 
 export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRole, fixedRole, isCityContext }: AssignRoleModalProps) {
     const { token } = useAuth();
-    const [role, setRole] = useState<RoleId>(initialRole || 'regional-manager');
+    const [role, setRole] = useState<RoleId>(initialRole || 'dsa');
     const [selectedUserId, setSelectedUserId] = useState('');
     const [selectedRegionIds, setSelectedRegionIds] = useState<string[]>([]);
     const [users, setUsers] = useState<User[]>([]);
@@ -51,7 +51,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
     const ALL_ROLES: RoleId[] = [
-        'regional-manager',
+        'dsa',
         'marketing-manager',
         'commission-manager',
         'onboarding-manager',
@@ -210,7 +210,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
     };
 
     const resetForm = () => {
-        setRole(initialRole || 'regional-manager');
+        setRole(initialRole || 'dsa');
         setSelectedUserId('');
         setSelectedRegionIds([]);
         setUserSearch('');

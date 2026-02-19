@@ -53,11 +53,13 @@ export default function UnifiedContextSwitcher() {
     const hasCAAccess = currentUser.availableRoles.some(r => r.id === 'central-authority');
     const isBuyer = activeContext.activeRole.id === 'buyer';
     const isPropertyPartner = activeContext.activeRole.id === 'property-partner';
-    const isRestricted = hasCAAccess || isBuyer || isPropertyPartner;
+    const isRestricted = true; // Region switching is removed
 
     const selectedRegion = currentUser.availableRegions.find(r => r.id === selectedRegionId);
 
     const handleSwitch = () => {
+        // Implementation remains for role switching if needed, 
+        // but since we only have one region now, this is mostly dormant.
         if (selectedRegion) {
             switchContext(selectedRegion.id, activeContext.activeRole.id);
             setIsOpen(false);
@@ -89,11 +91,6 @@ export default function UnifiedContextSwitcher() {
                         <span className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">
                             {activeRoleName}
                         </span>
-                        {!isRestricted && (
-                            <span className="text-[10px] text-blue-600 font-medium">
-                                {activeRegionName}
-                            </span>
-                        )}
                     </div>
                 </div>
                 <svg
@@ -108,73 +105,10 @@ export default function UnifiedContextSwitcher() {
 
             {/* Dropdown Panel */}
             {isOpen && (
-                <div className={`absolute right-0 top-full mt-2 ${isRestricted ? 'w-[200px]' : 'w-[280px]'} bg-white rounded-xl shadow-2xl border border-gray-200 z-[100] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-100 origin-top-right`}>
-                    {!isRestricted && (
-                        <div className="flex flex-col h-[320px]">
-                            <div className="p-3 border-b border-gray-100 bg-gray-50">
-                                <span className="text-xs font-semibold text-gray-500 uppercase tracking-wider">{isCityBased ? 'Cities' : 'Regions'}</span>
-                            </div>
-                            <div className="flex-1 overflow-y-auto p-2 space-y-1">
-                                {(() => {
-                                    const displayedItems = isCityBased
-                                        ? currentUser.availableRegions
-                                            
-                                            .filter((region, index, self) =>
-                                                index === self.findIndex((r) => (r.city || r.name) === (region.city || region.name))
-                                            )
-                                        : currentUser.availableRegions;
+                <div className="absolute right-0 top-full mt-2 w-[200px] bg-white rounded-xl shadow-2xl border border-gray-200 z-[100] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-100 origin-top-right">
 
-                                    return displayedItems.map(region => {
-                                        const displayName = isCityBased ? (region.city || region.name) : region.name;
-                                        const isSelected = isCityBased
-                                            ? (currentRegionDisplay?.city || currentRegionDisplay?.name) === displayName
-                                            : selectedRegionId === region.id;
-
-                                        return (
-                                            <button
-                                                key={region.id}
-                                                onClick={() => setSelectedRegionId(region.id)}
-                                                className={`w-full text-left px-3 py-2.5 rounded-md text-sm font-medium transition-all ${isSelected
-                                                    ? 'bg-blue-50 text-blue-700 shadow-sm ring-1 ring-blue-100'
-                                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'
-                                                    }`}
-                                            >
-                                                <div className="flex justify-between items-center font-bold">
-                                                    <span>{region.id === 'no-region' && isCityBased ? 'No City Allocated' : displayName}</span>
-                                                    {isSelected && (
-                                                        <div className="w-1.5 h-1.5 rounded-full bg-blue-600 ring-4 ring-blue-50"></div>
-                                                    )}
-                                                </div>
-                                            </button>
-                                        );
-                                    });
-                                })()}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Section 3: Active Context Summary & Action */}
+                    {/* Section: Logout */}
                     <div className="p-4 bg-gray-50 border-t border-gray-200 flex flex-col gap-3">
-                        {!isRestricted && (
-                            <>
-                                <div className="flex flex-col">
-                                    <span className="text-[10px] uppercase tracking-wider text-gray-500 font-semibold mb-1">Switching to</span>
-                                    <div className="flex items-center gap-2 text-sm text-gray-900">
-                                        <span className="font-semibold">
-                                            {isCityBased && currentRegionDisplay?.id === 'no-region'
-                                                ? 'No City Allocated'
-                                                : (isCityBased ? (currentRegionDisplay?.city || currentRegionDisplay?.name) : currentRegionDisplay?.name)}
-                                        </span>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={handleSwitch}
-                                    className="w-full bg-blue-600 text-white px-5 py-2 rounded-lg font-medium text-sm hover:bg-blue-700 transition shadow-sm active:transform active:scale-95 focus:ring-2 focus:ring-blue-500 focus:ring-offset-1"
-                                >
-                                    Switch Context
-                                </button>
-                            </>
-                        )}
                         <button
                             onClick={logout}
                             className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-lg transition-colors group"

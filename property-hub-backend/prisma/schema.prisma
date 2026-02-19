@@ -170,7 +170,15 @@ model User {
   regions             Region[]            @relation("RegionToUser")
   campaigns           MarketingCampaign[] @relation("CampaignToUser")
   adsRequests         AdsRequest[]
-  influencerProfile   InfluencerProfile?
+  influencerProfile        InfluencerProfile?
+  centralAuthorityProfile  CentralAuthorityProfile?
+  propertyPartnerProfile   PropertyPartnerProfile?
+  dsaProfile               DsaProfile?
+  commissionManagerProfile CommissionManagerProfile?
+  marketingManagerProfile  MarketingManagerProfile?
+  consultantProfile        ConsultantProfile?
+  buyerProfile             BuyerProfile?
+  serviceProviderProfile   ServiceProviderProfile?
 
   @@map("users")
 }
@@ -195,6 +203,7 @@ model CentralAuthorityProfile {
   accessLevel String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
+  user        User     @relation(fields: [userId], references: [id])
 
   @@map("central_authority_profiles")
 }
@@ -209,11 +218,12 @@ model PropertyPartnerProfile {
   isPremium      Boolean  @default(false)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  user           User     @relation(fields: [userId], references: [id])
 
   @@map("property_partner_profiles")
 }
 
-model ChannelPartnerProfile {
+model DsaProfile {
   id                 String   @id @default(uuid())
   userId             String   @unique
   agencyBusinessName String
@@ -221,8 +231,9 @@ model ChannelPartnerProfile {
   officeAddress      String?
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id])
 
-  @@map("channel_partner_profiles")
+  @@map("dsa_profiles")
 }
 
 model Location {
@@ -238,23 +249,13 @@ model Location {
   @@map("locations")
 }
 
-model RegionalManagerProfile {
-  id         String   @id @default(uuid())
-  userId     String   @unique
-  territory  String?
-  kpiTargets Json?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  @@map("regional_manager_profiles")
-}
-
 model CommissionManagerProfile {
   id                    String   @id @default(uuid())
   userId                String   @unique
   paymentAuthorityLimit Decimal? @db.Decimal(15, 2)
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
+  user                  User     @relation(fields: [userId], references: [id])
 
   @@map("commission_manager_profiles")
 }
@@ -264,7 +265,8 @@ model MarketingManagerProfile {
   userId              String   @unique
   campaignBudgetLimit Decimal? @db.Decimal(15, 2)
   createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  updatedAt            DateTime @updatedAt
+  user                 User     @relation(fields: [userId], references: [id])
 
   @@map("marketing_manager_profiles")
 }
@@ -276,6 +278,7 @@ model ConsultantProfile {
   experienceYears Int?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
+  user            User     @relation(fields: [userId], references: [id])
 
   @@map("consultant_profiles")
 }
@@ -288,6 +291,7 @@ model BuyerProfile {
   preferredLocations String[]
   createdAt          DateTime @default(now())
   updatedAt          DateTime @updatedAt
+  user               User     @relation(fields: [userId], references: [id])
 
   @@map("buyer_profiles")
 }
@@ -304,6 +308,7 @@ model ServiceProviderProfile {
   portfolio         String?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
+  user              User     @relation(fields: [userId], references: [id])
 
   @@map("service_provider_profiles")
 }

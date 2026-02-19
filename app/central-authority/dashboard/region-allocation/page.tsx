@@ -28,7 +28,7 @@ interface RegionAllocation {
     assignedUsers: AssignedUser[];
 }
 
-type ManagerRole = 'regional-manager' | 'commission-manager' | '';
+type ManagerRole = 'commission-manager' | 'marketing-manager' | '';
 
 export default function RegionAllocationPage() {
     const { token } = useAuth();

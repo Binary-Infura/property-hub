@@ -2,15 +2,22 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
-import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
-import RouteGuard from '@/app/components/auth/RouteGuard';
+
+
+
+/**
+ * DSA Dashboard Layout
+ * 
+ * This layout enforces that /dsa/dashboard is exclusively for DSAs.
+ */
 
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
+import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
+import RouteGuard from '@/app/components/auth/RouteGuard';
 import ProfileCompletionPrompt from '@/app/components/ProfileCompletionPrompt';
 
-function RegionalManagerDashboardLayoutContent({
+function DsaDashboardLayoutContent({
   children,
 }: {
   children: React.ReactNode;
@@ -19,17 +26,16 @@ function RegionalManagerDashboardLayoutContent({
   const { activeContext } = useUnifiedApp();
 
   const navigation = [
-    { name: 'Dashboard', href: '/regional-manager/dashboard', icon: '📊' },
-    { name: 'Consultants', href: '/regional-manager/dashboard/consultants', icon: '👤' },
-    { name: 'Loan Advisers', href: '/regional-manager/dashboard/loan-advisers', icon: '🏦' },
-    { name: 'Channel Partners', href: '/regional-manager/dashboard/channel-partners', icon: '🤝' },
-    { name: 'Visit Executives', href: '/regional-manager/dashboard/visit-executives', icon: '📍' },
+    { name: 'Dashboard', href: '/dsa/dashboard', icon: '📊' },
+    { name: 'Leads', href: '/dsa/dashboard/leads', icon: '👥' },
+    { name: 'Commissions', href: '/dsa/dashboard/commissions', icon: '💰' },
+    { name: 'Promotions', href: '/dsa/dashboard/promotions', icon: '📢' },
+    { name: 'Ads & Campaigns', href: '/dsa/dashboard/campaigns-leads', icon: '📈' },
+    { name: 'Ad Requests', href: '/dsa/dashboard/advertisement-requests', icon: '📝' },
   ];
 
   const isActive = (href: string) => {
-    if (href === '/regional-manager/dashboard') {
-      return pathname === href;
-    }
+    if (href === '/dsa/dashboard') return pathname === href;
     return pathname?.startsWith(href);
   };
 
@@ -39,7 +45,7 @@ function RegionalManagerDashboardLayoutContent({
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       {/* Sidebar */}
       {!isNoAllocation && (
-        <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0 transition-all duration-300">
+        <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0">
           <div className="h-16 flex items-center px-6 border-b border-gray-100">
             <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-900">
               <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
@@ -70,7 +76,7 @@ function RegionalManagerDashboardLayoutContent({
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <DashboardHeader title="Regional Manager Dashboard" showLogo={isNoAllocation} />
+        <DashboardHeader title="DSA Dashboard" showLogo={isNoAllocation} />
 
         <main className={`flex-1 overflow-y-auto ${isNoAllocation ? 'flex items-center justify-center p-8' : 'p-8'}`}>
           <ProfileCompletionPrompt />
@@ -81,10 +87,10 @@ function RegionalManagerDashboardLayoutContent({
   );
 }
 
-export default function RegionalManagerDashboardLayout({ children }: { children: React.ReactNode }) {
+export default function DsaDashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <RouteGuard requiredRole="regional-manager">
-      <RegionalManagerDashboardLayoutContent>{children}</RegionalManagerDashboardLayoutContent>
+    <RouteGuard requiredRole="dsa">
+      <DsaDashboardLayoutContent>{children}</DsaDashboardLayoutContent>
     </RouteGuard>
   );
 }

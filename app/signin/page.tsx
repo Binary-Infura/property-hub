@@ -35,15 +35,13 @@ export default function SignInPage() {
 
             // 2. Staff Roles
             const staffRoles = [
-                'regional-manager',
+                'dsa',
                 'consultant',
                 'onboarding-manager',
                 'loan-adviser',
                 'marketing-manager',
-
                 'visit-executive',
                 'commission-manager',
-                'channel-partner',
                 'service-provider',
                 'property-partner'
             ];

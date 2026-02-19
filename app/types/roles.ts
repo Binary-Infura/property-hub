@@ -1,13 +1,15 @@
 export type UserRole =
     | 'central-authority'
-
-    | 'regional-manager'
+    | 'dsa'
     | 'property-partner'
     | 'consultant'
-    | 'channel-partner'
     | 'commission-manager'
     | 'marketing-manager'
     | 'influencer'
+    | 'loan-adviser'
+    | 'visit-executive'
+    | 'onboarding-manager'
+    | 'buyer';
 
 
 export interface Permission {
@@ -31,16 +33,16 @@ export const ROLES: Record<UserRole, RoleDefinition> = {
         permissions: [
             { resource: '*', actions: ['create', 'read', 'update', 'delete', 'approve', 'override'] }
         ],
-        canCreateRoles: ['marketing-manager', 'regional-manager', 'influencer']
+        canCreateRoles: ['marketing-manager', 'influencer']
     },
 
-    'regional-manager': {
-        role: 'regional-manager',
-        label: 'Regional Manager',
-        description: 'Manager for a specific region',
+    'dsa': {
+        role: 'dsa',
+        label: 'DSA',
+        description: 'Direct Selling Agent',
         permissions: [
-            { resource: 'properties', actions: ['read', 'update', 'approve'] },
-            { resource: 'users', actions: ['read', 'create', 'update'] } // Limited to region
+            { resource: 'properties', actions: ['create', 'read', 'update'] },
+            { resource: 'leads', actions: ['read', 'update'] }
         ]
     },
     'property-partner': {
@@ -55,10 +57,28 @@ export const ROLES: Record<UserRole, RoleDefinition> = {
         description: 'Property consultant',
         permissions: []
     },
-    'channel-partner': {
-        role: 'channel-partner',
-        label: 'Channel Partner',
-        description: 'External partner',
+    'loan-adviser': {
+        role: 'loan-adviser',
+        label: 'Loan Adviser',
+        description: 'Adviser for loans',
+        permissions: []
+    },
+    'visit-executive': {
+        role: 'visit-executive',
+        label: 'Visit Executive',
+        description: 'Executive for site visits',
+        permissions: []
+    },
+    'onboarding-manager': {
+        role: 'onboarding-manager',
+        label: 'Onboarding Manager',
+        description: 'Manages user onboarding',
+        permissions: []
+    },
+    'buyer': {
+        role: 'buyer',
+        label: 'Buyer',
+        description: 'End user looking for properties',
         permissions: []
     },
     'commission-manager': {

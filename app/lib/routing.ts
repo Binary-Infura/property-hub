@@ -10,7 +10,7 @@
  * - One role = one dashboard route (no shared dashboards)
  */
 
-export type UserRole = 'buyer' | 'consultant' | 'property-partner' | 'regional-manager' | 'loan-adviser' | 'commission-manager' | 'channel-partner' | 'visit-executive' | 'onboarding-manager' | 'central-authority' | 'marketing-manager';
+export type UserRole = 'buyer' | 'consultant' | 'property-partner' | 'dsa' | 'loan-adviser' | 'commission-manager' | 'visit-executive' | 'onboarding-manager' | 'central-authority' | 'marketing-manager';
 
 /**
  * Canonical dashboard routes for each role
@@ -19,10 +19,9 @@ export const DASHBOARD_ROUTES = {
   buyer: '/dashboard',
   consultant: '/consultant/dashboard',
   'property-partner': '/property-partner/dashboard',
-  'regional-manager': '/regional-manager/dashboard',
+  'dsa': '/dsa/dashboard',
   'loan-adviser': '/loan-adviser/dashboard',
   'commission-manager': '/commission-manager/dashboard',
-  'channel-partner': '/channel-partner/dashboard',
   'visit-executive': '/visit-executive/dashboard',
   'onboarding-manager': '/onboarding-manager/dashboard',
   'central-authority': '/central-authority/dashboard',
@@ -51,8 +50,8 @@ export function getRoleFromPath(pathname: string): UserRole | null {
   if (pathname.startsWith('/property-partner/dashboard')) {
     return 'property-partner';
   }
-  if (pathname.startsWith('/regional-manager/dashboard')) {
-    return 'regional-manager';
+  if (pathname.startsWith('/dsa/dashboard')) {
+    return 'dsa';
   }
   if (pathname.startsWith('/loan-adviser/dashboard')) {
     return 'loan-adviser';
@@ -61,8 +60,8 @@ export function getRoleFromPath(pathname: string): UserRole | null {
   if (pathname.startsWith('/commission-manager/dashboard')) {
     return 'commission-manager';
   }
-  if (pathname.startsWith('/channel-partner/dashboard')) {
-    return 'channel-partner';
+  if (pathname.startsWith('/visit-executive/dashboard')) {
+    return 'visit-executive';
   }
   if (pathname.startsWith('/visit-executive/dashboard')) {
     return 'visit-executive';

@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import LeadSubmissionForm from '@/app/components/channel-partner/LeadSubmissionForm';
-import CommissionTracking from '@/app/components/channel-partner/CommissionTracking';
-import PropertyPromotions from '@/app/components/channel-partner/PropertyPromotions';
-import AssignedLeadsList from '@/app/components/channel-partner/AssignedLeadsList';
-import PerformanceMetrics from '@/app/components/channel-partner/PerformanceMetrics';
+import LeadSubmissionForm from '@/app/components/dsa/LeadSubmissionForm';
+import CommissionTracking from '@/app/components/dsa/CommissionTracking';
+import PropertyPromotions from '@/app/components/dsa/PropertyPromotions';
+import AssignedLeadsList from '@/app/components/dsa/AssignedLeadsList';
+import PerformanceMetrics from '@/app/components/dsa/PerformanceMetrics';
+import AddPropertyModal from '@/app/components/dsa/AddPropertyModal';
 import { Lead } from '@/app/types/lead';
 
 interface Commission {
@@ -40,7 +41,7 @@ interface PartnerMetrics {
   topProperty: string;
 }
 
-export default function ChannelPartnerDashboard() {
+export default function DsaDashboard() {
   const REFERENCE_DATE = new Date('2024-12-29T10:00:00Z');
 
   const [assignedLeads, setAssignedLeads] = useState<Lead[]>([
@@ -169,6 +170,7 @@ export default function ChannelPartnerDashboard() {
     topProperty: 'Sunset Towers, Bandra',
   };
 
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'leads' | 'submit' | 'commissions' | 'properties' | 'performance'>(
     'leads'
   );
@@ -194,13 +196,26 @@ export default function ChannelPartnerDashboard() {
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Channel Partner Dashboard</h1>
-            <p className="text-gray-600 mt-1">Manage leads, track commissions, and promote properties</p>
+            <h1 className="text-3xl font-bold text-gray-900">DSA Dashboard</h1>
+            <p className="text-gray-600 mt-1">Manage leads, track commissions, and create properties</p>
           </div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-blue-600 text-white px-6 py-2.5 rounded-lg font-semibold hover:bg-blue-700 transition shadow-sm active:transform active:scale-95"
+          >
+            + Create Property
+          </button>
         </div>
       </div>
+
+      <AddPropertyModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        editId={null}
+        onSuccess={() => alert('Property created successfully!')}
+      />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Key Metrics Grid */}
@@ -237,51 +252,46 @@ export default function ChannelPartnerDashboard() {
           <div className="flex border-b border-gray-200 overflow-x-auto">
             <button
               onClick={() => setActiveTab('leads')}
-              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${
-                activeTab === 'leads'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'leads'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
             >
               Assigned Leads
             </button>
             <button
               onClick={() => setActiveTab('submit')}
-              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${
-                activeTab === 'submit'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'submit'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
             >
               Submit New Lead
             </button>
             <button
               onClick={() => setActiveTab('commissions')}
-              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${
-                activeTab === 'commissions'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'commissions'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
             >
               Commissions
             </button>
             <button
               onClick={() => setActiveTab('properties')}
-              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${
-                activeTab === 'properties'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'properties'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
             >
               Properties to Promote
             </button>
             <button
               onClick={() => setActiveTab('performance')}
-              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${
-                activeTab === 'performance'
-                  ? 'border-blue-600 text-blue-600'
-                  : 'border-transparent text-gray-600 hover:text-gray-900'
-              }`}
+              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'performance'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
             >
               Performance
             </button>

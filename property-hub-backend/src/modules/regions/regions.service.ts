@@ -9,7 +9,6 @@ import {
     UpdateRegionAssignmentDto,
     RegionAllocationResponseDto,
     RegionPaginatedAllocationResponseDto,
-    ManagerRole,
 } from './regions.dto';
 import { Region } from '@prisma/client';
 @Injectable()
@@ -229,11 +228,6 @@ export class RegionsService {
 
         if (filters.role) {
             userWhere.role = filters.role;
-        } else {
-            // If no role filter, get all assignable roles
-            userWhere.role = {
-                in: Object.values(ManagerRole)
-            };
         }
 
         if (filters.search) {
@@ -434,7 +428,7 @@ export class RegionsService {
     /**
      * Search users by name or email, filtered by role
      */
-    async searchUsers(query: string, role?: ManagerRole): Promise<any[]> {
+    async searchUsers(query: string, role?: string): Promise<any[]> {
         const where: any = {
             OR: [
                 { firstName: { contains: query, mode: 'insensitive' } },
@@ -445,10 +439,6 @@ export class RegionsService {
 
         if (role) {
             where.role = role;
-        } else {
-            where.role = {
-                in: Object.values(ManagerRole)
-            };
         }
 
         const users = await this.prisma.user.findMany({

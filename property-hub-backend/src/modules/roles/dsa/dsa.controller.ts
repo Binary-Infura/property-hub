@@ -1,28 +1,28 @@
 import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
-import { ChannelPartnersService } from './channel-partners.service';
+import { DsaService } from './dsa.service';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/guards/roles.guard';
 import { RequireRoles } from '../../../common/decorators/require-roles.decorator';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../../common/interfaces/jwt-payload.interface';
-import { UpdateChannelPartnerProfileDto } from './channel-partners.dto';
+import { UpdateDsaProfileDto } from './dsa.dto';
 
-@Controller('api/channel-partners')
+@Controller('api/dsa')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RequireRoles('channel-partner')
-export class ChannelPartnersController {
-    constructor(private readonly channelPartnersService: ChannelPartnersService) { }
+@RequireRoles('dsa')
+export class DsaController {
+    constructor(private readonly dsaService: DsaService) { }
 
     @Get('profile')
     async getProfile(@CurrentUser() user: AuthenticatedUser) {
-        return this.channelPartnersService.getProfile(user.userId);
+        return this.dsaService.getProfile(user.userId);
     }
 
     @Post('profile')
     async upsertProfile(
         @CurrentUser() user: AuthenticatedUser,
-        @Body() dto: UpdateChannelPartnerProfileDto,
+        @Body() dto: UpdateDsaProfileDto,
     ) {
-        return this.channelPartnersService.upsertProfile(user.userId, dto);
+        return this.dsaService.upsertProfile(user.userId, dto);
     }
 }
