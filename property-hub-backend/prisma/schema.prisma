@@ -7,15 +7,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-
 model Property {
   id            String         @id @default(uuid())
   name          String
   description   String?
   location      String
   address       String?
-  videoUrl      String?
-
   status        PropertyStatus @default(AVAILABLE)
   price         Decimal        @db.Decimal(15, 2)
   area          Decimal?       @db.Decimal(10, 2)
@@ -28,15 +25,14 @@ model Property {
   category      String?
   city          String?
   locationId    String?
+  videoUrl      String?
+  postalCodeId  String?
+  adsRequests   AdsRequest[]
   commissions   Commission[]
   leads         Lead[]
   locationRel   Location?      @relation(fields: [locationId], references: [id])
   onboardedBy   User?          @relation("UserOnboardedProperties", fields: [onboardedById], references: [id])
-
-  postalCodeId  String?
   postalCode    PostalCode?    @relation("PropertyPostalCode", fields: [postalCodeId], references: [id])
-  adsRequests   AdsRequest[]
-
 
   @@index([locationId])
   @@index([postalCodeId])
@@ -46,25 +42,22 @@ model Property {
 }
 
 model Lead {
-  id         String             @id @default(uuid())
-  name       String
-  email      String?
-  phone      String
-
-  propertyId String?
-  status     LeadStatus         @default(NEW)
-  source     String?
-  assignedTo   String?
-  notes      String?
-  createdAt  DateTime           @default(now())
-  updatedAt  DateTime           @updatedAt
-  campaignId String?
-  campaign   MarketingCampaign? @relation(fields: [campaignId], references: [id])
-  property   Property?          @relation(fields: [propertyId], references: [id])
-  assignedToUser User?          @relation("LeadAssignee", fields: [assignedTo], references: [id])
-
-  visits     Visit[]
-
+  id             String             @id @default(uuid())
+  name           String
+  email          String?
+  phone          String
+  propertyId     String?
+  status         LeadStatus         @default(NEW)
+  source         String?
+  assignedTo     String?
+  notes          String?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+  campaignId     String?
+  assignedToUser User?              @relation("LeadAssignee", fields: [assignedTo], references: [id])
+  campaign       MarketingCampaign? @relation(fields: [campaignId], references: [id])
+  property       Property?          @relation(fields: [propertyId], references: [id])
+  visits         Visit[]
 
   @@index([status])
   @@index([assignedTo])
@@ -112,54 +105,51 @@ model UserMetadata {
   lastName         String?
   phone            String?
   regionPreference String?
-  theme            String?  @default("light")
-  notifications    Json?    @default("{}")
-  onboardingStatus String?  @default("pending")
-  language         String?  @default("en")
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
+  language         String?  @default("en")
+  notifications    Json?    @default("{}")
+  onboardingStatus String?  @default("pending")
+  theme            String?  @default("light")
 
   @@index([keycloakId])
   @@map("user_metadata")
 }
 
 model User {
-  id                  String              @id @default(uuid())
-  keycloakId          String?             @unique
-  firstName           String
-  lastName            String?
-  email               String              @unique
-  phone               String?
-  role                String
-  status              String              @default("active")
-  passwordHash        String?
-  isEmailVerified     Boolean             @default(false)
-  resetToken          String?
-  createdAt           DateTime            @default(now())
-  updatedAt           DateTime            @updatedAt
-  agencyName          String?
-  rating              Float?
-  reraId              String?
-  visitsConducted     Int?                @default(0)
-  onboardedById       String?
-  onboardedBy         User?               @relation("UserOnboardedUsers", fields: [onboardedById], references: [id])
-  onboardedUsers      User[]              @relation("UserOnboardedUsers")
-  propertiesOnboarded Property[]          @relation("UserOnboardedProperties")
-
-  // Profile Relations
-  centralAuthorityProfile   CentralAuthorityProfile?
-  propertyPartnerProfile    PropertyPartnerProfile?
-  dsaProfile                DsaProfile?
-  commissionManagerProfile  CommissionManagerProfile?
-  marketingManagerProfile   MarketingManagerProfile?
-  consultantProfile         ConsultantProfile?
-  buyerProfile              BuyerProfile?
-  serviceProviderProfile    ServiceProviderProfile?
-  influencerProfile         InfluencerProfile?
-
-  leads               Lead[]              @relation("LeadAssignee")
-  campaignsAssigned   MarketingCampaign[] @relation("CampaignToUser")
-  adsRequests         AdsRequest[]
+  id                       String                    @id @default(uuid())
+  keycloakId               String?                   @unique
+  email                    String                    @unique
+  phone                    String?
+  role                     String
+  status                   String                    @default("active")
+  createdAt                DateTime                  @default(now())
+  updatedAt                DateTime                  @updatedAt
+  agencyName               String?
+  rating                   Float?
+  reraId                   String?
+  visitsConducted          Int?                      @default(0)
+  onboardedById            String?
+  firstName                String
+  lastName                 String?
+  isEmailVerified          Boolean                   @default(false)
+  passwordHash             String?
+  resetToken               String?
+  adsRequests              AdsRequest[]
+  buyerProfile             BuyerProfile?
+  centralAuthorityProfile  CentralAuthorityProfile?
+  commissionManagerProfile CommissionManagerProfile?
+  consultantProfile        ConsultantProfile?
+  dsaProfile               DsaProfile?
+  influencerProfile        InfluencerProfile?
+  leads                    Lead[]                    @relation("LeadAssignee")
+  marketingManagerProfile  MarketingManagerProfile?
+  propertiesOnboarded      Property[]                @relation("UserOnboardedProperties")
+  propertyPartnerProfile   PropertyPartnerProfile?
+  serviceProviderProfile   ServiceProviderProfile?
+  onboardedBy              User?                     @relation("UserOnboardedUsers", fields: [onboardedById], references: [id])
+  onboardedUsers           User[]                    @relation("UserOnboardedUsers")
+  campaignsAssigned        MarketingCampaign[]       @relation("CampaignToUser")
 
   @@map("users")
 }
@@ -167,9 +157,9 @@ model User {
 model InfluencerProfile {
   id               String   @id @default(uuid())
   userId           String   @unique
-  socialMediaLinks Json? // Links to Instagram, YouTube, etc.
-  reach            Int? // Total followers/subscribers
-  niche            String? // Real estate, lifestyle, etc.
+  socialMediaLinks Json?
+  reach            Int?
+  niche            String?
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
   user             User     @relation(fields: [userId], references: [id])
@@ -196,9 +186,9 @@ model PropertyPartnerProfile {
   companyAddress String?
   taxId          String?
   licenseNumber  String?
-  isPremium      Boolean  @default(false)
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  isPremium      Boolean  @default(false)
   user           User     @relation(fields: [userId], references: [id])
 
   @@map("property_partner_profiles")
@@ -225,7 +215,6 @@ model Location {
   city       String
   properties Property[]
 
-
   @@unique([continent, country, state, city])
   @@map("locations")
 }
@@ -246,8 +235,8 @@ model MarketingManagerProfile {
   userId              String   @unique
   campaignBudgetLimit Decimal? @db.Decimal(15, 2)
   createdAt           DateTime @default(now())
-  updatedAt            DateTime @updatedAt
-  user                 User     @relation(fields: [userId], references: [id])
+  updatedAt           DateTime @updatedAt
+  user                User     @relation(fields: [userId], references: [id])
 
   @@map("marketing_manager_profiles")
 }
@@ -335,16 +324,128 @@ model MattermostUserMapping {
   @@map("mattermost_user_mappings")
 }
 
+model MarketingCampaign {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  status      String   @default("DRAFT")
+  platform    String
+  budget      Decimal  @db.Decimal(15, 2)
+  spent       Decimal  @default(0) @db.Decimal(15, 2)
+  startDate   DateTime
+  endDate     DateTime
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  leadsCount  Int      @default(0)
+  conversions Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  leads       Lead[]
+  assignedTo  User[]   @relation("CampaignToUser")
+
+  @@map("marketing_campaigns")
+}
+
+model AdsRequest {
+  id            String    @id @default(uuid())
+  title         String
+  description   String?
+  status        String    @default("PENDING")
+  priority      String    @default("MEDIUM")
+  propertyId    String?
+  requestedById String
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  property      Property? @relation(fields: [propertyId], references: [id])
+  requestedBy   User      @relation(fields: [requestedById], references: [id])
+
+  @@map("ads_requests")
+}
+
+model WebhookLog {
+  id              String   @id @default(uuid())
+  method          String
+  endpoint        String
+  idempotencyKey  String?  @unique
+  requestPayload  Json
+  responseStatus  Int
+  responseBody    Json?
+  executionTimeMs Int
+  errorMessage    String?
+  createdAt       DateTime @default(now())
+
+  @@index([idempotencyKey])
+  @@index([endpoint])
+  @@index([createdAt])
+  @@map("webhook_logs")
+}
+
+model PostalCode {
+  id           String     @id @default(uuid())
+  code         String
+  circleName   String?
+  regionName   String?
+  divisionName String?
+  officeName   String?
+  officeType   String?
+  delivery     String?
+  district     String?
+  stateName    String?
+  latitude     String?
+  longitude    String?
+  city         String?
+  state        String?
+  country      String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  continent    String?
+  properties   Property[] @relation("PropertyPostalCode")
+
+  @@index([code])
+  @@index([district])
+  @@map("postal_codes")
+}
+
+model ReraProject {
+  id               String    @id @default(uuid())
+  state            String
+  reraNumber       String    @unique
+  projectName      String
+  promoterName     String
+  status           String?
+  district         String?
+  address          String?
+  registrationDate DateTime?
+  completionDate   DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("rera_projects")
+}
+
+model ReraSyncLog {
+  id              String    @id @default(uuid())
+  state           String
+  district        String?
+  status          String
+  projectsScraped Int       @default(0)
+  error           String?
+  startedAt       DateTime  @default(now())
+  completedAt     DateTime?
+
+  @@map("rera_sync_logs")
+}
+
 enum PropertyStatus {
+  AVAILABLE
+  SOLD
+  RESERVED
+  UNDER_CONSTRUCTION
   DRAFT
   SUBMITTED
   APPROVED
   REJECTED
   PUBLISHED
-  AVAILABLE
-  SOLD
-  RESERVED
-  UNDER_CONSTRUCTION
 }
 
 enum PropertyType {
@@ -377,129 +478,4 @@ enum CommissionStatus {
   APPROVED
   PAID
   REJECTED
-}
-
-model MarketingCampaign {
-  id            String   @id @default(uuid())
-  name          String
-  description   String?
-  status        String   @default("DRAFT") // ACTIVE, PAUSED, COMPLETED, DRAFT
-  platform      String
-  budget        Decimal  @db.Decimal(15, 2)
-  spent         Decimal  @default(0) @db.Decimal(15, 2)
-  startDate     DateTime
-  endDate       DateTime
-
-  assignedTo    User[]   @relation("CampaignToUser")
-
-  // Performance metrics
-  impressions Int    @default(0)
-  clicks      Int    @default(0)
-  leadsCount  Int    @default(0)
-  conversions Int    @default(0)
-  leads       Lead[]
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("marketing_campaigns")
-}
-
-model AdsRequest {
-  id            String  @id @default(uuid())
-  title         String
-  description   String?
-  status        String  @default("PENDING") // PENDING, APPROVED, REJECTED, COMPLETED
-  priority      String  @default("MEDIUM") // LOW, MEDIUM, HIGH
-
-  propertyId    String?
-  requestedById String
-
-
-  property    Property? @relation(fields: [propertyId], references: [id])
-  requestedBy User      @relation(fields: [requestedById], references: [id])
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("ads_requests")
-}
-
-model WebhookLog {
-  id              String   @id @default(uuid())
-  method          String
-  endpoint        String
-  idempotencyKey  String?  @unique
-  requestPayload  Json
-  responseStatus  Int
-  responseBody    Json?
-  executionTimeMs Int
-  errorMessage    String?
-  createdAt       DateTime @default(now())
-
-  @@index([idempotencyKey])
-  @@index([endpoint])
-  @@index([createdAt])
-  @@map("webhook_logs")
-}
-
-model PostalCode {
-  id           String  @id @default(uuid())
-  code         String // Postal/Zip code
-  circleName   String?
-  regionName   String?
-  divisionName String?
-  officeName   String?
-  officeType   String?
-  delivery     String?
-  district     String?
-  stateName    String?
-  latitude     String?
-  longitude    String?
-
-  // Generic fields for multi-country support
-  continent String?
-  city      String?
-  state     String?
-  country   String?
-
-
-  properties Property[] @relation("PropertyPostalCode")
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([code])
-
-  @@index([district])
-  @@map("postal_codes")
-}
-
-model ReraProject {
-  id               String    @id @default(uuid())
-  state            String
-  reraNumber       String    @unique
-  projectName      String
-  promoterName     String
-  status           String?
-  district         String?
-  address          String?
-  registrationDate DateTime?
-  completionDate   DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-
-  @@map("rera_projects")
-}
-model ReraSyncLog {
-  id              String    @id @default(uuid())
-  state           String
-  district        String?
-  status          String    // STARTED, COMPLETED, FAILED, ERROR
-  projectsScraped Int       @default(0)
-  error           String?
-  startedAt       DateTime  @default(now())
-  completedAt     DateTime?
-
-  @@map("rera_sync_logs")
 }

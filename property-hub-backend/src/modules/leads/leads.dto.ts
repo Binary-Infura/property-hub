@@ -12,10 +12,13 @@ export class CreateLeadDto {
     @IsString()
     phone: string;
 
-
     @IsUUID()
     @IsOptional()
     propertyId?: string;
+
+    @IsUUID()
+    @IsOptional()
+    campaignId?: string;
 
     @IsEnum(LeadStatus)
     @IsOptional()
@@ -46,10 +49,13 @@ export class UpdateLeadDto {
     @IsString()
     @IsOptional()
     phone?: string;
-
     @IsUUID()
     @IsOptional()
     propertyId?: string;
+
+    @IsUUID()
+    @IsOptional()
+    campaignId?: string;
 
     @IsEnum(LeadStatus)
     @IsOptional()
@@ -66,4 +72,8 @@ export class UpdateLeadDto {
     @IsString()
     @IsOptional()
     notes?: string;
+}
+
+export class BulkCreateLeadsDto {
+    leads: CreateLeadDto[];
 }

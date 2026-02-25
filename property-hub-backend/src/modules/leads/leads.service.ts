@@ -51,32 +51,49 @@ export class LeadsService {
     }
 
     async create(createLeadDto: CreateLeadDto): Promise<Lead> {
-        const { propertyId, assignedTo, ...rest } = createLeadDto;
-        return this.prisma.lead.create({
-            data: {
-                ...rest,
-                assignedToUser: assignedTo ? { connect: { id: assignedTo } } : undefined,
-                property: propertyId ? { connect: { id: propertyId } } : undefined,
-            },
-            include: {
-                property: true,
-            },
+        try {
+            const { propertyId, campaignId, assignedTo, ...data } = createLeadDto;
+
+            return await this.prisma.lead.create({
+                data: {
+                    ...data,
+                    property: propertyId ? { connect: { id: propertyId } } : undefined,
+                    campaign: campaignId ? { connect: { id: campaignId } } : undefined,
+                    assignedToUser: assignedTo ? { connect: { id: assignedTo } } : undefined,
+                },
+                include: {
+                    property: true,
+                    campaign: true,
+                },
+            });
+        } catch (error) {
+            console.error('Error creating lead:', error);
+            throw error;
+        }
+    }
+
+    async createMany(leads: CreateLeadDto[]): Promise<{ count: number }> {
+        return this.prisma.lead.createMany({
+            data: leads as any,
+            skipDuplicates: true,
         });
     }
 
     async update(id: string, updateLeadDto: UpdateLeadDto, user: AuthenticatedUser): Promise<Lead> {
         await this.findOne(id, user);
-        const { propertyId, assignedTo, ...rest } = updateLeadDto;
+        const { propertyId, campaignId, assignedTo, ...data } = updateLeadDto;
 
         return this.prisma.lead.update({
             where: { id },
             data: {
-                ...rest,
-                assignedToUser: assignedTo ? { connect: { id: assignedTo } } : undefined,
+                ...data,
                 property: propertyId ? { connect: { id: propertyId } } : undefined,
+                campaign: campaignId ? { connect: { id: campaignId } } : undefined,
+                assignedToUser: assignedTo ? { connect: { id: assignedTo } } : undefined,
             },
             include: {
                 property: true,
+                campaign: true,
             },
         });
     }

@@ -23,7 +23,7 @@ export class LeadsController {
     constructor(private readonly leadsService: LeadsService) { }
 
     @Get()
-    @RequireRoles('regional-manager', 'leads-manager')
+    @RequireRoles('central-authority', 'regional-manager', 'marketing-manager')
     findAll(
         @CurrentUser() user: AuthenticatedUser
     ) {
@@ -31,7 +31,7 @@ export class LeadsController {
     }
 
     @Get(':id')
-    @RequireRoles('regional-manager', 'leads-manager')
+    @RequireRoles('central-authority', 'regional-manager', 'marketing-manager')
     findOne(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
@@ -40,15 +40,23 @@ export class LeadsController {
     }
 
     @Post()
-    @RequireRoles('regional-manager', 'leads-manager')
+    @RequireRoles('central-authority', 'regional-manager', 'marketing-manager')
     create(
         @Body() createLeadDto: CreateLeadDto
     ) {
         return this.leadsService.create(createLeadDto);
     }
 
+    @Post('bulk')
+    @RequireRoles('central-authority', 'regional-manager', 'marketing-manager')
+    bulkCreate(
+        @Body() bulkCreateLeadsDto: { leads: CreateLeadDto[] }
+    ) {
+        return this.leadsService.createMany(bulkCreateLeadsDto.leads);
+    }
+
     @Patch(':id')
-    @RequireRoles('regional-manager', 'leads-manager')
+    @RequireRoles('central-authority', 'regional-manager', 'marketing-manager')
     update(
         @Param('id') id: string,
         @Body() updateLeadDto: UpdateLeadDto,
@@ -58,7 +66,7 @@ export class LeadsController {
     }
 
     @Delete(':id')
-    @RequireRoles('regional-manager')
+    @RequireRoles('central-authority', 'regional-manager', 'marketing-manager')
     remove(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser

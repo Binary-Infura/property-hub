@@ -38,7 +38,17 @@ function CampaignsContent() {
     const [showCreateForm, setShowCreateForm] = useState(false);
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [loading, setLoading] = useState(true);
+    const [creating, setCreating] = useState(false);
     const searchParams = useSearchParams();
+
+    const [formData, setFormData] = useState({
+        name: '',
+        platform: '',
+        budget: '',
+        startDate: '',
+        endDate: '',
+        description: ''
+    });
 
     useEffect(() => {
         if (searchParams.get('action') === 'create') {
@@ -46,21 +56,54 @@ function CampaignsContent() {
         }
     }, [searchParams]);
 
-    useEffect(() => {
-        const fetchCampaigns = async () => {
-            if (!token) return;
-            try {
-                const data = await marketingService.getCampaigns(token);
-                setCampaigns(data);
-            } catch (error) {
-                console.error("Failed to fetch campaigns:", error);
-            } finally {
-                setLoading(false);
-            }
-        };
+    const fetchCampaigns = async () => {
+        if (!token) return;
+        try {
+            const data = await marketingService.getCampaigns(token);
+            setCampaigns(data);
+        } catch (error) {
+            console.error("Failed to fetch campaigns:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchCampaigns();
     }, [token]);
+
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setFormData(prev => ({ ...prev, [name]: value }));
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!token) return;
+        setCreating(true);
+        try {
+            await marketingService.createCampaign(token, {
+                ...formData,
+                budget: Number(formData.budget),
+                assignedUserIds: [], // Placeholder for now
+            });
+            setShowCreateForm(false);
+            setFormData({
+                name: '',
+                platform: '',
+                budget: '',
+                startDate: '',
+                endDate: '',
+                description: ''
+            });
+            fetchCampaigns();
+        } catch (error) {
+            console.error("Failed to create campaign:", error);
+            alert("Failed to create campaign. Please try again.");
+        } finally {
+            setCreating(false);
+        }
+    };
 
     const filteredCampaigns = campaigns.filter((c) => {
         if (filter === 'all') return true;
@@ -233,20 +276,10 @@ function CampaignsContent() {
 
                         {/* Campaign Details */}
                         <div className="p-6 border-t border-gray-200">
-                            <div className="mb-3">
-                                <div className="text-xs text-gray-600 mb-1">Target Regions</div>
-                                <div className="flex flex-wrap gap-2">
-                                    {campaign.targetRegions.map((region) => (
-                                        <span key={region.id} className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
-                                            {region.name}
-                                        </span>
-                                    ))}
-                                </div>
-                            </div>
                             <div className="mb-4">
                                 <div className="text-xs text-gray-600 mb-1">Assigned To</div>
                                 <div className="flex flex-wrap gap-2">
-                                    {campaign.assignedTo.map((person) => (
+                                    {(campaign.assignedTo || []).map((person) => (
                                         <span key={person.id} className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
                                             {person.firstName} {person.lastName}
                                         </span>
@@ -276,11 +309,15 @@ function CampaignsContent() {
                 <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-[2rem] p-10 max-w-2xl w-full shadow-2xl ring-1 ring-black/5 max-h-[95vh] overflow-y-auto">
                         <h2 className="text-3xl font-extrabold text-gray-900 mb-8">Create New Campaign</h2>
-                        <form className="space-y-6">
+                        <form onSubmit={handleSubmit} className="space-y-6">
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Campaign Name</label>
                                 <input
                                     type="text"
+                                    name="name"
+                                    required
+                                    value={formData.name}
+                                    onChange={handleInputChange}
                                     className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none text-gray-900 placeholder:text-gray-400"
                                     placeholder="Enter campaign name"
                                 />
@@ -288,18 +325,28 @@ function CampaignsContent() {
                             <div className="grid grid-cols-2 gap-6">
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">Platform</label>
-                                    <select className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none text-gray-900 appearance-none">
+                                    <select
+                                        name="platform"
+                                        required
+                                        value={formData.platform}
+                                        onChange={handleInputChange}
+                                        className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none text-gray-900 appearance-none"
+                                    >
                                         <option value="">Select platform</option>
-                                        <option value="google-ads">Google Ads</option>
-                                        <option value="facebook">Facebook</option>
-                                        <option value="instagram">Instagram</option>
-                                        <option value="linkedin">LinkedIn</option>
+                                        <option value="Google Ads">Google Ads</option>
+                                        <option value="Facebook">Facebook</option>
+                                        <option value="Instagram">Instagram</option>
+                                        <option value="LinkedIn">LinkedIn</option>
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">Budget (₹)</label>
                                     <input
                                         type="number"
+                                        name="budget"
+                                        required
+                                        value={formData.budget}
+                                        onChange={handleInputChange}
                                         className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none text-gray-900 placeholder:text-gray-400"
                                         placeholder="Enter budget"
                                     />
@@ -310,6 +357,10 @@ function CampaignsContent() {
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">Start Date</label>
                                     <input
                                         type="date"
+                                        name="startDate"
+                                        required
+                                        value={formData.startDate}
+                                        onChange={handleInputChange}
                                         className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none text-gray-900"
                                     />
                                 </div>
@@ -317,6 +368,10 @@ function CampaignsContent() {
                                     <label className="block text-sm font-semibold text-gray-700 mb-2">End Date</label>
                                     <input
                                         type="date"
+                                        name="endDate"
+                                        required
+                                        value={formData.endDate}
+                                        onChange={handleInputChange}
                                         className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none text-gray-900"
                                     />
                                 </div>
@@ -324,7 +379,10 @@ function CampaignsContent() {
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-2">Description</label>
                                 <textarea
+                                    name="description"
                                     rows={4}
+                                    value={formData.description}
+                                    onChange={handleInputChange}
                                     className="w-full px-5 py-3.5 bg-gray-50 border border-gray-200 rounded-2xl focus:bg-white focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all outline-none text-gray-900 placeholder:text-gray-400 resize-none"
                                     placeholder="Enter campaign description"
                                 ></textarea>
@@ -339,9 +397,10 @@ function CampaignsContent() {
                                 </button>
                                 <button
                                     type="submit"
-                                    className="flex-1 px-8 py-4 bg-[#a855f7] text-white rounded-2xl hover:bg-[#9333ea] shadow-xl shadow-purple-200 hover:shadow-purple-300 transition-all font-bold text-lg"
+                                    disabled={creating}
+                                    className="flex-1 px-8 py-4 bg-[#a855f7] text-white rounded-2xl hover:bg-[#9333ea] shadow-xl shadow-purple-200 hover:shadow-purple-300 transition-all font-bold text-lg disabled:opacity-50"
                                 >
-                                    Create Campaign
+                                    {creating ? 'Creating...' : 'Create Campaign'}
                                 </button>
                             </div>
                         </form>

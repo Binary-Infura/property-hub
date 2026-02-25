@@ -33,14 +33,15 @@ export class MarketingService {
     }
 
     async create(dto: CreateCampaignDto) {
-        const { assignedUserIds, ...data } = dto;
+        const { assignedUserIds, startDate, endDate, ...data } = dto;
 
         return this.prisma.marketingCampaign.create({
             data: {
                 ...data,
-
+                startDate: new Date(startDate),
+                endDate: new Date(endDate),
                 assignedTo: {
-                    connect: assignedUserIds.map((id) => ({ id })),
+                    connect: (assignedUserIds || []).map((id) => ({ id })),
                 },
             },
             include: {
@@ -50,13 +51,14 @@ export class MarketingService {
     }
 
     async update(id: string, dto: UpdateCampaignDto) {
-        const { assignedUserIds, ...data } = dto;
+        const { assignedUserIds, startDate, endDate, ...data } = dto;
 
         return this.prisma.marketingCampaign.update({
             where: { id },
             data: {
                 ...data,
-
+                startDate: startDate ? new Date(startDate) : undefined,
+                endDate: endDate ? new Date(endDate) : undefined,
                 assignedTo: assignedUserIds ? {
                     set: assignedUserIds.map((id) => ({ id })),
                 } : undefined,
