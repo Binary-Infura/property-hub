@@ -47,7 +47,6 @@ export default function PropertyDetailPage() {
   const propertyId = params.propertyId as string;
   const { token } = useAuth();
   const { activeContext } = useUnifiedApp();
-  const regionCode = activeContext.activeRegion.code;
 
   const [property, setProperty] = useState<Property | null>(null);
   const [blocks, setBlocks] = useState<Block[]>([]);
@@ -56,11 +55,11 @@ export default function PropertyDetailPage() {
 
   useEffect(() => {
     const fetchProperty = async () => {
-      if (!token || !regionCode) return;
+      if (!token) return;
 
       try {
         setLoading(true);
-        const res = await fetch(`${API_URL}/api/${regionCode}/properties/${propertyId}`, {
+        const res = await fetch(`${API_URL}/api/properties/${propertyId}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -112,13 +111,13 @@ export default function PropertyDetailPage() {
     };
 
     fetchProperty();
-  }, [propertyId, token, regionCode]);
+  }, [propertyId, token]);
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this property?')) return;
 
     try {
-      const res = await fetch(`${API_URL}/api/${regionCode}/properties/${propertyId}`, {
+      const res = await fetch(`${API_URL}/api/properties/${propertyId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`

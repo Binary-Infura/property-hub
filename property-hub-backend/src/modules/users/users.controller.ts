@@ -3,10 +3,8 @@ import { UsersService } from './users.service';
 import { UpdateUserMetadataDto, CreateUserDto, UpdateUserDto, InviteUserDto, InviteCentralAuthorityDto, InvitationResponse, UpdateProfileDto } from './users.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
-import { RegionGuard } from '../../auth/guards/region.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequireRoles } from '../../common/decorators/require-roles.decorator';
-import { RequireRegion } from '../../common/decorators/require-region.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 
 import { Public } from '../../common/decorators/public.decorator';
@@ -45,15 +43,12 @@ export class UsersController {
     // --- User Invitation Endpoints ---
 
     /**
-     * Invite a user to a specific region with roles
-     * Requires regional-manager role in the target region
+     * Invite a user with roles
      */
-    @Post('invite/:region')
-    @UseGuards(RolesGuard, RegionGuard)
-    @RequireRegion()
-    @RequireRoles('regional-manager')
-    async inviteUserToRegion(
-        @Param('region') region: string,
+    @Post('invite')
+    @UseGuards(RolesGuard)
+    @RequireRoles('regional-manager', 'central-authority')
+    async inviteUser(
         @Body() dto: InviteUserDto,
     ): Promise<InvitationResponse> {
         return this.usersService.inviteUser(dto);
@@ -86,7 +81,6 @@ export class UsersController {
     @Get('role/:role')
     async findAllByRole(
         @Param('role') role: string,
-        @Query('region') region?: string,
         @Query('myOnly') myOnly?: string,
         @Query('page') page: string = '1',
         @Query('limit') limit: string = '10',
@@ -94,7 +88,6 @@ export class UsersController {
     ) {
         return this.usersService.findAllByRole(
             role,
-            region,
             myOnly === 'true',
             user,
             Number(page),

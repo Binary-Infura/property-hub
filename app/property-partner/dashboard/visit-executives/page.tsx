@@ -22,7 +22,6 @@ export default function VisitExecutivesPage() {
             const result = await userService.getAllByRole(
                 'visit-executive',
                 token,
-                undefined,
                 true // Always personal view
             );
             setExecutives(result.data);

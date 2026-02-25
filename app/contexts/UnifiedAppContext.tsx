@@ -16,7 +16,8 @@ export type RoleId =
     | 'loan-adviser'
     | 'visit-executive'
     | 'service-provider'
-    | 'buyer';
+    | 'buyer'
+    | 'influencer';
 
 export interface UserRole {
     id: RoleId;
@@ -25,16 +26,7 @@ export interface UserRole {
     dashboardUrl: string;
 }
 
-export interface Region {
-    id: string;
-    name: string;
-    code: string;
-    city?: string;
-    state?: string;
-}
-
 export interface UserContextData {
-    activeRegion: Region;
     activeRole: UserRole;
 }
 
@@ -42,11 +34,10 @@ export interface UnifiedAppContextType {
     currentUser: {
         name: string;
         avatar: string;
-        availableRegions: Region[];
         availableRoles: UserRole[];
     };
     activeContext: UserContextData;
-    switchContext: (regionId: string, roleId: RoleId) => void;
+    switchContext: (roleId: RoleId) => void;
 }
 
 // --- Application Configuration (Static) ---
@@ -119,17 +110,13 @@ const KNOWN_ROLES: UserRole[] = [
     }
 ];
 
-const GLOBAL_REGION: Region = { id: 'global', name: 'Global', code: 'global' };
-
 const DEFAULT_CONTEXT: UnifiedAppContextType = {
     currentUser: {
         name: 'Guest',
         avatar: 'https://ui-avatars.com/api/?name=Guest&background=0D8ABC&color=fff',
-        availableRegions: [GLOBAL_REGION],
         availableRoles: []
     },
     activeContext: {
-        activeRegion: GLOBAL_REGION,
         activeRole: KNOWN_ROLES[KNOWN_ROLES.length - 1] // Default to buyer
     },
     switchContext: () => { }
@@ -143,9 +130,7 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
     const { user, roles, authenticated, initialized, token } = useAuth();
     const router = useRouter();
 
-    const [activeRegion, setActiveRegion] = useState<Region>(GLOBAL_REGION);
     const [activeRole, setActiveRole] = useState<UserRole>(KNOWN_ROLES[KNOWN_ROLES.length - 1]);
-    const [availableRegions, setAvailableRegions] = useState<Region[]>([GLOBAL_REGION]);
     const [availableRoles, setAvailableRoles] = useState<UserRole[]>([]);
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -171,10 +156,6 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
                 setAvailableRoles(roleList);
             }
 
-            // 2. Determine Regions - Simplified to Global
-            setAvailableRegions([GLOBAL_REGION]);
-            setActiveRegion(GLOBAL_REGION);
-
             // 3. Set Active Context Defaults
             // Select Role
             const savedRoleId = localStorage.getItem('activeRoleId');
@@ -189,8 +170,7 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
         syncAppData();
     }, [initialized, authenticated, user, roles, token]);
 
-    const switchContext = (regionId: string, roleId: RoleId) => {
-        // regionId is now ignored, we always stay in GLOBAL_REGION
+    const switchContext = (roleId: RoleId) => {
         const role = availableRoles.find(r => r.id === roleId);
         if (!role) return;
 
@@ -208,11 +188,9 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
         currentUser: {
             name: displayName,
             avatar: avatarUrl,
-            availableRegions,
             availableRoles
         },
         activeContext: {
-            activeRegion,
             activeRole
         },
         switchContext

@@ -33,7 +33,6 @@ export default function OnboardingManagersPage() {
             const result = await userService.getAllByRole(
                 'onboarding-manager',
                 token,
-                undefined, // Remove region-based filtering for global management
                 false,
                 currentPage,
                 itemsPerPage
@@ -50,7 +49,7 @@ export default function OnboardingManagersPage() {
 
     useEffect(() => {
         fetchManagers();
-    }, [token, activeContext.activeRegion.code, currentPage]);
+    }, [token, currentPage]);
 
     const handleAddManager = () => {
         setFormData({ firstName: '', lastName: '', email: '', phone: '' });
@@ -83,7 +82,6 @@ export default function OnboardingManagersPage() {
                 const created = await userService.create({
                     ...dataToSave,
                     role: 'onboarding-manager',
-                    regionIds: [] // Default to no region
                 }, token);
                 setManagers([created, ...managers]);
                 setShowAddModal(false);
@@ -150,7 +148,7 @@ export default function OnboardingManagersPage() {
                             <th className="px-8 py-5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">Manager Identity</th>
                             <th className="px-8 py-5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">Last Name</th>
                             <th className="px-8 py-5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">Communication</th>
-                            <th className="px-8 py-5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">Assigned Cities</th>
+                            <th className="px-8 py-5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">Communication</th>
                             <th className="px-8 py-5 text-left text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">Status</th>
                             <th className="px-8 py-5 text-right text-[11px] font-bold text-gray-400 uppercase tracking-[0.1em]">Operations</th>
                         </tr>
@@ -176,19 +174,6 @@ export default function OnboardingManagersPage() {
                                     <td className="px-8 py-6">
                                         <div className="text-sm font-bold text-gray-900">{manager.email}</div>
                                         <div className="text-[10px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">{manager.phone || 'NO DIRECT PHONE'}</div>
-                                    </td>
-                                    <td className="px-8 py-6">
-                                        <div className="flex flex-wrap gap-1">
-                                            {manager.regions?.length ? (
-                                                manager.regions.map(r => (
-                                                    <span key={r.id} className="px-2 py-0.5 bg-gray-100 text-[9px] font-black text-gray-500 rounded uppercase tracking-wider">
-                                                        {r.city || r.name}
-                                                    </span>
-                                                ))
-                                            ) : (
-                                                <span className="text-[10px] font-bold text-gray-300 italic">No scope assigned</span>
-                                            )}
-                                        </div>
                                     </td>
                                     <td className="px-8 py-6">
                                         <span className={`px-2 py-1 text-[9px] font-black rounded-md uppercase tracking-wider ${manager.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'

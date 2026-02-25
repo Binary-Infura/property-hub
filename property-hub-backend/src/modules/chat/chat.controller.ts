@@ -3,7 +3,7 @@ import { ChatService } from './chat.service';
 import { StartChatDto, ChatSessionResponseDto, MyChatSessionDto } from './chat.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 
-@Controller('chat')
+@Controller('api/chat')
 @UseGuards(JwtAuthGuard)
 export class ChatController {
     constructor(private readonly chatService: ChatService) { }

@@ -34,7 +34,6 @@ interface City {
 export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: SelectPropertyModalProps) {
     const { token } = useAuth();
     const { activeContext } = useUnifiedApp();
-    const regionCode = activeContext.activeRegion.code;
 
     const [step, setStep] = useState(1);
     const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
@@ -222,10 +221,10 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
 
 
     const fetchAvailableProperties = async () => {
-        if (!token || !regionCode) return;
+        if (!token) return;
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/api/${regionCode}/properties?myOnly=true`, {
+            const res = await fetch(`${API_URL}/api/properties?myOnly=true`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
@@ -268,7 +267,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
     };
 
     const handleSubmit = async () => {
-        if (!token || !regionCode || !selectedPropertyId) return;
+        if (!token || !selectedPropertyId) return;
         setSubmittingId(selectedPropertyId);
 
         try {
@@ -289,7 +288,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
                 continent: 'Asia',
             };
 
-            const res = await fetch(`${API_URL}/api/${regionCode}/properties/${selectedPropertyId}`, {
+            const res = await fetch(`${API_URL}/api/properties/${selectedPropertyId}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

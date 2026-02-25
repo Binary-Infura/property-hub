@@ -27,35 +27,8 @@ async function main() {
         });
     }
 
-    // 2. Regions
-    console.log('Creating Regions...');
-    const regionsData = [
-        { name: 'Mumbai South', code: 'MH-MUM-SO-01', city: 'Mumbai', state: 'Maharashtra', country: 'India' },
-        { name: 'Pune West', code: 'MH-PUN-WE-01', city: 'Pune', state: 'Maharashtra', country: 'India' },
-        { name: 'Bangalore North', code: 'KA-BLR-NO-01', city: 'Bangalore', state: 'Karnataka', country: 'India' },
-        { name: 'Delhi NCR', code: 'DL-NCR-01', city: 'New Delhi', state: 'Delhi', country: 'India' },
-    ];
-
-    const createdRegions: any[] = [];
-    for (const r of regionsData) {
-        // Find location first
-        const location = await prisma.location.findFirst({
-            where: { city: r.city, state: r.state }
-        });
-
-        const region = await prisma.region.upsert({
-            where: { code: r.code },
-            update: {},
-            create: {
-                name: r.name,
-                code: r.code,
-                active: true,
-
-                locationId: location?.id
-            },
-        });
-        createdRegions.push(region);
-    }
+    // 2. Regions (REMOVED)
+    console.log('Skipping Regions...');
 
     // 3. Central Authority
     console.log('Creating Central Authority...');
@@ -123,7 +96,6 @@ async function main() {
         where: { email: obEmail },
         update: {
             role: 'onboarding-manager',
-            regions: { connect: { id: createdRegions[0].id } }
         },
         create: {
             email: obEmail,
@@ -133,7 +105,6 @@ async function main() {
             keycloakId: uuidv4(),
             status: 'active',
             passwordHash,
-            regions: { connect: { id: createdRegions[0].id } }
         }
     });
 
@@ -176,7 +147,6 @@ async function main() {
             area: 1800,
             propertyType: 'APARTMENT',
             status: 'PUBLISHED',
-            regionId: createdRegions[0].id,
             onboardedById: ppUser.id,
             bedrooms: 3,
             bathrooms: 3,
@@ -193,7 +163,6 @@ async function main() {
             area: 5000,
             propertyType: 'PLOT',
             status: 'AVAILABLE',
-            regionId: createdRegions[1].id,
             onboardedById: ppUser.id,
             category: 'plot'
         }

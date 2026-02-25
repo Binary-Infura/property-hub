@@ -28,7 +28,6 @@ export default function OnboardingServiceProvidersPage() {
             const result = await userService.getAllByRole(
                 'service-provider',
                 token,
-                activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined,
                 activeTab === 'my'
             );
             setServiceProviders(result.data);
@@ -43,7 +42,7 @@ export default function OnboardingServiceProvidersPage() {
     useEffect(() => {
         fetchProviders();
         setCurrentPage(1);
-    }, [token, activeContext.activeRegion.code, activeTab]);
+    }, [token, activeTab]);
 
     useEffect(() => {
         setCurrentPage(1);
@@ -55,7 +54,6 @@ export default function OnboardingServiceProvidersPage() {
             const payload = {
                 ...data,
                 role: 'service-provider',
-                regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : [],
             };
             await userService.create(payload, token);
             fetchProviders();
@@ -119,7 +117,7 @@ export default function OnboardingServiceProvidersPage() {
                             : 'text-gray-500 hover:text-gray-700'
                             }`}
                     >
-                        All Providers ({activeContext.activeRegion.city || activeContext.activeRegion.name})
+                        All Providers
                     </button>
                 </div>
 

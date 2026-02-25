@@ -39,7 +39,6 @@ interface AddPropertyModalProps {
 export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }: AddPropertyModalProps) {
     const { token } = useAuth();
     const { activeContext } = useUnifiedApp();
-    const regionCode = activeContext.activeRegion.code;
 
     const [currentStep, setCurrentStep] = useState(1); // Start at category selection (Step 1)
     const [propertyCategory, setPropertyCategory] = useState<string>(''); // Selected category
@@ -82,7 +81,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
             return;
         }
 
-        if (isOpen && editId && token && regionCode) {
+        if (isOpen && editId && token) {
             fetchPropertyDetails();
         } else if (isOpen && !editId) {
             setFormData({
@@ -98,13 +97,13 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
             setCurrentStep(1);
             setPropertyCategory('');
         }
-    }, [isOpen, editId, token, regionCode]);
+    }, [isOpen, editId, token]);
 
     const fetchPropertyDetails = async () => {
-        if (!token || !regionCode || !editId) return;
+        if (!token || !editId) return;
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/api/${regionCode}/properties/${editId}`, {
+            const res = await fetch(`${API_URL}/api/properties/${editId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -140,7 +139,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
 
 
     const saveToApi = async (status: string) => {
-        if (!token || !regionCode) return;
+        if (!token) return;
 
         setLoading(true);
         setError(null);
@@ -157,9 +156,6 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
             category: propertyCategory.toUpperCase(),
             location: formData.title, // Provide title as temporary location string (required by backend)
 
-            regionId: activeContext.activeRegion.id !== 'no-region'
-                ? activeContext.activeRegion.id
-                : undefined,
 
             status: status.toUpperCase(),
             price: parseFloat(formData.startingPrice) || 0,
@@ -168,8 +164,8 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
         };
 
         const url = propertyId
-            ? `${API_URL}/api/${regionCode}/properties/${propertyId}`
-            : `${API_URL}/api/${regionCode}/properties`;
+            ? `${API_URL}/api/properties/${propertyId}`
+            : `${API_URL}/api/properties`;
 
         const method = propertyId ? 'PATCH' : 'POST';
 

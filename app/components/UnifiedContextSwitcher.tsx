@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { useUnifiedApp, UserRole, Region } from '../contexts/UnifiedAppContext';
+import { useUnifiedApp, UserRole } from '../contexts/UnifiedAppContext';
 import { useAuth } from '../contexts/AuthContext';
 import Image from 'next/image';
 

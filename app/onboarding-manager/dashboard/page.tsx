@@ -45,19 +45,17 @@ export default function OnboardingManagerDashboard() {
 
     useEffect(() => {
         const fetchDashboardData = async () => {
-            if (!token || activeContext.activeRegion.code === 'no-region') {
+            if (!token) {
                 setLoading(false);
                 return;
             }
             try {
                 setLoading(true);
-                const regionCode = activeContext.activeRegion.code;
-
                 const [properties, partners, providers, allProperties] = await Promise.all([
-                    propertyService.getAll(token, regionCode, true),
-                    userService.getAllByRole('property-partner', token, regionCode, true),
-                    userService.getAllByRole('service-provider', token, regionCode, true),
-                    propertyService.getAll(token, regionCode, false, activeContext.activeRegion.city),
+                    propertyService.getAll(token, true),
+                    userService.getAllByRole('property-partner', token, true),
+                    userService.getAllByRole('service-provider', token, true),
+                    propertyService.getAll(token, false),
                 ]);
 
                 const pendingCount = allProperties.filter((p: any) => p.status === 'SUBMITTED').length;
@@ -76,7 +74,7 @@ export default function OnboardingManagerDashboard() {
         };
 
         fetchDashboardData();
-    }, [token, activeContext.activeRegion.code, activeContext.activeRegion.city]);
+    }, [token]);
 
     const recentActivities = [
         { id: 1, action: 'Property Listed', subject: 'Villa 7A at North Mumbai', time: '2 hours ago', type: 'property', status: 'success' },
@@ -107,7 +105,7 @@ export default function OnboardingManagerDashboard() {
                         <p className="mt-4 text-blue-100 text-lg flex items-center gap-2">
                             Overview for
                             <span className="px-3 py-1 bg-white/10 rounded-lg text-white font-bold border border-white/20">
-                                {activeContext.activeRegion.city || activeContext.activeRegion.name}
+                                Global Dashboard
                             </span>
                         </p>
                     </div>

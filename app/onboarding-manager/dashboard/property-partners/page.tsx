@@ -37,7 +37,6 @@ export default function MyPropertyPartnersPage() {
             const result = await userService.getAllByRole(
                 'property-partner',
                 token,
-                activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined,
                 activeTab === 'my'
             );
             setPartners(result.data);
@@ -52,7 +51,7 @@ export default function MyPropertyPartnersPage() {
     useEffect(() => {
         fetchPartners();
         setCurrentPage(1); // Reset pagination on tab/region change
-    }, [token, activeContext.activeRegion.code, activeTab]);
+    }, [token, activeTab]);
 
     useEffect(() => {
         setCurrentPage(1); // Reset on search
@@ -109,7 +108,6 @@ export default function MyPropertyPartnersPage() {
                 taxId: formData.taxId,
                 licenseNumber: formData.licenseNumber,
                 role: 'property-partner',
-                regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : [],
             };
 
             if (isEdit && selectedPartner) {
@@ -162,7 +160,7 @@ export default function MyPropertyPartnersPage() {
                             : 'text-gray-500 hover:text-gray-700'
                             }`}
                     >
-                        All Partners ({activeContext.activeRegion.city || activeContext.activeRegion.name})
+                        All Partners
                     </button>
                 </div>
 

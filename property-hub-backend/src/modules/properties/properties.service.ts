@@ -12,7 +12,7 @@ export class PropertiesService {
         private usersService: UsersService,
     ) { }
 
-    async findAll(user: AuthenticatedUser | undefined, regionCode: string, myOnly?: boolean, city?: string): Promise<Property[]> {
+    async findAll(user: AuthenticatedUser | undefined, myOnly?: boolean, city?: string): Promise<Property[]> {
         const isCentralAuthority = user?.roles?.includes('central-authority') || false;
         const isPropertyPartner = user?.roles?.includes('property-partner') || false;
         const isGlobalRole = user?.roles?.some(role =>

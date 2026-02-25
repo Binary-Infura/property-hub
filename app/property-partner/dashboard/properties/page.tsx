@@ -24,7 +24,6 @@ const CATEGORY_CONFIG: Record<PropertyCategory, { label: string; color: string; 
 export default function PropertiesPage() {
   const { token } = useAuth();
   const { activeContext } = useUnifiedApp();
-  const regionCode = activeContext.activeRegion.code;
 
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
@@ -36,12 +35,12 @@ export default function PropertiesPage() {
   const [editingId, setEditingId] = useState<string | null>(null);
 
   const fetchProperties = async () => {
-    if (!token || !regionCode) return;
+    if (!token) return;
 
     try {
       setLoading(true);
       // Fetch "my" properties
-      const res = await fetch(`${API_URL}/api/${regionCode}/properties/my`, {
+      const res = await fetch(`${API_URL}/api/properties/my`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -113,7 +112,7 @@ export default function PropertiesPage() {
 
   useEffect(() => {
     fetchProperties();
-  }, [token, regionCode]);
+  }, [token]);
 
   const handleAddProperty = () => {
     setEditingId(null);

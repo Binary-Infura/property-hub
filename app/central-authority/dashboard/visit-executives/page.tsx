@@ -28,8 +28,7 @@ export default function VisitExecutivesPage() {
             setLoading(true);
             const result = await userService.getAllByRole(
                 'visit-executive',
-                token,
-                activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined
+                token
             );
             setExecutives(result.data);
             setError(null);
@@ -42,7 +41,7 @@ export default function VisitExecutivesPage() {
 
     useEffect(() => {
         fetchExecutives();
-    }, [token, activeContext.activeRegion.code]);
+    }, [token]);
 
     const handleAddExecutive = () => {
         setFormData({ firstName: '', lastName: '', email: '', phone: '' });
@@ -66,7 +65,6 @@ export default function VisitExecutivesPage() {
             if (selectedExecutive) {
                 const updated = await userService.update(selectedExecutive.id, {
                     ...formData,
-                    regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : []
                 }, token);
                 setExecutives(executives.map(e => e.id === selectedExecutive.id ? updated : e));
                 setShowEditModal(false);
@@ -74,7 +72,6 @@ export default function VisitExecutivesPage() {
                 const created = await userService.create({
                     ...formData,
                     role: 'visit-executive',
-                    regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : []
                 }, token);
                 setExecutives([created, ...executives]);
                 setShowAddModal(false);

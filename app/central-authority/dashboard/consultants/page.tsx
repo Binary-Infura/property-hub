@@ -28,8 +28,7 @@ export default function ConsultantsPage() {
       setLoading(true);
       const result = await userService.getAllByRole(
         'consultant',
-        token,
-        activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined
+        token
       );
       setConsultants(result.data);
       setError(null);
@@ -42,7 +41,7 @@ export default function ConsultantsPage() {
 
   useEffect(() => {
     fetchConsultants();
-  }, [token, activeContext.activeRegion.code]);
+  }, [token]);
 
   const handleAddConsultant = () => {
     setFormData({ firstName: '', lastName: '', email: '', phone: '' });
@@ -66,7 +65,6 @@ export default function ConsultantsPage() {
       if (selectedConsultant) {
         const updated = await userService.update(selectedConsultant.id, {
           ...formData,
-          regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : []
         }, token);
         setConsultants(consultants.map(c => c.id === selectedConsultant.id ? updated : c));
         setShowEditModal(false);
@@ -74,7 +72,6 @@ export default function ConsultantsPage() {
         const created = await userService.create({
           ...formData,
           role: 'consultant',
-          regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : []
         }, token);
         setConsultants([created, ...consultants]);
         setShowAddModal(false);

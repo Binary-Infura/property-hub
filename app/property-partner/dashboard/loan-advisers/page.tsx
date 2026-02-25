@@ -22,7 +22,6 @@ export default function LoanAdvisersPage() {
             const result = await userService.getAllByRole(
                 'loan-adviser',
                 token,
-                undefined,
                 true // Always personal view
             );
             setAdvisers(result.data);

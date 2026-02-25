@@ -7,7 +7,8 @@ import { ServiceProviderFormData } from '@/app/types/service-provider';
 export default function ServiceProviderProfilePage() {
     // Mock logged-in user data
     const [profileData, setProfileData] = useState<Partial<ServiceProviderFormData>>({
-        name: 'Ramesh Gupta',
+        firstName: 'Ramesh',
+        lastName: 'Gupta',
         businessName: 'Gupta Painting Services',
         category: 'painting',
         location: 'Mumbai, Bandra',

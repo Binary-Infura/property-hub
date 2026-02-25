@@ -5,17 +5,12 @@ const prisma = new PrismaClient();
 async function main() {
     console.log('🌱 Seeding marketing campaigns...');
 
-    // Get regions
-    const mumbaiSouth = await prisma.region.findFirst({ where: { name: 'Mumbai South' } });
-    const puneWest = await prisma.region.findFirst({ where: { name: 'Pune West' } });
-    const bangaloreNorth = await prisma.region.findFirst({ where: { name: 'Bangalore North' } });
-
     // Get marketing managers
     const marketing1 = await prisma.user.findFirst({ where: { email: 'marketing1@propertyhub.com' } });
     const marketing2 = await prisma.user.findFirst({ where: { email: 'marketing2@propertyhub.com' } });
 
-    if (!mumbaiSouth || !puneWest || !bangaloreNorth || !marketing1 || !marketing2) {
-        console.error('Required regions or users not found. Please run seed-data.ts first.');
+    if (!marketing1 || !marketing2) {
+        console.error('Required users not found. Please run seed-data.ts first.');
         return;
     }
 
@@ -33,7 +28,6 @@ async function main() {
             clicks: 8500,
             leadsCount: 420,
             conversions: 78,
-            targetRegions: { connect: [{ id: mumbaiSouth.id }] },
             assignedTo: { connect: [{ id: marketing1.id }, { id: marketing2.id }] },
         },
         {
@@ -49,7 +43,6 @@ async function main() {
             clicks: 6200,
             leadsCount: 280,
             conversions: 52,
-            targetRegions: { connect: [{ id: puneWest.id }] },
             assignedTo: { connect: [{ id: marketing2.id }] },
         },
         {
@@ -65,7 +58,6 @@ async function main() {
             clicks: 4800,
             leadsCount: 190,
             conversions: 34,
-            targetRegions: { connect: [{ id: bangaloreNorth.id }] },
             assignedTo: { connect: [{ id: marketing1.id }] },
         },
     ];

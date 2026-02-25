@@ -25,7 +25,6 @@ function CentralAuthorityDashboardLayoutContent({
         { name: 'Commission Managers', href: '/central-authority/dashboard/commission-managers', icon: 'money' as const },
         { name: 'Onboarding Managers', href: '/central-authority/dashboard/onboarding-managers', icon: 'briefcase' as const },
         { name: 'DSA Partners', href: '/central-authority/dashboard/dsa-partners', icon: 'handshake' as const },
-        { name: 'City Allocation', href: '/central-authority/dashboard/city-allocation', icon: 'pin' as const },
         { name: 'Postal Codes', href: '/central-authority/dashboard/postal-codes', icon: 'mail' as const },
         { name: 'Rera Scraper', href: '/central-authority/dashboard/rera-scraper', icon: 'spider' as const },
         { name: 'Influencers', href: '/central-authority/dashboard/influencers', icon: 'phone' as const },

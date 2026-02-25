@@ -29,7 +29,7 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
                 setPartner(partnerData);
 
                 // Fetch partner's properties
-                const allProps = await propertyService.getAll(token || null, activeContext.activeRegion.code, false);
+                const allProps = await propertyService.getAll(token || null, false);
                 setProperties(allProps.filter(p => p.onboardedById === id));
             } catch (error) {
                 console.error('Failed to fetch business page data:', error);
@@ -39,7 +39,7 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
         };
 
         fetchData();
-    }, [id, token, activeContext.activeRegion.code]);
+    }, [id, token]);
 
     if (loading) {
         return (
@@ -214,4 +214,5 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
                                 })
                             )}
                         </div>
-                    </div></div></div></div>);}
+                    </div></div></div></div>);
+}

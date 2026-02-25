@@ -2,13 +2,10 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
 import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
 import RouteGuard from '@/app/components/auth/RouteGuard';
 import SidebarIcon from '@/app/components/SidebarIcon';
-
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
-import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
 
 function OnboardingManagerLayoutContent({
     children,
@@ -32,43 +29,37 @@ function OnboardingManagerLayoutContent({
         return false;
     };
 
-    const isNoAllocation = activeContext.activeRegion.id === 'no-region';
-
     return (
         <div className="flex h-screen bg-gray-50">
-            {!isNoAllocation && (
-                <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0">
-                    <div className="h-16 flex items-center px-6 border-b border-gray-100">
-                        <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-900">
-                            <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
-                            <span>PropertyHub</span>
+            <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0">
+                <div className="h-16 flex items-center px-6 border-b border-gray-100">
+                    <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-900">
+                        <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
+                        <span>PropertyHub</span>
+                    </Link>
+                </div>
+
+                <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+                    {navigation.map((item) => (
+                        <Link
+                            key={item.name}
+                            href={item.href}
+                            className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive(item.href)
+                                ? 'bg-blue-50 text-blue-600 font-medium shadow-sm border-l-4 border-blue-600'
+                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 group'
+                                }`}
+                        >
+                            <SidebarIcon name={item.icon} />
+                            <span>{item.name}</span>
                         </Link>
-                    </div>
+                    ))}
+                </nav>
+            </aside>
 
-                    <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-                        {navigation.map((item) => (
-                            <Link
-                                key={item.name}
-                                href={item.href}
-                                className={`flex items-center space-x-3 px-4 py-3 rounded-lg transition-all duration-200 ${isActive(item.href)
-                                    ? 'bg-blue-50 text-blue-600 font-medium shadow-sm border-l-4 border-blue-600'
-                                    : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 group'
-                                    }`}
-                            >
-                                <SidebarIcon name={item.icon} />
-                                <span>{item.name}</span>
-                            </Link>
-                        ))}
-                    </nav>
-
-                </aside>
-            )}
-
-            {/* Main Content */}
             <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-                <DashboardHeader title="Onboarding Manager Dashboard" showLogo={isNoAllocation} />
-                <main className={`flex-1 overflow-y-auto ${isNoAllocation ? 'flex items-center justify-center p-8' : 'p-8 pb-20'}`}>
-                    {isNoAllocation ? <NoAllocationPlaceholder /> : children}
+                <DashboardHeader title="Onboarding Manager Dashboard" />
+                <main className="flex-1 overflow-y-auto p-8 pb-20">
+                    {children}
                 </main>
             </div>
         </div>

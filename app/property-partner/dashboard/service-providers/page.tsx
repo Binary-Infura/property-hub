@@ -26,7 +26,6 @@ export default function ServiceProvidersPage() {
             const result = await userService.getAllByRole(
                 'service-provider',
                 token,
-                undefined,
                 true // Always personal view
             );
             setServiceProviders(result.data);

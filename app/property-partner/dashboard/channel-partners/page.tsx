@@ -22,7 +22,6 @@ export default function ChannelPartnersPage() {
             const result = await userService.getAllByRole(
                 'channel-partner',
                 token,
-                undefined,
                 true // Always personal view
             );
             setPartners(result.data);

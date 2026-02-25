@@ -30,8 +30,7 @@ export default function DsaPartnersPage() {
             setLoading(true);
             const result = await userService.getAllByRole(
                 'dsa',
-                token,
-                activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined
+                token
             );
             setDsas(result.data);
             setError(null);
@@ -44,7 +43,7 @@ export default function DsaPartnersPage() {
 
     useEffect(() => {
         fetchDsas();
-    }, [token, activeContext.activeRegion.code]);
+    }, [token]);
 
     const handleAddDsa = () => {
         setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '', reraId: '' });
@@ -68,17 +67,13 @@ export default function DsaPartnersPage() {
         if (!token) return;
         try {
             if (selectedDsa) {
-                const updated = await userService.update(selectedDsa.id, {
-                    ...formData,
-                    regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : []
-                }, token);
+                const updated = await userService.update(selectedDsa.id, formData, token);
                 setDsas(dsas.map(d => d.id === selectedDsa.id ? updated : d));
                 setShowEditModal(false);
             } else {
                 const created = await userService.create({
                     ...formData,
                     role: 'dsa',
-                    regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : []
                 }, token);
                 setDsas([created, ...dsas]);
                 setShowAddModal(false);
@@ -158,7 +153,7 @@ export default function DsaPartnersPage() {
                             <tr className="text-left">
                                 <th className="py-4 px-6 font-bold text-gray-400 uppercase tracking-wider">DSA Details</th>
                                 <th className="py-4 px-6 font-bold text-gray-400 uppercase tracking-wider">Agency / RERA</th>
-                                <th className="py-4 px-6 font-bold text-gray-400 uppercase tracking-wider">Region</th>
+                                <th className="py-4 px-6 font-bold text-gray-400 uppercase tracking-wider">Agency / RERA</th>
                                 <th className="py-4 px-6 font-bold text-gray-400 uppercase tracking-wider">Status</th>
                                 <th className="py-4 px-6 font-bold text-gray-400 uppercase tracking-wider text-right">Actions</th>
                             </tr>
@@ -174,13 +169,6 @@ export default function DsaPartnersPage() {
                                     <td className="py-4 px-6">
                                         <div className="font-semibold text-gray-700">{dsa.agencyName || 'Personal'}</div>
                                         <div className="text-xs text-blue-600 font-medium uppercase tracking-tighter">{dsa.reraId || 'No RERA ID'}</div>
-                                    </td>
-                                    <td className="py-4 px-6">
-                                        {dsa.regions?.map(r => (
-                                            <span key={r.id} className="inline-block bg-gray-100 text-gray-600 px-2 py-0.5 rounded text-[10px] font-bold uppercase mr-1 mb-1">
-                                                {r.name}
-                                            </span>
-                                        )) || 'Global'}
                                     </td>
                                     <td className="py-4 px-6">
                                         <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${dsa.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-700'
@@ -222,7 +210,7 @@ export default function DsaPartnersPage() {
                             {dsas.length === 0 && !loading && (
                                 <tr>
                                     <td colSpan={5} className="py-20 text-center text-gray-500">
-                                        No DSA partners found in this region.
+                                        No DSA partners found.
                                     </td>
                                 </tr>
                             )}

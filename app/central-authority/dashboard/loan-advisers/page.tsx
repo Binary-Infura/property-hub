@@ -29,8 +29,7 @@ export default function LoanAdvisersPage() {
             setLoading(true);
             const result = await userService.getAllByRole(
                 'loan-adviser',
-                token,
-                activeContext.activeRegion.code !== 'no-region' ? activeContext.activeRegion.code : undefined
+                token
             );
             setAdvisers(result.data);
             setError(null);
@@ -43,7 +42,7 @@ export default function LoanAdvisersPage() {
 
     useEffect(() => {
         fetchAdvisers();
-    }, [token, activeContext.activeRegion.code]);
+    }, [token]);
 
     const handleAddAdviser = () => {
         setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '' });
@@ -68,7 +67,6 @@ export default function LoanAdvisersPage() {
             if (selectedAdviser) {
                 const updated = await userService.update(selectedAdviser.id, {
                     ...formData,
-                    regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : []
                 }, token);
                 setAdvisers(advisers.map(a => a.id === selectedAdviser.id ? updated : a));
                 setShowEditModal(false);
@@ -76,7 +74,6 @@ export default function LoanAdvisersPage() {
                 const created = await userService.create({
                     ...formData,
                     role: 'loan-adviser',
-                    regionIds: activeContext.activeRegion.id !== 'no-region' ? [activeContext.activeRegion.id] : []
                 }, token);
                 setAdvisers([created, ...advisers]);
                 setShowAddModal(false);

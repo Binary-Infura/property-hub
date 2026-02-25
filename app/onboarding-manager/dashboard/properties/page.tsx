@@ -16,12 +16,11 @@ export default function OnboardingPropertiesPage() {
     const itemsPerPage = 7;
 
     const fetchProperties = async () => {
-        if (!token || activeContext.activeRegion.code === 'no-region') return;
+        if (!token) return;
         try {
             setLoading(true);
             const data = await propertyService.getAll(
                 token,
-                activeContext.activeRegion.code,
                 activeTab === 'my'
             );
             setProperties(data);
@@ -35,7 +34,7 @@ export default function OnboardingPropertiesPage() {
     useEffect(() => {
         fetchProperties();
         setCurrentPage(1);
-    }, [token, activeContext.activeRegion.code, activeTab]);
+    }, [token, activeTab]);
 
     useEffect(() => {
         setCurrentPage(1);
@@ -78,7 +77,7 @@ export default function OnboardingPropertiesPage() {
                             : 'text-gray-500 hover:text-gray-700'
                             }`}
                     >
-                        All Properties ({activeContext.activeRegion.city || activeContext.activeRegion.name})
+                        All Properties
                     </button>
                 </div>
 
@@ -327,19 +326,17 @@ export default function OnboardingPropertiesPage() {
                             </button>
                             <button
                                 onClick={async () => {
-                                    if (!token || activeContext.activeRegion.code === 'no-region') return;
+                                    if (!token) return;
                                     try {
                                         const payload = {
                                             name: (document.getElementById('prop-name') as HTMLInputElement).value,
                                             propertyType: (document.getElementById('prop-type') as HTMLSelectElement).value as any,
                                             category: (document.getElementById('prop-category') as HTMLSelectElement).value,
                                             location: (document.getElementById('prop-location') as HTMLInputElement).value,
-                                            city: activeContext.activeRegion.city,
                                             price: Number((document.getElementById('prop-price') as HTMLInputElement).value),
                                             area: Number((document.getElementById('prop-area') as HTMLInputElement).value),
-                                            regionId: activeContext.activeRegion.id,
                                         };
-                                        await propertyService.create(payload, token, activeContext.activeRegion.code);
+                                        await propertyService.create(payload, token);
                                         const el = document.getElementById('pom-add-property-modal');
                                         if (el) el.classList.add('hidden');
                                         fetchProperties();

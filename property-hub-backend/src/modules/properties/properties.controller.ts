@@ -13,43 +13,37 @@ import { PropertiesService } from './properties.service';
 import { CreatePropertyDto, UpdatePropertyDto } from './properties.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
-import { RegionGuard } from '../../auth/guards/region.guard';
 import { RequireRoles } from '../../common/decorators/require-roles.decorator';
-import { RequireRegion } from '../../common/decorators/require-region.decorator';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 
-@Controller('api/:region/properties')
-@UseGuards(JwtAuthGuard, RolesGuard, RegionGuard)
+@Controller('api/properties')
+@UseGuards(JwtAuthGuard, RolesGuard)
 @RequireRoles('central-authority', 'regional-manager', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'property-partner', 'channel-partner', 'consultant', 'buyer', 'loan-adviser', 'visit-executive', 'service-provider')
-@RequireRegion()
 export class PropertiesController {
     constructor(private readonly propertiesService: PropertiesService) { }
 
     @Get('my')
     findAllMy(
-        @Param('region') region: string,
         @CurrentUser() user: AuthenticatedUser,
         @Query('city') city?: string
     ) {
-        return this.propertiesService.findAll(user, region, true, city);
+        return this.propertiesService.findAll(user, true, city);
     }
 
     @Get()
     @Public()
     findAll(
-        @Param('region') region: string,
         @CurrentUser() user: AuthenticatedUser,
         @Query('city') city?: string
     ) {
-        return this.propertiesService.findAll(user, region, false, city);
+        return this.propertiesService.findAll(user, false, city);
     }
 
     @Get(':id')
     @Public()
     findOne(
-        @Param('region') region: string,
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
     ) {
@@ -59,7 +53,6 @@ export class PropertiesController {
     @Post()
     @RequireRoles('regional-manager', 'onboarding-manager', 'property-partner')
     create(
-        @Param('region') region: string,
         @Body() createPropertyDto: CreatePropertyDto,
         @CurrentUser() user: AuthenticatedUser
     ) {
@@ -69,7 +62,6 @@ export class PropertiesController {
     @Patch(':id')
     @RequireRoles('regional-manager', 'onboarding-manager', 'property-partner')
     update(
-        @Param('region') region: string,
         @Param('id') id: string,
         @Body() updatePropertyDto: UpdatePropertyDto,
         @CurrentUser() user: AuthenticatedUser,
@@ -80,7 +72,6 @@ export class PropertiesController {
     @Delete(':id')
     @RequireRoles('regional-manager', 'property-partner')
     remove(
-        @Param('region') region: string,
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
     ) {

@@ -10,7 +10,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 export default function ListingRequestsPage() {
     const { token } = useAuth();
     const { activeContext } = useUnifiedApp();
-    const regionCode = activeContext.activeRegion.code;
 
     const [requests, setRequests] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
@@ -21,19 +20,10 @@ export default function ListingRequestsPage() {
     const [processingId, setProcessingId] = useState<string | null>(null);
 
     const fetchRequests = async () => {
-        if (!token || !regionCode) return;
+        if (!token) return;
         setLoading(true);
         try {
-            // Try to get city from active region or as a fallback from user groups/role context
-            let managerCity = activeContext.activeRegion.city;
-
-            // If still no city and manager is Nathdwara (based on role name), fallback for testing
-            if (!managerCity && activeContext.activeRegion.code === 'no-region') {
-                // We'll let the backend handle it or try to find a valid region
-            }
-
-            const cityParam = managerCity ? `city=${encodeURIComponent(managerCity)}` : '';
-            const url = `${API_URL}/api/${regionCode}/properties?${cityParam}`;
+            const url = `${API_URL}/api/properties`;
 
             const res = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -53,17 +43,17 @@ export default function ListingRequestsPage() {
 
     useEffect(() => {
         fetchRequests();
-    }, [token, regionCode, activeContext.activeRegion.city]);
+    }, [token]);
 
     useEffect(() => {
         setCurrentPage(1);
-    }, [selectedCity, searchQuery, regionCode]);
+    }, [selectedCity, searchQuery]);
 
     const handleAction = async (id: string, action: 'APPROVE' | 'REJECT') => {
-        if (!token || !regionCode) return;
+        if (!token) return;
         setProcessingId(id);
         try {
-            const res = await fetch(`${API_URL}/api/${regionCode}/properties/${id}`, {
+            const res = await fetch(`${API_URL}/api/properties/${id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

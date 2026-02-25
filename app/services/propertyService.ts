@@ -19,15 +19,11 @@ export interface Property {
         name: string;
         role: string;
     };
-    region?: {
-        name: string;
-        code: string;
-    };
     createdAt: string;
 }
 
 export const propertyService = {
-    async getAll(token: string | null, regionSlug: string, myOnly: boolean = false, city?: string): Promise<Property[]> {
+    async getAll(token: string | null, myOnly: boolean = false, city?: string): Promise<Property[]> {
         const params = new URLSearchParams();
         if (myOnly) params.append('myOnly', 'true');
         if (city) params.append('city', city);
@@ -48,7 +44,7 @@ export const propertyService = {
         return response.json();
     },
 
-    async getOne(id: string, token: string | null, regionSlug: string): Promise<Property> {
+    async getOne(id: string, token: string | null): Promise<Property> {
         const headers: any = {};
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
@@ -63,12 +59,12 @@ export const propertyService = {
         return response.json();
     },
 
-    async create(data: Partial<Property>, token: string, regionSlug: string): Promise<Property> {
+    async create(data: Partial<Property>, token: string): Promise<Property> {
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/properties`, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
             },
             body: JSON.stringify(data),
         });
@@ -77,5 +73,34 @@ export const propertyService = {
             throw new Error(error.message || 'Failed to create property');
         }
         return response.json();
+    },
+
+    async update(id: string, data: Partial<Property>, token: string): Promise<Property> {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/properties/${id}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify(data),
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to update property');
+        }
+        return response.json();
+    },
+
+    async delete(id: string, token: string): Promise<void> {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/properties/${id}`, {
+            method: 'DELETE',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to delete property');
+        }
     }
 };

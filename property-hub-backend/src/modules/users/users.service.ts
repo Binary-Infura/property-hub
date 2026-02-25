@@ -245,7 +245,6 @@ export class UsersService {
 
     async findAllByRole(
         role: string,
-        regionSlug?: string,
         myOnly: boolean = false,
         user?: AuthenticatedUser,
         page: number = 1,

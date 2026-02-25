@@ -22,7 +22,6 @@ export default function ConsultantsPage() {
             const result = await userService.getAllByRole(
                 'consultant',
                 token,
-                undefined,
                 true // Always personal view
             );
             setConsultants(result.data);

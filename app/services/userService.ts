@@ -3,6 +3,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 export interface User {
     id: string;
     keycloakId?: string;
+    name?: string;
     firstName: string;
     lastName?: string;
     email: string;
@@ -27,7 +28,7 @@ export interface User {
 }
 
 export const userService = {
-    async getAllByRole(role: string, token: string, regionSlug?: string, myOnly: boolean = false, page: number = 1, limit: number = 10): Promise<{ data: User[], total: number }> {
+    async getAllByRole(role: string, token: string, myOnly: boolean = false, page: number = 1, limit: number = 10): Promise<{ data: User[], total: number }> {
         const params = new URLSearchParams();
         if (myOnly) params.append('myOnly', 'true');
         params.append('page', page.toString());

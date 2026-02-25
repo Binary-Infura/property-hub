@@ -20,10 +20,9 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
     useEffect(() => {
         const fetchDetails = async () => {
-            if (activeContext.activeRegion.code === 'no-region') return;
             try {
                 setLoading(true);
-                const prop = await propertyService.getOne(id, token || null, activeContext.activeRegion.code);
+                const prop = await propertyService.getOne(id, token || null);
                 setProperty(prop);
 
                 if (prop.onboardedById) {
@@ -38,7 +37,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
         };
 
         fetchDetails();
-    }, [id, token, activeContext.activeRegion.code]);
+    }, [id, token]);
 
     if (loading) {
         return (
@@ -62,7 +61,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                         <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
                     </div>
                     <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">Property Not Found</h2>
-                    <p className="text-slate-500 font-bold mb-10 leading-relaxed text-lg">The listing you are searching for might have been moved or is no longer available in this region.</p>
+                    <p className="text-slate-500 font-bold mb-10 leading-relaxed text-lg">The listing you are searching for might have been moved or is no longer available.</p>
                     <Link href="/search" className="inline-block px-10 py-5 bg-blue-600 text-white rounded-[2rem] font-black tracking-tight hover:scale-105 transition-all shadow-xl shadow-blue-100">Back to Discovery</Link>
                 </div>
             </div>
@@ -336,7 +335,6 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                         </div>
                     </div>
                 </div>
-        </div>
             </main>
         </div>
     );

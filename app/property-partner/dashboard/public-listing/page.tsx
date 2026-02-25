@@ -16,7 +16,6 @@ type FilterStatus = PropertyStatus | 'all';
 export default function PublicListingPage() {
     const { token } = useAuth();
     const { activeContext } = useUnifiedApp();
-    const regionCode = activeContext.activeRegion.code;
 
     const [properties, setProperties] = useState<Property[]>([]);
     const [loading, setLoading] = useState(true);
@@ -29,12 +28,12 @@ export default function PublicListingPage() {
     const [isViewListingModalOpen, setIsViewListingModalOpen] = useState(false);
 
     const fetchProperties = async () => {
-        if (!token || !regionCode) return;
+        if (!token) return;
 
         try {
             setLoading(true);
             // Fetch "my" properties
-            const res = await fetch(`${API_URL}/api/${regionCode}/properties?myOnly=true`, {
+            const res = await fetch(`${API_URL}/api/properties?myOnly=true`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
@@ -86,7 +85,7 @@ export default function PublicListingPage() {
 
     useEffect(() => {
         fetchProperties();
-    }, [token, regionCode]);
+    }, [token]);
 
     const statusCounts = {
         submitted: properties.filter(p => p.status === 'submitted').length,
