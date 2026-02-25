@@ -144,7 +144,9 @@ export default function DsaPartnersPage() {
 
             {error && (
                 <div className="mb-6 p-4 bg-red-50 text-red-700 rounded-xl border border-red-100 flex items-center gap-2">
-                    <span className="text-xl">⚠️</span>
+                    <svg className="w-5 h-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77-1.333.192 3 1.732 3z" />
+                    </svg>
                     {error}
                 </div>
             )}
@@ -193,7 +195,9 @@ export default function DsaPartnersPage() {
                                                 className="p-2 hover:bg-blue-50 text-blue-600 rounded-lg transition-colors"
                                                 title="Edit DSA"
                                             >
-                                                ✏️
+                                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                                </svg>
                                             </button>
                                             <button
                                                 onClick={() => handleToggleStatus(dsa.id)}
@@ -201,7 +205,15 @@ export default function DsaPartnersPage() {
                                                     }`}
                                                 title={dsa.status === 'active' ? 'Deactivate' : 'Activate'}
                                             >
-                                                {dsa.status === 'active' ? '🚫' : '✅'}
+                                                {dsa.status === 'active' ? (
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                                                    </svg>
+                                                ) : (
+                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                )}
                                             </button>
                                         </div>
                                     </td>

@@ -15,6 +15,7 @@ import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
 import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
 import RouteGuard from '@/app/components/auth/RouteGuard';
 import ProfileCompletionPrompt from '@/app/components/ProfileCompletionPrompt';
+import SidebarIcon from '@/app/components/SidebarIcon';
 
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
@@ -28,10 +29,10 @@ function ConsultantDashboardLayoutContent({
   const { activeContext } = useUnifiedApp();
 
   const navigation = [
-    { name: 'Dashboard', href: '/consultant/dashboard', icon: '📊' },
-    { name: 'My Clients', href: '/consultant/dashboard/clients', icon: '👥' },
-    { name: 'Calendar', href: '/consultant/dashboard/calendar', icon: '📅' },
-    { name: 'Properties', href: '/consultant/dashboard/properties', icon: '🏠' },
+    { name: 'Dashboard', href: '/consultant/dashboard', icon: 'dashboard' as const },
+    { name: 'My Clients', href: '/consultant/dashboard/clients', icon: 'users' as const },
+    { name: 'Calendar', href: '/consultant/dashboard/calendar', icon: 'calendar' as const },
+    { name: 'Properties', href: '/consultant/dashboard/properties', icon: 'home' as const },
   ];
 
   const isActive = (href: string) => {
@@ -65,7 +66,7 @@ function ConsultantDashboardLayoutContent({
                     : 'text-gray-700 hover:bg-gray-50'
                     }`}
                 >
-                  <span className="text-xl">{item.icon}</span>
+                  <SidebarIcon name={item.icon} />
                   <span>{item.name}</span>
                 </Link>
               );
@@ -74,7 +75,7 @@ function ConsultantDashboardLayoutContent({
 
           <div className="p-4 border-t border-gray-100">
             <button className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors">
-              <span>🚪</span>
+              <SidebarIcon name="signout" className="w-4 h-4" />
               <span>Sign Out</span>
             </button>
           </div>

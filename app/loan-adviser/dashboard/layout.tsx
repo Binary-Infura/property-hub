@@ -5,6 +5,7 @@ import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
 import RouteGuard from '@/app/components/auth/RouteGuard';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import SidebarIcon from '@/app/components/SidebarIcon';
 
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
@@ -18,9 +19,9 @@ function LoanAdviserDashboardLayoutContent({
   const { activeContext } = useUnifiedApp();
 
   const navigation = [
-    { name: 'Dashboard', href: '/loan-adviser/dashboard', icon: '📊' },
-    { name: 'Active Loans', href: '/loan-adviser/dashboard/loans', icon: '💰' },
-    { name: 'Documents', href: '/loan-adviser/dashboard/documents', icon: '📄' },
+    { name: 'Dashboard', href: '/loan-adviser/dashboard', icon: 'dashboard' as const },
+    { name: 'Active Loans', href: '/loan-adviser/dashboard/loans', icon: 'money' as const },
+    { name: 'Documents', href: '/loan-adviser/dashboard/documents', icon: 'document' as const },
   ];
 
   const isActive = (href: string) => {
@@ -56,7 +57,7 @@ function LoanAdviserDashboardLayoutContent({
                     : 'text-gray-700 hover:bg-gray-50'
                     }`}
                 >
-                  <span className="text-xl">{item.icon}</span>
+                  <SidebarIcon name={item.icon} />
                   <span>{item.name}</span>
                 </Link>
               );

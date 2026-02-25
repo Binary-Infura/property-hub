@@ -58,7 +58,9 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
         return (
             <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] p-6 text-center">
                 <div className="bg-white p-12 rounded-[3.5rem] shadow-2xl border border-slate-100 max-w-lg">
-                    <div className="w-24 h-24 bg-rose-50 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-8 text-4xl">🔎</div>
+                    <div className="w-24 h-24 bg-rose-50 text-rose-400 rounded-full flex items-center justify-center mx-auto mb-8">
+                        <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" /></svg>
+                    </div>
                     <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tight">Property Not Found</h2>
                     <p className="text-slate-500 font-bold mb-10 leading-relaxed text-lg">The listing you are searching for might have been moved or is no longer available in this region.</p>
                     <Link href="/search" className="inline-block px-10 py-5 bg-blue-600 text-white rounded-[2rem] font-black tracking-tight hover:scale-105 transition-all shadow-xl shadow-blue-100">Back to Discovery</Link>
@@ -154,13 +156,13 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-4 bg-slate-50 rounded-[3rem] border border-slate-100">
                                     {[
-                                        { label: 'Configuration', val: `${property.bedrooms || 2} BHK`, icon: '🛏️' },
-                                        { label: 'Sanitary', val: `${property.bathrooms || 2} Bath`, icon: '🚿' },
-                                        { label: 'Carpet Area', val: `${property.area || 1200} sqft`, icon: '📐' },
-                                        { label: 'Category', val: property.propertyType, icon: '🏠' }
+                                        { label: 'Configuration', val: `${property.bedrooms || 2} BHK`, svgIcon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg> },
+                                        { label: 'Sanitary', val: `${property.bathrooms || 2} Bath`, svgIcon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" /></svg> },
+                                        { label: 'Carpet Area', val: `${property.area || 1200} sqft`, svgIcon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" /></svg> },
+                                        { label: 'Category', val: property.propertyType, svgIcon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg> }
                                     ].map((stat, i) => (
                                         <div key={i} className="bg-white p-8 rounded-[2.5rem] shadow-sm flex flex-col items-center justify-center text-center group hover:shadow-md transition-all">
-                                            <span className="text-3xl mb-4 group-hover:scale-125 transition-transform duration-300">{stat.icon}</span>
+                                            <span className="mb-4 text-slate-500 group-hover:scale-125 transition-transform duration-300">{stat.svgIcon}</span>
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">{stat.label}</p>
                                             <p className="text-xl font-black text-slate-900">{stat.val}</p>
                                         </div>
@@ -210,7 +212,9 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                             <div className="flex items-end justify-between mb-16 relative z-10">
                                 <div>
                                     <h3 className="text-3xl font-black mb-4 flex items-center gap-5">
-                                        <div className="w-16 h-16 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] flex items-center justify-center text-2xl shadow-2xl">⚡</div>
+                                        <div className="w-16 h-16 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] flex items-center justify-center shadow-2xl text-blue-400">
+                                            <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" /></svg>
+                                        </div>
                                         Elite Living Amenities
                                     </h3>
                                     <p className="text-slate-400 font-bold text-lg ml-20">Everything you need for a frictionless lifestyle.</p>
@@ -222,16 +226,16 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 relative z-10">
                                 {[
-                                    { name: 'Sanctuary Spa', val: 'Ayurvedic Wellness', icon: '🧘' },
-                                    { name: 'Crystal Pool', val: 'Olympic standard', icon: '🏊' },
-                                    { name: 'Arctic Flow', val: 'RO Centralized', icon: '💧' },
-                                    { name: 'Bio Guardian', val: '24/7 AI Security', icon: '🛡️' },
-                                    { name: 'Eden Gardens', val: 'Bonsai Collection', icon: '🌳' },
-                                    { name: 'Play Horizon', val: 'Interactive Zone', icon: '🎠' }
+                                    { name: 'Sanctuary Spa', val: 'Ayurvedic Wellness', svgIcon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09Z" /></svg> },
+                                    { name: 'Crystal Pool', val: 'Olympic standard', svgIcon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 0v3.75m-16.5-3.75v3.75m16.5 0v3.75C20.25 16.153 16.556 18 12 18s-8.25-1.847-8.25-4.125v-3.75m16.5 0c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" /></svg> },
+                                    { name: 'Arctic Flow', val: 'RO Centralized', svgIcon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.362 5.214A8.252 8.252 0 0 1 12 21 8.25 8.25 0 0 1 6.038 7.047 8.287 8.287 0 0 0 9 9.601a8.983 8.983 0 0 1 3.361-6.867 8.21 8.21 0 0 0 3 2.48Z" /></svg> },
+                                    { name: 'Bio Guardian', val: '24/7 AI Security', svgIcon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg> },
+                                    { name: 'Eden Gardens', val: 'Bonsai Collection', svgIcon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 18v-5.25m0 0a6.01 6.01 0 0 0 1.5-.189m-1.5.189a6.01 6.01 0 0 1-1.5-.189m3.75 7.478a12.06 12.06 0 0 1-4.5 0m3.75 2.383a14.406 14.406 0 0 1-3 0M14.25 18v-.192c0-.983.658-1.823 1.508-2.316a7.5 7.5 0 1 0-7.517 0c.85.493 1.509 1.333 1.509 2.316V18" /></svg> },
+                                    { name: 'Play Horizon', val: 'Interactive Zone', svgIcon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.631 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" /></svg> }
                                 ].map((item, i) => (
                                     <div key={i} className="group p-8 bg-white/5 border border-white/10 rounded-[2.5rem] hover:bg-white/10 transition-all duration-500 hover:-translate-y-2 cursor-pointer">
-                                        <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-colors">
-                                            <span className="text-3xl">{item.icon}</span>
+                                        <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center mb-6 group-hover:bg-blue-600 transition-colors text-slate-300">
+                                            {item.svgIcon}
                                         </div>
                                         <p className="text-base font-black text-white mb-2">{item.name}</p>
                                         <p className="text-xs font-bold text-slate-500 group-hover:text-blue-300 transition-colors uppercase tracking-widest">{item.val}</p>
@@ -240,96 +244,99 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                             </div>
                         </div>
                     </div>
+                </div>
 
-                    {/* Right SIDE: Partner Business Profile */}
-                    <div className="lg:col-span-4 space-y-12">
-                        {/* Premium Partner Card */}
-                        <div className="bg-white rounded-[4rem] p-12 border border-slate-100 shadow-2xl shadow-slate-200/50 sticky top-32 group overflow-hidden">
-                            <div className="absolute top-0 left-0 w-2 h-full bg-indigo-600 group-hover:w-4 transition-all duration-500"></div>
-                            <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] mb-12 text-center">Exclusive Listing By</p>
+                {/* Right SIDE: Partner Business Profile */}
+                <div className="lg:col-span-4 space-y-12">
+                    {/* Premium Partner Card */}
+                    <div className="bg-white rounded-[4rem] p-12 border border-slate-100 shadow-2xl shadow-slate-200/50 sticky top-32 group overflow-hidden">
+                        <div className="absolute top-0 left-0 w-2 h-full bg-indigo-600 group-hover:w-4 transition-all duration-500"></div>
+                        <p className="text-[11px] font-black text-slate-400 uppercase tracking-[0.4em] mb-12 text-center">Exclusive Listing By</p>
 
-                            <div className="flex flex-col items-center text-center mb-12">
-                                <div className="relative mb-8">
-                                    <div className="w-36 h-36 rounded-[3rem] bg-indigo-600 flex items-center justify-center font-black text-4xl text-white shadow-2xl shadow-indigo-100 ring-[12px] ring-indigo-50 group-hover:scale-105 transition-transform duration-500">
-                                        {(owner?.firstName || 'P').charAt(0)}
-                                    </div>
-                                    <div className="absolute -bottom-1 -right-1 w-12 h-12 bg-emerald-500 border-[6px] border-white rounded-full flex items-center justify-center shadow-2xl">
-                                        <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </div>
+                        <div className="flex flex-col items-center text-center mb-12">
+                            <div className="relative mb-8">
+                                <div className="w-36 h-36 rounded-[3rem] bg-indigo-600 flex items-center justify-center font-black text-4xl text-white shadow-2xl shadow-indigo-100 ring-[12px] ring-indigo-50 group-hover:scale-105 transition-transform duration-500">
+                                    {(owner?.firstName || 'P').charAt(0)}
                                 </div>
-                                <h4 className="text-4xl font-black text-slate-900 tracking-tighter mb-3 leading-none italic">{owner?.firstName} {owner?.lastName}</h4>
-                                <div className="px-5 py-2 bg-indigo-50 rounded-full border border-indigo-100 mb-8">
-                                    <p className="text-indigo-600 font-black uppercase text-[10px] tracking-widest">
-                                        {owner?.propertyPartnerProfile?.companyName || 'Elite Property Solutions'}
-                                    </p>
-                                </div>
-
-                                <div className="flex items-center gap-2">
-                                    {[1, 2, 3, 4, 5].map((i) => (
-                                        <svg key={i} className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                                            <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                                        </svg>
-                                    ))}
-                                    <span className="text-[11px] font-black text-slate-400 ml-2 uppercase tracking-widest">Trust Index 5.0</span>
-                                </div>
-                            </div>
-
-                            <div className="space-y-5 mb-12">
-                                <div className="flex items-center gap-6 p-6 bg-slate-50 rounded-[2.5rem] border border-slate-100 group/item hover:bg-white hover:shadow-xl transition-all duration-300">
-                                    <div className="w-14 h-14 bg-white text-indigo-600 rounded-2xl flex items-center justify-center shadow-md group-hover/item:scale-110 group-hover/item:bg-indigo-600 group-hover/item:text-white transition-all">
-                                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                                        </svg>
-                                    </div>
-                                    <div>
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Direct Line</p>
-                                        <p className="text-slate-900 font-extrabold text-lg tracking-tight">{owner?.phone || '+91 98765 43210'}</p>
-                                    </div>
-                                </div>
-                                <div className="flex items-center gap-6 p-6 bg-slate-50 rounded-[2.5rem] border border-slate-100 group/item hover:bg-white hover:shadow-xl transition-all duration-300">
-                                    <div className="w-14 h-14 bg-white text-indigo-600 rounded-2xl flex items-center justify-center shadow-md group-hover/item:scale-110 group-hover/item:bg-indigo-600 group-hover/item:text-white transition-all">
-                                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                        </svg>
-                                    </div>
-                                    <div className="overflow-hidden">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Corporate Email</p>
-                                        <p className="text-slate-900 font-extrabold text-sm truncate tracking-tight">{owner?.email || 'sales@partner.com'}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-4">
-                                <button className="w-full py-7 bg-indigo-600 text-white rounded-[2rem] font-black text-lg tracking-tight hover:scale-[1.02] hover:bg-blue-700 active:scale-95 transition-all shadow-2xl shadow-indigo-200">
-                                    Inquire Now
-                                </button>
-                                <Link href={`/partner/${owner?.id}`} className="w-full py-7 bg-slate-900 text-white rounded-[2rem] font-black text-lg tracking-tight hover:scale-[1.02] hover:bg-black active:scale-95 transition-all shadow-2xl flex items-center justify-center gap-4">
-                                    Business Profile
-                                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                <div className="absolute -bottom-1 -right-1 w-12 h-12 bg-emerald-500 border-[6px] border-white rounded-full flex items-center justify-center shadow-2xl">
+                                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
                                     </svg>
-                                </Link>
+                                </div>
+                            </div>
+                            <h4 className="text-4xl font-black text-slate-900 tracking-tighter mb-3 leading-none italic">{owner?.firstName} {owner?.lastName}</h4>
+                            <div className="px-5 py-2 bg-indigo-50 rounded-full border border-indigo-100 mb-8">
+                                <p className="text-indigo-600 font-black uppercase text-[10px] tracking-widest">
+                                    {owner?.propertyPartnerProfile?.companyName || 'Elite Property Solutions'}
+                                </p>
                             </div>
 
-                            <div className="mt-12 text-center">
-                                <p className="text-[11px] font-black text-slate-300 uppercase tracking-[0.5em]">RERA REG: {owner?.reraId || 'PR77334455'}</p>
+                            <div className="flex items-center gap-2">
+                                {[1, 2, 3, 4, 5].map((i) => (
+                                    <svg key={i} className="w-5 h-5 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
+                                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                                    </svg>
+                                ))}
+                                <span className="text-[11px] font-black text-slate-400 ml-2 uppercase tracking-widest">Trust Index 5.0</span>
                             </div>
                         </div>
 
-                        {/* Upsell Card */}
-                        <div className="bg-gradient-to-br from-indigo-700 via-purple-700 to-indigo-900 rounded-[4rem] p-12 text-white shadow-2xl relative overflow-hidden group">
-                            <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[80px] group-hover:scale-150 transition-transform duration-1000"></div>
-                            <div className="relative z-10 text-center">
-                                <div className="w-20 h-20 bg-white/20 backdrop-blur-3xl rounded-[2rem] flex items-center justify-center mx-auto mb-10 text-4xl shadow-2xl border border-white/20">💎</div>
-                                <h4 className="text-4xl font-black mb-6 tracking-tighter leading-none italic">PropertyHub <br /> Premium Plus</h4>
-                                <p className="text-indigo-100 font-bold mb-10 text-lg leading-relaxed opacity-80">Unlock yield forecasts & historical neighborhood data.</p>
-                                <button className="w-full py-6 bg-white text-indigo-700 rounded-[2rem] font-black tracking-widest text-sm uppercase hover:shadow-2xl hover:-translate-y-1 transition-all active:scale-95">Upgrade Strategy</button>
+                        <div className="space-y-5 mb-12">
+                            <div className="flex items-center gap-6 p-6 bg-slate-50 rounded-[2.5rem] border border-slate-100 group/item hover:bg-white hover:shadow-xl transition-all duration-300">
+                                <div className="w-14 h-14 bg-white text-indigo-600 rounded-2xl flex items-center justify-center shadow-md group-hover/item:scale-110 group-hover/item:bg-indigo-600 group-hover/item:text-white transition-all">
+                                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                    </svg>
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Direct Line</p>
+                                    <p className="text-slate-900 font-extrabold text-lg tracking-tight">{owner?.phone || '+91 98765 43210'}</p>
+                                </div>
                             </div>
+                            <div className="flex items-center gap-6 p-6 bg-slate-50 rounded-[2.5rem] border border-slate-100 group/item hover:bg-white hover:shadow-xl transition-all duration-300">
+                                <div className="w-14 h-14 bg-white text-indigo-600 rounded-2xl flex items-center justify-center shadow-md group-hover/item:scale-110 group-hover/item:bg-indigo-600 group-hover/item:text-white transition-all">
+                                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                    </svg>
+                                </div>
+                                <div className="overflow-hidden">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Corporate Email</p>
+                                    <p className="text-slate-900 font-extrabold text-sm truncate tracking-tight">{owner?.email || 'sales@partner.com'}</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="space-y-4">
+                            <button className="w-full py-7 bg-indigo-600 text-white rounded-[2rem] font-black text-lg tracking-tight hover:scale-[1.02] hover:bg-blue-700 active:scale-95 transition-all shadow-2xl shadow-indigo-200">
+                                Inquire Now
+                            </button>
+                            <Link href={`/partner/${owner?.id}`} className="w-full py-7 bg-slate-900 text-white rounded-[2rem] font-black text-lg tracking-tight hover:scale-[1.02] hover:bg-black active:scale-95 transition-all shadow-2xl flex items-center justify-center gap-4">
+                                Business Profile
+                                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                </svg>
+                            </Link>
+                        </div>
+
+                        <div className="mt-12 text-center">
+                            <p className="text-[11px] font-black text-slate-300 uppercase tracking-[0.5em]">RERA REG: {owner?.reraId || 'PR77334455'}</p>
+                        </div>
+                    </div>
+
+                    {/* Upsell Card */}
+                    <div className="bg-gradient-to-br from-indigo-700 via-purple-700 to-indigo-900 rounded-[4rem] p-12 text-white shadow-2xl relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[80px] group-hover:scale-150 transition-transform duration-1000"></div>
+                        <div className="relative z-10 text-center">
+                            <div className="w-20 h-20 bg-white/20 backdrop-blur-3xl rounded-[2rem] flex items-center justify-center mx-auto mb-10 shadow-2xl border border-white/20 text-amber-300">
+                                <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" /></svg>
+                            </div>
+                            <h4 className="text-4xl font-black mb-6 tracking-tighter leading-none italic">PropertyHub <br /> Premium Plus</h4>
+                            <p className="text-indigo-100 font-bold mb-10 text-lg leading-relaxed opacity-80">Unlock yield forecasts & historical neighborhood data.</p>
+                            <button className="w-full py-6 bg-white text-indigo-700 rounded-[2rem] font-black tracking-widest text-sm uppercase hover:shadow-2xl hover:-translate-y-1 transition-all active:scale-95">Upgrade Strategy</button>
                         </div>
                     </div>
                 </div>
+        </div>
             </main>
         </div>
     );

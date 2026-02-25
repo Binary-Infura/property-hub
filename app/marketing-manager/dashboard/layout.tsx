@@ -5,6 +5,7 @@ import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import RouteGuard from '@/app/components/auth/RouteGuard';
+import SidebarIcon from '@/app/components/SidebarIcon';
 
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
@@ -19,12 +20,12 @@ function MarketingManagerDashboardLayoutContent({
     const { activeContext } = useUnifiedApp();
 
     const navigation = [
-        { name: 'Dashboard', href: '/marketing-manager/dashboard', icon: '📊' },
-        { name: 'Campaigns', href: '/marketing-manager/dashboard/campaigns', icon: '📢' },
-        { name: 'Campaign Leads', href: '/marketing-manager/dashboard/leads', icon: '👥' },
-        { name: 'Ads Requests', href: '/marketing-manager/dashboard/ads-requests', icon: '📝' },
-        { name: 'Budget & Performance', href: '/marketing-manager/dashboard/budget', icon: '💰' },
-        { name: 'Reports', href: '/marketing-manager/dashboard/reports', icon: '📈' },
+        { name: 'Dashboard', href: '/marketing-manager/dashboard', icon: 'dashboard' as const },
+        { name: 'Campaigns', href: '/marketing-manager/dashboard/campaigns', icon: 'megaphone' as const },
+        { name: 'Campaign Leads', href: '/marketing-manager/dashboard/leads', icon: 'users' as const },
+        { name: 'Ads Requests', href: '/marketing-manager/dashboard/ads-requests', icon: 'note' as const },
+        { name: 'Budget & Performance', href: '/marketing-manager/dashboard/budget', icon: 'money' as const },
+        { name: 'Reports', href: '/marketing-manager/dashboard/reports', icon: 'chart' as const },
     ];
 
     const isActive = (href: string) => {
@@ -60,7 +61,7 @@ function MarketingManagerDashboardLayoutContent({
                                         : 'text-gray-700 hover:bg-gray-50'
                                         }`}
                                 >
-                                    <span className="text-xl">{item.icon}</span>
+                                    <SidebarIcon name={item.icon} />
                                     <span>{item.name}</span>
                                 </Link>
                             );

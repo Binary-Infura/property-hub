@@ -129,7 +129,9 @@ export default function AddGlobalUserModal({ isOpen, onClose, onSuccess }: AddGl
 
                     <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
                         <div className="flex gap-3">
-                            <span className="text-blue-600">ℹ️</span>
+                            <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
                             <div className="text-[12px] text-blue-800 leading-relaxed">
                                 <p className="font-bold mb-1">Global User Info:</p>
                                 <p className="opacity-90">

@@ -97,12 +97,12 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
 
                             <div className="flex flex-wrap gap-4 sm:gap-6">
                                 {[
-                                    { label: 'Client Rating', val: '4.9 / 5.0', icon: '⭐', color: 'amber' },
-                                    { label: 'Total Listings', val: `${properties.length}+ Units`, icon: '🏘️', color: 'blue' },
-                                    { label: 'Industry Exp', val: '12 Years', icon: '🏆', color: 'indigo' }
+                                    { label: 'Client Rating', val: '4.9 / 5.0', svgIcon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>, color: 'amber' },
+                                    { label: 'Total Listings', val: `${properties.length}+ Units`, svgIcon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" /></svg>, color: 'blue' },
+                                    { label: 'Industry Exp', val: '12 Years', svgIcon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 0 1 3 3h-15a3 3 0 0 1 3-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 0 1-.982-3.172M9.497 14.25a7.454 7.454 0 0 0 .981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 0 0 7.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 0 0 2.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 0 1 2.916.52 6.003 6.003 0 0 1-5.395 4.972m0 0a6.726 6.726 0 0 1-2.749 1.35m0 0a6.772 6.772 0 0 1-3.044 0" /></svg>, color: 'indigo' }
                                 ].map((stat, i) => (
                                     <div key={i} className="flex items-center gap-4 px-6 py-4 bg-slate-50 rounded-3xl border border-slate-100 hover:bg-white hover:shadow-lg transition-all cursor-default group">
-                                        <div className="text-2xl group-hover:scale-125 transition-transform">{stat.icon}</div>
+                                        <div className="text-slate-500 group-hover:scale-125 transition-transform">{stat.svgIcon}</div>
                                         <div>
                                             <p className="text-lg font-black text-slate-900 leading-tight">{stat.val}</p>
                                             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{stat.label}</p>
@@ -111,12 +111,12 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
                                 ))}
                             </div>
                         </div>
+                    </div>
 
-                        <div className="pb-4 w-full md:w-auto">
-                            <button className="w-full md:w-auto px-10 py-5 bg-slate-900 text-white rounded-[2rem] font-black tracking-tight shadow-2xl hover:bg-blue-600 hover:-translate-y-1 transition-all active:scale-95">
-                                Send Message
-                            </button>
-                        </div>
+                    <div className="pb-4 w-full md:w-auto">
+                        <button className="w-full md:w-auto px-10 py-5 bg-slate-900 text-white rounded-[2rem] font-black tracking-tight shadow-2xl hover:bg-blue-600 hover:-translate-y-1 transition-all active:scale-95">
+                            Send Message
+                        </button>
                     </div>
                 </div>
             </div>
@@ -152,7 +152,9 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
                             <div className="absolute bottom-0 right-0 w-64 h-64 bg-blue-600/20 rounded-full blur-[80px] -mb-32 -mr-32 group-hover:scale-125 transition-transform duration-1000"></div>
 
                             <div className="relative z-10 text-center">
-                                <div className="w-20 h-20 bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl flex items-center justify-center mx-auto mb-8 text-4xl shadow-2xl">⚡</div>
+                                <div className="w-20 h-20 bg-white/10 backdrop-blur-xl border border-white/20 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl text-blue-300">
+                                    <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m3.75 13.5 10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75Z" /></svg>
+                                </div>
                                 <h4 className="text-3xl font-black mb-4 tracking-tight leading-tight">Elite Partner <br /> Privilege</h4>
                                 <p className="text-slate-400 font-bold mb-10 text-lg leading-relaxed">Book a priority viewing with {partner.firstName} and get a personalized ROI report.</p>
                                 <button className="w-full py-5 bg-white text-indigo-900 rounded-[1.5rem] font-black tracking-tight hover:shadow-2xl hover:-translate-y-1 transition-all">Claim Invite</button>
@@ -161,7 +163,7 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
                     </div>
 
                     {/* Main Portfolio Layout */}
-                    <div className="lg:col-span-8 space-y-12">
+                    <div className="lg:col-span-8 space-y-12" >
                         <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 pb-6 border-b border-slate-100">
                             <div>
                                 <h2 className="text-4xl font-black text-slate-900 tracking-tight mb-2">Portfolio Showcase</h2>
@@ -175,7 +177,9 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
                         <div className="grid gap-12">
                             {properties.length === 0 ? (
                                 <div className="bg-slate-50 rounded-[3rem] p-24 text-center border-4 border-dashed border-slate-100">
-                                    <div className="text-6xl mb-6">🏜️</div>
+                                    <div className="w-20 h-20 text-slate-300 flex items-center justify-center mx-auto mb-6">
+                                        <svg fill="none" viewBox="0 0 24 24" strokeWidth={1} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" /></svg>
+                                    </div>
                                     <p className="text-slate-400 font-black text-xl mb-2">No active listings currently available.</p>
                                     <p className="text-slate-300 font-bold tracking-tight">Check back soon for new premium properties.</p>
                                 </div>
@@ -210,9 +214,4 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
                                 })
                             )}
                         </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-}
+                    </div></div></div></div>);}

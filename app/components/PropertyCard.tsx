@@ -95,7 +95,12 @@ export default function PropertyCard({ property, isExpanded, onToggleExpand }: P
         {/* Expandable Consultant Note */}
         {isExpanded && (
           <div className="mb-5 p-4 bg-green-50 border border-green-200 rounded-lg animate-in">
-            <p className="text-xs font-semibold text-green-900 uppercase tracking-wider mb-2">💬 Consultant's Insight</p>
+            <p className="text-xs font-semibold text-green-900 uppercase tracking-wider mb-2 flex items-center gap-1">
+              <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+              </svg>
+              Consultant's Insight
+            </p>
             <p className="text-gray-800 text-sm leading-relaxed">
               {property.consultantNote}
             </p>
@@ -104,7 +109,13 @@ export default function PropertyCard({ property, isExpanded, onToggleExpand }: P
 
         {/* Location Details Summary */}
         <div className="mb-5 p-4 bg-amber-50 rounded-lg border border-amber-100">
-          <p className="text-xs font-semibold text-amber-900 uppercase tracking-wider mb-2">📍 Location</p>
+          <p className="text-xs font-semibold text-amber-900 uppercase tracking-wider mb-2 flex items-center gap-1">
+            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+            Location
+          </p>
           <p className="text-gray-900 font-medium text-sm">{property.location}</p>
           <p className="text-gray-600 text-xs mt-1">
             Click to see consultant's insights about this property
@@ -120,7 +131,14 @@ export default function PropertyCard({ property, isExpanded, onToggleExpand }: P
       {/* Footer Hint */}
       <div className="px-6 py-3 bg-gray-50 text-center border-t border-gray-100">
         <p className="text-xs text-gray-500">
-          {isExpanded ? '✓ Consultant note visible' : 'Click card to see consultant insight'}
+          {isExpanded ? (
+            <span className="flex items-center justify-center gap-1">
+              <svg className="w-3 h-3 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Consultant note visible
+            </span>
+          ) : 'Click card to see consultant insight'}
         </p>
       </div>
     </div>

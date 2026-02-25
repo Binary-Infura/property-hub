@@ -126,11 +126,16 @@ export default function DealProgressTracking({
             return (
               <div key={stage} className="flex items-center gap-3">
                 <div
-                  className={`flex-shrink-0 w-8 h-8 rounded-full font-bold text-white flex items-center justify-center text-sm transition ${
-                    isActive ? `bg-gradient-to-br ${getStageColor(stage)}` : 'bg-gray-300'
-                  } ${isCurrent ? 'ring-4 ring-blue-200 shadow-lg' : ''}`}
+                  className={`flex-shrink-0 w-8 h-8 rounded-full font-bold text-white flex items-center justify-center text-sm transition ${isActive ? `bg-gradient-to-br ${getStageColor(stage)}` : 'bg-gray-300'
+                    } ${isCurrent ? 'ring-4 ring-blue-200 shadow-lg' : ''}`}
                 >
-                  {isCurrent ? '●' : '✓'}
+                  {isCurrent ? (
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  ) : (
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
                 </div>
                 <div className="flex-1">
                   <p className={`text-sm font-semibold ${isActive ? 'text-gray-900' : 'text-gray-500'}`}>

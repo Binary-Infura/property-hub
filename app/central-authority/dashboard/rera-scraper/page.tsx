@@ -219,7 +219,11 @@ export default function ReraScraperPage() {
                     >
                         {globalSyncing ? (
                             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                        ) : '🔄'}
+                        ) : (
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                            </svg>
+                        )}
                         Sync All States
                     </button>
                 </div>
@@ -340,7 +344,9 @@ export default function ReraScraperPage() {
                                                     className="p-2 hover:bg-slate-200 rounded-lg transition-colors text-slate-500 disabled:opacity-30"
                                                     title="Refresh Count"
                                                 >
-                                                    🔄
+                                                    <svg className="w-4 h-4 animate-spin-slow" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                                    </svg>
                                                 </button>
                                             )}
                                         </div>
@@ -357,8 +363,11 @@ export default function ReraScraperPage() {
                                     </span>
                                 </div>
                                 {selectedState.error && (
-                                    <div className="p-3 bg-rose-50 rounded-lg text-[11px] text-rose-600 border border-rose-100 font-medium font-mono whitespace-pre-wrap">
-                                        ⚠️ {selectedState.error}
+                                    <div className="p-3 bg-rose-50 rounded-lg text-[11px] text-rose-600 border border-rose-100 font-medium font-mono whitespace-pre-wrap flex items-center gap-2">
+                                        <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                        </svg>
+                                        {selectedState.error}
                                     </div>
                                 )}
                             </div>
@@ -378,7 +387,9 @@ export default function ReraScraperPage() {
                                     </>
                                 ) : (
                                     <>
-                                        <span className="text-lg">⚡</span> Start Scrapping
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                                        </svg> Start Scrapping
                                     </>
                                 )}
                             </button>
@@ -426,7 +437,9 @@ export default function ReraScraperPage() {
                         <div className="relative">
                             <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-1.5 block">Search Projects</label>
                             <div className="relative">
-                                <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+                                <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
                                 <input
                                     type="text"
                                     value={searchQuery}
@@ -439,7 +452,9 @@ export default function ReraScraperPage() {
                                         onClick={() => setSearchQuery('')}
                                         className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
                                     >
-                                        ✕
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
                                     </button>
                                 )}
                             </div>
@@ -570,8 +585,10 @@ export default function ReraScraperPage() {
                         <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-800 rounded-full -ml-16 -mb-16 opacity-30" />
 
                         <div className="relative z-10 flex flex-col md:flex-row items-center gap-8">
-                            <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center text-3xl backdrop-blur-sm border border-white/10">
-                                🤖
+                            <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center backdrop-blur-sm border border-white/10">
+                                <svg className="w-10 h-10 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                </svg>
                             </div>
                             <div className="flex-1 text-center md:text-left">
                                 <h2 className="text-2xl font-bold mb-2">Automated Synchronization</h2>
@@ -607,7 +624,11 @@ export default function ReraScraperPage() {
                             >
                                 {fetchingLogs ? (
                                     <div className="w-3 h-3 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
-                                ) : '🔄'}
+                                ) : (
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                )}
                                 Refresh Logs
                             </button>
                         </div>

@@ -285,7 +285,9 @@ export default function PropertyDraftForm({ initialData, onSave, onCancel }: Pro
                   onClick={() => handleRemoveAmenity(idx)}
                   className="text-blue-600 hover:text-blue-800 font-bold"
                 >
-                  ×
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
               </div>
             ))}
@@ -326,7 +328,9 @@ export default function PropertyDraftForm({ initialData, onSave, onCancel }: Pro
                     onClick={() => handleRemoveImage(idx)}
                     className="absolute top-1 right-1 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-red-600"
                   >
-                    ×
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                   </button>
                 </div>
               ))}

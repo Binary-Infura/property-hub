@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
 import RouteGuard from '@/app/components/auth/RouteGuard';
 import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
+import SidebarIcon from '@/app/components/SidebarIcon';
 
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
@@ -31,9 +32,9 @@ function ServiceProviderLayoutContent({
     const { activeContext } = useUnifiedApp();
 
     const navigation = [
-        { name: 'Dashboard', href: '/service-provider/dashboard', icon: '📊' },
-        { name: 'My Profile', href: '/service-provider/dashboard/profile', icon: '👤' },
-        { name: 'Service Requests', href: '/service-provider/dashboard/requests', icon: '📨' },
+        { name: 'Dashboard', href: '/service-provider/dashboard', icon: 'dashboard' as const },
+        { name: 'My Profile', href: '/service-provider/dashboard/profile', icon: 'person' as const },
+        { name: 'Service Requests', href: '/service-provider/dashboard/requests', icon: 'clipboard' as const },
     ];
 
     const isActive = (href: string) => {
@@ -52,7 +53,9 @@ function ServiceProviderLayoutContent({
                 <div className="px-4 sm:px-6 lg:px-8">
                     <div className="flex justify-between items-center h-16">
                         <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-900 hover:text-blue-600">
-                            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white text-lg">🛠️</div>
+                            <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center text-white">
+                                <SidebarIcon name="wrench" className="w-5 h-5" />
+                            </div>
                             Service Provider Portal
                         </Link>
                         {!isNoAllocation && (
@@ -86,7 +89,7 @@ function ServiceProviderLayoutContent({
                                             : 'text-gray-700 hover:bg-gray-50'
                                             }`}
                                     >
-                                        <span className="text-xl">{item.icon}</span>
+                                        <SidebarIcon name={item.icon} />
                                         <span>{item.name}</span>
                                     </Link>
                                 );

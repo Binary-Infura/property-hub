@@ -124,13 +124,13 @@ export default function PropertySearchCard({
         {/* Stats Chips */}
         <div className="flex flex-wrap gap-2 mb-8">
           {[
-            { val: property.config, icon: '🛏️' },
-            { val: property.area, icon: '📐' },
-            { val: property.propertyType, icon: '🏠' },
-            { val: property.isReadyToMove ? 'Ready' : 'Under Const', icon: '🏗️' }
+            { val: property.config, svgIcon: <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg> },
+            { val: property.area, svgIcon: <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" /></svg> },
+            { val: property.propertyType, svgIcon: <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg> },
+            { val: property.isReadyToMove ? 'Ready' : 'Under Const', svgIcon: <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.654-4.654m5.58-2.769 1.322-1.219c.38-.36.594-.85.594-1.362V3.75a.75.75 0 0 0-.75-.75h-5.25c-.512 0-1.001.213-1.362.594L8.5 5.25" /></svg> }
           ].map((chip, i) => (
             <div key={i} className="px-4 py-2 bg-slate-50 border border-slate-100 rounded-2xl flex items-center gap-2 group-hover:bg-blue-50 group-hover:border-blue-100 transition-all">
-              <span className="text-sm">{chip.icon}</span>
+              <span className="text-slate-400">{chip.svgIcon}</span>
               <span className="text-[11px] font-extrabold text-slate-600 group-hover:text-blue-700">{chip.val}</span>
             </div>
           ))}

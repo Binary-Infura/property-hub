@@ -292,9 +292,13 @@ export default function PublicListingPage() {
                                                         setSelectedPropertyForView(property);
                                                         setIsViewListingModalOpen(true);
                                                     }}
-                                                    className="text-blue-600 hover:text-blue-700 font-semibold text-xs bg-blue-50 px-2.5 py-1.5 rounded-lg border border-blue-100 transition"
+                                                    className="group"
                                                 >
-                                                    Listing
+                                                    <div className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center text-gray-600 group-hover:bg-blue-200 group-hover:text-blue-700">
+                                                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                                        </svg>
+                                                    </div>
                                                 </button>
                                                 <Link
                                                     href={`/property-partner/dashboard/properties/${property.id}`}
@@ -330,7 +334,9 @@ export default function PublicListingPage() {
                                     </div>
                                 ) : (
                                     <div className="h-48 bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center">
-                                        <span className="text-5xl">🏠</span>
+                                        <svg className="w-16 h-16 text-blue-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                        </svg>
                                     </div>
                                 )}
 

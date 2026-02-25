@@ -7,6 +7,7 @@ import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
 import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
 import RouteGuard from '@/app/components/auth/RouteGuard';
 import ProfileCompletionPrompt from '@/app/components/ProfileCompletionPrompt';
+import SidebarIcon from '@/app/components/SidebarIcon';
 
 function CentralAuthorityDashboardLayoutContent({
     children,
@@ -16,19 +17,19 @@ function CentralAuthorityDashboardLayoutContent({
     const pathname = usePathname();
 
     const navigation = [
-        { name: 'Dashboard', href: '/central-authority/dashboard', icon: '📊' },
-        { name: 'Consultants', href: '/central-authority/dashboard/consultants', icon: '👥' },
-        { name: 'Loan Advisers', href: '/central-authority/dashboard/loan-advisers', icon: '💳' },
-        { name: 'Visit Executives', href: '/central-authority/dashboard/visit-executives', icon: '🚗' },
-        { name: 'Marketing Managers', href: '/central-authority/dashboard/marketing-managers', icon: '📢' },
-        { name: 'Commission Managers', href: '/central-authority/dashboard/commission-managers', icon: '💰' },
-        { name: 'Onboarding Managers', href: '/central-authority/dashboard/onboarding-managers', icon: '👔' },
-        { name: 'DSA Partners', href: '/central-authority/dashboard/dsa-partners', icon: '🤝' },
-        { name: 'City Allocation', href: '/central-authority/dashboard/city-allocation', icon: '🏙️' },
-        { name: 'Postal Codes', href: '/central-authority/dashboard/postal-codes', icon: '📮' },
-        { name: 'Rera Scraper', href: '/central-authority/dashboard/rera-scraper', icon: '🕷️' },
-        { name: 'Influencers', href: '/central-authority/dashboard/influencers', icon: '📱' },
-        { name: 'Global Users', href: '/central-authority/dashboard/global-users', icon: '👥' },
+        { name: 'Dashboard', href: '/central-authority/dashboard', icon: 'dashboard' as const },
+        { name: 'Consultants', href: '/central-authority/dashboard/consultants', icon: 'users' as const },
+        { name: 'Loan Advisers', href: '/central-authority/dashboard/loan-advisers', icon: 'bank' as const },
+        { name: 'Visit Executives', href: '/central-authority/dashboard/visit-executives', icon: 'car' as const },
+        { name: 'Marketing Managers', href: '/central-authority/dashboard/marketing-managers', icon: 'megaphone' as const },
+        { name: 'Commission Managers', href: '/central-authority/dashboard/commission-managers', icon: 'money' as const },
+        { name: 'Onboarding Managers', href: '/central-authority/dashboard/onboarding-managers', icon: 'briefcase' as const },
+        { name: 'DSA Partners', href: '/central-authority/dashboard/dsa-partners', icon: 'handshake' as const },
+        { name: 'City Allocation', href: '/central-authority/dashboard/city-allocation', icon: 'pin' as const },
+        { name: 'Postal Codes', href: '/central-authority/dashboard/postal-codes', icon: 'mail' as const },
+        { name: 'Rera Scraper', href: '/central-authority/dashboard/rera-scraper', icon: 'spider' as const },
+        { name: 'Influencers', href: '/central-authority/dashboard/influencers', icon: 'phone' as const },
+        { name: 'Global Users', href: '/central-authority/dashboard/global-users', icon: 'globe' as const },
     ];
 
     const isActive = (href: string) => {
@@ -61,7 +62,7 @@ function CentralAuthorityDashboardLayoutContent({
                                     : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                                     }`}
                             >
-                                <span className="text-xl">{item.icon}</span>
+                                <SidebarIcon name={item.icon} />
                                 <span>{item.name}</span>
                             </Link>
                         );

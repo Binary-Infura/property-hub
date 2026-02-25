@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
 import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
 import RouteGuard from '@/app/components/auth/RouteGuard';
+import SidebarIcon from '@/app/components/SidebarIcon';
 
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
@@ -18,11 +19,11 @@ function OnboardingManagerLayoutContent({
     const { activeContext } = useUnifiedApp();
 
     const navigation = [
-        { name: 'Dashboard', href: '/onboarding-manager/dashboard', icon: '📊' },
-        { name: 'Properties', href: '/onboarding-manager/dashboard/properties', icon: '🏢' },
-        { name: 'Listing Requests', href: '/onboarding-manager/dashboard/listing-requests', icon: '📋' },
-        { name: 'Property Partners', href: '/onboarding-manager/dashboard/property-partners', icon: '🤝' },
-        { name: 'Service Providers', href: '/onboarding-manager/dashboard/service-providers', icon: '🛠️' },
+        { name: 'Dashboard', href: '/onboarding-manager/dashboard', icon: 'dashboard' as const },
+        { name: 'Properties', href: '/onboarding-manager/dashboard/properties', icon: 'building' as const },
+        { name: 'Listing Requests', href: '/onboarding-manager/dashboard/listing-requests', icon: 'clipboard' as const },
+        { name: 'Property Partners', href: '/onboarding-manager/dashboard/property-partners', icon: 'handshake' as const },
+        { name: 'Service Providers', href: '/onboarding-manager/dashboard/service-providers', icon: 'wrench' as const },
     ];
 
     const isActive = (href: string) => {
@@ -54,9 +55,7 @@ function OnboardingManagerLayoutContent({
                                     : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900 group'
                                     }`}
                             >
-                                <span className={`text-xl transition-transform group-hover:scale-110 ${isActive(item.href) ? 'scale-110' : ''}`}>
-                                    {item.icon}
-                                </span>
+                                <SidebarIcon name={item.icon} />
                                 <span>{item.name}</span>
                             </Link>
                         ))}

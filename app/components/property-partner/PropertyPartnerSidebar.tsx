@@ -3,25 +3,26 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/app/contexts/AuthContext';
+import SidebarIcon from '@/app/components/SidebarIcon';
 
 export default function PropertyPartnerSidebar() {
   const pathname = usePathname();
   const { profileStatus } = useAuth();
 
   const mainNavigation = [
-    { name: 'Dashboard', href: '/property-partner/dashboard', icon: '📊' },
-    { name: 'Properties', href: '/property-partner/dashboard/properties', icon: '🏢' },
-    { name: 'Public Listing', href: '/property-partner/dashboard/public-listing', icon: '🌐' },
-    { name: 'Business Info', href: '/property-partner/dashboard/profile', icon: '💼' },
+    { name: 'Dashboard', href: '/property-partner/dashboard', icon: 'dashboard' as const },
+    { name: 'Properties', href: '/property-partner/dashboard/properties', icon: 'building' as const },
+    { name: 'Public Listing', href: '/property-partner/dashboard/public-listing', icon: 'globe' as const },
+    { name: 'Business Info', href: '/property-partner/dashboard/profile', icon: 'briefcase' as const },
   ];
 
   const advancedNavigation = [
-    { name: 'Consultants', href: '/property-partner/dashboard/consultants', icon: '👤' },
-    { name: 'Loan Advisers', href: '/property-partner/dashboard/loan-advisers', icon: '🏦' },
-    { name: 'Channel Partners', href: '/property-partner/dashboard/channel-partners', icon: '🤝' },
-    { name: 'Visit Executives', href: '/property-partner/dashboard/visit-executives', icon: '📍' },
-    { name: 'Service Providers', href: '/property-partner/dashboard/service-providers', icon: '🛠️' },
-    { name: 'Leads', href: '/property-partner/dashboard/leads', icon: '📋' },
+    { name: 'Consultants', href: '/property-partner/dashboard/consultants', icon: 'person' as const },
+    { name: 'Loan Advisers', href: '/property-partner/dashboard/loan-advisers', icon: 'bank' as const },
+    { name: 'Channel Partners', href: '/property-partner/dashboard/channel-partners', icon: 'handshake' as const },
+    { name: 'Visit Executives', href: '/property-partner/dashboard/visit-executives', icon: 'pin' as const },
+    { name: 'Service Providers', href: '/property-partner/dashboard/service-providers', icon: 'wrench' as const },
+    { name: 'Leads', href: '/property-partner/dashboard/leads', icon: 'clipboard' as const },
   ];
 
   const isActive = (href: string) => {
@@ -55,7 +56,7 @@ export default function PropertyPartnerSidebar() {
                 : 'text-gray-700 hover:bg-gray-100'
                 }`}
             >
-              <span className="text-xl">{item.icon}</span>
+              <SidebarIcon name={item.icon} />
               <span>{item.name}</span>
             </Link>
           ))}
@@ -65,7 +66,9 @@ export default function PropertyPartnerSidebar() {
           <div className="px-7 mb-2 flex justify-between items-center">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em]">Premium Toolkit</p>
             {!isPremium && (
-              <span className="text-xs" title="Premium subscription required">🔒</span>
+              <span className="text-gray-400" title="Premium subscription required">
+                <SidebarIcon name="lock" className="w-3.5 h-3.5" />
+              </span>
             )}
           </div>
           <nav className="px-3 space-y-1">
@@ -79,7 +82,7 @@ export default function PropertyPartnerSidebar() {
                   } ${!isPremium ? 'opacity-70 grayscale-[0.5]' : ''}`}
               >
                 <div className="relative">
-                  <span className="text-lg">{item.icon}</span>
+                  <SidebarIcon name={item.icon} className="w-[18px] h-[18px]" />
                   {!isPremium && (
                     <div className="absolute -top-1 -right-1 bg-white rounded-full p-[1px] shadow-sm">
                       <svg className="w-2.5 h-2.5 text-gray-500" fill="currentColor" viewBox="0 0 20 20">

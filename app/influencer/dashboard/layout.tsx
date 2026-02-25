@@ -6,6 +6,7 @@ import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
 import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
 import RouteGuard from '@/app/components/auth/RouteGuard';
 import ProfileCompletionPrompt from '@/app/components/ProfileCompletionPrompt';
+import SidebarIcon from '@/app/components/SidebarIcon';
 
 function InfluencerDashboardLayoutContent({
     children,
@@ -15,11 +16,11 @@ function InfluencerDashboardLayoutContent({
     const pathname = usePathname();
 
     const navigation = [
-        { name: 'Overview', href: '/influencer/dashboard', icon: '📊' },
-        { name: 'My Campaigns', href: '/influencer/dashboard/campaigns', icon: '📢' },
-        { name: 'Earnings', href: '/influencer/dashboard/earnings', icon: '💰' },
-        { name: 'Resources', href: '/influencer/dashboard/resources', icon: '📚' },
-        { name: 'Settings', href: '/influencer/dashboard/settings', icon: '⚙️' },
+        { name: 'Overview', href: '/influencer/dashboard', icon: 'dashboard' as const },
+        { name: 'My Campaigns', href: '/influencer/dashboard/campaigns', icon: 'megaphone' as const },
+        { name: 'Earnings', href: '/influencer/dashboard/earnings', icon: 'money' as const },
+        { name: 'Resources', href: '/influencer/dashboard/resources', icon: 'book' as const },
+        { name: 'Settings', href: '/influencer/dashboard/settings', icon: 'settings' as const },
     ];
 
     const isActive = (href: string) => {
@@ -52,7 +53,7 @@ function InfluencerDashboardLayoutContent({
                                     : 'text-gray-400 hover:bg-gray-800 hover:text-white'
                                     }`}
                             >
-                                <span className="text-xl">{item.icon}</span>
+                                <SidebarIcon name={item.icon} />
                                 <span>{item.name}</span>
                             </Link>
                         );

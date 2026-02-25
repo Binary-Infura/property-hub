@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import SidebarIcon from '@/app/components/SidebarIcon';
 
 
 
@@ -26,12 +27,12 @@ function DsaDashboardLayoutContent({
   const { activeContext } = useUnifiedApp();
 
   const navigation = [
-    { name: 'Dashboard', href: '/dsa/dashboard', icon: '📊' },
-    { name: 'Leads', href: '/dsa/dashboard/leads', icon: '👥' },
-    { name: 'Commissions', href: '/dsa/dashboard/commissions', icon: '💰' },
-    { name: 'Promotions', href: '/dsa/dashboard/promotions', icon: '📢' },
-    { name: 'Ads & Campaigns', href: '/dsa/dashboard/campaigns-leads', icon: '📈' },
-    { name: 'Ad Requests', href: '/dsa/dashboard/advertisement-requests', icon: '📝' },
+    { name: 'Dashboard', href: '/dsa/dashboard', icon: 'dashboard' as const },
+    { name: 'Leads', href: '/dsa/dashboard/leads', icon: 'users' as const },
+    { name: 'Commissions', href: '/dsa/dashboard/commissions', icon: 'money' as const },
+    { name: 'Promotions', href: '/dsa/dashboard/promotions', icon: 'megaphone' as const },
+    { name: 'Ads & Campaigns', href: '/dsa/dashboard/campaigns-leads', icon: 'chart' as const },
+    { name: 'Ad Requests', href: '/dsa/dashboard/advertisement-requests', icon: 'note' as const },
   ];
 
   const isActive = (href: string) => {
@@ -65,7 +66,7 @@ function DsaDashboardLayoutContent({
                     : 'text-gray-700 hover:bg-gray-50'
                     }`}
                 >
-                  <span className="text-xl">{item.icon}</span>
+                  <SidebarIcon name={item.icon} />
                   <span>{item.name}</span>
                 </Link>
               );

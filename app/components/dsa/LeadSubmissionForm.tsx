@@ -68,7 +68,12 @@ export default function LeadSubmissionForm({ onSubmit }: LeadSubmissionFormProps
     <div className="max-w-2xl">
       {submitted && (
         <div className="mb-6 bg-green-50 border border-green-200 rounded-lg p-4">
-          <p className="text-green-800 font-medium">✓ Lead submitted successfully!</p>
+          <p className="text-green-800 font-medium flex items-center gap-2">
+            <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            Lead submitted successfully!
+          </p>
           <p className="text-green-700 text-sm mt-1">Your new lead has been added to the system and will be reviewed by the team.</p>
         </div>
       )}

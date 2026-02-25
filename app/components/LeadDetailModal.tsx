@@ -80,7 +80,9 @@ export default function LeadDetailModal({
             onClick={onClose}
             className="text-gray-500 hover:text-gray-700 font-bold text-2xl"
           >
-            ×
+            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
           </button>
         </div>
 
@@ -88,31 +90,28 @@ export default function LeadDetailModal({
         <div className="border-b border-gray-200 flex">
           <button
             onClick={() => setActiveTab('details')}
-            className={`flex-1 px-6 py-3 font-medium border-b-2 transition ${
-              activeTab === 'details'
+            className={`flex-1 px-6 py-3 font-medium border-b-2 transition ${activeTab === 'details'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
-            }`}
+              }`}
           >
             Details
           </button>
           <button
             onClick={() => setActiveTab('notes')}
-            className={`flex-1 px-6 py-3 font-medium border-b-2 transition ${
-              activeTab === 'notes'
+            className={`flex-1 px-6 py-3 font-medium border-b-2 transition ${activeTab === 'notes'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
-            }`}
+              }`}
           >
             Internal Notes
           </button>
           <button
             onClick={() => setActiveTab('assign')}
-            className={`flex-1 px-6 py-3 font-medium border-b-2 transition ${
-              activeTab === 'assign'
+            className={`flex-1 px-6 py-3 font-medium border-b-2 transition ${activeTab === 'assign'
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
-            }`}
+              }`}
           >
             Assign Region
           </button>
@@ -242,13 +241,23 @@ export default function LeadDetailModal({
                   disabled={lead.status === 'qualified'}
                   className="flex-1 px-4 py-2 bg-green-600 text-white rounded font-medium hover:bg-green-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
                 >
-                  ✓ Qualify Lead
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Qualify Lead
+                  </span>
                 </button>
                 <button
                   onClick={handleRejectAsSpam}
                   className="flex-1 px-4 py-2 bg-red-600 text-white rounded font-medium hover:bg-red-700 transition"
                 >
-                  🚫 Mark as Spam
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+                    </svg>
+                    Mark as Spam
+                  </span>
                 </button>
               </div>
             </div>
@@ -316,11 +325,10 @@ export default function LeadDetailModal({
                         <button
                           key={region}
                           onClick={() => setSelectedRegion(region)}
-                          className={`p-4 rounded-lg border-2 font-medium transition text-center ${
-                            selectedRegion === region
+                          className={`p-4 rounded-lg border-2 font-medium transition text-center ${selectedRegion === region
                               ? 'border-blue-600 bg-blue-50 text-blue-700'
                               : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
-                          }`}
+                            }`}
                         >
                           {region}
                         </button>
@@ -348,7 +356,12 @@ export default function LeadDetailModal({
                   </button>
 
                   <div className="bg-yellow-50 rounded-lg p-4 border border-yellow-200">
-                    <p className="text-sm text-yellow-800 font-medium">⚠️ Important Restriction</p>
+                    <p className="text-sm text-yellow-800 font-medium flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      Important Restriction
+                    </p>
                     <p className="text-xs text-yellow-700 mt-2">
                       Once a lead is assigned to a region, the assignment cannot be modified. Ensure the lead is properly qualified before assigning.
                     </p>

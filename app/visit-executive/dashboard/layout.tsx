@@ -5,6 +5,7 @@ import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
 import RouteGuard from '@/app/components/auth/RouteGuard';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import SidebarIcon from '@/app/components/SidebarIcon';
 
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
@@ -18,10 +19,10 @@ function VisitExecutiveDashboardLayoutContent({
     const { activeContext } = useUnifiedApp();
 
     const navigation = [
-        { name: 'Dashboard', href: '/visit-executive/dashboard', icon: '📊' },
-        { name: 'Schedule', href: '/visit-executive/dashboard/schedule', icon: '📅' },
-        { name: 'My Visits', href: '/visit-executive/dashboard/visits', icon: '📍' },
-        { name: 'Clients', href: '/visit-executive/dashboard/clients', icon: '👥' },
+        { name: 'Dashboard', href: '/visit-executive/dashboard', icon: 'dashboard' as const },
+        { name: 'Schedule', href: '/visit-executive/dashboard/schedule', icon: 'calendar' as const },
+        { name: 'My Visits', href: '/visit-executive/dashboard/visits', icon: 'pin' as const },
+        { name: 'Clients', href: '/visit-executive/dashboard/clients', icon: 'users' as const },
     ];
 
     const isActive = (href: string) => {
@@ -57,7 +58,7 @@ function VisitExecutiveDashboardLayoutContent({
                                         : 'text-gray-700 hover:bg-gray-50'
                                         }`}
                                 >
-                                    <span className="text-xl">{item.icon}</span>
+                                    <SidebarIcon name={item.icon} />
                                     <span>{item.name}</span>
                                 </Link>
                             );

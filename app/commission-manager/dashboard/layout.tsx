@@ -5,6 +5,7 @@ import { UnifiedAppProvider } from '@/app/contexts/UnifiedAppContext';
 import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
 import { usePathname } from 'next/navigation';
 import RouteGuard from '@/app/components/auth/RouteGuard';
+import SidebarIcon from '@/app/components/SidebarIcon';
 
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
@@ -19,11 +20,11 @@ function CommissionManagerLayoutContent({
   const { activeContext } = useUnifiedApp();
 
   const navigation = [
-    { name: 'Dashboard', href: '/commission-manager/dashboard', icon: '📊' },
-    { name: 'Payouts', href: '/commission-manager/dashboard/payouts', icon: '💰' },
-    { name: 'Reports', href: '/commission-manager/dashboard/reports', icon: '📈' },
-    { name: 'Audit Trail', href: '/commission-manager/dashboard/audit-trail', icon: '🔍' },
-    { name: 'Disputes', href: '/commission-manager/dashboard/disputes', icon: '⚖️' },
+    { name: 'Dashboard', href: '/commission-manager/dashboard', icon: 'dashboard' as const },
+    { name: 'Payouts', href: '/commission-manager/dashboard/payouts', icon: 'money' as const },
+    { name: 'Reports', href: '/commission-manager/dashboard/reports', icon: 'chart' as const },
+    { name: 'Audit Trail', href: '/commission-manager/dashboard/audit-trail', icon: 'search' as const },
+    { name: 'Disputes', href: '/commission-manager/dashboard/disputes', icon: 'scale' as const },
   ];
 
   const isActive = (href: string) => {
@@ -57,7 +58,7 @@ function CommissionManagerLayoutContent({
                     : 'text-gray-700 hover:bg-gray-50'
                     }`}
                 >
-                  <span className="text-xl">{item.icon}</span>
+                  <SidebarIcon name={item.icon} />
                   <span>{item.name}</span>
                 </Link>
               );
