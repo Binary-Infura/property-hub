@@ -18,6 +18,8 @@ function CentralAuthorityDashboardLayoutContent({
 
     const navigation = [
         { name: 'Dashboard', href: '/central-authority/dashboard', icon: 'dashboard' as const },
+        { name: 'City Management', href: '/central-authority/dashboard/cities/management', icon: 'pin' as const },
+        { name: 'City Allocation', href: '/central-authority/dashboard/cities/allocation', icon: 'users' as const },
         { name: 'Consultants', href: '/central-authority/dashboard/consultants', icon: 'users' as const },
         { name: 'Loan Advisers', href: '/central-authority/dashboard/loan-advisers', icon: 'bank' as const },
         { name: 'Visit Executives', href: '/central-authority/dashboard/visit-executives', icon: 'car' as const },

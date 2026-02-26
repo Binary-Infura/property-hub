@@ -135,7 +135,7 @@ export default function AddGlobalUserModal({ isOpen, onClose, onSuccess }: AddGl
                             <div className="text-[12px] text-blue-800 leading-relaxed">
                                 <p className="font-bold mb-1">Global User Info:</p>
                                 <p className="opacity-90">
-                                    Global users have administrative access to the central authority dashboard and can oversee all regions and managers.
+                                    Global users have administrative access to the central authority dashboard and can oversee all cities and managers.
                                 </p>
                             </div>
                         </div>

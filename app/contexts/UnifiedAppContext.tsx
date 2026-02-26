@@ -26,8 +26,16 @@ export interface UserRole {
     dashboardUrl: string;
 }
 
+export interface CityAllocation {
+    id: string;
+    cityName: string;
+    stateCode: string;
+    assignedAt: string;
+}
+
 export interface UserContextData {
     activeRole: UserRole;
+    activeCity: CityAllocation | null;
 }
 
 export interface UnifiedAppContextType {
@@ -37,7 +45,9 @@ export interface UnifiedAppContextType {
         availableRoles: UserRole[];
     };
     activeContext: UserContextData;
+    myCities: CityAllocation[];
     switchContext: (roleId: RoleId) => void;
+    switchCity: (city: CityAllocation) => void;
 }
 
 // --- Application Configuration (Static) ---
@@ -117,9 +127,12 @@ const DEFAULT_CONTEXT: UnifiedAppContextType = {
         availableRoles: []
     },
     activeContext: {
-        activeRole: KNOWN_ROLES[KNOWN_ROLES.length - 1] // Default to buyer
+        activeRole: KNOWN_ROLES[KNOWN_ROLES.length - 1], // Default to buyer
+        activeCity: null
     },
-    switchContext: () => { }
+    myCities: [],
+    switchContext: () => { },
+    switchCity: () => { }
 };
 
 // --- Context ---
@@ -132,6 +145,8 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
 
     const [activeRole, setActiveRole] = useState<UserRole>(KNOWN_ROLES[KNOWN_ROLES.length - 1]);
     const [availableRoles, setAvailableRoles] = useState<UserRole[]>([]);
+    const [myCities, setMyCities] = useState<CityAllocation[]>([]);
+    const [activeCity, setActiveCity] = useState<CityAllocation | null>(null);
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -156,19 +171,45 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
                 setAvailableRoles(roleList);
             }
 
-            // 3. Set Active Context Defaults
-            // Select Role
-            const savedRoleId = localStorage.getItem('activeRoleId');
-            const recoveredRole = roleList.find(r => r.id === savedRoleId);
-            if (recoveredRole) {
-                setActiveRole(recoveredRole);
-            } else if (roleList.length > 0) {
-                setActiveRole(roleList[0]);
+            // 4. Fetch Cities for Manager/Field roles
+            const cityBasedRoles: RoleId[] = [
+                'marketing-manager',
+                'onboarding-manager',
+                'commission-manager',
+                'consultant',
+                'visit-executive',
+                'loan-adviser',
+                'dsa'
+            ];
+            if (activeRole && cityBasedRoles.includes(activeRole.id) && token) {
+                try {
+                    const response = await fetch(`${API_URL}/api/cities/allocations/my-cities`, {
+                        headers: { Authorization: `Bearer ${token}` }
+                    });
+                    if (response.ok) {
+                        const cities = await response.json();
+                        setMyCities(cities);
+
+                        // Set active city
+                        const savedCityName = localStorage.getItem('activeCityName');
+                        const recoveredCity = cities.find((c: any) => c.cityName === savedCityName);
+                        if (recoveredCity) {
+                            setActiveCity(recoveredCity);
+                        } else if (cities.length > 0) {
+                            setActiveCity(cities[0]);
+                        }
+                    }
+                } catch (error) {
+                    console.error('Failed to fetch user cities', error);
+                }
+            } else {
+                setMyCities([]);
+                setActiveCity(null);
             }
         };
 
         syncAppData();
-    }, [initialized, authenticated, user, roles, token]);
+    }, [initialized, authenticated, user, roles, token, activeRole]);
 
     const switchContext = (roleId: RoleId) => {
         const role = availableRoles.find(r => r.id === roleId);
@@ -181,6 +222,14 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
         router.push(role.dashboardUrl);
     };
 
+    const switchCity = (city: CityAllocation) => {
+        setActiveCity(city);
+        localStorage.setItem('activeCityName', city.cityName);
+        console.log(`Switching city context to: ${city.cityName}`);
+        // Refresh page or trigger context update if needed
+        window.location.reload();
+    };
+
     const displayName = user ? (user.name || `${user.given_name || ''} ${user.family_name || ''}`.trim() || user.preferred_username || 'User') : 'Guest';
     const avatarUrl = user ? `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0D8ABC&color=fff` : DEFAULT_CONTEXT.currentUser.avatar;
 
@@ -191,9 +240,12 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
             availableRoles
         },
         activeContext: {
-            activeRole
+            activeRole,
+            activeCity
         },
-        switchContext
+        myCities,
+        switchContext,
+        switchCity
     };
 
     return (

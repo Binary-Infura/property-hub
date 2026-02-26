@@ -6,6 +6,7 @@ import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import { propertyService } from '@/app/services/propertyService';
 import { userService } from '@/app/services/userService';
 import Link from 'next/link';
+import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
 
 export default function OnboardingManagerDashboard() {
     const { user, token } = useAuth();
@@ -80,8 +81,12 @@ export default function OnboardingManagerDashboard() {
         { id: 1, action: 'Property Listed', subject: 'Villa 7A at North Mumbai', time: '2 hours ago', type: 'property', status: 'success' },
         { id: 2, action: 'Partner Verified', subject: 'Elite Builders Ltd.', time: '5 hours ago', type: 'partner', status: 'success' },
         { id: 3, action: 'Service Assigned', subject: 'Cleaning job for Tower 4', time: 'Yesterday', type: 'service', status: 'info' },
-        { id: 4, action: 'System Update', subject: 'Region switching enabled', time: '2 days ago', type: 'system', status: 'success' },
+        { id: 4, action: 'System Update', subject: 'City switching enabled', time: '2 days ago', type: 'system', status: 'success' },
     ];
+
+    if (!activeContext.activeCity) {
+        return <NoAllocationPlaceholder />;
+    }
 
     return (
         <div className="max-w-[1600px] mx-auto space-y-10 pb-12">
@@ -105,7 +110,7 @@ export default function OnboardingManagerDashboard() {
                         <p className="mt-4 text-blue-100 text-lg flex items-center gap-2">
                             Overview for
                             <span className="px-3 py-1 bg-white/10 rounded-lg text-white font-bold border border-white/20">
-                                Global Dashboard
+                                {activeContext.activeCity.cityName} Dashboard
                             </span>
                         </p>
                     </div>
@@ -233,13 +238,13 @@ export default function OnboardingManagerDashboard() {
                     <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-[2.5rem] p-8 text-white shadow-xl shadow-blue-200 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-xl -mr-16 -mt-16"></div>
                         <div className="relative z-10">
-                            <h3 className="text-sm font-black uppercase tracking-widest mb-2 opacity-80 decoration-white/30 decoration-2">Region Health</h3>
+                            <h3 className="text-sm font-black uppercase tracking-widest mb-2 opacity-80 decoration-white/30 decoration-2">City Health</h3>
                             <p className="text-4xl font-black mb-6">94%</p>
                             <div className="h-2 w-full bg-white/20 rounded-full overflow-hidden mb-6">
                                 <div className="h-full bg-white w-[94%] shadow-[0_0_12px_rgba(255,255,255,0.5)]"></div>
                             </div>
                             <p className="text-sm font-bold opacity-80 leading-relaxed">
-                                Your region is performing exceptionally well! 12 new properties are in the pipeline.
+                                Your city is performing exceptionally well! 12 new properties are in the pipeline.
                             </p>
                         </div>
                     </div>

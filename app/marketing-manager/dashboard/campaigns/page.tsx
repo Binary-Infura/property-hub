@@ -15,7 +15,7 @@ interface Campaign {
     spent: number;
     startDate: string;
     endDate: string;
-    targetRegions: { id: string, name: string }[];
+    targetCities: { id: string, name: string }[];
     assignedTo: { id: string, firstName: string, lastName: string }[];
     impressions: number;
     clicks: number;

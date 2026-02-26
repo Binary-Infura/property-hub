@@ -21,7 +21,7 @@ interface User {
     role: string;
 }
 
-interface Region {
+interface City {
     id: string;
     name: string;
     code: string;
@@ -35,9 +35,9 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
     const { token } = useAuth();
     const [role, setRole] = useState<RoleId>(initialRole || 'dsa');
     const [selectedUserId, setSelectedUserId] = useState('');
-    const [selectedRegionIds, setSelectedRegionIds] = useState<string[]>([]);
+    const [selectedCityIds, setSelectedCityIds] = useState<string[]>([]);
     const [users, setUsers] = useState<User[]>([]);
-    const [regions, setRegions] = useState<Region[]>([]);
+    const [cities, setCitiesList] = useState<City[]>([]);
     const [userSearch, setUserSearch] = useState('');
 
     const [stateFilter, setStateFilter] = useState('');
@@ -69,7 +69,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
 
     useEffect(() => {
         if (isOpen) {
-            fetchRegions();
+            fetchCitiesList();
             // Default to India
             fetchStates('IN');
         }
@@ -77,7 +77,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
 
     useEffect(() => {
         if (isOpen) {
-            fetchRegions();
+            fetchCitiesList();
         }
     }, [isOpen, stateFilter, cityFilter]);
 
@@ -100,7 +100,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
         }
     }, [role, userSearch]);
 
-    const fetchRegions = async () => {
+    const fetchCitiesList = async () => {
         if (!token) return;
         try {
             const params = new URLSearchParams();
@@ -112,15 +112,15 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
             }
             if (cityFilter) params.append('city', cityFilter);
 
-            const response = await fetch(`${API_URL}/api/regions?${params}`, {
+            const response = await fetch(`${API_URL}/api/cities?${params}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (response.ok) {
                 const data = await response.json();
-                setRegions(data.data);
+                setCitiesList(data.data);
             }
         } catch (err) {
-            console.error('Failed to fetch regions:', err);
+            console.error('Failed to fetch cities:', err);
         }
     };
 
@@ -149,7 +149,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
         setLoading(true);
         try {
             const response = await fetch(
-                `${API_URL}/api/regions/allocations/users/search?query=${userSearch}&role=${role}`,
+                `${API_URL}/api/cities/allocations/users/search?query=${userSearch}&role=${role}`,
                 {
                     headers: { Authorization: `Bearer ${token}` },
                 }
@@ -165,23 +165,23 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
         }
     };
 
-    const handleRegionToggle = (regionId: string) => {
-        setSelectedRegionIds((prev) =>
-            prev.includes(regionId)
-                ? prev.filter((id) => id !== regionId)
-                : [...prev, regionId]
+    const handleCityToggle = (cityId: string) => {
+        setSelectedCityIds((prev) =>
+            prev.includes(cityId)
+                ? prev.filter((id) => id !== cityId)
+                : [...prev, cityId]
         );
     };
 
     const handleSubmit = async () => {
-        if (!selectedUserId || selectedRegionIds.length === 0 || !token) {
-            alert('Please select a user and at least one region');
+        if (!selectedUserId || selectedCityIds.length === 0 || !token) {
+            alert('Please select a user and at least one city');
             return;
         }
 
         setSubmitting(true);
         try {
-            const response = await fetch(`${API_URL}/api/regions/allocations/assign`, {
+            const response = await fetch(`${API_URL}/api/cities/allocations/assign`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -189,7 +189,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
                 },
                 body: JSON.stringify({
                     userId: selectedUserId,
-                    regionIds: selectedRegionIds,
+                    cityIds: selectedCityIds,
                 }),
             });
 
@@ -212,7 +212,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
     const resetForm = () => {
         setRole(initialRole || 'dsa');
         setSelectedUserId('');
-        setSelectedRegionIds([]);
+        setSelectedCityIds([]);
         setUserSearch('');
         setUsers([]);
     };
@@ -229,7 +229,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
             <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-hidden transform transition-all animate-in zoom-in-95 duration-200 flex flex-col">
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900 leading-tight">{isCityContext ? 'Assign Manager to Cities' : 'Assign Manager to Regions'}</h2>
+                        <h2 className="text-xl font-bold text-gray-900 leading-tight">{isCityContext ? 'Assign Manager to Cities' : 'Assign Manager to Cities'}</h2>
                         <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-1">Assignment Orchestrator</p>
                     </div>
                     <button onClick={handleClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
@@ -314,10 +314,10 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
                         )}
                     </div>
 
-                    {/* Region Selection */}
+                    {/* City Selection */}
                     <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                            <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] ml-1">3. Scope Selection ({selectedRegionIds.length} {isCityContext ? 'Cities' : 'Regions'})</label>
+                            <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] ml-1">3. Scope Selection ({selectedCityIds.length} Cities)</label>
                             <div className="flex flex-wrap gap-2 justify-end max-w-[60%]">
 
                                 <select
@@ -339,28 +339,28 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
                             </div>
                         </div>
                         <div className="grid grid-cols-2 gap-3 max-h-64 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-200">
-                            {regions.map((region) => (
+                            {cities.map((city) => (
                                 <div
-                                    key={region.id}
-                                    onClick={() => handleRegionToggle(region.id)}
-                                    className={`p-4 rounded-xl border transition-all cursor-pointer group flex items-start gap-3 ${selectedRegionIds.includes(region.id)
+                                    key={city.id}
+                                    onClick={() => handleCityToggle(city.id)}
+                                    className={`p-4 rounded-xl border transition-all cursor-pointer group flex items-start gap-3 ${selectedCityIds.includes(city.id)
                                         ? 'bg-blue-50/50 border-blue-500/20 shadow-sm'
                                         : 'bg-white border-gray-100 hover:border-gray-200 hover:bg-gray-50/50'
                                         }`}
                                 >
-                                    <div className={`mt-0.5 w-4 h-4 rounded border flex-shrink-0 transition-all flex items-center justify-center ${selectedRegionIds.includes(region.id)
+                                    <div className={`mt-0.5 w-4 h-4 rounded border flex-shrink-0 transition-all flex items-center justify-center ${selectedCityIds.includes(city.id)
                                         ? 'bg-blue-600 border-blue-600 shadow-sm shadow-blue-200'
                                         : 'bg-gray-50 border-gray-200 group-hover:border-gray-300'
                                         }`}>
-                                        {selectedRegionIds.includes(region.id) && (
+                                        {selectedCityIds.includes(city.id) && (
                                             <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
                                             </svg>
                                         )}
                                     </div>
                                     <div className="min-w-0">
-                                        <p className={`text-sm font-bold transition-colors ${selectedRegionIds.includes(region.id) ? 'text-blue-600' : 'text-gray-900'}`}>{isCityContext ? (region.city || region.name) : region.name}</p>
-                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter mt-1">{region.code}</p>
+                                        <p className={`text-sm font-bold transition-colors ${selectedCityIds.includes(city.id) ? 'text-blue-600' : 'text-gray-900'}`}>{isCityContext ? (city.city || city.name) : city.name}</p>
+                                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter mt-1">{city.code}</p>
                                     </div>
                                 </div>
                             ))}
@@ -378,7 +378,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
                     </button>
                     <button
                         onClick={handleSubmit}
-                        disabled={submitting || !selectedUserId || selectedRegionIds.length === 0}
+                        disabled={submitting || !selectedUserId || selectedCityIds.length === 0}
                         className="px-8 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-200 transform active:scale-95"
                     >
                         {submitting ? (

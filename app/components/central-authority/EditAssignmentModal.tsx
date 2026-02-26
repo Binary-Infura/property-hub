@@ -11,7 +11,7 @@ interface EditAssignmentModalProps {
     isCityContext?: boolean;
 }
 
-interface Region {
+interface City {
     id: string;
     name: string;
     code: string;
@@ -20,9 +20,9 @@ interface Region {
 
 export default function EditAssignmentModal({ isOpen, user, onClose, onSuccess, isCityContext }: EditAssignmentModalProps) {
     const { token } = useAuth();
-    const [selectedRegionIds, setSelectedRegionIds] = useState<string[]>([]);
-    const [allRegions, setAllRegions] = useState<Region[]>([]);
-    const [userRegions, setUserRegions] = useState<Region[]>([]);
+    const [selectedCityIds, setSelectedCityIds] = useState<string[]>([]);
+    const [allCities, setAllCities] = useState<City[]>([]);
+    const [userCities, setUserCities] = useState<City[]>([]);
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
@@ -38,30 +38,30 @@ export default function EditAssignmentModal({ isOpen, user, onClose, onSuccess, 
         if (!token || !user) return;
         setLoading(true);
         try {
-            // Fetch all regions
-            const regionsResponse = await fetch(`${API_URL}/api/regions?limit=1000`, {
+            // Fetch all cities
+            const citiesResponse = await fetch(`${API_URL}/api/cities?limit=1000`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
-            if (regionsResponse.ok) {
-                const regionsData = await regionsResponse.json();
-                setAllRegions(regionsData.data);
+            if (citiesResponse.ok) {
+                const citiesData = await citiesResponse.json();
+                setAllCities(citiesData.data);
             }
 
-            // Fetch user's current regions (we'll get them from allocations)
-            const allocationsResponse = await fetch(`${API_URL}/api/regions/allocations/all`, {
+            // Fetch user's current cities (we'll get them from allocations)
+            const allocationsResponse = await fetch(`${API_URL}/api/cities/allocations/all`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (allocationsResponse.ok) {
                 const allocationsData = await allocationsResponse.json();
-                const userRegionsList: Region[] = [];
-                allocationsData.forEach((region: any) => {
-                    const hasUser = region.assignedUsers.some((u: any) => u.id === user.id);
+                const userCitiesList: City[] = [];
+                allocationsData.forEach((city: any) => {
+                    const hasUser = city.assignedUsers.some((u: any) => u.id === user.id);
                     if (hasUser) {
-                        userRegionsList.push({ id: region.id, name: region.name, code: region.code });
+                        userCitiesList.push({ id: city.id, name: city.name, code: city.code });
                     }
                 });
-                setUserRegions(userRegionsList);
-                setSelectedRegionIds(userRegionsList.map(r => r.id));
+                setUserCities(userCitiesList);
+                setSelectedCityIds(userCitiesList.map(c => c.id));
             }
         } catch (err) {
             console.error('Failed to fetch data:', err);
@@ -70,11 +70,11 @@ export default function EditAssignmentModal({ isOpen, user, onClose, onSuccess, 
         }
     };
 
-    const handleRegionToggle = (regionId: string) => {
-        setSelectedRegionIds((prev) =>
-            prev.includes(regionId)
-                ? prev.filter((id) => id !== regionId)
-                : [...prev, regionId]
+    const handleCityToggle = (cityId: string) => {
+        setSelectedCityIds((prev) =>
+            prev.includes(cityId)
+                ? prev.filter((id) => id !== cityId)
+                : [...prev, cityId]
         );
     };
 
@@ -83,14 +83,14 @@ export default function EditAssignmentModal({ isOpen, user, onClose, onSuccess, 
 
         setSubmitting(true);
         try {
-            const response = await fetch(`${API_URL}/api/regions/allocations/${user.id}`, {
+            const response = await fetch(`${API_URL}/api/cities/allocations/${user.id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({
-                    regionIds: selectedRegionIds,
+                    cityIds: selectedCityIds,
                 }),
             });
 
@@ -154,31 +154,31 @@ export default function EditAssignmentModal({ isOpen, user, onClose, onSuccess, 
                             {/* Region Selection */}
                             <div className="space-y-4">
                                 <label className="block text-[11px] font-black text-gray-400 uppercase tracking-[0.15em] ml-1">
-                                    {isCityContext ? 'City Scope' : 'Jurisdiction Scope'} ({selectedRegionIds.length} active)
+                                    {isCityContext ? 'City Scope' : 'Jurisdiction Scope'} ({selectedCityIds.length} active)
                                 </label>
                                 <div className="grid grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-200">
-                                    {allRegions.map((region) => (
+                                    {allCities.map((city) => (
                                         <div
-                                            key={region.id}
-                                            onClick={() => handleRegionToggle(region.id)}
-                                            className={`p-4 rounded-xl border transition-all cursor-pointer group flex items-start gap-3 ${selectedRegionIds.includes(region.id)
+                                            key={city.id}
+                                            onClick={() => handleCityToggle(city.id)}
+                                            className={`p-4 rounded-xl border transition-all cursor-pointer group flex items-start gap-3 ${selectedCityIds.includes(city.id)
                                                 ? 'bg-blue-50/50 border-blue-500/20 shadow-sm'
                                                 : 'bg-white border-gray-100 hover:border-gray-200 hover:bg-gray-50/50'
                                                 }`}
                                         >
-                                            <div className={`mt-0.5 w-4 h-4 rounded border flex-shrink-0 transition-all flex items-center justify-center ${selectedRegionIds.includes(region.id)
+                                            <div className={`mt-0.5 w-4 h-4 rounded border flex-shrink-0 transition-all flex items-center justify-center ${selectedCityIds.includes(city.id)
                                                 ? 'bg-blue-600 border-blue-600 shadow-sm shadow-blue-200'
                                                 : 'bg-gray-50 border-gray-200 group-hover:border-gray-300'
                                                 }`}>
-                                                {selectedRegionIds.includes(region.id) && (
+                                                {selectedCityIds.includes(city.id) && (
                                                     <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
                                                     </svg>
                                                 )}
                                             </div>
                                             <div className="min-w-0">
-                                                <p className={`text-sm font-bold transition-colors ${selectedRegionIds.includes(region.id) ? 'text-blue-600' : 'text-gray-900'}`}>{isCityContext ? (region.city || region.name) : region.name}</p>
-                                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter mt-1">{region.code}</p>
+                                                <p className={`text-sm font-bold transition-colors ${selectedCityIds.includes(city.id) ? 'text-blue-600' : 'text-gray-900'}`}>{isCityContext ? (city.city || city.name) : city.name}</p>
+                                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter mt-1">{city.code}</p>
                                             </div>
                                         </div>
                                     ))}
@@ -198,7 +198,7 @@ export default function EditAssignmentModal({ isOpen, user, onClose, onSuccess, 
                     </button>
                     <button
                         onClick={handleSubmit}
-                        disabled={submitting || loading || selectedRegionIds.length === 0}
+                        disabled={submitting || loading || selectedCityIds.length === 0}
                         className="px-8 py-2.5 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-bold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-lg shadow-blue-200 transform active:scale-95"
                     >
                         {submitting ? (

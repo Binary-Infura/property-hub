@@ -1,5 +1,5 @@
 export interface DashboardStats {
-    totalRegions: number;
+    totalCities: number;
     properties: {
         active: number;
         pending: number;
@@ -21,7 +21,7 @@ export interface DashboardStats {
     };
 }
 
-export interface RegionPerformance {
+export interface CityPerformance {
     id: string;
     name: string;
     managers: string[];

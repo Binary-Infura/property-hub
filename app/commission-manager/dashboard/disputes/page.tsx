@@ -5,7 +5,7 @@ import { useState } from 'react';
 interface Dispute {
   id: string;
   personName: string;
-  personRole: 'consultant' | 'regional-manager' | 'property-partner' | 'channel-partner';
+  personRole: 'consultant' | 'city-manager' | 'property-partner' | 'channel-partner';
   commissionAmount: number;
   raisedAt: Date;
   status: 'open' | 'under-review' | 'resolved' | 'rejected';
@@ -21,7 +21,7 @@ export default function DisputesPage() {
     {
       id: '1',
       personName: 'Priya Patel',
-      personRole: 'regional-manager',
+      personRole: 'city-manager',
       commissionAmount: 150000,
       raisedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
       status: 'under-review',

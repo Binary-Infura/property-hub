@@ -7,7 +7,7 @@ export interface Property {
     description?: string;
     location: string;
     address?: string;
-    regionId: string;
+    cityAllocationId: string;
     status: PropertyStatus;
     price: number;
     area?: number;

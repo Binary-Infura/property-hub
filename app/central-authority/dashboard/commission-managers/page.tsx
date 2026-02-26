@@ -74,7 +74,7 @@ export default function CommissionManagersPage() {
                 <div className="flex justify-between items-center">
                     <div>
                         <h1 className="text-3xl font-bold text-gray-900">Commission Managers</h1>
-                        <p className="text-gray-600 mt-1">Manage commission managers and their regions</p>
+                        <p className="text-gray-600 mt-1">Manage commission managers and their cities</p>
                     </div>
                     <button
                         onClick={handleAddManager}

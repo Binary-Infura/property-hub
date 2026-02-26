@@ -24,17 +24,14 @@ model Property {
   onboardedById String?
   category      String?
   city          String?
-  locationId    String?
   videoUrl      String?
   postalCodeId  String?
   adsRequests   AdsRequest[]
   commissions   Commission[]
   leads         Lead[]
-  locationRel   Location?      @relation(fields: [locationId], references: [id])
   onboardedBy   User?          @relation("UserOnboardedProperties", fields: [onboardedById], references: [id])
   postalCode    PostalCode?    @relation("PropertyPostalCode", fields: [postalCodeId], references: [id])
 
-  @@index([locationId])
   @@index([postalCodeId])
   @@index([status])
   @@index([onboardedById])
@@ -150,6 +147,7 @@ model User {
   onboardedBy              User?                     @relation("UserOnboardedUsers", fields: [onboardedById], references: [id])
   onboardedUsers           User[]                    @relation("UserOnboardedUsers")
   campaignsAssigned        MarketingCampaign[]       @relation("CampaignToUser")
+  cityAllocations          CityAllocation[]
 
   @@map("users")
 }
@@ -207,17 +205,7 @@ model DsaProfile {
   @@map("dsa_profiles")
 }
 
-model Location {
-  id         String     @id @default(uuid())
-  continent  String
-  country    String
-  state      String
-  city       String
-  properties Property[]
 
-  @@unique([continent, country, state, city])
-  @@map("locations")
-}
 
 model CommissionManagerProfile {
   id                    String   @id @default(uuid())
@@ -478,4 +466,31 @@ enum CommissionStatus {
   APPROVED
   PAID
   REJECTED
+}
+
+model City {
+  id          String   @id @default(uuid())
+  name        String
+  cityCode    String   @unique
+  state       String
+  country     String   @default("India")
+  continent   String   @default("Asia")
+  description String?
+  tags        String[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("cities")
+}
+
+model CityAllocation {
+  id         String   @id @default(uuid())
+  userId     String
+  stateCode  String
+  cityName   String
+  assignedAt DateTime @default(now())
+  user       User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, stateCode, cityName])
+  @@map("city_allocations")
 }

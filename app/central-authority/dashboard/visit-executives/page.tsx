@@ -170,7 +170,7 @@ export default function VisitExecutivesPage() {
                                             </div>
                                         </td>
                                         <td className="py-4 px-4 text-gray-700">
-                                            {executive.regions?.map(r => r.name).join(', ') || 'N/A'}
+                                            {executive.cityAllocations?.map(a => a.city.name).join(', ') || 'N/A'}
                                         </td>
                                         <td className="py-4 px-4 text-gray-700">{executive.phone || 'N/A'}</td>
                                         <td className="py-4 px-4">

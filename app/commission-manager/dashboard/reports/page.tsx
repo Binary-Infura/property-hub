@@ -8,11 +8,11 @@ interface ReportData {
   totalCommissions: number;
   byRole: {
     consultant: { count: number; amount: number };
-    'regional-manager': { count: number; amount: number };
+    'city-manager': { count: number; amount: number };
     builder: { count: number; amount: number };
     'channel-partner': { count: number; amount: number };
   };
-  byRegion: {
+  byCity: {
     [key: string]: { count: number; amount: number };
   };
   topPerformers: Array<{
@@ -34,11 +34,11 @@ export default function ReportsPage() {
       totalCommissions: 2500000,
       byRole: {
         consultant: { count: 45, amount: 900000 },
-        'regional-manager': { count: 12, amount: 720000 },
+        'city-manager': { count: 12, amount: 720000 },
         builder: { count: 8, amount: 600000 },
         'channel-partner': { count: 3, amount: 280000 },
       },
-      byRegion: {
+      byCity: {
         'North India': { count: 20, amount: 650000 },
         'South India': { count: 18, amount: 580000 },
         'West India': { count: 15, amount: 720000 },
@@ -46,7 +46,7 @@ export default function ReportsPage() {
       },
       topPerformers: [
         { name: 'John Smith', role: 'Consultant', commission: 150000 },
-        { name: 'Sarah Johnson', role: 'Regional Manager', commission: 240000 },
+        { name: 'Sarah Johnson', role: 'City Manager', commission: 240000 },
         { name: 'BuildCorp Ltd', role: 'Property Partner', commission: 180000 },
       ],
     };
@@ -92,10 +92,10 @@ export default function ReportsPage() {
     Object.entries(reportData.byRole).forEach(([role, data]) => {
       csv += `${role},${data.count},${data.amount}\n`;
     });
-    csv += `\nCommission by Region\n`;
-    csv += `Region,Count,Amount\n`;
-    Object.entries(reportData.byRegion).forEach(([region, data]) => {
-      csv += `${region},${data.count},${data.amount}\n`;
+    csv += `\\nCommission by City\\n`;
+    csv += `City,Count,Amount\\n`;
+    Object.entries(reportData.byCity).forEach(([city, data]) => {
+      csv += `${city},${data.count},${data.amount}\\n`;
     });
     return csv;
   };
@@ -235,12 +235,12 @@ export default function ReportsPage() {
         </div>
 
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Commission by Region</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Commission by City</h3>
           <div className="space-y-3">
-            {Object.entries(reportData.byRegion).map(([region, data]) => (
-              <div key={region} className="flex justify-between items-center pb-3 border-b border-gray-100">
+            {Object.entries(reportData.byCity).map(([city, data]) => (
+              <div key={city} className="flex justify-between items-center pb-3 border-b border-gray-100">
                 <div>
-                  <p className="text-gray-900 font-medium">{region}</p>
+                  <p className="text-gray-900 font-medium">{city}</p>
                   <p className="text-xs text-gray-600">{data.count} commissions</p>
                 </div>
                 <p className="text-gray-900 font-semibold">{formatCurrency(data.amount)}</p>

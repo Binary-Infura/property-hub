@@ -8,22 +8,22 @@ interface LeadDetailModalProps {
   onClose: () => void;
   onQualify?: (leadId: string) => void;
   onRejectAsSpam?: (leadId: string) => void;
-  onAssignRegion?: (leadId: string, region: string) => void;
+  onAssignCity?: (leadId: string, city: string) => void;
   onAddNote?: (leadId: string, note: string) => void;
 }
 
-const REGIONS = ['North', 'South', 'East', 'West', 'Central'];
+const CITIES = ['North', 'South', 'East', 'West', 'Central'];
 
 export default function LeadDetailModal({
   lead,
   onClose,
   onQualify,
   onRejectAsSpam,
-  onAssignRegion,
+  onAssignCity,
   onAddNote,
 }: LeadDetailModalProps) {
   const [newNote, setNewNote] = useState('');
-  const [selectedRegion, setSelectedRegion] = useState('');
+  const [selectedCity, setSelectedCity] = useState('');
   const [activeTab, setActiveTab] = useState<'details' | 'notes' | 'assign'>('details');
 
   if (!lead) return null;
@@ -38,10 +38,10 @@ export default function LeadDetailModal({
     }
   };
 
-  const handleAssignRegion = () => {
-    if (selectedRegion) {
-      onAssignRegion?.(lead.id, selectedRegion);
-      setSelectedRegion('');
+  const handleAssignCity = () => {
+    if (selectedCity) {
+      onAssignCity?.(lead.id, selectedCity);
+      setSelectedCity('');
     }
   };
 
@@ -91,8 +91,8 @@ export default function LeadDetailModal({
           <button
             onClick={() => setActiveTab('details')}
             className={`flex-1 px-6 py-3 font-medium border-b-2 transition ${activeTab === 'details'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
               }`}
           >
             Details
@@ -100,8 +100,8 @@ export default function LeadDetailModal({
           <button
             onClick={() => setActiveTab('notes')}
             className={`flex-1 px-6 py-3 font-medium border-b-2 transition ${activeTab === 'notes'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
               }`}
           >
             Internal Notes
@@ -109,11 +109,11 @@ export default function LeadDetailModal({
           <button
             onClick={() => setActiveTab('assign')}
             className={`flex-1 px-6 py-3 font-medium border-b-2 transition ${activeTab === 'assign'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
+              ? 'border-blue-600 text-blue-600'
+              : 'border-transparent text-gray-600 hover:text-gray-900'
               }`}
           >
-            Assign Region
+            Assign City
           </button>
         </div>
 
@@ -209,7 +209,7 @@ export default function LeadDetailModal({
                     )}
                     {lead.region && (
                       <div>
-                        <p className="text-sm text-gray-600 font-medium">Assigned Region</p>
+                        <p className="text-sm text-gray-600 font-medium">Assigned City</p>
                         <p className="text-gray-900">{lead.region}</p>
                       </div>
                     )}
@@ -305,51 +305,51 @@ export default function LeadDetailModal({
                 <div className="bg-green-50 rounded-lg p-4 border border-green-200">
                   <p className="text-sm text-green-700 font-medium">This lead is already assigned</p>
                   <p className="text-gray-900 mt-2">
-                    <strong>Region:</strong> {lead.assignedTo.region}
+                    <strong>City:</strong> {lead.assignedTo.region}
                   </p>
                   <p className="text-gray-600 text-sm mt-1">
                     Assigned on: {new Date(lead.assignedTo.assignedAt).toLocaleDateString()}
                   </p>
                   <p className="text-xs text-gray-600 mt-3">
-                    Note: Regional assignments cannot be modified once set.
+                    Note: City assignments cannot be modified once set.
                   </p>
                 </div>
               ) : (
                 <>
                   <div>
                     <label className="block text-sm font-semibold text-gray-900 mb-4">
-                      Select Region for Assignment
+                      Select City for Assignment
                     </label>
                     <div className="grid grid-cols-2 gap-3">
-                      {REGIONS.map((region) => (
+                      {CITIES.map((city) => (
                         <button
-                          key={region}
-                          onClick={() => setSelectedRegion(region)}
-                          className={`p-4 rounded-lg border-2 font-medium transition text-center ${selectedRegion === region
-                              ? 'border-blue-600 bg-blue-50 text-blue-700'
-                              : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
+                          key={city}
+                          onClick={() => setSelectedCity(city)}
+                          className={`p-4 rounded-lg border-2 font-medium transition text-center ${selectedCity === city
+                            ? 'border-blue-600 bg-blue-50 text-blue-700'
+                            : 'border-gray-200 bg-white text-gray-700 hover:border-gray-300'
                             }`}
                         >
-                          {region}
+                          {city}
                         </button>
                       ))}
                     </div>
                   </div>
 
-                  {selectedRegion && (
+                  {selectedCity && (
                     <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                       <p className="text-sm text-blue-700">
-                        Lead will be assigned to <strong>{selectedRegion} Region</strong>
+                        Lead will be assigned to <strong>{selectedCity} City</strong>
                       </p>
                       <p className="text-xs text-blue-600 mt-2">
-                        Once assigned, this lead cannot be moved to another region.
+                        Once assigned, this lead cannot be moved to another city.
                       </p>
                     </div>
                   )}
 
                   <button
-                    onClick={handleAssignRegion}
-                    disabled={!selectedRegion}
+                    onClick={handleAssignCity}
+                    disabled={!selectedCity}
                     className="w-full px-6 py-3 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition"
                   >
                     Confirm Assignment
@@ -363,7 +363,7 @@ export default function LeadDetailModal({
                       Important Restriction
                     </p>
                     <p className="text-xs text-yellow-700 mt-2">
-                      Once a lead is assigned to a region, the assignment cannot be modified. Ensure the lead is properly qualified before assigning.
+                      Once a lead is assigned to a city, the assignment cannot be modified. Ensure the lead is properly qualified before assigning.
                     </p>
                   </div>
                 </>

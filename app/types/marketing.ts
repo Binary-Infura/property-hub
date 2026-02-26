@@ -8,7 +8,7 @@ export interface Campaign {
     spent: number;
     startDate: Date;
     endDate: Date;
-    targetRegions: string[];
+    targetCities: string[];
     targetProjects: string[];
     assignedTo: string[]; // User IDs of team members
     createdBy: string;
@@ -81,7 +81,7 @@ export interface MarketingAnalytics {
     totalSpent: number;
     budgetUtilization: number;
     performanceByPlatform: PlatformPerformance[];
-    performanceByRegion: RegionPerformance[];
+    performanceByCity: CityPerformance[];
 }
 
 export interface PlatformPerformance {
@@ -93,9 +93,9 @@ export interface PlatformPerformance {
     cpl: number;
 }
 
-export interface RegionPerformance {
-    regionId: string;
-    regionName: string;
+export interface CityPerformance {
+    cityId: string;
+    cityName: string;
     campaigns: number;
     leads: number;
     conversions: number;

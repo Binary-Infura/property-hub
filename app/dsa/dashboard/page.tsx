@@ -8,6 +8,8 @@ import AssignedLeadsList from '@/app/components/dsa/AssignedLeadsList';
 import PerformanceMetrics from '@/app/components/dsa/PerformanceMetrics';
 import AddPropertyModal from '@/app/components/dsa/AddPropertyModal';
 import { Lead } from '@/app/types/lead';
+import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
 
 interface Commission {
   id: string;
@@ -42,6 +44,7 @@ interface PartnerMetrics {
 }
 
 export default function DsaDashboard() {
+  const { activeContext } = useUnifiedApp();
   const REFERENCE_DATE = new Date('2024-12-29T10:00:00Z');
 
   const [assignedLeads, setAssignedLeads] = useState<Lead[]>([
@@ -191,6 +194,10 @@ export default function DsaDashboard() {
       assignedLeads.map(lead => (lead.id === leadId ? { ...lead, status: newStatus } : lead))
     );
   };
+
+  if (!activeContext.activeCity) {
+    return <NoAllocationPlaceholder />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

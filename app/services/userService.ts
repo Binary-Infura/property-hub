@@ -14,8 +14,8 @@ export interface User {
     reraId?: string;
     rating?: number;
     visitsConducted?: number;
-    regions?: any[];
-    regionIds?: string[];
+    cityAllocations?: any[];
+    cityAllocationIds?: string[];
     propertyPartnerProfile?: {
         companyName: string;
         companyAddress?: string;

@@ -6,10 +6,19 @@ import { useUnifiedApp } from '../../contexts/UnifiedAppContext';
 export default function NoAllocationPlaceholder() {
     const { activeContext } = useUnifiedApp();
     const activeRoleId = activeContext.activeRole.id;
-    const isCityBased = activeRoleId === 'onboarding-manager' || activeRoleId === 'marketing-manager';
-    const label = isCityBased ? 'City' : 'Region';
-    const pluralLabel = isCityBased ? 'Cities' : 'Regions';
-    const scopeLabel = isCityBased ? 'city-wide' : 'regional';
+    const cityBasedRoles = [
+        'onboarding-manager',
+        'marketing-manager',
+        'commission-manager',
+        'consultant',
+        'visit-executive',
+        'loan-adviser',
+        'dsa'
+    ];
+    const isCityBased = cityBasedRoles.includes(activeRoleId);
+    const label = 'City';
+    const pluralLabel = 'Cities';
+    const scopeLabel = 'city-wide';
 
     return (
         <div className="flex flex-col items-center justify-center min-h-[70vh] p-4">

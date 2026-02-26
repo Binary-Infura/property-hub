@@ -7,6 +7,8 @@ import ConsultantNotes from '@/app/components/consultant/ConsultantNotes';
 import RecommendedPropertiesSection from '@/app/components/consultant/RecommendedPropertiesSection';
 import SiteVisitScheduling from '@/app/components/consultant/SiteVisitScheduling';
 import DealProgressTracking from '@/app/components/consultant/DealProgressTracking';
+import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
 
 interface Client {
   id: string;
@@ -71,6 +73,7 @@ interface Deal {
 }
 
 export default function ConsultantDashboard() {
+  const { activeContext } = useUnifiedApp();
   const [clients, setClients] = useState<Client[]>([
     {
       id: '1',
@@ -241,6 +244,10 @@ export default function ConsultantDashboard() {
   const activeClients = clients.filter(c => c.status === 'active');
   const pendingClients = clients.filter(c => c.status === 'pending');
   const closedDeals = deals.filter(d => d.stage === 'closed');
+
+  if (!activeContext.activeCity) {
+    return <NoAllocationPlaceholder />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">

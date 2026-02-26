@@ -304,7 +304,7 @@ export default function ReraScraperPage() {
                                 <div className="space-y-4 mb-8">
                                     {/* City selection */}
                                     <div>
-                                        <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-1.5 block">Target City (District)</label>
+                                        <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-1.5 block">Target City</label>
                                         <select
                                             value={selectedState.selectedDistrict}
                                             onChange={(e) => handleDistrictChange(selectedState.id, e.target.value)}
@@ -419,7 +419,7 @@ export default function ReraScraperPage() {
                                 </select>
                             </div>
                             <div>
-                                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-1.5 block">Filter by City/District</label>
+                                <label className="text-[10px] font-black tracking-widest text-slate-400 uppercase mb-1.5 block">Filter by City</label>
                                 <select
                                     value={selectedViewDistrict}
                                     onChange={(e) => setSelectedViewDistrict(e.target.value)}

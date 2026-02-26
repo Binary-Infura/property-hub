@@ -163,7 +163,7 @@ export default function ConsultantsPage() {
                       </div>
                     </td>
                     <td className="py-4 px-4 text-gray-700">
-                      {consultant.regions?.map(r => r.name).join(', ') || 'N/A'}
+                      {consultant.cityAllocations?.map(a => a.city.name).join(', ') || 'N/A'}
                     </td>
                     <td className="py-4 px-4 text-gray-700">{consultant.phone || 'N/A'}</td>
                     <td className="py-4 px-4">

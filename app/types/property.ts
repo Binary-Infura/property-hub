@@ -63,6 +63,6 @@ export interface Property {
   buildings: Building[];
   country?: string;
   continent?: string;
-  regionId?: string;
+  cityAllocationId?: string;
   videoUrl?: string;
 }

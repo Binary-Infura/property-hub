@@ -1,13 +1,15 @@
 'use client';
 
 import { useState } from 'react';
+import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
 
 interface Sale {
   id: string;
-  type: 'consultant' | 'regional-manager' | 'builder' | 'channel-partner';
+  type: 'consultant' | 'city-manager' | 'builder' | 'channel-partner';
   personName: string;
   amount: number;
-  region: string;
+  city: string;
   date: Date;
   status: 'pending' | 'approved' | 'processed';
 }
@@ -21,29 +23,30 @@ interface Commission {
   commissionPercentage: number;
   commissionAmount: number;
   status: 'pending' | 'approved' | 'paid';
-  region: string;
+  city: string;
   calculatedAt: Date;
   approvedAt?: Date;
   paidAt?: Date;
 }
 
 export default function CommissionManagerDashboard() {
+  const { activeContext } = useUnifiedApp();
   const [sales] = useState<Sale[]>([
     {
       id: '1',
       type: 'consultant',
       personName: 'John Smith',
       amount: 5000000,
-      region: 'North India',
+      city: 'Mumbai',
       date: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
       status: 'pending',
     },
     {
       id: '2',
-      type: 'regional-manager',
+      type: 'city-manager',
       personName: 'Sarah Johnson',
       amount: 8000000,
-      region: 'South India',
+      city: 'Bangalore',
       date: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
       status: 'approved',
     },
@@ -52,7 +55,7 @@ export default function CommissionManagerDashboard() {
       type: 'builder',
       personName: 'BuildCorp Ltd',
       amount: 12000000,
-      region: 'West India',
+      city: 'Pune',
       date: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
       status: 'processed',
     },
@@ -68,19 +71,19 @@ export default function CommissionManagerDashboard() {
       commissionPercentage: 2,
       commissionAmount: 100000,
       status: 'pending',
-      region: 'North India',
+      city: 'Mumbai',
       calculatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
     },
     {
       id: '2',
       saleId: '2',
-      type: 'regional-manager',
+      type: 'city-manager',
       personName: 'Sarah Johnson',
       baseAmount: 8000000,
       commissionPercentage: 3,
       commissionAmount: 240000,
       status: 'approved',
-      region: 'South India',
+      city: 'Bangalore',
       calculatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
       approvedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
     },
@@ -93,7 +96,7 @@ export default function CommissionManagerDashboard() {
       commissionPercentage: 1.5,
       commissionAmount: 180000,
       status: 'paid',
-      region: 'West India',
+      city: 'Pune',
       calculatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
       approvedAt: new Date(),
       paidAt: new Date(),
@@ -120,6 +123,10 @@ export default function CommissionManagerDashboard() {
       maximumFractionDigits: 0,
     }).format(amount);
   };
+
+  if (!activeContext.activeCity) {
+    return <NoAllocationPlaceholder />;
+  }
 
   return (
     <div>
@@ -150,17 +157,17 @@ export default function CommissionManagerDashboard() {
       {/* Region-wise Breakdown */}
       <div className="grid md:grid-cols-2 gap-6 mb-8">
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Sales by Region</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Sales by City</h3>
           <div className="space-y-3">
-            {['North India', 'South India', 'West India', 'East India'].map(region => {
-              const regionSales = sales.filter(s => s.region === region);
-              const regionAmount = regionSales.reduce((sum, s) => sum + s.amount, 0);
+            {['Mumbai', 'Bangalore', 'Pune', 'Delhi'].map(city => {
+              const citySales = sales.filter(s => s.city === city);
+              const cityAmount = citySales.reduce((sum, s) => sum + s.amount, 0);
               return (
-                <div key={region} className="flex justify-between items-center pb-3 border-b border-gray-100">
-                  <span className="text-gray-700">{region}</span>
+                <div key={city} className="flex justify-between items-center pb-3 border-b border-gray-100">
+                  <span className="text-gray-700">{city}</span>
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-600 text-sm">{regionSales.length} sales</span>
-                    <span className="font-semibold text-gray-900">{formatCurrency(regionAmount)}</span>
+                    <span className="text-gray-600 text-sm">{citySales.length} sales</span>
+                    <span className="font-semibold text-gray-900">{formatCurrency(cityAmount)}</span>
                   </div>
                 </div>
               );
@@ -171,7 +178,7 @@ export default function CommissionManagerDashboard() {
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Commissions by Role</h3>
           <div className="space-y-3">
-            {['consultant', 'regional-manager', 'builder', 'channel-partner'].map(type => {
+            {['consultant', 'city-manager', 'builder', 'channel-partner'].map(type => {
               const roleCommissions = commissions.filter(c => c.type === type);
               const roleAmount = roleCommissions.reduce((sum, c) => sum + c.commissionAmount, 0);
               const label = type
@@ -203,7 +210,7 @@ export default function CommissionManagerDashboard() {
               <tr>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Person/Company</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Role</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Region</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">City</th>
                 <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">Sales Amount</th>
                 <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">Commission</th>
                 <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Status</th>
@@ -219,7 +226,7 @@ export default function CommissionManagerDashboard() {
                       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                       .join(' ')}
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">{commission.region}</td>
+                  <td className="px-6 py-4 text-sm text-gray-600">{commission.city}</td>
                   <td className="px-6 py-4 text-sm text-right text-gray-900 font-medium">
                     {formatCurrency(commission.baseAmount)}
                   </td>
@@ -228,13 +235,12 @@ export default function CommissionManagerDashboard() {
                   </td>
                   <td className="px-6 py-4 text-center text-sm">
                     <span
-                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${
-                        commission.status === 'pending'
-                          ? 'bg-yellow-100 text-yellow-800'
-                          : commission.status === 'approved'
-                            ? 'bg-blue-100 text-blue-800'
-                            : 'bg-green-100 text-green-800'
-                      }`}
+                      className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold ${commission.status === 'pending'
+                        ? 'bg-yellow-100 text-yellow-800'
+                        : commission.status === 'approved'
+                          ? 'bg-blue-100 text-blue-800'
+                          : 'bg-green-100 text-green-800'
+                        }`}
                     >
                       {commission.status.charAt(0).toUpperCase() + commission.status.slice(1)}
                     </span>

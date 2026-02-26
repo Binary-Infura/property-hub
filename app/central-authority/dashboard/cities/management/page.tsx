@@ -3,10 +3,10 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext';
-import AddRegionModal from '@/app/components/central-authority/AddRegionModal';
-import DisableRegionModal from '@/app/components/central-authority/DisableRegionModal';
+import AddCityModal from '@/app/components/central-authority/AddCityModal';
+import DisableCityModal from '@/app/components/central-authority/DisableCityModal';
 
-interface Region {
+interface ManagedCity {
     id: string;
     name: string;
     code: string;
@@ -26,26 +26,26 @@ interface Region {
     };
 }
 
-export default function RegionsPage() {
+export default function CityManagementPage() {
     const { token } = useAuth();
-    const [regions, setRegions] = useState<Region[]>([]);
+    const [cities, setCitiesList] = useState<ManagedCity[]>([]);
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const [editingRegion, setEditingRegion] = useState<Region | null>(null);
-    const [regionToDisable, setRegionToDisable] = useState<Region | null>(null);
+    const [editingCity, setEditingCity] = useState<ManagedCity | null>(null);
+    const [cityToDisable, setCityToDisable] = useState<ManagedCity | null>(null);
     const [isDisableModalOpen, setIsDisableModalOpen] = useState(false);
 
     // Pagination State
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalRegions, setTotalRegions] = useState(0);
+    const [totalCities, setTotalCities] = useState(0);
     const limit = 10;
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-    const fetchRegions = async (page: number = currentPage) => {
+    const fetchCities = async (page: number = currentPage) => {
         setLoading(true);
         try {
-            const endpoint = `${API_URL}/api/regions/managed?page=${page}&limit=${limit}`;
+            const endpoint = `${API_URL}/api/cities/managed?page=${page}&limit=${limit}`;
             const response = await fetch(endpoint, {
                 headers: {
                     'Authorization': `Bearer ${token}`
@@ -53,11 +53,11 @@ export default function RegionsPage() {
             });
             if (response.ok) {
                 const result = await response.json();
-                setRegions(result.data);
-                setTotalRegions(result.total);
+                setCitiesList(result.data);
+                setTotalCities(result.total);
             }
         } catch (err) {
-            console.error('Failed to fetch regions:', err);
+            console.error('Failed to fetch cities:', err);
         } finally {
             setLoading(false);
         }
@@ -65,26 +65,26 @@ export default function RegionsPage() {
 
     useEffect(() => {
         if (token) {
-            fetchRegions(currentPage);
+            fetchCities(currentPage);
         }
     }, [token, currentPage]);
 
-    const handleEdit = (region: Region) => {
-        setEditingRegion(region);
+    const handleEdit = (city: ManagedCity) => {
+        setEditingCity(city);
         setIsModalOpen(true);
     };
 
-    const handleToggleStatus = async (region: Region) => {
-        if (region.active) {
+    const handleToggleStatus = async (city: ManagedCity) => {
+        if (city.active) {
             // Require code confirmation for disabling
-            setRegionToDisable(region);
+            setCityToDisable(city);
             setIsDisableModalOpen(true);
             return;
         }
 
         // Direct enable for inactive regions
         try {
-            const response = await fetch(`${API_URL}/api/regions/${region.id}`, {
+            const response = await fetch(`${API_URL}/api/cities/${city.id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -95,7 +95,7 @@ export default function RegionsPage() {
                 })
             });
             if (response.ok) {
-                fetchRegions(currentPage);
+                fetchCities(currentPage);
             }
         } catch (err) {
             console.error('Failed to toggle status:', err);
@@ -103,10 +103,10 @@ export default function RegionsPage() {
     };
 
     const confirmDisable = async () => {
-        if (!regionToDisable) return;
+        if (!cityToDisable) return;
 
         try {
-            const response = await fetch(`${API_URL}/api/regions/${regionToDisable.id}`, {
+            const response = await fetch(`${API_URL}/api/cities/${cityToDisable.id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -117,28 +117,28 @@ export default function RegionsPage() {
                 })
             });
             if (response.ok) {
-                fetchRegions(currentPage);
+                fetchCities(currentPage);
                 setIsDisableModalOpen(false);
-                setRegionToDisable(null);
+                setCityToDisable(null);
             }
         } catch (err) {
-            console.error('Failed to disable region:', err);
+            console.error('Failed to disable city:', err);
         }
     };
 
     const closePortal = () => {
         setIsModalOpen(false);
-        setEditingRegion(null);
+        setEditingCity(null);
     };
 
-    const totalPages = Math.ceil(totalRegions / limit);
+    const totalPages = Math.ceil(totalCities / limit);
 
     return (
         <div className="space-y-8">
             <div className="flex justify-between items-center">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Region Management</h1>
-                    <p className="text-gray-600 mt-2">Manage all regions and their details.</p>
+                    <h1 className="text-3xl font-bold text-gray-900">City Management</h1>
+                    <p className="text-gray-600 mt-2">Manage all cities and their details.</p>
                 </div>
                 <button
                     onClick={() => setIsModalOpen(true)}
@@ -147,7 +147,7 @@ export default function RegionsPage() {
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                     </svg>
-                    Add New Region
+                    Add New City
                 </button>
             </div>
 
@@ -156,7 +156,7 @@ export default function RegionsPage() {
                     <table className="w-full text-left text-sm text-gray-600">
                         <thead className="bg-[#F8FAFC] text-gray-400 font-bold text-[10px] uppercase tracking-[0.1em] border-b border-gray-100">
                             <tr>
-                                <th className="px-6 py-4">Region Details</th>
+                                <th className="px-6 py-4">City Details</th>
                                 <th className="px-6 py-4">Code</th>
                                 <th className="px-6 py-4">Tags</th>
                                 <th className="px-6 py-4">Status</th>
@@ -174,39 +174,39 @@ export default function RegionsPage() {
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                             </svg>
-                                            Loading regions...
+                                            Loading cities...
                                         </div>
                                     </td>
                                 </tr>
-                            ) : regions.length === 0 ? (
+                            ) : cities.length === 0 ? (
                                 <tr>
                                     <td colSpan={7} className="px-6 py-10 text-center text-gray-400">
-                                        No regions found. Click "Add New Region" to get started.
+                                        No cities found. Click "Add New City" to get started.
                                     </td>
                                 </tr>
                             ) : (
-                                regions.map((region) => (
-                                    <tr key={region.id} className="hover:bg-gray-50 transition border-b border-gray-50 last:border-0">
+                                cities.map((city) => (
+                                    <tr key={city.id} className="hover:bg-gray-50 transition border-b border-gray-50 last:border-0">
                                         <td className="px-6 py-4">
-                                            <div className="font-semibold text-gray-900 leading-none">{region.name}</div>
+                                            <div className="font-semibold text-gray-900 leading-none">{city.name}</div>
                                             <div className="text-[11px] text-gray-400 font-medium mt-1 uppercase tracking-wider">
-                                                {[region.location?.city || region.city, region.location?.state || region.state, region.location?.country || region.country].filter(Boolean).join(' • ')}
+                                                {[city.location?.city || city.city, city.location?.state || city.state, city.location?.country || city.country].filter(Boolean).join(' • ')}
                                             </div>
-                                            {region.description && (
+                                            {city.description && (
                                                 <div className="text-xs text-gray-500 mt-2 line-clamp-1 italic bg-gray-50/50 p-1.5 rounded-lg border border-gray-100/50">
-                                                    {region.description}
+                                                    {city.description}
                                                 </div>
                                             )}
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="font-mono text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded border border-gray-200 inline-block">
-                                                {region.code}
+                                                {city.code}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-wrap gap-1.5 max-w-[200px]">
-                                                {region.tags && region.tags.length > 0 ? (
-                                                    region.tags.map((tag, idx) => (
+                                                {city.tags && city.tags.length > 0 ? (
+                                                    city.tags.map((tag: string, idx: number) => (
                                                         <span key={idx} className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-md border border-blue-100 uppercase tracking-tighter">
                                                             {tag}
                                                         </span>
@@ -217,39 +217,39 @@ export default function RegionsPage() {
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
-                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${region.active ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-gray-700 border border-gray-200'}`}>
-                                                {region.active ? 'Active' : 'Inactive'}
+                                            <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${city.active ? 'bg-emerald-100 text-emerald-700 border border-emerald-200' : 'bg-gray-100 text-gray-700 border border-gray-200'}`}>
+                                                {city.active ? 'Active' : 'Inactive'}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
-                                                <span className="font-bold text-gray-900">{region.propertiesCount || 0}</span>
+                                                <span className="font-bold text-gray-900">{city.propertiesCount || 0}</span>
                                                 <span className="text-[10px] text-gray-400 uppercase font-medium">units</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex flex-col">
-                                                <span className="font-bold text-gray-900">₹{((region.revenue || 0) / 100000).toFixed(1)}L</span>
+                                                <span className="font-bold text-gray-900">₹{((city.revenue || 0) / 100000).toFixed(1)}L</span>
                                                 <span className="text-[10px] text-gray-400 uppercase font-medium">revenue</span>
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="flex gap-2">
                                                 <button
-                                                    onClick={() => handleEdit(region)}
+                                                    onClick={() => handleEdit(city)}
                                                     className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-100 group"
-                                                    title="Edit Region"
+                                                    title="Edit City"
                                                 >
                                                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                                     </svg>
                                                 </button>
                                                 <button
-                                                    onClick={() => handleToggleStatus(region)}
-                                                    className={`p-2 rounded-lg transition-colors border border-transparent ${region.active ? 'text-amber-600 hover:bg-amber-50 hover:border-amber-100' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-100'}`}
-                                                    title={region.active ? 'Disable Region' : 'Enable Region'}
+                                                    onClick={() => handleToggleStatus(city)}
+                                                    className={`p-2 rounded-lg transition-colors border border-transparent ${city.active ? 'text-amber-600 hover:bg-amber-50 hover:border-amber-100' : 'text-emerald-600 hover:bg-emerald-50 hover:border-emerald-100'}`}
+                                                    title={city.active ? 'Disable City' : 'Enable City'}
                                                 >
-                                                    {region.active ? (
+                                                    {city.active ? (
                                                         <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
                                                         </svg>
@@ -271,7 +271,7 @@ export default function RegionsPage() {
                 {/* Pagination Controls */}
                 <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 flex items-center justify-between">
                     <div className="text-xs text-gray-500 font-medium uppercase tracking-wider">
-                        Showing <span className="text-gray-900 font-bold">{regions.length}</span> of <span className="text-gray-900 font-bold">{totalRegions}</span> regions
+                        Showing <span className="text-gray-900 font-bold">{cities.length}</span> of <span className="text-gray-900 font-bold">{totalCities}</span> cities
                     </div>
                     <div className="flex gap-2">
                         <button
@@ -303,25 +303,25 @@ export default function RegionsPage() {
                 </div>
             </div>
 
-            <AddRegionModal
+            <AddCityModal
                 isOpen={isModalOpen}
-                initialData={editingRegion}
+                initialData={editingCity}
                 onClose={closePortal}
                 onSuccess={() => {
-                    fetchRegions(currentPage);
+                    fetchCities(currentPage);
                     closePortal();
                 }}
             />
 
-            <DisableRegionModal
+            <DisableCityModal
                 isOpen={isDisableModalOpen}
                 onClose={() => {
                     setIsDisableModalOpen(false);
-                    setRegionToDisable(null);
+                    setCityToDisable(null);
                 }}
                 onConfirm={confirmDisable}
-                regionName={regionToDisable?.name || ''}
-                regionCode={regionToDisable?.code || ''}
+                cityName={cityToDisable?.name || ''}
+                cityCode={cityToDisable?.code || ''}
             />
         </div>
     );

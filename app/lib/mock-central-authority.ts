@@ -1,7 +1,7 @@
-import { DashboardStats, RegionPerformance, ActivityLog } from '@/app/types/central-authority';
+import { DashboardStats, CityPerformance, ActivityLog } from '@/app/types/central-authority';
 
 export const MOCK_DASHBOARD_STATS: DashboardStats = {
-    totalRegions: 12,
+    totalCities: 12,
     properties: {
         active: 1450,
         pending: 45,
@@ -23,7 +23,7 @@ export const MOCK_DASHBOARD_STATS: DashboardStats = {
     }
 };
 
-export const MOCK_REGIONS: RegionPerformance[] = [
+export const MOCK_CITIES: CityPerformance[] = [
     { id: '1', name: 'Mumbai South', managers: ['Rajesh Kumar', 'Simran Kaur'], status: 'active', propertiesCount: 450, leadsGenerated: 1200, revenue: 2500000 },
     { id: '2', name: 'Pune West', managers: ['Sneha Patil'], status: 'active', propertiesCount: 320, leadsGenerated: 850, revenue: 1800000 },
     { id: '3', name: 'Bangalore North', managers: ['Amit Sharma', 'John Doe'], status: 'active', propertiesCount: 280, leadsGenerated: 780, revenue: 1600000 },
@@ -33,6 +33,6 @@ export const MOCK_REGIONS: RegionPerformance[] = [
 
 export const MOCK_ACTIVITY_LOGS: ActivityLog[] = [
     { id: '1', action: 'Override Approval', user: 'Central Authority', target: 'Property #1234', timestamp: '2024-03-10T10:30:00Z', type: 'warning' },
-    { id: '2', action: 'Region Created', user: 'Central Authority', target: 'Chennai South', timestamp: '2024-03-09T14:15:00Z', type: 'info' },
+    { id: '2', action: 'City Created', user: 'Central Authority', target: 'Chennai South', timestamp: '2024-03-09T14:15:00Z', type: 'info' },
     { id: '3', action: 'User Suspended', user: 'Central Authority', target: 'Consultant #555', timestamp: '2024-03-09T09:00:00Z', type: 'alert' },
 ];

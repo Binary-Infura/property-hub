@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
 
 // Types
 interface Visit {
@@ -19,6 +21,7 @@ interface Visit {
 }
 
 export default function VisitExecutiveDashboard() {
+    const { activeContext } = useUnifiedApp();
     const [activeTab, setActiveTab] = useState<'overview' | 'schedule'>('overview');
 
     // Mock Data
@@ -74,6 +77,10 @@ export default function VisitExecutiveDashboard() {
         avgRating: 4.8,
         totalClients: 45
     };
+
+    if (!activeContext.activeCity) {
+        return <NoAllocationPlaceholder />;
+    }
 
     return (
         <div className="max-w-7xl mx-auto">

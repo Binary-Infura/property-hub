@@ -27,6 +27,7 @@ import { AdsRequestsModule } from './modules/ads-requests/ads-requests.module';
 import { WebhooksModule } from './modules/webhooks/webhooks.module';
 import { PostalCodesModule } from './modules/postal-codes/postal-codes.module';
 import { ReraModule } from './modules/rera/rera.module';
+import { CitiesModule } from './modules/cities/cities.module';
 import { BullModule } from '@nestjs/bullmq';
 import { ScheduleModule } from '@nestjs/schedule';
 import { join } from 'path';
@@ -69,6 +70,7 @@ import { join } from 'path';
         WebhooksModule,
         PostalCodesModule,
         ReraModule,
+        CitiesModule,
         ServeStaticModule.forRoot({
             rootPath: join(__dirname, '..', 'uploads'),
             serveRoot: '/uploads',

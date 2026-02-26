@@ -8,22 +8,20 @@ async function main() {
     console.log('🌱 Starting database seed...');
     const passwordHash = await bcrypt.hash('password123', 10);
 
-    // 1. Locations
-    console.log('Creating Locations...');
-    const locations = [
-        { continent: 'Asia', country: 'India', state: 'Maharashtra', city: 'Mumbai' },
-        { continent: 'Asia', country: 'India', state: 'Maharashtra', city: 'Pune' },
-        { continent: 'Asia', country: 'India', state: 'Karnataka', city: 'Bangalore' },
-        { continent: 'Asia', country: 'India', state: 'Delhi', city: 'New Delhi' },
+    // 1. Cities
+    console.log('Creating Cities...');
+    const cities = [
+        { name: 'Mumbai', cityCode: 'BOM', state: 'Maharashtra', country: 'India', continent: 'Asia' },
+        { name: 'Pune', cityCode: 'PNQ', state: 'Maharashtra', country: 'India', continent: 'Asia' },
+        { name: 'Bangalore', cityCode: 'BLR', state: 'Karnataka', country: 'India', continent: 'Asia' },
+        { name: 'Delhi', cityCode: 'DEL', state: 'Delhi', country: 'India', continent: 'Asia' },
     ];
 
-    for (const loc of locations) {
-        await prisma.location.upsert({
-            where: {
-                continent_country_state_city: loc,
-            },
+    for (const city of cities) {
+        await (prisma as any).city.upsert({
+            where: { cityCode: city.cityCode },
             update: {},
-            create: loc,
+            create: city,
         });
     }
 

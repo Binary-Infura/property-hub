@@ -13,8 +13,8 @@ export default function RemoveAssignmentDialog({ isOpen, user, onClose, onConfir
 
     const getRoleName = (role: string) => {
         switch (role) {
-            case 'regional-manager':
-                return 'Regional Manager';
+            case 'city-manager':
+                return 'City Manager';
             case 'marketing-manager':
                 return 'Marketing Manager';
             case 'commission-manager':
@@ -57,7 +57,7 @@ export default function RemoveAssignmentDialog({ isOpen, user, onClose, onConfir
                         </svg>
                         <p className="text-[12px] font-medium text-red-600 leading-relaxed">
                             <strong className="font-bold block text-[10px] uppercase tracking-wider mb-1">Impact Analysis</strong>
-                            The manager will immediately lose all operational access to the selected {isCityContext ? 'city' : 'region'}. This action is irreversible without formal reassignment.
+                            The manager will immediately lose all operational access to the selected {isCityContext ? 'city' : 'city'}. This action is irreversible without formal reassignment.
                         </p>
                     </div>
                 </div>

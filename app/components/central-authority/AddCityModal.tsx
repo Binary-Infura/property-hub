@@ -7,12 +7,19 @@ interface AddCityModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
+    initialData?: any; // Add this for Edit mode
+}
+
+interface Country {
+    id: string;
+    code: string;
+    name: string;
 }
 
 interface State {
     id: string;
     name: string;
-    code: string;
+    code?: string;
 }
 
 interface City {
@@ -20,46 +27,86 @@ interface City {
     name: string;
 }
 
-export default function AddCityModal({ isOpen, onClose, onSuccess }: AddCityModalProps) {
+export default function AddCityModal({ isOpen, onClose, onSuccess, initialData }: AddCityModalProps) {
     const { token } = useAuth();
-    const [loading, setLoading] = useState(false);
-    const [error, setError] = useState<string | null>(null);
+    const [name, setName] = useState('');
+    const [description, setDescription] = useState('');
+    const [tags, setTags] = useState<string[]>([]);
+    const [tagInput, setTagInput] = useState('');
 
-    // Location State
+    const [selectedCityCode, setSelectedCityCode] = useState('');
+    const [countryName, setCountryName] = useState('India');
+    const [stateName, setStateName] = useState('');
+    const [cityName, setCityName] = useState('');
+    const [selectedContinent, setSelectedContinent] = useState('Asia');
+    const [selectedCountryCode, setSelectedCountryCode] = useState('IN');
+    const [selectedStateCode, setSelectedStateCode] = useState('');
+    const [selectedStateId, setSelectedStateId] = useState('');
+    const [postalCode, setPostalCode] = useState('');
+
+    // Data lists
+    const [continents, setContinents] = useState<string[]>([]);
+    const [countries, setCountries] = useState<Country[]>([]);
     const [states, setStates] = useState<State[]>([]);
     const [cities, setCities] = useState<City[]>([]);
 
-    // Selection State
-    const [selectedStateCode, setSelectedStateCode] = useState('');
-    const [selectedStateName, setSelectedStateName] = useState('');
-    const [selectedCityName, setSelectedCityName] = useState('');
-
-    // Hardcoded for India context
-    const countryName = 'India';
-    const countryCode = 'IN';
-    const continent = 'Asia';
+    const [loading, setLoading] = useState(false);
+    const [loadingLocations, setLoadingLocations] = useState(false);
+    const [error, setError] = useState<string | null>(null);
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-    // Fetch States on Open
+    // 0. Pre-fill data if in Edit mode
     useEffect(() => {
-        if (isOpen && token) {
-            fetchStates();
-        }
-    }, [isOpen, token]);
+        if (isOpen && initialData) {
+            setName(initialData.name || '');
+            setDescription(initialData.description || '');
+            setTags(initialData.tags || []);
 
-    // Fetch Cities when State Changes
+            // Handle location pre-filling
+            const loc = initialData.location || initialData;
+            setCountryName(loc.country || '');
+            setStateName(loc.state || '');
+            setCityName(loc.city || '');
+
+            if (loc.continent) {
+                setSelectedContinent(loc.continent);
+            }
+            if (initialData.postalCode) {
+                setPostalCode(initialData.postalCode);
+            }
+        }
+    }, [isOpen, initialData]);
+
+    // Removed search-related functions
+
+    const CITY_CODES = [
+        { name: 'Mumbai', code: 'BOM' },
+        { name: 'Delhi', code: 'DEL' },
+        { name: 'Bangalore', code: 'BLR' },
+        { name: 'Chennai', code: 'MAA' },
+        { name: 'Kolkata', code: 'CCU' },
+        { name: 'Hyderabad', code: 'HYD' },
+        { name: 'Pune', code: 'PNQ' },
+        { name: 'Ahmedabad', code: 'AMD' },
+    ];
+
+    useEffect(() => {
+        if (selectedCountryCode && token) {
+            fetchStates(selectedCountryCode);
+        }
+    }, [selectedCountryCode, token]);
+
     useEffect(() => {
         if (selectedStateCode && token) {
-            fetchCities(selectedStateCode);
-        } else {
-            setCities([]);
+            fetchCities(selectedCountryCode, selectedStateCode);
         }
     }, [selectedStateCode, token]);
 
-    const fetchStates = async () => {
+    const fetchStates = async (cCode: string) => {
+        setLoadingLocations(true);
         try {
-            const res = await fetch(`${API_URL}/api/locations/states/${countryCode}`, {
+            const res = await fetch(`${API_URL}/api/cities/india/states`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) {
@@ -67,13 +114,15 @@ export default function AddCityModal({ isOpen, onClose, onSuccess }: AddCityModa
             }
         } catch (e) {
             console.error(e);
-            setError('Failed to load states');
+        } finally {
+            setLoadingLocations(false);
         }
     };
 
-    const fetchCities = async (sCode: string) => {
+    const fetchCities = async (cCode: string, sCode: string) => {
+        setLoadingLocations(true);
         try {
-            const res = await fetch(`${API_URL}/api/locations/cities/${countryCode}/${sCode}`, {
+            const res = await fetch(`${API_URL}/api/cities/allocations/${sCode}/cities`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) {
@@ -81,22 +130,79 @@ export default function AddCityModal({ isOpen, onClose, onSuccess }: AddCityModa
             }
         } catch (e) {
             console.error(e);
-            setError('Failed to load cities');
+        } finally {
+            setLoadingLocations(false);
         }
+    };
+
+    const handleContinentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const cont = e.target.value;
+        setSelectedContinent(cont);
+
+        // Reset ALL sub-selections
+        setSelectedCountryCode('');
+        setCountryName('');
+        setSelectedStateId('');
+        setSelectedStateCode('');
+        setStateName('');
+        setCityName('');
+        setCountries([]);
+        setStates([]);
+        setCities([]);
+    };
+
+    const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const cCode = e.target.value;
+        const cName = countries.find(c => c.code === cCode)?.name || '';
+        setSelectedCountryCode(cCode);
+        setCountryName(cName);
+
+        // Reset sub-selections
+        setSelectedStateId('');
+        setSelectedStateCode('');
+        setStateName('');
+        setCityName('');
+        setStates([]);
+        setCities([]);
     };
 
     const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const sId = e.target.value;
-        const state = states.find(s => s.id === sId);
-        if (state) {
-            setSelectedStateCode(state.code);
-            setSelectedStateName(state.name);
-            setSelectedCityName('');
-        } else {
-            setSelectedStateCode('');
-            setSelectedStateName('');
-            setSelectedCityName('');
+        const stateObj = states.find(s => s.id === sId);
+        const sName = stateObj?.name || '';
+        const sCode = stateObj?.code || '';
+
+        setSelectedStateId(sId);
+        setSelectedStateCode(sCode);
+        setStateName(sName);
+
+        // Reset sub-selections
+        setCityName('');
+        setCities([]);
+    };
+
+    const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const cName = e.target.value;
+        setCityName(cName);
+        if (cName) setName(cName);
+    };
+
+    const handleNameChange = (val: string) => {
+        setName(val);
+    };
+
+    const handleAddTag = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter' && tagInput.trim()) {
+            e.preventDefault();
+            if (!tags.includes(tagInput.trim())) {
+                setTags([...tags, tagInput.trim()]);
+            }
+            setTagInput('');
         }
+    };
+
+    const removeTag = (tagToRemove: string) => {
+        setTags(tags.filter(t => t !== tagToRemove));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -105,32 +211,34 @@ export default function AddCityModal({ isOpen, onClose, onSuccess }: AddCityModa
         setError(null);
 
         try {
-            // Check if city is selected
-            if (!selectedCityName) {
-                throw new Error('Please select a city');
-            }
+            const isEdit = !!initialData?.id;
+            const url = isEdit
+                ? `${API_URL}/api/cities/${initialData.id}`
+                : `${API_URL}/api/cities`;
 
-            // Create region with city name
-            const response = await fetch(`${API_URL}/api/regions`, {
-                method: 'POST',
+            const method = isEdit ? 'PATCH' : 'POST';
+
+            const response = await fetch(url, {
+                method,
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    name: selectedCityName, // Region name is the City Name
-                    continent: continent,
+                    name,
+                    continent: selectedContinent,
                     country: countryName,
-                    state: selectedStateName,
-                    city: selectedCityName,
-                    description: `City region for ${selectedCityName}, ${selectedStateName}`,
-                    tags: ['City-Level']
+                    state: stateName,
+                    city: cityName,
+                    cityCode: selectedCityCode,
+                    description,
+                    tags
                 })
             });
 
             if (!response.ok) {
                 const data = await response.json();
-                throw new Error(data.message || 'Failed to onboard city');
+                throw new Error(data.message || `Failed to ${isEdit ? 'update' : 'create'} city`);
             }
 
             onSuccess();
@@ -144,9 +252,15 @@ export default function AddCityModal({ isOpen, onClose, onSuccess }: AddCityModa
 
     const handleClose = () => {
         onClose();
-        setSelectedStateCode('');
-        setSelectedStateName('');
-        setSelectedCityName('');
+        setName('');
+        setDescription('');
+        setTags([]);
+        setTagInput('');
+        setCountryName('India');
+        setStateName('');
+        setCityName('');
+        setSelectedContinent('Asia');
+        setSelectedCityCode('');
         setError(null);
     };
 
@@ -157,7 +271,7 @@ export default function AddCityModal({ isOpen, onClose, onSuccess }: AddCityModa
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-in zoom-in-95 duration-200">
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                     <h2 className="text-xl font-bold text-gray-900">
-                        Onboard New City
+                        {initialData ? 'Edit City' : 'Add New City'}
                     </h2>
                     <button onClick={handleClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
                         <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -166,7 +280,7 @@ export default function AddCityModal({ isOpen, onClose, onSuccess }: AddCityModa
                     </button>
                 </div>
 
-                <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                <form onSubmit={handleSubmit} className="p-6 space-y-5">
                     {error && (
                         <div className="p-3 bg-red-50 border border-red-100 text-red-600 text-sm rounded-lg flex items-center gap-2">
                             <svg className="w-4 h-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -176,49 +290,126 @@ export default function AddCityModal({ isOpen, onClose, onSuccess }: AddCityModa
                         </div>
                     )}
 
-                    <div className="p-4 bg-orange-50 border border-orange-100 rounded-xl">
-                        <h4 className="text-orange-900 font-bold text-sm mb-1">City Onboarding</h4>
-                        <p className="text-orange-700 text-xs">Select a state and city to create a new key operational region.</p>
-                    </div>
-
                     <div className="space-y-4">
+                        {/* State Selection */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-1.5">State</label>
                             <select
-                                value={states.find(s => s.code === selectedStateCode)?.id || ''}
-                                onChange={handleStateChange}
-                                className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm"
+                                value={selectedStateCode}
+                                onChange={(e) => {
+                                    const sCode = e.target.value;
+                                    setSelectedStateCode(sCode);
+                                    setStateName(states.find(s => s.code === sCode)?.name || '');
+                                }}
+                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm appearance-none bg-white"
                                 required
                             >
                                 <option value="">Select State</option>
-                                {states.map((s) => (
-                                    <option key={s.id} value={s.id}>
-                                        {s.name}
+                                {states.map((state) => (
+                                    <option key={state.id || state.code} value={state.code}>
+                                        {state.name}
                                     </option>
                                 ))}
                             </select>
                         </div>
 
+                        {/* City Selection */}
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-1.5">City</label>
                             <select
-                                value={selectedCityName}
-                                onChange={(e) => setSelectedCityName(e.target.value)}
-                                disabled={!selectedStateCode}
-                                className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 outline-none transition-all text-sm disabled:bg-gray-50 disabled:text-gray-400"
+                                value={cityName}
+                                onChange={(e) => {
+                                    const name = e.target.value;
+                                    setCityName(name);
+                                    setName(name);
+                                }}
+                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm appearance-none bg-white"
                                 required
+                                disabled={!selectedStateCode}
                             >
                                 <option value="">Select City</option>
-                                {cities.map((c) => (
-                                    <option key={c.id} value={c.name}>
-                                        {c.name}
+                                {cities.map((city) => (
+                                    <option key={city.name} value={city.name}>
+                                        {city.name}
                                     </option>
                                 ))}
                             </select>
                         </div>
+
+                        {/* City Code Selection */}
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">City Code</label>
+                            <select
+                                value={selectedCityCode}
+                                onChange={(e) => setSelectedCityCode(e.target.value)}
+                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm appearance-none bg-white"
+                                required
+                            >
+                                <option value="">Select Code</option>
+                                {CITY_CODES.map((item) => (
+                                    <option key={item.code} value={item.code}>
+                                        {item.code} ({item.name})
+                                    </option>
+                                ))}
+                                <option value="OTHER">Other / Custom</option>
+                            </select>
+                        </div>
+
+                        <hr className="border-gray-50" />
+
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">City Name</label>
+                            <input
+                                type="text"
+                                value={name}
+                                onChange={(e) => handleNameChange(e.target.value)}
+                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
+                                placeholder="e.g. Bandra West"
+                                required
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tags (Target Areas/Sub-cities)</label>
+                            <div className="space-y-2">
+                                <div className="flex flex-wrap gap-2 mb-2">
+                                    {tags.map(tag => (
+                                        <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-100 animate-in zoom-in-95">
+                                            {tag}
+                                            <button type="button" onClick={() => removeTag(tag)} className="hover:text-blue-900">
+                                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                                </svg>
+                                            </button>
+                                        </span>
+                                    ))}
+                                </div>
+                                <input
+                                    type="text"
+                                    value={tagInput}
+                                    onChange={(e) => setTagInput(e.target.value)}
+                                    onKeyDown={handleAddTag}
+                                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
+                                    placeholder="Type and press Enter to add tags (e.g. Bandra East)"
+                                />
+                            </div>
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Detailing / Description</label>
+                            <textarea
+                                value={description}
+                                onChange={(e) => setDescription(e.target.value)}
+                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400 min-h-[100px] resize-none"
+                                placeholder="Add specific details about this city or targeting goals..."
+                            />
+                        </div>
+
+
+
                     </div>
 
-                    <div className="flex gap-3 pt-4">
+                    <div className="flex gap-3 pt-2">
                         <button
                             type="button"
                             onClick={handleClose}
@@ -229,7 +420,7 @@ export default function AddCityModal({ isOpen, onClose, onSuccess }: AddCityModa
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 px-4 py-2.5 bg-orange-600 text-white font-semibold rounded-xl hover:bg-orange-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-orange-200 text-sm flex items-center justify-center gap-2"
+                            className="flex-1 px-4 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md shadow-blue-200 text-sm flex items-center justify-center gap-2"
                         >
                             {loading ? (
                                 <>
@@ -237,9 +428,9 @@ export default function AddCityModal({ isOpen, onClose, onSuccess }: AddCityModa
                                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                     </svg>
-                                    Onboarding...
+                                    Creating...
                                 </>
-                            ) : 'Onboard City'}
+                            ) : (initialData ? 'Update City' : 'Create City')}
                         </button>
                     </div>
                 </form>

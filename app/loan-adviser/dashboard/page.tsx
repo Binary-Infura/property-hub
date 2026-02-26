@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
 
 // Types
 interface User {
@@ -64,6 +66,7 @@ const LOAN_JOURNEY_STAGES = [
 ] as const;
 
 export default function LoanAdviserDashboard() {
+  const { activeContext } = useUnifiedApp();
   const [selectedLoan, setSelectedLoan] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<'overview' | 'loans' | 'users'>('overview');
 
@@ -226,6 +229,10 @@ export default function LoanAdviserDashboard() {
   const activeLoans = loanApplications.filter(l => l.status !== 'completed').length;
   const pendingDocuments = documents.filter(d => d.status === 'required' || d.status === 'uploaded').length;
   const approvedLoans = loanApplications.filter(l => l.status === 'sanction-letter' || l.status === 'disbursement' || l.status === 'completed').length;
+
+  if (!activeContext.activeCity) {
+    return <NoAllocationPlaceholder />;
+  }
 
   return (
     <div className="p-8">

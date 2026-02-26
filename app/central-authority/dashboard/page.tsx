@@ -20,7 +20,7 @@ interface DashboardStats {
         monthly: number;
     };
     totalPostalCodes: number;
-    regions: Array<{
+    cities: Array<{
         id: string;
         name: string;
         managers: string[];

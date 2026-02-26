@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { marketingService } from '@/app/services/marketingService';
+import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
 
 interface Campaign {
     id: string;
@@ -15,7 +17,7 @@ interface Campaign {
     spent: number;
     startDate: string;
     endDate: string;
-    targetRegions: { id: string, name: string }[];
+    targetCities: { id: string, name: string }[];
     assignedTo: { id: string, firstName: string, lastName: string }[];
     impressions: number;
     clicks: number;
@@ -26,6 +28,7 @@ interface Campaign {
 
 export default function MarketingManagerDashboard() {
     const { token } = useAuth();
+    const { activeContext } = useUnifiedApp();
     const [timeRange, setTimeRange] = useState('30d');
     const [campaigns, setCampaigns] = useState<Campaign[]>([]);
     const [loading, setLoading] = useState(true);
@@ -57,6 +60,10 @@ export default function MarketingManagerDashboard() {
 
     if (loading) {
         return <div className="p-8 flex items-center justify-center min-h-screen">Loading dashboard...</div>;
+    }
+
+    if (!activeContext.activeCity) {
+        return <NoAllocationPlaceholder />;
     }
 
     return (

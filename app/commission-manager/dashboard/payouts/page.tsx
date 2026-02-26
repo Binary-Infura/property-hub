@@ -5,8 +5,8 @@ import { useState } from 'react';
 interface Commission {
   id: string;
   personName: string;
-  type: 'consultant' | 'regional-manager' | 'builder' | 'channel-partner';
-  region: string;
+  type: 'consultant' | 'city-manager' | 'builder' | 'channel-partner';
+  city: string;
   baseAmount: number;
   commissionPercentage: number;
   commissionAmount: number;
@@ -24,7 +24,7 @@ export default function PayoutsPage() {
       id: '1',
       personName: 'John Smith',
       type: 'consultant',
-      region: 'North India',
+      city: 'North India',
       baseAmount: 5000000,
       commissionPercentage: 2,
       commissionAmount: 100000,
@@ -35,8 +35,8 @@ export default function PayoutsPage() {
     {
       id: '2',
       personName: 'Sarah Johnson',
-      type: 'regional-manager',
-      region: 'South India',
+      type: 'city-manager',
+      city: 'South India',
       baseAmount: 8000000,
       commissionPercentage: 3,
       commissionAmount: 240000,
@@ -48,7 +48,7 @@ export default function PayoutsPage() {
       id: '3',
       personName: 'BuildCorp Ltd',
       type: 'builder',
-      region: 'West India',
+      city: 'West India',
       baseAmount: 12000000,
       commissionPercentage: 1.5,
       commissionAmount: 180000,
@@ -157,11 +157,10 @@ export default function PayoutsPage() {
         <div className="flex border-b border-gray-200">
           <button
             onClick={() => setActiveTab('pending')}
-            className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${
-              activeTab === 'pending'
+            className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${activeTab === 'pending'
                 ? 'border-yellow-500 text-yellow-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
-            }`}
+              }`}
           >
             <span className="flex items-center justify-center gap-2">
               Pending ({commissions.filter(c => c.status === 'pending').length})
@@ -169,11 +168,10 @@ export default function PayoutsPage() {
           </button>
           <button
             onClick={() => setActiveTab('approved')}
-            className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${
-              activeTab === 'approved'
+            className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${activeTab === 'approved'
                 ? 'border-blue-500 text-blue-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
-            }`}
+              }`}
           >
             <span className="flex items-center justify-center gap-2">
               Ready to Process ({commissions.filter(c => c.status === 'approved').length})
@@ -181,11 +179,10 @@ export default function PayoutsPage() {
           </button>
           <button
             onClick={() => setActiveTab('paid')}
-            className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${
-              activeTab === 'paid'
+            className={`flex-1 px-6 py-4 font-semibold border-b-2 transition ${activeTab === 'paid'
                 ? 'border-green-500 text-green-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
-            }`}
+              }`}
           >
             <span className="flex items-center justify-center gap-2">
               Paid ({commissions.filter(c => c.status === 'paid').length})
@@ -200,7 +197,7 @@ export default function PayoutsPage() {
               <tr>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Person/Company</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Role</th>
-                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Region</th>
+                <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">City</th>
                 <th className="px-6 py-3 text-right text-sm font-semibold text-gray-900">Commission</th>
                 <th className="px-6 py-3 text-left text-sm font-semibold text-gray-900">Bank Account</th>
                 <th className="px-6 py-3 text-center text-sm font-semibold text-gray-900">Actions</th>
@@ -223,7 +220,7 @@ export default function PayoutsPage() {
                         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                         .join(' ')}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-600">{commission.region}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{commission.city}</td>
                     <td className="px-6 py-4 text-sm text-right text-gray-900 font-semibold">
                       {formatCurrency(commission.commissionAmount)}
                     </td>
