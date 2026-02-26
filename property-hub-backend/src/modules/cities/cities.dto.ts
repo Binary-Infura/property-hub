@@ -21,25 +21,7 @@ export class CreateCityDto {
 
     @IsString()
     @IsNotEmpty()
-    cityCode: string;
-
-    @IsString()
-    @IsNotEmpty()
     state: string;
-
-    @IsString()
-    @IsNotEmpty()
-    country: string;
-
-    @IsString()
-    @IsNotEmpty()
-    continent: string;
-
-    @IsString()
-    description?: string;
-
-    @IsString({ each: true })
-    tags?: string[];
 }
 
 export class CityResponseDto {

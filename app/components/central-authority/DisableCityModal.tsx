@@ -7,15 +7,14 @@ interface DisableCityModalProps {
     onClose: () => void;
     onConfirm: () => void;
     cityName: string;
-    cityCode: string;
 }
 
-export default function DisableCityModal({ isOpen, onClose, onConfirm, cityName, cityCode }: DisableCityModalProps) {
-    const [inputCode, setInputCode] = useState('');
+export default function DisableCityModal({ isOpen, onClose, onConfirm, cityName }: DisableCityModalProps) {
+    const [inputName, setInputName] = useState('');
 
     if (!isOpen) return null;
 
-    const isMatch = inputCode === cityCode;
+    const isMatch = inputName.toLowerCase() === cityName.toLowerCase();
 
     return (
         <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200">
@@ -28,22 +27,22 @@ export default function DisableCityModal({ isOpen, onClose, onConfirm, cityName,
                     </div>
                     <h3 className="text-xl font-bold text-gray-900 mb-2">Disable City?</h3>
                     <p className="text-sm text-gray-500 mb-6">
-                        To disable <span className="font-bold text-gray-900">{cityName}</span>, please enter the city code <span className="font-mono bg-gray-100 px-1.5 py-0.5 rounded text-gray-700 font-bold">{cityCode}</span> below.
+                        To disable <span className="font-bold text-gray-900">{cityName}</span>, please type the city name below to confirm.
                     </p>
 
                     <input
                         type="text"
-                        value={inputCode}
-                        onChange={(e) => setInputCode(e.target.value)}
-                        placeholder="Enter city code"
-                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all text-center font-mono text-sm mb-6"
+                        value={inputName}
+                        onChange={(e) => setInputName(e.target.value)}
+                        placeholder={`Type "${cityName}"`}
+                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all text-center font-medium text-sm mb-6"
                         autoFocus
                     />
 
                     <div className="flex gap-3">
                         <button
                             onClick={() => {
-                                setInputCode('');
+                                setInputName('');
                                 onClose();
                             }}
                             className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all text-sm"
@@ -52,7 +51,7 @@ export default function DisableCityModal({ isOpen, onClose, onConfirm, cityName,
                         </button>
                         <button
                             onClick={() => {
-                                setInputCode('');
+                                setInputName('');
                                 onConfirm();
                             }}
                             disabled={!isMatch}

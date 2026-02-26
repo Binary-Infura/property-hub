@@ -459,13 +459,8 @@ enum CommissionStatus {
 
 model City {
   id          String   @id @default(uuid())
-  name        String
-  cityCode    String   @unique
+  name        String   @unique
   state       String
-  country     String   @default("India")
-  continent   String   @default("Asia")
-  description String?
-  tags        String[]
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

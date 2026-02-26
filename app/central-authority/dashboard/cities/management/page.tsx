@@ -9,18 +9,13 @@ import DisableCityModal from '@/app/components/central-authority/DisableCityModa
 interface ManagedCity {
     id: string;
     name: string;
-    code: string;
     active: boolean;
     country?: string;
     state?: string;
     city?: string;
-    tags?: string[];
-    description?: string;
     propertiesCount?: number;
     revenue?: number;
     location?: {
-        continent: string;
-        country: string;
         state: string;
         city: string;
     };
@@ -157,8 +152,6 @@ export default function CityManagementPage() {
                         <thead className="bg-[#F8FAFC] text-gray-400 font-bold text-[10px] uppercase tracking-[0.1em] border-b border-gray-100">
                             <tr>
                                 <th className="px-6 py-4">City Details</th>
-                                <th className="px-6 py-4">Code</th>
-                                <th className="px-6 py-4">Tags</th>
                                 <th className="px-6 py-4">Status</th>
                                 <th className="px-6 py-4">Inventory</th>
                                 <th className="px-6 py-4">Financials</th>
@@ -168,7 +161,7 @@ export default function CityManagementPage() {
                         <tbody className="divide-y divide-gray-100">
                             {loading ? (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-10 text-center text-gray-400">
+                                    <td colSpan={5} className="px-6 py-10 text-center text-gray-400">
                                         <div className="flex flex-col items-center gap-2">
                                             <svg className="animate-spin h-8 w-8 text-blue-500" fill="none" viewBox="0 0 24 24">
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -180,7 +173,7 @@ export default function CityManagementPage() {
                                 </tr>
                             ) : cities.length === 0 ? (
                                 <tr>
-                                    <td colSpan={7} className="px-6 py-10 text-center text-gray-400">
+                                    <td colSpan={5} className="px-6 py-10 text-center text-gray-400">
                                         No cities found. Click "Add New City" to get started.
                                     </td>
                                 </tr>
@@ -190,30 +183,7 @@ export default function CityManagementPage() {
                                         <td className="px-6 py-4">
                                             <div className="font-semibold text-gray-900 leading-none">{city.name}</div>
                                             <div className="text-[11px] text-gray-400 font-medium mt-1 uppercase tracking-wider">
-                                                {[city.location?.city || city.city, city.location?.state || city.state, city.location?.country || city.country].filter(Boolean).join(' • ')}
-                                            </div>
-                                            {city.description && (
-                                                <div className="text-xs text-gray-500 mt-2 line-clamp-1 italic bg-gray-50/50 p-1.5 rounded-lg border border-gray-100/50">
-                                                    {city.description}
-                                                </div>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="font-mono text-[10px] bg-gray-100 text-gray-600 px-2 py-1 rounded border border-gray-200 inline-block">
-                                                {city.code}
-                                            </div>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex flex-wrap gap-1.5 max-w-[200px]">
-                                                {city.tags && city.tags.length > 0 ? (
-                                                    city.tags.map((tag: string, idx: number) => (
-                                                        <span key={idx} className="px-2 py-0.5 bg-blue-50 text-blue-600 text-[10px] font-bold rounded-md border border-blue-100 uppercase tracking-tighter">
-                                                            {tag}
-                                                        </span>
-                                                    ))
-                                                ) : (
-                                                    <span className="text-gray-300 italic text-[10px]">No tags</span>
-                                                )}
+                                                {[city.location?.city || city.city, city.location?.state || city.state].filter(Boolean).join(' • ')}
                                             </div>
                                         </td>
                                         <td className="px-6 py-4">
@@ -321,7 +291,6 @@ export default function CityManagementPage() {
                 }}
                 onConfirm={confirmDisable}
                 cityName={cityToDisable?.name || ''}
-                cityCode={cityToDisable?.code || ''}
             />
         </div>
     );

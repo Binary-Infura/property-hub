@@ -30,19 +30,10 @@ interface City {
 export default function AddCityModal({ isOpen, onClose, onSuccess, initialData }: AddCityModalProps) {
     const { token } = useAuth();
     const [name, setName] = useState('');
-    const [description, setDescription] = useState('');
-    const [tags, setTags] = useState<string[]>([]);
-    const [tagInput, setTagInput] = useState('');
-
-    const [selectedCityCode, setSelectedCityCode] = useState('');
-    const [countryName, setCountryName] = useState('India');
     const [stateName, setStateName] = useState('');
     const [cityName, setCityName] = useState('');
-    const [selectedContinent, setSelectedContinent] = useState('Asia');
-    const [selectedCountryCode, setSelectedCountryCode] = useState('IN');
     const [selectedStateCode, setSelectedStateCode] = useState('');
     const [selectedStateId, setSelectedStateId] = useState('');
-    const [postalCode, setPostalCode] = useState('');
 
     // Data lists
     const [continents, setContinents] = useState<string[]>([]);
@@ -60,46 +51,27 @@ export default function AddCityModal({ isOpen, onClose, onSuccess, initialData }
     useEffect(() => {
         if (isOpen && initialData) {
             setName(initialData.name || '');
-            setDescription(initialData.description || '');
-            setTags(initialData.tags || []);
 
             // Handle location pre-filling
             const loc = initialData.location || initialData;
-            setCountryName(loc.country || '');
             setStateName(loc.state || '');
             setCityName(loc.city || '');
-
-            if (loc.continent) {
-                setSelectedContinent(loc.continent);
-            }
-            if (initialData.postalCode) {
-                setPostalCode(initialData.postalCode);
-            }
         }
     }, [isOpen, initialData]);
 
     // Removed search-related functions
 
-    const CITY_CODES = [
-        { name: 'Mumbai', code: 'BOM' },
-        { name: 'Delhi', code: 'DEL' },
-        { name: 'Bangalore', code: 'BLR' },
-        { name: 'Chennai', code: 'MAA' },
-        { name: 'Kolkata', code: 'CCU' },
-        { name: 'Hyderabad', code: 'HYD' },
-        { name: 'Pune', code: 'PNQ' },
-        { name: 'Ahmedabad', code: 'AMD' },
-    ];
+
 
     useEffect(() => {
-        if (selectedCountryCode && token) {
-            fetchStates(selectedCountryCode);
+        if (token) {
+            fetchStates('IN');
         }
-    }, [selectedCountryCode, token]);
+    }, [token]);
 
     useEffect(() => {
         if (selectedStateCode && token) {
-            fetchCities(selectedCountryCode, selectedStateCode);
+            fetchCities('IN', selectedStateCode);
         }
     }, [selectedStateCode, token]);
 
@@ -135,36 +107,7 @@ export default function AddCityModal({ isOpen, onClose, onSuccess, initialData }
         }
     };
 
-    const handleContinentChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const cont = e.target.value;
-        setSelectedContinent(cont);
 
-        // Reset ALL sub-selections
-        setSelectedCountryCode('');
-        setCountryName('');
-        setSelectedStateId('');
-        setSelectedStateCode('');
-        setStateName('');
-        setCityName('');
-        setCountries([]);
-        setStates([]);
-        setCities([]);
-    };
-
-    const handleCountryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-        const cCode = e.target.value;
-        const cName = countries.find(c => c.code === cCode)?.name || '';
-        setSelectedCountryCode(cCode);
-        setCountryName(cName);
-
-        // Reset sub-selections
-        setSelectedStateId('');
-        setSelectedStateCode('');
-        setStateName('');
-        setCityName('');
-        setStates([]);
-        setCities([]);
-    };
 
     const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         const sId = e.target.value;
@@ -191,19 +134,7 @@ export default function AddCityModal({ isOpen, onClose, onSuccess, initialData }
         setName(val);
     };
 
-    const handleAddTag = (e: React.KeyboardEvent) => {
-        if (e.key === 'Enter' && tagInput.trim()) {
-            e.preventDefault();
-            if (!tags.includes(tagInput.trim())) {
-                setTags([...tags, tagInput.trim()]);
-            }
-            setTagInput('');
-        }
-    };
 
-    const removeTag = (tagToRemove: string) => {
-        setTags(tags.filter(t => t !== tagToRemove));
-    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -225,14 +156,8 @@ export default function AddCityModal({ isOpen, onClose, onSuccess, initialData }
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    name,
-                    continent: selectedContinent,
-                    country: countryName,
+                    name: cityName,
                     state: stateName,
-                    city: cityName,
-                    cityCode: selectedCityCode,
-                    description,
-                    tags
                 })
             });
 
@@ -252,15 +177,8 @@ export default function AddCityModal({ isOpen, onClose, onSuccess, initialData }
 
     const handleClose = () => {
         onClose();
-        setName('');
-        setDescription('');
-        setTags([]);
-        setTagInput('');
-        setCountryName('India');
         setStateName('');
         setCityName('');
-        setSelectedContinent('Asia');
-        setSelectedCityCode('');
         setError(null);
     };
 
@@ -321,7 +239,6 @@ export default function AddCityModal({ isOpen, onClose, onSuccess, initialData }
                                 onChange={(e) => {
                                     const name = e.target.value;
                                     setCityName(name);
-                                    setName(name);
                                 }}
                                 className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm appearance-none bg-white"
                                 required
@@ -334,75 +251,6 @@ export default function AddCityModal({ isOpen, onClose, onSuccess, initialData }
                                     </option>
                                 ))}
                             </select>
-                        </div>
-
-                        {/* City Code Selection */}
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">City Code</label>
-                            <select
-                                value={selectedCityCode}
-                                onChange={(e) => setSelectedCityCode(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm appearance-none bg-white"
-                                required
-                            >
-                                <option value="">Select Code</option>
-                                {CITY_CODES.map((item) => (
-                                    <option key={item.code} value={item.code}>
-                                        {item.code} ({item.name})
-                                    </option>
-                                ))}
-                                <option value="OTHER">Other / Custom</option>
-                            </select>
-                        </div>
-
-                        <hr className="border-gray-50" />
-
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">City Name</label>
-                            <input
-                                type="text"
-                                value={name}
-                                onChange={(e) => handleNameChange(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
-                                placeholder="e.g. Bandra West"
-                                required
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tags (Target Areas/Sub-cities)</label>
-                            <div className="space-y-2">
-                                <div className="flex flex-wrap gap-2 mb-2">
-                                    {tags.map(tag => (
-                                        <span key={tag} className="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full border border-blue-100 animate-in zoom-in-95">
-                                            {tag}
-                                            <button type="button" onClick={() => removeTag(tag)} className="hover:text-blue-900">
-                                                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                                </svg>
-                                            </button>
-                                        </span>
-                                    ))}
-                                </div>
-                                <input
-                                    type="text"
-                                    value={tagInput}
-                                    onChange={(e) => setTagInput(e.target.value)}
-                                    onKeyDown={handleAddTag}
-                                    className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
-                                    placeholder="Type and press Enter to add tags (e.g. Bandra East)"
-                                />
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Detailing / Description</label>
-                            <textarea
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400 min-h-[100px] resize-none"
-                                placeholder="Add specific details about this city or targeting goals..."
-                            />
                         </div>
 
 

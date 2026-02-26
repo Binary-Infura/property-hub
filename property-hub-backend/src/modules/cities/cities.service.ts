@@ -98,9 +98,16 @@ export class CitiesService {
     }
 
     async createCity(dto: CreateCityDto) {
-        return this.prisma.city.create({
-            data: dto,
-        });
+        try {
+            return await this.prisma.city.create({
+                data: dto,
+            });
+        } catch (error) {
+            if (error.code === 'P2002') {
+                throw new ConflictException('A city with this name already exists');
+            }
+            throw error;
+        }
     }
 
     async updateCity(id: string, dto: any) {
