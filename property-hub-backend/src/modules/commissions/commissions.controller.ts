@@ -18,12 +18,12 @@ import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface
 
 @Controller('api/commissions')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RequireRoles('central-authority', 'regional-manager', 'marketing-manager', 'onboarding-manager', 'property-partner', 'channel-partner', 'consultant')
+@RequireRoles('central-authority', 'marketing-manager', 'onboarding-manager', 'property-partner', 'channel-partner', 'consultant')
 export class CommissionsController {
     constructor(private readonly commissionsService: CommissionsService) { }
 
     @Get()
-    @RequireRoles('central-authority', 'regional-manager')
+    @RequireRoles('central-authority')
     findAll(
         @CurrentUser() user: AuthenticatedUser
     ) {
@@ -31,7 +31,7 @@ export class CommissionsController {
     }
 
     @Get(':id')
-    @RequireRoles('central-authority', 'regional-manager')
+    @RequireRoles('central-authority')
     findOne(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser

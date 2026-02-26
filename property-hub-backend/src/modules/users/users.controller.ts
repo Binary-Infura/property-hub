@@ -47,7 +47,7 @@ export class UsersController {
      */
     @Post('invite')
     @UseGuards(RolesGuard)
-    @RequireRoles('regional-manager', 'central-authority')
+    @RequireRoles('central-authority')
     async inviteUser(
         @Body() dto: InviteUserDto,
     ): Promise<InvitationResponse> {

@@ -473,7 +473,7 @@ Scheduled workflow that syncs campaign metrics from Google Ads and Meta Ads to y
 ## Workflow 4: Monitor & Notify on New Ads Requests
 
 ### Overview
-Monitors for new ads requests created by property-partners and regional managers in your backend, then notifies marketing managers via email/Slack.
+Monitors for new ads requests created by property-partners in your backend, then notifies marketing managers via email/Slack.
 
 **Note**: This workflow does NOT create ads requests - it monitors requests created through your application by users and sends notifications.
 
@@ -538,7 +538,7 @@ Monitors for new ads requests created by property-partners and regional managers
     },
     {
       "parameters": {
-        "url": "={{$env.BACKEND_URL}}/api/regions/{{$json.regionId}}",
+        "url": "={{$env.BACKEND_URL}}/api/cities/{{$json.cityId}}",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -549,7 +549,7 @@ Monitors for new ads requests created by property-partners and regional managers
           ]
         }
       },
-      "name": "Get Region Managers",
+      "name": "Get City Info",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 3,
       "position": [1050, 300]
@@ -579,9 +579,9 @@ Monitors for new ads requests created by property-partners and regional managers
       "main": [[{ "node": "Loop Requests", "type": "main", "index": 0 }]]
     },
     "Loop Requests": {
-      "main": [[{ "node": "Get Region Managers", "type": "main", "index": 0 }]]
+      "main": [[{ "node": "Get City Info", "type": "main", "index": 0 }]]
     },
-    "Get Region Managers": {
+    "Get City Info": {
       "main": [[{ "node": "Send Email Notification", "type": "main", "index": 0 }]]
     }
   }

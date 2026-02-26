@@ -98,7 +98,7 @@ export default function AdsRequestsPage() {
             {/* Header */}
             <div className="mb-8">
                 <h1 className="text-3xl font-bold text-gray-900">Ads Requests</h1>
-                <p className="text-gray-600 mt-1">Manage advertising requests from builders and regional managers</p>
+                <p className="text-gray-600 mt-1">Manage advertising requests from builders</p>
             </div>
 
             {/* Stats */}

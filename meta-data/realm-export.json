@@ -17,10 +17,6 @@
                 "description": "Platform-wide administrator"
             },
             {
-                "name": "regional-manager",
-                "description": "Manager for a specific region"
-            },
-            {
                 "name": "property-partner",
                 "description": "Property developer and partner"
             },

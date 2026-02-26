@@ -16,7 +16,7 @@ export class PropertiesService {
         const isCentralAuthority = user?.roles?.includes('central-authority') || false;
         const isPropertyPartner = user?.roles?.includes('property-partner') || false;
         const isGlobalRole = user?.roles?.some(role =>
-            ['central-authority', 'property-partner', 'buyer', 'consultant', 'loan-adviser', 'marketing-manager', 'onboarding-manager', 'regional-manager', 'channel-partner', 'visit-executive', 'service-provider'].includes(role)
+            ['central-authority', 'property-partner', 'buyer', 'consultant', 'loan-adviser', 'marketing-manager', 'onboarding-manager', 'channel-partner', 'visit-executive', 'service-provider'].includes(role)
         ) || false;
 
         // Check if user has access to the requested city

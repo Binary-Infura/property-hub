@@ -16,7 +16,7 @@ const pump = promisify(pipeline);
 export class UploadsController {
 
     @Post()
-    @RequireRoles('property-partner', 'regional-manager', 'admin', 'central-authority')
+    @RequireRoles('property-partner', 'admin', 'central-authority')
     async uploadFile(@Req() req: FastifyRequest) {
         const parts = req.parts();
         let uploadedFileUrl = '';

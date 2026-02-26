@@ -6,10 +6,9 @@ import { PrismaService } from '../../database/prisma.service';
  * 
  * Rules:
  * - Buyers can chat with: consultants, property-partners, channel-partners
- * - Consultants can chat with: buyers, regional-managers
- * - Regional Managers can chat with: all roles in their region
- * - Property Partners can chat with: buyers, regional-managers
- * - Channel Partners can chat with: buyers, regional-managers
+ * - Consultants can chat with: buyers
+ * - Property Partners can chat with: buyers
+ * - Channel Partners can chat with: buyers
  */
 
 interface ChatPermissionRule {
@@ -23,23 +22,19 @@ const CHAT_PERMISSION_RULES: Record<string, ChatPermissionRule> = {
         canViewChatsOf: 'self'
     },
     'consultant': {
-        canChatWith: ['buyer', 'regional-manager'],
-        canViewChatsOf: 'self'
-    },
-    'regional-manager': {
-        canChatWith: ['buyer', 'consultant', 'property-partner', 'channel-partner', 'marketing-manager'],
+        canChatWith: ['buyer'],
         canViewChatsOf: 'self'
     },
     'property-partner': {
-        canChatWith: ['buyer', 'regional-manager'],
+        canChatWith: ['buyer'],
         canViewChatsOf: 'self'
     },
     'channel-partner': {
-        canChatWith: ['buyer', 'regional-manager'],
+        canChatWith: ['buyer'],
         canViewChatsOf: 'self'
     },
     'marketing-manager': {
-        canChatWith: ['regional-manager'],
+        canChatWith: [],
         canViewChatsOf: 'self'
     },
 

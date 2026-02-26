@@ -15,7 +15,6 @@ const getRoleBadgeColor = (role: string) => {
     const colors: Record<string, string> = {
         buyer: 'bg-green-100 text-green-800',
         consultant: 'bg-blue-100 text-blue-800',
-        'regional-manager': 'bg-purple-100 text-purple-800',
         'property-partner': 'bg-orange-100 text-orange-800',
         'channel-partner': 'bg-yellow-100 text-yellow-800',
     };

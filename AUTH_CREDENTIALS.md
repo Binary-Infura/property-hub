@@ -9,8 +9,6 @@ For development and testing, you can use the following credentials. All accounts
 | Role | Email |
 |------|-------|
 | Central Authority | central@propertyhub.com |
-| Regional Manager (Mumbai) | regional@propertyhub.com |
-| Regional Manager (Pune) | rm.pune@propertyhub.com |
 | Property Partner | property@propertyhub.com |
 | Onboarding Manager | onboard@propertyhub.com |
 | Consultant | testconsultant@gmail.com |

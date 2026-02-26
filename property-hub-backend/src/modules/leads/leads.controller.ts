@@ -18,12 +18,12 @@ import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface
 
 @Controller('api/leads')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RequireRoles('central-authority', 'regional-manager', 'marketing-manager', 'onboarding-manager', 'property-partner', 'channel-partner', 'consultant')
+@RequireRoles('central-authority', 'marketing-manager', 'onboarding-manager', 'property-partner', 'channel-partner', 'consultant')
 export class LeadsController {
     constructor(private readonly leadsService: LeadsService) { }
 
     @Get()
-    @RequireRoles('central-authority', 'regional-manager', 'marketing-manager')
+    @RequireRoles('central-authority', 'marketing-manager')
     findAll(
         @CurrentUser() user: AuthenticatedUser
     ) {
@@ -31,7 +31,7 @@ export class LeadsController {
     }
 
     @Get(':id')
-    @RequireRoles('central-authority', 'regional-manager', 'marketing-manager')
+    @RequireRoles('central-authority', 'marketing-manager')
     findOne(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
@@ -40,7 +40,7 @@ export class LeadsController {
     }
 
     @Post()
-    @RequireRoles('central-authority', 'regional-manager', 'marketing-manager')
+    @RequireRoles('central-authority', 'marketing-manager')
     create(
         @Body() createLeadDto: CreateLeadDto
     ) {
@@ -48,7 +48,7 @@ export class LeadsController {
     }
 
     @Post('bulk')
-    @RequireRoles('central-authority', 'regional-manager', 'marketing-manager')
+    @RequireRoles('central-authority', 'marketing-manager')
     bulkCreate(
         @Body() bulkCreateLeadsDto: { leads: CreateLeadDto[] }
     ) {
@@ -56,7 +56,7 @@ export class LeadsController {
     }
 
     @Patch(':id')
-    @RequireRoles('central-authority', 'regional-manager', 'marketing-manager')
+    @RequireRoles('central-authority', 'marketing-manager')
     update(
         @Param('id') id: string,
         @Body() updateLeadDto: UpdateLeadDto,
@@ -66,7 +66,7 @@ export class LeadsController {
     }
 
     @Delete(':id')
-    @RequireRoles('central-authority', 'regional-manager', 'marketing-manager')
+    @RequireRoles('central-authority', 'marketing-manager')
     remove(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
