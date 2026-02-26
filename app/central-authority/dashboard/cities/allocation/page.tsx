@@ -20,6 +20,12 @@ interface Allocation {
     stateCode: string;
     assignedAt: string;
     userId: string;
+    user?: {
+        firstName: string;
+        lastName: string;
+        email: string;
+        role: string;
+    };
 }
 
 export default function CityAllocationPage() {
@@ -43,10 +49,14 @@ export default function CityAllocationPage() {
 
     const fetchInitialData = async () => {
         try {
-            const statesData = await cityService.getStates(token!);
+            const [statesData, allAllocations] = await Promise.all([
+                cityService.getStates(token!),
+                cityService.getAllAllocations(token!)
+            ]);
             setStates(statesData);
+            setAllocations(allAllocations);
         } catch (error) {
-            console.error('Failed to fetch states', error);
+            console.error('Failed to fetch initial data', error);
         }
     };
 
@@ -231,22 +241,22 @@ export default function CityAllocationPage() {
                 <div className="lg:col-span-2 space-y-6">
                     <div className="bg-white p-8 rounded-[2rem] border border-slate-100 shadow-sm">
                         <div className="flex justify-between items-center mb-6">
-                            <h2 className="text-xl font-black text-slate-900">Current Allocations</h2>
-                            {selectedManager && (
-                                <span className="text-xs font-bold bg-blue-50 text-blue-600 px-3 py-1 rounded-full">
-                                    {allocations.length} Active
-                                </span>
-                            )}
+                            <h2 className="text-xl font-black text-slate-900">
+                                {selectedManager ? 'Manager Allocations' : 'All Existing Allocations'}
+                            </h2>
+                            <span className="text-xs font-bold bg-blue-50 text-blue-600 px-3 py-1 rounded-full">
+                                {allocations.length} Active
+                            </span>
                         </div>
 
-                        {!selectedManager ? (
+                        {allocations.length === 0 ? (
                             <div className="flex flex-col items-center justify-center py-20 text-center">
                                 <div className="w-16 h-16 bg-slate-50 text-slate-200 rounded-2xl flex items-center justify-center mb-4">
                                     <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                     </svg>
                                 </div>
-                                <p className="text-slate-400 font-medium">Select a manager to view their allocated cities</p>
+                                <p className="text-slate-400 font-medium">No allocations found.</p>
                             </div>
                         ) : (
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -256,6 +266,12 @@ export default function CityAllocationPage() {
                                             <div>
                                                 <p className="font-black text-slate-900">{allocation.cityName}</p>
                                                 <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{allocation.stateCode}</p>
+                                                {allocation.user && (
+                                                    <div className="mt-2 pt-2 border-t border-slate-100">
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tight">Assigned To</p>
+                                                        <p className="text-xs font-medium text-slate-600">{allocation.user.firstName} {allocation.user.lastName}</p>
+                                                    </div>
+                                                )}
                                             </div>
                                             <button
                                                 onClick={() => handleUnassign(allocation.id)}

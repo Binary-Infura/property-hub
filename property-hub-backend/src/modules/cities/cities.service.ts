@@ -75,6 +75,22 @@ export class CitiesService {
         });
     }
 
+    async getAllAllocations() {
+        return this.prisma.cityAllocation.findMany({
+            include: {
+                user: {
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        role: true,
+                    },
+                },
+            },
+            orderBy: { assignedAt: 'desc' },
+        });
+    }
+
     async searchManagers(query: string) {
         return this.prisma.user.findMany({
             where: {

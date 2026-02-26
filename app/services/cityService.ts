@@ -38,6 +38,13 @@ export const cityService = {
         return response.data;
     },
 
+    getAllAllocations: async (token: string) => {
+        const response = await axios.get(`${API_BASE_URL}/cities/allocations/all`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.data;
+    },
+
     getMyCities: async (token: string) => {
         const response = await axios.get(`${API_BASE_URL}/cities/allocations/my-cities`, {
             headers: { Authorization: `Bearer ${token}` }

@@ -41,9 +41,15 @@ export class CitiesController {
         return this.citiesService.getIndianStates();
     }
 
-    @Get('allocations/:stateCode/cities')
+    @Get('india/:stateCode/cities')
     getCities(@Param('stateCode') stateCode: string) {
         return this.citiesService.getCitiesOfState(stateCode);
+    }
+
+    @Get('allocations/all')
+    @RequireRoles('central-authority')
+    getAllAllocations() {
+        return this.citiesService.getAllAllocations();
     }
 
     @Get('allocations/:userId')

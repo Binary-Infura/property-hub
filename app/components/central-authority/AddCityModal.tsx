@@ -94,7 +94,7 @@ export default function AddCityModal({ isOpen, onClose, onSuccess, initialData }
     const fetchCities = async (cCode: string, sCode: string) => {
         setLoadingLocations(true);
         try {
-            const res = await fetch(`${API_URL}/api/cities/allocations/${sCode}/cities`, {
+            const res = await fetch(`${API_URL}/api/cities/india/${sCode}/cities`, {
                 headers: { Authorization: `Bearer ${token}` }
             });
             if (res.ok) {
