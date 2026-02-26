@@ -33,7 +33,7 @@ export class AuthService {
         }
 
         const payload = {
-            sub: user.keycloakId || user.id, // Keep keycloakId for compatibility if present
+            sub: user.id,
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,

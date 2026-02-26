@@ -1,5 +1,5 @@
 import { PrismaClient, PropertyStatus, PropertyType } from '@prisma/client';
-import { v4 as uuidv4 } from 'uuid';
+
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -38,7 +38,7 @@ async function main() {
             firstName: 'Central',
             lastName: 'Authority',
             role: 'central-authority',
-            keycloakId: uuidv4(),
+
             status: 'active',
             passwordHash,
         },
@@ -69,7 +69,7 @@ async function main() {
             firstName: 'Property',
             lastName: 'Partner',
             role: 'property-partner',
-            keycloakId: uuidv4(),
+
             status: 'active',
             agencyName: 'Prestige Builders',
             passwordHash,
@@ -100,7 +100,7 @@ async function main() {
             firstName: 'Onboarding',
             lastName: 'Manager',
             role: 'onboarding-manager',
-            keycloakId: uuidv4(),
+
             status: 'active',
             passwordHash,
         }
@@ -117,7 +117,7 @@ async function main() {
             firstName: 'Test',
             lastName: 'Consultant',
             role: 'consultant',
-            keycloakId: uuidv4(),
+
             status: 'active',
             passwordHash,
         }
@@ -177,7 +177,7 @@ async function main() {
                 firstName: 'Finance',
                 lastName: `Manager ${i}`,
                 role: 'commission-manager',
-                keycloakId: uuidv4(),
+
                 status: 'active',
                 passwordHash,
             }
@@ -204,7 +204,7 @@ async function main() {
                 firstName: 'Marketing',
                 lastName: `Head ${i}`,
                 role: 'marketing-manager',
-                keycloakId: uuidv4(),
+
                 status: 'active',
                 passwordHash,
             }
@@ -231,7 +231,7 @@ async function main() {
             firstName: 'Test',
             lastName: 'Buyer',
             role: 'buyer',
-            keycloakId: uuidv4(),
+
             status: 'active',
             passwordHash,
         }
@@ -248,7 +248,7 @@ async function main() {
             firstName: 'Expert',
             lastName: 'Loaner',
             role: 'loan-adviser',
-            keycloakId: uuidv4(),
+
             status: 'active',
             passwordHash,
         }
@@ -265,7 +265,7 @@ async function main() {
             firstName: 'Visit',
             lastName: 'Executive',
             role: 'visit-executive',
-            keycloakId: uuidv4(),
+
             status: 'active',
             passwordHash,
         }
@@ -282,7 +282,7 @@ async function main() {
             firstName: 'Direct Selling',
             lastName: 'Agent',
             role: 'dsa',
-            keycloakId: uuidv4(),
+
             status: 'active',
             passwordHash,
         }

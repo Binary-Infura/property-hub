@@ -2,7 +2,6 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export interface User {
     id: string;
-    keycloakId?: string;
     name?: string;
     firstName: string;
     lastName?: string;

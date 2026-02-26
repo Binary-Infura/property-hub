@@ -70,27 +70,19 @@ export class UsersService {
 
     // --- User Metadata Methods (Current User) ---
 
-    async findOrCreateUserMetadata(keycloakId: string): Promise<UserMetadata> {
-        let userMetadata = await this.prisma.userMetadata.findUnique({
-            where: { keycloakId },
+    async findOrCreateUserMetadata(userId: string): Promise<UserMetadata> {
+        return this.prisma.userMetadata.upsert({
+            where: { userId },
+            create: { userId },
+            update: {},
         });
-
-        if (!userMetadata) {
-            userMetadata = await this.prisma.userMetadata.create({
-                data: { keycloakId },
-            });
-        }
-
-        return userMetadata;
     }
 
     async updateUserMetadata(userId: string, dto: UpdateUserMetadataDto): Promise<UserMetadata> {
-        const metadata = await this.getUserMetadata(userId);
-        if (!metadata) throw new NotFoundException('User metadata not found');
-
-        return this.prisma.userMetadata.update({
-            where: { id: metadata.id },
-            data: {
+        return this.prisma.userMetadata.upsert({
+            where: { userId },
+            create: { userId },
+            update: {
                 theme: dto.theme,
                 notifications: dto.notifications as any,
                 onboardingStatus: dto.onboardingStatus,
@@ -100,18 +92,9 @@ export class UsersService {
     }
 
     async getUserMetadata(userId: string): Promise<UserMetadata> {
-        let userMetadata = await this.prisma.userMetadata.findUnique({
-            where: { id: userId }, // Fallback to id mapping if keycloakId removed
+        return this.prisma.userMetadata.findUnique({
+            where: { userId },
         });
-
-        if (!userMetadata) {
-            // For consistency during transition, try keycloakId as well
-            userMetadata = await this.prisma.userMetadata.findFirst({
-                where: { keycloakId: userId }
-            });
-        }
-
-        return userMetadata;
     }
 
     /**
@@ -120,32 +103,18 @@ export class UsersService {
      * but need to be referenced in ownership tracking.
      */
     async ensureUserSynced(authenticatedUser: AuthenticatedUser): Promise<User> {
-        // Normalize userId (strip prefixes like onrtrt: if present)
-        const normalizedKeycloakId = authenticatedUser.userId.includes(':')
-            ? authenticatedUser.userId.split(':').pop()
-            : authenticatedUser.userId;
-
+        // Look up by JWT sub (which is user.id in our native auth)
         let user = await this.prisma.user.findUnique({
-            where: { keycloakId: normalizedKeycloakId },
+            where: { id: authenticatedUser.userId },
         });
 
         if (!user && authenticatedUser.email) {
-            // Fallback: search by email
             user = await this.prisma.user.findUnique({
                 where: { email: authenticatedUser.email },
             });
-
-            if (user) {
-                // Link the existing user to this Keycloak ID if not already linked
-                user = await this.prisma.user.update({
-                    where: { id: user.id },
-                    data: { keycloakId: normalizedKeycloakId },
-                });
-            }
         }
 
         if (!user) {
-            // Determine a default role if not provided in token (fallback)
             const role = authenticatedUser.roles.includes('central-authority')
                 ? 'central-authority'
                 : authenticatedUser.roles.includes('onboarding-manager')
@@ -156,11 +125,11 @@ export class UsersService {
 
             user = await this.prisma.user.create({
                 data: {
-                    keycloakId: normalizedKeycloakId,
+                    id: authenticatedUser.userId,
                     email: authenticatedUser.email || 'unknown',
                     firstName: authenticatedUser.firstName || authenticatedUser.username || 'System',
                     lastName: authenticatedUser.lastName || 'User',
-                    role: role,
+                    role,
                     status: 'active',
                 },
             });
@@ -189,7 +158,7 @@ export class UsersService {
         let onboardedById = null;
         if (user) {
             const internalUser = await this.prisma.user.findUnique({
-                where: { keycloakId: user.userId },
+                where: { id: user.userId },
             });
             if (internalUser) {
                 onboardedById = internalUser.id;
@@ -256,7 +225,7 @@ export class UsersService {
 
         if (myOnly && user) {
             const internalUser = await this.prisma.user.findUnique({
-                where: { keycloakId: user.userId },
+                where: { id: user.userId },
             });
             if (internalUser) {
                 where.onboardedById = internalUser.id;
@@ -392,9 +361,9 @@ export class UsersService {
         });
     }
 
-    async getProfileStatus(keycloakId: string, roles: string[]) {
+    async getProfileStatus(userId: string, roles: string[]) {
         const user = await this.prisma.user.findUnique({
-            where: { keycloakId }
+            where: { id: userId }
         });
 
         if (!user) return {};
@@ -447,9 +416,9 @@ export class UsersService {
         return status;
     }
 
-    async updateMyProfile(keycloakId: string, roles: string[], dto: UpdateProfileDto) {
+    async updateMyProfile(userId: string, roles: string[], dto: UpdateProfileDto) {
         const user = await this.prisma.user.findUnique({
-            where: { keycloakId },
+            where: { id: userId },
         });
 
         if (!user) {

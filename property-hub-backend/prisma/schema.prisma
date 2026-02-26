@@ -97,7 +97,7 @@ model Commission {
 
 model UserMetadata {
   id               String   @id @default(uuid())
-  keycloakId       String   @unique
+  userId           String   @unique
   firstName        String?
   lastName         String?
   phone            String?
@@ -108,14 +108,13 @@ model UserMetadata {
   notifications    Json?    @default("{}")
   onboardingStatus String?  @default("pending")
   theme            String?  @default("light")
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([keycloakId])
   @@map("user_metadata")
 }
 
 model User {
   id                       String                    @id @default(uuid())
-  keycloakId               String?                   @unique
   email                    String                    @unique
   phone                    String?
   role                     String
@@ -144,6 +143,7 @@ model User {
   propertiesOnboarded      Property[]                @relation("UserOnboardedProperties")
   propertyPartnerProfile   PropertyPartnerProfile?
   serviceProviderProfile   ServiceProviderProfile?
+  userMetadata             UserMetadata?
   onboardedBy              User?                     @relation("UserOnboardedUsers", fields: [onboardedById], references: [id])
   onboardedUsers           User[]                    @relation("UserOnboardedUsers")
   campaignsAssigned        MarketingCampaign[]       @relation("CampaignToUser")
