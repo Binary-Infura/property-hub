@@ -53,7 +53,6 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
     const ALL_ROLES: RoleId[] = [
         'dsa',
         'marketing-manager',
-        'commission-manager',
         'onboarding-manager',
     ];
 

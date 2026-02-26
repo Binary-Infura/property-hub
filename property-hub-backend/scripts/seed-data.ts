@@ -166,32 +166,7 @@ async function main() {
         }
     });
 
-    // 7. Commission Managers
-    console.log('Creating Commission Managers...');
-    for (let i = 1; i <= 2; i++) {
-        const user = await prisma.user.upsert({
-            where: { email: `finance${i}@propertyhub.com` },
-            update: {},
-            create: {
-                email: `finance${i}@propertyhub.com`,
-                firstName: 'Finance',
-                lastName: `Manager ${i}`,
-                role: 'commission-manager',
-
-                status: 'active',
-                passwordHash,
-            }
-        });
-
-        await prisma.commissionManagerProfile.upsert({
-            where: { userId: user.id },
-            update: {},
-            create: {
-                userId: user.id,
-                paymentAuthorityLimit: 500000
-            }
-        });
-    }
+    // 7. Commission Managers — removed (handled by central-authority)
 
     // 8. Marketing Managers
     console.log('Creating Marketing Managers...');

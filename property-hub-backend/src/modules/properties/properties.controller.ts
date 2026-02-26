@@ -20,7 +20,7 @@ import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface
 
 @Controller('api/properties')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RequireRoles('central-authority', 'regional-manager', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'property-partner', 'channel-partner', 'consultant', 'buyer', 'loan-adviser', 'visit-executive', 'service-provider')
+@RequireRoles('central-authority', 'regional-manager', 'marketing-manager', 'onboarding-manager', 'property-partner', 'channel-partner', 'consultant', 'buyer', 'loan-adviser', 'visit-executive', 'service-provider')
 export class PropertiesController {
     constructor(private readonly propertiesService: PropertiesService) { }
 

@@ -14,7 +14,6 @@ For development and testing, you can use the following credentials. All accounts
 | Property Partner | property@propertyhub.com |
 | Onboarding Manager | onboard@propertyhub.com |
 | Consultant | testconsultant@gmail.com |
-| Commission Manager | finance1@propertyhub.com |
 | Marketing Manager | marketing1@propertyhub.com |
 | Buyer | buyer@test.com |
 | Loan Adviser | loan@propertyhub.com |

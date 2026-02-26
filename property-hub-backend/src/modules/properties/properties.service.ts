@@ -16,7 +16,7 @@ export class PropertiesService {
         const isCentralAuthority = user?.roles?.includes('central-authority') || false;
         const isPropertyPartner = user?.roles?.includes('property-partner') || false;
         const isGlobalRole = user?.roles?.some(role =>
-            ['central-authority', 'property-partner', 'buyer', 'consultant', 'loan-adviser', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'regional-manager', 'channel-partner', 'visit-executive', 'service-provider'].includes(role)
+            ['central-authority', 'property-partner', 'buyer', 'consultant', 'loan-adviser', 'marketing-manager', 'onboarding-manager', 'regional-manager', 'channel-partner', 'visit-executive', 'service-provider'].includes(role)
         ) || false;
 
         // Check if user has access to the requested city
@@ -35,8 +35,7 @@ export class PropertiesService {
             where.OR = [
                 { city: { contains: city, mode: 'insensitive' } },
                 { location: { contains: city, mode: 'insensitive' } },
-                { address: { contains: city, mode: 'insensitive' } },
-                { locationRel: { city: { contains: city, mode: 'insensitive' } } }
+                { address: { contains: city, mode: 'insensitive' } }
             ];
         }
 
@@ -50,7 +49,6 @@ export class PropertiesService {
             include: {
 
                 onboardedBy: true,
-                locationRel: true,
             },
             orderBy: {
                 createdAt: 'desc',
@@ -66,7 +64,6 @@ export class PropertiesService {
             include: {
 
                 commissions: true,
-                locationRel: true,
             },
         });
 
@@ -84,7 +81,7 @@ export class PropertiesService {
 
             // Check city access (skip if owner or central authority)
             if (!isCentralAuthority && !isOwner) {
-                const hasLocationCityAccess = property.locationRel?.city && userRegions.some(g => g.toLowerCase() === property.locationRel.city.toLowerCase());
+                const hasLocationCityAccess = property.city && userRegions.some(g => g.toLowerCase() === property.city.toLowerCase());
 
                 if (!hasLocationCityAccess) {
                     throw new NotFoundException(`Property with ID ${id} not found`);
@@ -95,31 +92,6 @@ export class PropertiesService {
         return property;
     }
 
-    private async resolveLocationId(dto: CreatePropertyDto | UpdatePropertyDto): Promise<string | undefined> {
-        if (dto.locationId) return dto.locationId;
-
-        if (dto.continent && dto.country && dto.state && dto.city) {
-            const location = await this.prisma.location.upsert({
-                where: {
-                    continent_country_state_city: {
-                        continent: dto.continent,
-                        country: dto.country,
-                        state: dto.state,
-                        city: dto.city,
-                    },
-                },
-                update: {},
-                create: {
-                    continent: dto.continent,
-                    country: dto.country,
-                    state: dto.state,
-                    city: dto.city,
-                },
-            });
-            return location.id;
-        }
-        return undefined;
-    }
 
     async create(createPropertyDto: CreatePropertyDto, user?: AuthenticatedUser): Promise<Property> {
         let onboardedById = createPropertyDto.onboardedById;
@@ -129,15 +101,12 @@ export class PropertiesService {
             onboardedById = internalUser.id;
         }
 
-        const locationId = await this.resolveLocationId(createPropertyDto);
-
-        const { continent, country, state, city, locationId: _, ...rest } = createPropertyDto;
+        const { continent, country, state, city, locationId, ...rest } = createPropertyDto;
 
         const data: any = {
             ...rest,
-            city, // Still keep for backward compatibility in existing where clauses
+            city,
             onboardedById,
-            locationId,
         };
 
 
@@ -146,7 +115,7 @@ export class PropertiesService {
             data,
             include: {
 
-                locationRel: true,
+                onboardedBy: true,
             },
         });
     }
@@ -154,14 +123,11 @@ export class PropertiesService {
     async update(id: string, updatePropertyDto: UpdatePropertyDto, user: AuthenticatedUser): Promise<Property> {
         const property = await this.findOne(id, user);
 
-        const locationId = await this.resolveLocationId(updatePropertyDto);
-
-        const { continent, country, state, city, locationId: _, ...rest } = updatePropertyDto;
+        const { continent, country, state, city, locationId, ...rest } = updatePropertyDto;
 
         const data: any = {
             ...rest,
             city,
-            locationId,
         };
 
         return this.prisma.property.update({
@@ -169,7 +135,7 @@ export class PropertiesService {
             data,
             include: {
 
-                locationRel: true,
+                onboardedBy: true,
             },
         });
     }

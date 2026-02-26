@@ -27,7 +27,7 @@ const CHAT_PERMISSION_RULES: Record<string, ChatPermissionRule> = {
         canViewChatsOf: 'self'
     },
     'regional-manager': {
-        canChatWith: ['buyer', 'consultant', 'property-partner', 'channel-partner', 'marketing-manager', 'commission-manager'],
+        canChatWith: ['buyer', 'consultant', 'property-partner', 'channel-partner', 'marketing-manager'],
         canViewChatsOf: 'self'
     },
     'property-partner': {
@@ -42,10 +42,7 @@ const CHAT_PERMISSION_RULES: Record<string, ChatPermissionRule> = {
         canChatWith: ['regional-manager'],
         canViewChatsOf: 'self'
     },
-    'commission-manager': {
-        canChatWith: ['regional-manager'],
-        canViewChatsOf: 'self'
-    },
+
 };
 
 @Injectable()

@@ -9,7 +9,6 @@ export type RoleId =
     | 'central-authority'
     | 'dsa'
     | 'marketing-manager'
-    | 'commission-manager'
     | 'onboarding-manager'
     | 'property-partner'
     | 'consultant'
@@ -63,12 +62,6 @@ const KNOWN_ROLES: UserRole[] = [
         name: 'Marketing Manager',
         permissionHint: 'Manage campaigns & leads for region',
         dashboardUrl: '/marketing-manager/dashboard'
-    },
-    {
-        id: 'commission-manager',
-        name: 'Commission Manager',
-        permissionHint: 'Oversee regional commissions',
-        dashboardUrl: '/commission-manager/dashboard'
     },
     {
         id: 'onboarding-manager',
@@ -175,7 +168,6 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
             const cityBasedRoles: RoleId[] = [
                 'marketing-manager',
                 'onboarding-manager',
-                'commission-manager',
                 'consultant',
                 'visit-executive',
                 'loan-adviser',

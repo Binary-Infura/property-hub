@@ -33,10 +33,6 @@
                 "description": "External partner"
             },
             {
-                "name": "commission-manager",
-                "description": "Manages commissions"
-            },
-            {
                 "name": "marketing-manager",
                 "description": "Head of marketing department"
             },

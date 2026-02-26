@@ -9,7 +9,6 @@ export default function NoAllocationPlaceholder() {
     const cityBasedRoles = [
         'onboarding-manager',
         'marketing-manager',
-        'commission-manager',
         'consultant',
         'visit-executive',
         'loan-adviser',

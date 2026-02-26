@@ -18,12 +18,12 @@ import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface
 
 @Controller('api/commissions')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RequireRoles('central-authority', 'regional-manager', 'marketing-manager', 'commission-manager', 'onboarding-manager', 'property-partner', 'channel-partner', 'consultant')
+@RequireRoles('central-authority', 'regional-manager', 'marketing-manager', 'onboarding-manager', 'property-partner', 'channel-partner', 'consultant')
 export class CommissionsController {
     constructor(private readonly commissionsService: CommissionsService) { }
 
     @Get()
-    @RequireRoles('commission-manager', 'regional-manager')
+    @RequireRoles('central-authority', 'regional-manager')
     findAll(
         @CurrentUser() user: AuthenticatedUser
     ) {
@@ -31,7 +31,7 @@ export class CommissionsController {
     }
 
     @Get(':id')
-    @RequireRoles('commission-manager', 'regional-manager')
+    @RequireRoles('central-authority', 'regional-manager')
     findOne(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
@@ -40,7 +40,7 @@ export class CommissionsController {
     }
 
     @Post()
-    @RequireRoles('commission-manager')
+    @RequireRoles('central-authority')
     create(
         @Body() createCommissionDto: CreateCommissionDto,
         @CurrentUser() user: AuthenticatedUser
@@ -49,7 +49,7 @@ export class CommissionsController {
     }
 
     @Patch(':id')
-    @RequireRoles('commission-manager')
+    @RequireRoles('central-authority')
     update(
         @Param('id') id: string,
         @Body() updateCommissionDto: UpdateCommissionDto,
@@ -59,7 +59,7 @@ export class CommissionsController {
     }
 
     @Delete(':id')
-    @RequireRoles('commission-manager')
+    @RequireRoles('central-authority')
     remove(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser

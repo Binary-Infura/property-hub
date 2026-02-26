@@ -24,7 +24,6 @@ function CentralAuthorityDashboardLayoutContent({
         { name: 'Loan Advisers', href: '/central-authority/dashboard/loan-advisers', icon: 'bank' as const },
         { name: 'Visit Executives', href: '/central-authority/dashboard/visit-executives', icon: 'car' as const },
         { name: 'Marketing Managers', href: '/central-authority/dashboard/marketing-managers', icon: 'megaphone' as const },
-        { name: 'Commission Managers', href: '/central-authority/dashboard/commission-managers', icon: 'money' as const },
         { name: 'Onboarding Managers', href: '/central-authority/dashboard/onboarding-managers', icon: 'briefcase' as const },
         { name: 'DSA Partners', href: '/central-authority/dashboard/dsa-partners', icon: 'handshake' as const },
         { name: 'Postal Codes', href: '/central-authority/dashboard/postal-codes', icon: 'mail' as const },

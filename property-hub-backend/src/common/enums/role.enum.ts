@@ -3,8 +3,6 @@ export enum UserRole {
 
     DSA = 'dsa',
     MARKETING_MANAGER = 'marketing-manager',
-    COMMISSION_MANAGER = 'commission-manager',
-
     CONSULTANT = 'consultant',
     BUYER = 'buyer',
     PROPERTY_PARTNER = 'property-partner',

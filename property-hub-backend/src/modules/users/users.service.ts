@@ -387,9 +387,6 @@ export class UsersService {
                 case UserRole.DSA:
                     profileData = await this.prisma.dsaProfile.findUnique({ where: { userId: internalId } });
                     break;
-                case UserRole.COMMISSION_MANAGER:
-                    profileData = await this.prisma.commissionManagerProfile.findUnique({ where: { userId: internalId } });
-                    break;
                 case UserRole.MARKETING_MANAGER:
                     profileData = await this.prisma.marketingManagerProfile.findUnique({ where: { userId: internalId } });
                     break;

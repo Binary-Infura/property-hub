@@ -8,7 +8,7 @@ import { CommissionsModule } from './modules/commissions/commissions.module';
 import { UsersModule } from './modules/users/users.module';
 
 import { MattermostModule } from './common/services/mattermost/mattermost.module';
-import { CommissionManagersModule } from './modules/roles/commission-managers/commission-managers.module';
+
 import { MarketingManagersModule } from './modules/roles/marketing-managers/marketing-managers.module';
 import { BuyersModule } from './modules/roles/buyers/buyers.module';
 import { ConsultantsModule } from './modules/roles/consultants/consultants.module';
@@ -55,7 +55,6 @@ import { join } from 'path';
         UsersModule,
 
         MarketingManagersModule,
-        CommissionManagersModule,
         BuyersModule,
         ConsultantsModule,
         PropertyPartnersModule,

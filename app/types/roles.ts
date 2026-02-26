@@ -3,7 +3,6 @@ export type UserRole =
     | 'dsa'
     | 'property-partner'
     | 'consultant'
-    | 'commission-manager'
     | 'marketing-manager'
     | 'influencer'
     | 'loan-adviser'
@@ -79,12 +78,6 @@ export const ROLES: Record<UserRole, RoleDefinition> = {
         role: 'buyer',
         label: 'Buyer',
         description: 'End user looking for properties',
-        permissions: []
-    },
-    'commission-manager': {
-        role: 'commission-manager',
-        label: 'Commission Manager',
-        description: 'Manages commissions',
         permissions: []
     },
     'marketing-manager': {

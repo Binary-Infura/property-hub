@@ -73,7 +73,7 @@ NestJS backend application for Property Hub with Keycloak authentication.
 
 The backend uses Keycloak JWT tokens for authentication. Tokens must include:
 
-- **Realm Roles** (`realm_access.roles`): Authority levels (e.g., `central-authority`, `commission-manager`, `regional-manager`)
+- **Realm Roles** (`realm_access.roles`): Authority levels (e.g., `central-authority`, `regional-manager`)
 - **Client Roles** (`resource_access.property-hub-frontend.roles`): Region flags (e.g., `region:mumbai_south`, `region:pune_west`)
 
 ### Example Token Structure
@@ -83,7 +83,7 @@ The backend uses Keycloak JWT tokens for authentication. Tokens must include:
   "sub": "user-id-123",
   "email": "user@example.com",
   "realm_access": {
-    "roles": ["commission-manager", "regional-manager"]
+    "roles": ["regional-manager"]
   },
   "resource_access": {
     "property-hub-frontend": {

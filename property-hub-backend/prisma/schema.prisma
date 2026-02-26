@@ -134,7 +134,6 @@ model User {
   adsRequests              AdsRequest[]
   buyerProfile             BuyerProfile?
   centralAuthorityProfile  CentralAuthorityProfile?
-  commissionManagerProfile CommissionManagerProfile?
   consultantProfile        ConsultantProfile?
   dsaProfile               DsaProfile?
   influencerProfile        InfluencerProfile?
@@ -207,16 +206,6 @@ model DsaProfile {
 
 
 
-model CommissionManagerProfile {
-  id                    String   @id @default(uuid())
-  userId                String   @unique
-  paymentAuthorityLimit Decimal? @db.Decimal(15, 2)
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  user                  User     @relation(fields: [userId], references: [id])
-
-  @@map("commission_manager_profiles")
-}
 
 model MarketingManagerProfile {
   id                  String   @id @default(uuid())

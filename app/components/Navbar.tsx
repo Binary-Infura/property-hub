@@ -18,7 +18,6 @@ export default function Navbar() {
             'marketing-manager',
             'onboarding-manager',
             'loan-adviser',
-            'commission-manager',
             'visit-executive',
             'buyer'
         ];

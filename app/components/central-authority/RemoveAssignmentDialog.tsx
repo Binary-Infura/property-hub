@@ -17,8 +17,6 @@ export default function RemoveAssignmentDialog({ isOpen, user, onClose, onConfir
                 return 'City Manager';
             case 'marketing-manager':
                 return 'Marketing Manager';
-            case 'commission-manager':
-                return 'Commission Manager';
             default:
                 return role;
         }
