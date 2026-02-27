@@ -25,4 +25,9 @@ export class ConsultantsController {
     ) {
         return this.consultantsService.upsertProfile(user.userId, dto);
     }
+
+    @Get('assigned-properties')
+    async getAssignedProperties(@CurrentUser() user: AuthenticatedUser) {
+        return this.consultantsService.getAssignedPropertiesWithDetails(user.userId);
+    }
 }

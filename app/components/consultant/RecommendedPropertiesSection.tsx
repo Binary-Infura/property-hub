@@ -1,174 +1,159 @@
-interface Client {
+"use client";
+
+import { useState } from 'react';
+
+interface Lead {
   id: string;
   name: string;
+  email: string;
+  phone: string;
+  status: string;
+  createdAt: string;
+}
+
+interface Campaign {
+  id: string;
+  name: string;
+  description?: string;
+  platform: string;
+  leads: Lead[];
 }
 
 interface Property {
   id: string;
-  title: string;
+  name: string;
   location: string;
-  price: string;
-  area: string;
-  config: string;
-  matchScore: number;
-  assignedToClients: string[];
+  price: string | number;
+  area?: string | number;
+  propertyType: string;
+  status: string;
+  city?: { name: string };
+  campaigns?: Campaign[];
 }
 
 interface RecommendedPropertiesSectionProps {
   properties: Property[];
-  clients: Client[];
 }
 
 export default function RecommendedPropertiesSection({
   properties,
-  clients,
 }: RecommendedPropertiesSectionProps) {
-  const getMatchScoreColor = (score: number) => {
-    if (score >= 90) return 'text-green-600 bg-green-50';
-    if (score >= 80) return 'text-blue-600 bg-blue-50';
-    if (score >= 70) return 'text-yellow-600 bg-yellow-50';
-    return 'text-orange-600 bg-orange-50';
-  };
+  const [expandedProperty, setExpandedProperty] = useState<string | null>(null);
 
-  const getMatchScoreBg = (score: number) => {
-    if (score >= 90) return 'from-green-400 to-green-600';
-    if (score >= 80) return 'from-blue-400 to-blue-600';
-    if (score >= 70) return 'from-yellow-400 to-yellow-600';
-    return 'from-orange-400 to-orange-600';
-  };
-
-  const getClientNames = (clientIds: string[]) => {
-    return clientIds
-      .map(id => clients.find(c => c.id === id)?.name)
-      .filter(Boolean)
-      .join(', ');
+  const getStatusColor = (status: string) => {
+    switch (status.toUpperCase()) {
+      case 'AVAILABLE': return 'text-green-600 bg-green-50';
+      case 'SOLD': return 'text-red-600 bg-red-50';
+      case 'RESERVED': return 'text-yellow-600 bg-yellow-50';
+      default: return 'text-gray-600 bg-gray-50';
+    }
   };
 
   return (
     <div className="space-y-6">
-      {/* Summary */}
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
-        <h3 className="text-lg font-bold text-gray-900 mb-2">Properties Summary</h3>
+        <h3 className="text-lg font-bold text-gray-900 mb-2">Assigned Properties</h3>
         <p className="text-gray-700">
-          You have {properties.length} properties assigned to {clients.length} clients. Below are all available properties with their match scores and assigned clients.
+          You are assigned to {properties.length} properties. Expand a property to see related marketing campaigns and leads.
         </p>
       </div>
 
-      {/* Properties Grid */}
       {properties.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
-          <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M3 12a9 9 0 109 9m0 0l4.35-4.35M12 21v-9m0-9V3m0 0l-4.35 4.35"
-            />
-          </svg>
-          <p className="text-gray-600 font-medium">No properties available</p>
+          <p className="text-gray-600 font-medium">No properties assigned yet.</p>
         </div>
       ) : (
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid gap-6">
           {properties.map(property => (
             <div
               key={property.id}
-              className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-lg transition"
+              className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition"
             >
-              {/* Header with Match Score */}
-              <div className="bg-gradient-to-r from-gray-100 to-gray-200 p-6 relative overflow-hidden">
-                <div className="absolute top-4 right-4">
-                  <div className={`bg-gradient-to-br ${getMatchScoreBg(property.matchScore)} rounded-full w-20 h-20 flex items-center justify-center text-white font-bold text-2xl shadow-lg`}>
-                    {property.matchScore}%
-                  </div>
-                </div>
-
-                <div className="pr-24">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{property.title}</h3>
-                  <div className="flex items-center gap-2 text-gray-700">
-                    <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                      />
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    <span>{property.location}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Content */}
               <div className="p-6">
-                {/* Price and Details */}
-                <div className="grid grid-cols-3 gap-4 mb-6 pb-6 border-b border-gray-100">
+                <div className="flex justify-between items-start mb-4">
                   <div>
-                    <p className="text-xs text-gray-600 font-medium mb-1">Price</p>
-                    <p className="text-xl font-bold text-gray-900">{property.price}</p>
+                    <h3 className="text-xl font-bold text-gray-900">{property.name}</h3>
+                    <p className="text-gray-600 flex items-center gap-1">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                      </svg>
+                      {property.location}{property.city ? `, ${property.city.name}` : ''}
+                    </p>
+                  </div>
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(property.status)}`}>
+                    {property.status}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div>
+                    <p className="text-xs text-gray-500 uppercase font-semibold">Price</p>
+                    <p className="text-lg font-bold text-gray-900">₹{Number(property.price).toLocaleString()}</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-600 font-medium mb-1">Area</p>
-                    <p className="text-lg font-bold text-gray-900">{property.area}</p>
+                    <p className="text-xs text-gray-500 uppercase font-semibold">Area</p>
+                    <p className="text-lg font-bold text-gray-900">{property.area || 'N/A'} sqft</p>
                   </div>
                   <div>
-                    <p className="text-xs text-gray-600 font-medium mb-1">Config</p>
-                    <p className="text-lg font-bold text-gray-900">{property.config}</p>
+                    <p className="text-xs text-gray-500 uppercase font-semibold">Type</p>
+                    <p className="text-lg font-bold text-gray-900">{property.propertyType}</p>
                   </div>
                 </div>
 
-                {/* Match Score Details */}
-                <div className="mb-6">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-sm font-semibold text-gray-700">Match Quality</span>
-                    <span className={`text-sm font-bold ${getMatchScoreColor(property.matchScore)}`}>
-                      {property.matchScore >= 90
-                        ? 'Excellent'
-                        : property.matchScore >= 80
-                          ? 'Good'
-                          : property.matchScore >= 70
-                            ? 'Fair'
-                            : 'Moderate'}
-                    </span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                    <div
-                      className={`h-full bg-gradient-to-r ${getMatchScoreBg(property.matchScore)} transition-all`}
-                      style={{ width: `${property.matchScore}%` }}
-                    ></div>
-                  </div>
-                </div>
+                <button
+                  onClick={() => setExpandedProperty(expandedProperty === property.id ? null : property.id)}
+                  className="w-full flex items-center justify-center gap-2 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold rounded-lg border border-gray-200 transition"
+                >
+                  {expandedProperty === property.id ? 'Hide Campaigns & Leads' : `View Campaigns & Leads (${property.campaigns?.length || 0})`}
+                  <svg className={`w-4 h-4 transition-transform ${expandedProperty === property.id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </button>
 
-                {/* Assigned Clients */}
-                <div>
-                  <p className="text-sm font-semibold text-gray-700 mb-3">Assigned to {property.assignedToClients.length} Client(s)</p>
-                  <div className="space-y-2">
-                    {property.assignedToClients.map(clientId => {
-                      const client = clients.find(c => c.id === clientId);
-                      return client ? (
-                        <div
-                          key={clientId}
-                          className="flex items-center gap-3 bg-gray-50 rounded-lg p-3 border border-gray-100"
-                        >
-                          <div className="w-8 h-8 bg-gradient-to-br from-blue-400 to-blue-600 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-                            {client.name.charAt(0)}
+                {expandedProperty === property.id && (
+                  <div className="mt-6 border-t pt-6 space-y-6">
+                    {property.campaigns && property.campaigns.length > 0 ? (
+                      property.campaigns.map(campaign => (
+                        <div key={campaign.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                          <div className="flex justify-between items-center mb-4">
+                            <div>
+                              <h4 className="font-bold text-gray-900">{campaign.name}</h4>
+                              <p className="text-xs text-gray-500">Platform: {campaign.platform}</p>
+                            </div>
+                            <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded text-xs font-bold">
+                              {campaign.leads.length} Leads
+                            </span>
                           </div>
-                          <span className="text-sm font-medium text-gray-900">{client.name}</span>
-                        </div>
-                      ) : null;
-                    })}
-                  </div>
-                </div>
 
-                {/* Actions */}
-                <div className="mt-6 flex gap-2">
-                  <button className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium transition text-sm">
-                    View Details
-                  </button>
-                  <button className="flex-1 border border-blue-600 text-blue-600 py-2 rounded-lg hover:bg-blue-50 font-medium transition text-sm">
-                    Manage Clients
-                  </button>
-                </div>
+                          <div className="space-y-3">
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-wider">Leads generated</p>
+                            <div className="grid gap-3">
+                              {campaign.leads.map(lead => (
+                                <div key={lead.id} className="bg-white p-3 rounded border border-gray-100 flex justify-between items-center shadow-sm">
+                                  <div>
+                                    <p className="font-semibold text-gray-900 text-sm">{lead.name}</p>
+                                    <p className="text-xs text-gray-500">{lead.email} | {lead.phone}</p>
+                                  </div>
+                                  <div className="text-right">
+                                    <span className="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded font-bold uppercase">
+                                      {lead.status}
+                                    </span>
+                                    <p className="text-[10px] text-gray-400 mt-1">
+                                      {new Date(lead.createdAt).toLocaleDateString()}
+                                    </p>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-center text-gray-500 text-sm italic">No campaigns or leads found for this property.</p>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           ))}
@@ -177,3 +162,5 @@ export default function RecommendedPropertiesSection({
     </div>
   );
 }
+
+

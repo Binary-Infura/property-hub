@@ -1,6 +1,6 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import AssignedClients from '@/app/components/consultant/AssignedClients';
 import ConsultationStatus from '@/app/components/consultant/ConsultationStatus';
 import ConsultantNotes from '@/app/components/consultant/ConsultantNotes';
@@ -8,73 +8,18 @@ import RecommendedPropertiesSection from '@/app/components/consultant/Recommende
 import SiteVisitScheduling from '@/app/components/consultant/SiteVisitScheduling';
 import DealProgressTracking from '@/app/components/consultant/DealProgressTracking';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+import { useAuth } from '@/app/contexts/AuthContext';
 import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
-
-interface Client {
-  id: string;
-  name: string;
-  phone: string;
-  email: string;
-  budget: string;
-  location: string;
-  status: 'active' | 'pending' | 'closed';
-  assignedDate: Date;
-  profileImage: string;
-}
-
-interface ConsultationRecord {
-  id: string;
-  clientId: string;
-  type: 'initial' | 'follow-up' | 'site-visit' | 'negotiation';
-  date: Date;
-  notes: string;
-  status: 'scheduled' | 'completed' | 'cancelled';
-  duration: number;
-}
-
-interface Note {
-  id: string;
-  clientId: string;
-  content: string;
-  createdAt: Date;
-  category: 'general' | 'preference' | 'budget' | 'legal' | 'follow-up';
-}
-
-interface Property {
-  id: string;
-  title: string;
-  location: string;
-  price: string;
-  area: string;
-  config: string;
-  matchScore: number;
-  assignedToClients: string[];
-}
-
-interface SiteVisit {
-  id: string;
-  clientId: string;
-  propertyId: string;
-  scheduledDate: Date;
-  status: 'scheduled' | 'completed' | 'cancelled';
-  feedback?: string;
-  visitExecutiveId?: string;
-}
-
-interface Deal {
-  id: string;
-  clientId: string;
-  propertyId: string;
-  stage: 'inquiry' | 'site-visit' | 'offer' | 'negotiation' | 'documentation' | 'closed';
-  progress: number;
-  createdAt: Date;
-  updatedAt: Date;
-  notes: string;
-}
+import { consultantService } from '@/app/services/consultantService';
 
 export default function ConsultantDashboard() {
+  const { token } = useAuth();
   const { activeContext } = useUnifiedApp();
-  const [clients, setClients] = useState<Client[]>([
+  const [assignedProperties, setAssignedProperties] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Keep existing mock data for other sections for now
+  const [clients, setClients] = useState<any[]>([
     {
       id: '1',
       name: 'Rajesh Kumar',
@@ -110,7 +55,7 @@ export default function ConsultantDashboard() {
     },
   ]);
 
-  const [consultations, setConsultations] = useState<ConsultationRecord[]>([
+  const [consultations, setConsultations] = useState<any[]>([
     {
       id: '1',
       clientId: '1',
@@ -140,7 +85,7 @@ export default function ConsultantDashboard() {
     },
   ]);
 
-  const [notes, setNotes] = useState<Note[]>([
+  const [notes, setNotes] = useState<any[]>([
     {
       id: '1',
       clientId: '1',
@@ -164,7 +109,48 @@ export default function ConsultantDashboard() {
     },
   ]);
 
-  const [properties, setProperties] = useState<Property[]>([
+  const [siteVisits, setSiteVisits] = useState<any[]>([
+    {
+      id: '1',
+      clientId: '2',
+      propertyId: '1',
+      scheduledDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+      status: 'scheduled',
+    },
+    {
+      id: '2',
+      clientId: '1',
+      propertyId: '2',
+      scheduledDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      status: 'completed',
+      feedback: 'Client liked the location but mentioned the area feels cramped.',
+    },
+  ]);
+
+  const [deals, setDeals] = useState<any[]>([
+    {
+      id: '1',
+      clientId: '1',
+      propertyId: '2',
+      stage: 'site-visit',
+      progress: 40,
+      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      notes: 'Site visit completed, client considering this property.',
+    },
+    {
+      id: '2',
+      clientId: '2',
+      propertyId: '1',
+      stage: 'offer',
+      progress: 60,
+      createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+      updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+      notes: 'Offer made, awaiting builder response.',
+    },
+  ]);
+
+  const [properties, setProperties] = useState<any[]>([
     {
       id: '1',
       title: 'Sunset Towers, Bandra',
@@ -197,54 +183,36 @@ export default function ConsultantDashboard() {
     },
   ]);
 
-  const [siteVisits, setSiteVisits] = useState<SiteVisit[]>([
-    {
-      id: '1',
-      clientId: '2',
-      propertyId: '1',
-      scheduledDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-      status: 'scheduled',
-    },
-    {
-      id: '2',
-      clientId: '1',
-      propertyId: '2',
-      scheduledDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      status: 'completed',
-      feedback: 'Client liked the location but mentioned the area feels cramped.',
-    },
-  ]);
 
-  const [deals, setDeals] = useState<Deal[]>([
-    {
-      id: '1',
-      clientId: '1',
-      propertyId: '2',
-      stage: 'site-visit',
-      progress: 40,
-      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-      updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      notes: 'Site visit completed, client considering this property.',
-    },
-    {
-      id: '2',
-      clientId: '2',
-      propertyId: '1',
-      stage: 'offer',
-      progress: 60,
-      createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
-      updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      notes: 'Offer made, awaiting builder response.',
-    },
-  ]);
-
-  const [activeTab, setActiveTab] = useState<'clients' | 'status' | 'notes' | 'properties' | 'visits' | 'deals'>('clients');
+  const [activeTab, setActiveTab] = useState<'clients' | 'status' | 'notes' | 'properties' | 'visits' | 'deals'>('properties'); // Default to properties as requested
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      if (!token) return;
+      try {
+        const props = await consultantService.getAssignedProperties(token);
+        setAssignedProperties(props);
+      } catch (error) {
+        console.error('Error fetching consultant properties:', error);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
+  }, [token]);
 
   const activeClients = clients.filter(c => c.status === 'active');
   const pendingClients = clients.filter(c => c.status === 'pending');
   const closedDeals = deals.filter(d => d.stage === 'closed');
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -253,46 +221,52 @@ export default function ConsultantDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Consultant Dashboard</h1>
-            <p className="text-gray-600 mt-1">Manage clients, consultations, and property matches</p>
+            <p className="text-gray-600 mt-1">Manage assigned properties, campaigns, and leads</p>
           </div>
         </div>
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Grid */}
-        <div className="grid md:grid-cols-5 gap-6 mb-8">
+        <div className="grid md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <p className="text-gray-600 text-sm font-medium">Assigned Properties</p>
+            <p className="text-3xl font-bold text-blue-600 mt-2">{assignedProperties.length}</p>
+            <p className="text-xs text-gray-500 mt-2">Active assignments</p>
+          </div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <p className="text-gray-600 text-sm font-medium">Total Campaigns</p>
+            <p className="text-3xl font-bold text-green-600 mt-2">
+              {assignedProperties.reduce((acc, prop) => acc + (prop.campaigns?.length || 0), 0)}
+            </p>
+            <p className="text-xs text-gray-500 mt-2">Marketing campaigns</p>
+          </div>
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <p className="text-gray-600 text-sm font-medium">Total Leads</p>
+            <p className="text-3xl font-bold text-yellow-600 mt-2">
+              {assignedProperties.reduce((acc, prop) => acc + (prop.campaigns?.reduce((cAcc: any, camp: any) => cAcc + camp.leads.length, 0) || 0), 0)}
+            </p>
+            <p className="text-xs text-gray-500 mt-2">Leads from campaigns</p>
+          </div>
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
             <p className="text-gray-600 text-sm font-medium">Active Clients</p>
-            <p className="text-3xl font-bold text-blue-600 mt-2">{activeClients.length}</p>
+            <p className="text-3xl font-bold text-purple-600 mt-2">{activeClients.length}</p>
             <p className="text-xs text-gray-500 mt-2">Under consultation</p>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-            <p className="text-gray-600 text-sm font-medium">Pending Clients</p>
-            <p className="text-3xl font-bold text-yellow-600 mt-2">{pendingClients.length}</p>
-            <p className="text-xs text-gray-500 mt-2">Awaiting initial consultation</p>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-            <p className="text-gray-600 text-sm font-medium">Open Deals</p>
-            <p className="text-3xl font-bold text-green-600 mt-2">{deals.filter(d => d.stage !== 'closed').length}</p>
-            <p className="text-xs text-gray-500 mt-2">In progress</p>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-            <p className="text-gray-600 text-sm font-medium">Closed Deals</p>
-            <p className="text-3xl font-bold text-purple-600 mt-2">{closedDeals.length}</p>
-            <p className="text-xs text-gray-500 mt-2">Successfully closed</p>
-          </div>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-            <p className="text-gray-600 text-sm font-medium">Site Visits</p>
-            <p className="text-3xl font-bold text-indigo-600 mt-2">
-              {siteVisits.filter(sv => sv.status === 'scheduled' || sv.status === 'completed').length}
-            </p>
-            <p className="text-xs text-gray-500 mt-2">Scheduled & completed</p>
           </div>
         </div>
 
         {/* Navigation Tabs */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 mb-8">
           <div className="flex border-b border-gray-200 overflow-x-auto">
+            <button
+              onClick={() => setActiveTab('properties')}
+              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'properties'
+                ? 'border-blue-600 text-blue-600'
+                : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+            >
+              Assigned Properties
+            </button>
             <button
               onClick={() => setActiveTab('clients')}
               className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'clients'
@@ -321,15 +295,6 @@ export default function ConsultantDashboard() {
               Notes
             </button>
             <button
-              onClick={() => setActiveTab('properties')}
-              className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'properties'
-                ? 'border-blue-600 text-blue-600'
-                : 'border-transparent text-gray-600 hover:text-gray-900'
-                }`}
-            >
-              Properties
-            </button>
-            <button
               onClick={() => setActiveTab('visits')}
               className={`px-6 py-4 font-semibold border-b-2 transition whitespace-nowrap ${activeTab === 'visits'
                 ? 'border-blue-600 text-blue-600'
@@ -351,6 +316,9 @@ export default function ConsultantDashboard() {
 
           {/* Tab Content */}
           <div className="p-6">
+            {activeTab === 'properties' && (
+              <RecommendedPropertiesSection properties={assignedProperties} />
+            )}
             {activeTab === 'clients' && (
               <AssignedClients
                 clients={clients}
@@ -366,7 +334,7 @@ export default function ConsultantDashboard() {
                 notes={notes}
                 clients={clients}
                 selectedClientId={selectedClientId}
-                onAddNote={(clientId, content, category) => {
+                onAddNote={(clientId: any, content: any, category: any) => {
                   setNotes([
                     ...notes,
                     {
@@ -374,21 +342,18 @@ export default function ConsultantDashboard() {
                       clientId,
                       content,
                       createdAt: new Date(),
-                      category: category as Note['category'],
+                      category,
                     },
                   ]);
                 }}
               />
-            )}
-            {activeTab === 'properties' && (
-              <RecommendedPropertiesSection properties={properties} clients={clients} />
             )}
             {activeTab === 'visits' && (
               <SiteVisitScheduling
                 siteVisits={siteVisits}
                 properties={properties}
                 clients={clients}
-                onScheduleVisit={(clientId, propertyId, date, visitExecutiveId) => {
+                onScheduleVisit={(clientId: any, propertyId: any, date: any, visitExecutiveId: any) => {
                   setSiteVisits([
                     ...siteVisits,
                     {
