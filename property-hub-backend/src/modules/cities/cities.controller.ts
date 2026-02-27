@@ -4,6 +4,7 @@ import { AssignCityDto, CreateCityDto } from './cities.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { RequireRoles } from '../../common/decorators/require-roles.decorator';
+import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 
@@ -11,6 +12,15 @@ import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class CitiesController {
     constructor(private readonly citiesService: CitiesService) { }
+
+    @Get('managed')
+    @RequireRoles('central-authority')
+    getManaged(
+        @Query('page') page: string = '1',
+        @Query('limit') limit: string = '10'
+    ) {
+        return this.citiesService.getManagedCities(+page, +limit);
+    }
 
     @Get()
     findAll() {

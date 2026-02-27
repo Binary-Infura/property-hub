@@ -7,7 +7,12 @@ export interface Property {
     description?: string;
     location: string;
     address?: string;
-    cityAllocationId: string;
+    cityId?: string;
+    city?: {
+        id: string;
+        name: string;
+        state: string;
+    };
     status: PropertyStatus;
     price: number;
     area?: number;
@@ -16,9 +21,18 @@ export interface Property {
     propertyType: PropertyType;
     onboardedById?: string;
     onboardedBy?: {
-        name: string;
-        role: string;
+        name?: string;
+        firstName?: string;
+        lastName?: string;
+        email?: string;
+        role?: string;
     };
+    assignedTo?: {
+        id: string;
+        firstName: string;
+        lastName?: string;
+        email?: string;
+    }[];
     createdAt: string;
 }
 
@@ -102,5 +116,37 @@ export const propertyService = {
             const error = await response.json();
             throw new Error(error.message || 'Failed to delete property');
         }
+    },
+
+    async assignConsultants(id: string, consultantIds: string[], token: string): Promise<Property> {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/properties/${id}/assign-consultants`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ consultantIds }),
+        });
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ message: 'Assignment failed' }));
+            throw new Error(error.message || 'Failed to assign consultants');
+        }
+        return response.json();
+    },
+
+    async bulkAssignConsultants(propertyIds: string[], consultantIds: string[], token: string): Promise<any> {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/properties/bulk-assign-consultants`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`,
+            },
+            body: JSON.stringify({ propertyIds, consultantIds }),
+        });
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ message: 'Bulk assignment failed' }));
+            throw new Error(error.message || 'Failed bulk assignment');
+        }
+        return response.json();
     }
 };

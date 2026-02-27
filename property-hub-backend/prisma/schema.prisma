@@ -23,12 +23,14 @@ model Property {
   updatedAt     DateTime       @updatedAt
   onboardedById String?
   category      String?
-  city          String?
+  cityId        String?
   videoUrl      String?
   postalCodeId  String?
   adsRequests   AdsRequest[]
   commissions   Commission[]
   leads         Lead[]
+  assignedTo    User[]         @relation("PropertyAssignment")
+  city          City?          @relation(fields: [cityId], references: [id])
   onboardedBy   User?          @relation("UserOnboardedProperties", fields: [onboardedById], references: [id])
   postalCode    PostalCode?    @relation("PropertyPostalCode", fields: [postalCodeId], references: [id])
 
@@ -146,6 +148,7 @@ model User {
   onboardedBy              User?                     @relation("UserOnboardedUsers", fields: [onboardedById], references: [id])
   onboardedUsers           User[]                    @relation("UserOnboardedUsers")
   campaignsAssigned        MarketingCampaign[]       @relation("CampaignToUser")
+  assignedProperties       Property[]                @relation("PropertyAssignment")
   cityAllocations          CityAllocation[]
 
   @@map("users")
@@ -461,8 +464,10 @@ model City {
   id          String   @id @default(uuid())
   name        String   @unique
   state       String
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  active      Boolean  @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  properties  Property[]
 
   @@map("cities")
 }

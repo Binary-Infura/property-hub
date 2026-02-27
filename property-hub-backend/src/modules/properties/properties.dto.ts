@@ -51,13 +51,9 @@ export class CreatePropertyDto {
     @IsOptional()
     category?: string;
 
-    @IsString()
+    @IsUUID()
     @IsOptional()
-    city?: string;
-
-    @IsString()
-    @IsOptional()
-    state?: string;
+    cityId?: string;
 
     @IsString()
     @IsOptional()
@@ -129,13 +125,9 @@ export class UpdatePropertyDto {
     @IsOptional()
     category?: string;
 
-    @IsString()
+    @IsUUID()
     @IsOptional()
-    city?: string;
-
-    @IsString()
-    @IsOptional()
-    state?: string;
+    cityId?: string;
 
     @IsString()
     @IsOptional()

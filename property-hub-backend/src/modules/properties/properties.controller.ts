@@ -77,4 +77,22 @@ export class PropertiesController {
     ) {
         return this.propertiesService.remove(id, user);
     }
+
+    @Post(':id/assign-consultants')
+    @RequireRoles('central-authority')
+    assignConsultants(
+        @Param('id') id: string,
+        @Body('consultantIds') consultantIds: string[],
+    ) {
+        return this.propertiesService.assignConsultants(id, consultantIds);
+    }
+
+    @Post('bulk-assign-consultants')
+    @RequireRoles('central-authority')
+    bulkAssignConsultants(
+        @Body('propertyIds') propertyIds: string[],
+        @Body('consultantIds') consultantIds: string[],
+    ) {
+        return this.propertiesService.bulkAssignConsultants(propertyIds, consultantIds);
+    }
 }

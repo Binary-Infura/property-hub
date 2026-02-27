@@ -144,4 +144,43 @@ export class CitiesService {
             orderBy: { name: 'asc' },
         });
     }
+
+    async getManagedCities(page: number = 1, limit: number = 10) {
+        const skip = (page - 1) * limit;
+        const [cities, total] = await Promise.all([
+            this.prisma.city.findMany({
+                skip,
+                take: limit,
+                include: {
+                    _count: {
+                        select: { properties: true }
+                    },
+                    properties: {
+                        select: { price: true }
+                    }
+                },
+                orderBy: { name: 'asc' }
+            }),
+            this.prisma.city.count()
+        ]);
+
+        const data = (cities as any[]).map(city => {
+            const propertiesCount = city._count?.properties || 0;
+            const revenue = city.properties?.reduce((sum: number, p: any) => sum + Number(p.price || 0), 0) || 0;
+            return {
+                id: city.id,
+                name: city.name,
+                state: city.state,
+                active: city.active ?? true,
+                propertiesCount,
+                revenue,
+                location: {
+                    state: city.state,
+                    city: city.name
+                }
+            };
+        });
+
+        return { data, total };
+    }
 }

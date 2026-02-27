@@ -33,7 +33,7 @@ export class PropertiesService {
 
         if (city) {
             where.OR = [
-                { city: { contains: city, mode: 'insensitive' } },
+                { city: { name: { contains: city, mode: 'insensitive' } } },
                 { location: { contains: city, mode: 'insensitive' } },
                 { address: { contains: city, mode: 'insensitive' } }
             ];
@@ -47,8 +47,9 @@ export class PropertiesService {
         const results = await this.prisma.property.findMany({
             where,
             include: {
-
                 onboardedBy: true,
+                assignedTo: true,
+                city: true,
             },
             orderBy: {
                 createdAt: 'desc',
@@ -62,8 +63,10 @@ export class PropertiesService {
         const property = await this.prisma.property.findUnique({
             where: { id },
             include: {
-
                 commissions: true,
+                assignedTo: true,
+                onboardedBy: true,
+                city: true,
             },
         });
 
@@ -81,7 +84,8 @@ export class PropertiesService {
 
             // Check city access (skip if owner or central authority)
             if (!isCentralAuthority && !isOwner) {
-                const hasLocationCityAccess = property.city && userRegions.some(g => g.toLowerCase() === property.city.toLowerCase());
+                const cityName = property.city?.name;
+                const hasLocationCityAccess = cityName && userRegions.some(g => g.toLowerCase() === cityName.toLowerCase());
 
                 if (!hasLocationCityAccess) {
                     throw new NotFoundException(`Property with ID ${id} not found`);
@@ -101,11 +105,11 @@ export class PropertiesService {
             onboardedById = internalUser.id;
         }
 
-        const { continent, country, state, city, locationId, ...rest } = createPropertyDto;
+        const { continent, country, cityId, locationId, ...rest } = createPropertyDto;
 
         const data: any = {
             ...rest,
-            city,
+            cityId,
             onboardedById,
         };
 
@@ -123,11 +127,11 @@ export class PropertiesService {
     async update(id: string, updatePropertyDto: UpdatePropertyDto, user: AuthenticatedUser): Promise<Property> {
         const property = await this.findOne(id, user);
 
-        const { continent, country, state, city, locationId, ...rest } = updatePropertyDto;
+        const { continent, country, cityId, locationId, ...rest } = updatePropertyDto;
 
         const data: any = {
             ...rest,
-            city,
+            cityId,
         };
 
         return this.prisma.property.update({
@@ -145,5 +149,34 @@ export class PropertiesService {
         return this.prisma.property.delete({
             where: { id },
         });
+    }
+
+    async assignConsultants(id: string, consultantIds: string[]): Promise<Property> {
+        return this.prisma.property.update({
+            where: { id },
+            data: {
+                assignedTo: {
+                    set: consultantIds.map(id => ({ id }))
+                }
+            },
+            include: {
+                assignedTo: true,
+                onboardedBy: true,
+            }
+        });
+    }
+
+    async bulkAssignConsultants(propertyIds: string[], consultantIds: string[]) {
+        const updates = propertyIds.map(propertyId =>
+            this.prisma.property.update({
+                where: { id: propertyId },
+                data: {
+                    assignedTo: {
+                        set: consultantIds.map(id => ({ id }))
+                    }
+                }
+            })
+        );
+        return this.prisma.$transaction(updates);
     }
 }

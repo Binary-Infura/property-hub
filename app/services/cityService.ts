@@ -2,7 +2,22 @@ import axios from 'axios';
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
 
+export interface City {
+    id: string;
+    slug: string;
+    cityName: string; // The backend uses cityName in allocations
+    stateCode: string;
+    name?: string; // Standard name
+    state?: string; // Standard state
+}
+
 export const cityService = {
+    getAll: async (token: string) => {
+        const response = await axios.get(`${API_BASE_URL}/cities`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.data;
+    },
     getStates: async (token: string) => {
         const response = await axios.get(`${API_BASE_URL}/cities/india/states`, {
             headers: { Authorization: `Bearer ${token}` }
