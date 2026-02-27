@@ -29,14 +29,14 @@ export class AdsRequestsController {
     @RequireRoles('property-partner', 'marketing-manager', 'central-authority')
     @ApiOperation({ summary: 'Get all ads requests' })
     findAll(@CurrentUser() user: AuthenticatedUser) {
-        return this.adsRequestsService.findAll(user.roles?.[0], user.userId);
+        return this.adsRequestsService.findAll(user.roles, user.userId);
     }
 
     @Get(':id')
     @RequireRoles('property-partner', 'marketing-manager', 'central-authority')
     @ApiOperation({ summary: 'Get an ads request by id' })
     findOne(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
-        return this.adsRequestsService.findOne(id, user.roles?.[0], user.userId);
+        return this.adsRequestsService.findOne(id, user.roles, user.userId);
     }
 
     @Patch(':id')
@@ -47,13 +47,13 @@ export class AdsRequestsController {
         @Body() updateAdsRequestDto: UpdateAdsRequestDto,
         @CurrentUser() user: AuthenticatedUser,
     ) {
-        return this.adsRequestsService.update(id, updateAdsRequestDto, user.roles?.[0], user.userId);
+        return this.adsRequestsService.update(id, updateAdsRequestDto, user.roles, user.userId);
     }
 
     @Delete(':id')
     @RequireRoles('property-partner', 'marketing-manager', 'central-authority')
     @ApiOperation({ summary: 'Delete an ads request' })
     remove(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
-        return this.adsRequestsService.remove(id, user.roles?.[0], user.userId);
+        return this.adsRequestsService.remove(id, user.roles, user.userId);
     }
 }

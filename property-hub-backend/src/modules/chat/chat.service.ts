@@ -73,11 +73,11 @@ export class ChatService {
                     create: [
                         {
                             userId: currentUser.id,
-                            role: currentUser.role,
+                            role: currentUser.defaultRole || currentUser.roles[0],
                         },
                         {
                             userId: targetUser.id,
-                            role: targetUser.role,
+                            role: targetUser.defaultRole || targetUser.roles[0],
                         },
                     ],
                 },
@@ -154,7 +154,7 @@ export class ChatService {
                     id: p.id,
                     name: `${p.firstName} ${p.lastName || ''}`.trim(),
                     email: p.email,
-                    role: p.role,
+                    roles: p.roles,
                 })),
                 lastMessageAt: session.updatedAt,
                 unreadCount: 0, // TODO: Implement unread count from Mattermost
@@ -291,7 +291,7 @@ export class ChatService {
                 id: p.id,
                 name: `${p.firstName} ${p.lastName || ''}`.trim(),
                 email: p.email,
-                role: p.role,
+                roles: p.roles,
             })),
             createdAt: chatSession.createdAt,
         };

@@ -20,9 +20,10 @@ export class InviteUserDto {
     lastName: string;
 
 
-    @IsString()
+    @IsArray()
+    @IsString({ each: true })
     @IsOptional()
-    role?: string;
+    roles?: string[];
 }
 
 export class InviteCentralAuthorityDto {
@@ -94,8 +95,9 @@ export class CreateUserDto {
     @IsOptional()
     phone?: string;
 
-    @IsString()
-    role: string;
+    @IsArray()
+    @IsString({ each: true })
+    roles: string[];
 
     @IsString()
     @IsOptional()
@@ -179,6 +181,15 @@ export class UpdateUserDto {
     @IsOptional()
     status?: string;
 
+    @IsArray()
+    @IsString({ each: true })
+    @IsOptional()
+    roles?: string[];
+
+    @IsString()
+    @IsOptional()
+    defaultRole?: string;
+
     @IsString()
     @IsOptional()
     agencyName?: string;
@@ -251,6 +262,10 @@ export class UpdateProfileDto {
     @IsString()
     @IsOptional()
     phone?: string;
+
+    @IsString()
+    @IsOptional()
+    defaultRole?: string;
 
     // Property Partner Specific
     @IsString()

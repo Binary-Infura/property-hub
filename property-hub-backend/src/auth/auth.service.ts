@@ -41,7 +41,8 @@ export class AuthService {
             given_name: user.firstName,
             family_name: user.lastName,
             preferred_username: user.email,
-            roles: [user.role],
+            roles: user.roles,
+            defaultRole: user.defaultRole,
             groups: [],
         };
 
@@ -52,7 +53,8 @@ export class AuthService {
                 email: user.email,
                 firstName: user.firstName,
                 lastName: user.lastName,
-                role: user.role,
+                roles: user.roles,
+                defaultRole: user.defaultRole,
             },
         };
     }

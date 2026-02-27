@@ -42,7 +42,7 @@ export class UsersService {
                     firstName: dto.firstName,
                     lastName: dto.lastName,
                     passwordHash,
-                    role: dto.role,
+                    roles: dto.roles || [],
                     status: 'active',
                 }
             });
@@ -64,7 +64,7 @@ export class UsersService {
     async inviteCentralAuthorityUser(dto: InviteCentralAuthorityDto): Promise<InvitationResponse> {
         return this.inviteUser({
             ...dto,
-            role: 'central-authority',
+            roles: ['central-authority'],
         });
     }
 
@@ -114,26 +114,24 @@ export class UsersService {
             });
         }
 
-        if (!user) {
-            const role = authenticatedUser.roles.includes('central-authority')
-                ? 'central-authority'
-                : authenticatedUser.roles.includes('onboarding-manager')
-                    ? 'onboarding-manager'
-                    : authenticatedUser.roles.includes('dsa')
-                        ? 'dsa'
-                        : 'unknown';
+        const roles = authenticatedUser.roles.includes('central-authority')
+            ? ['central-authority']
+            : authenticatedUser.roles.includes('onboarding-manager')
+                ? ['onboarding-manager']
+                : authenticatedUser.roles.includes('dsa')
+                    ? ['dsa']
+                    : ['unknown'];
 
-            user = await this.prisma.user.create({
-                data: {
-                    id: authenticatedUser.userId,
-                    email: authenticatedUser.email || 'unknown',
-                    firstName: authenticatedUser.firstName || authenticatedUser.username || 'System',
-                    lastName: authenticatedUser.lastName || 'User',
-                    role,
-                    status: 'active',
-                },
-            });
-        }
+        user = await this.prisma.user.create({
+            data: {
+                id: authenticatedUser.userId,
+                email: authenticatedUser.email || 'unknown',
+                firstName: authenticatedUser.firstName || authenticatedUser.username || 'System',
+                lastName: authenticatedUser.lastName || 'User',
+                roles,
+                status: 'active',
+            },
+        });
 
         return user;
     }
@@ -165,7 +163,6 @@ export class UsersService {
             }
         }
 
-        // 5. Save in Local DB
         const createdUser = await this.prisma.user.create({
             data: {
                 passwordHash,
@@ -173,7 +170,7 @@ export class UsersService {
                 lastName: dto.lastName,
                 email: dto.email,
                 phone: dto.phone,
-                role: dto.role,
+                roles: dto.roles,
                 agencyName: dto.agencyName,
                 reraId: dto.reraId,
                 rating: dto.rating,
@@ -182,7 +179,7 @@ export class UsersService {
         });
 
         // 6. Create relevant profile based on role
-        if (dto.role === 'service-provider' && dto.businessName) {
+        if (dto.roles.includes('service-provider') && dto.businessName) {
             await this.prisma.serviceProviderProfile.create({
                 data: {
                     userId: createdUser.id,
@@ -197,7 +194,7 @@ export class UsersService {
             });
         }
 
-        if (dto.role === 'property-partner') {
+        if (dto.roles.includes('property-partner')) {
             await this.prisma.propertyPartnerProfile.create({
                 data: {
                     userId: createdUser.id,
@@ -220,7 +217,7 @@ export class UsersService {
         limit: number = 10
     ): Promise<{ data: User[], total: number }> {
         const skip = (page - 1) * limit;
-        const where: any = { role };
+        const where: any = { roles: { has: role } };
 
 
         if (myOnly && user) {
@@ -241,7 +238,7 @@ export class UsersService {
                         select: {
                             firstName: true,
                             lastName: true,
-                            role: true
+                            roles: true
                         }
                     }
                 },
@@ -292,13 +289,15 @@ export class UsersService {
             lastName: dto.lastName,
             phone: dto.phone,
             status: dto.status,
+            roles: dto.roles,
+            defaultRole: dto.defaultRole,
             agencyName: dto.agencyName,
             reraId: dto.reraId,
             rating: dto.rating
         };
 
 
-        if (existingUser.role === 'property-partner') {
+        if (existingUser.roles.includes('property-partner')) {
             const profileData: any = {};
             if (dto.companyName) profileData.companyName = dto.companyName;
             if (dto.companyAddress) profileData.companyAddress = dto.companyAddress;
@@ -318,7 +317,7 @@ export class UsersService {
             }
         }
 
-        if (existingUser.role === 'service-provider') {
+        if (existingUser.roles.includes('service-provider')) {
             const profileData: any = {};
             if (dto.businessName) profileData.businessName = dto.businessName;
             if (dto.category) profileData.category = dto.category;
@@ -429,13 +428,14 @@ export class UsersService {
                 firstName: dto.firstName,
                 lastName: dto.lastName,
                 phone: dto.phone,
-                // Also update agencyName if companyName is provided and user is property-partner
-                agencyName: (user.role === 'property-partner' && dto.companyName) ? dto.companyName : undefined
+                defaultRole: dto.defaultRole,
+                // Also update agencyName if companyName is provided and user has property-partner role
+                agencyName: (user.roles.includes('property-partner') && dto.companyName) ? dto.companyName : undefined
             }
         });
 
         // Update role-specific profile
-        if (user.role === 'property-partner') {
+        if (user.roles.includes('property-partner')) {
             const profileData: any = {};
             if (dto.companyName) profileData.companyName = dto.companyName;
             if (dto.companyAddress) profileData.companyAddress = dto.companyAddress;
@@ -455,7 +455,7 @@ export class UsersService {
             }
         }
 
-        if (user.role === 'service-provider') {
+        if (user.roles.includes('service-provider')) {
             const profileData: any = {};
             if (dto.businessName) profileData.businessName = dto.businessName;
             if (dto.category) profileData.category = dto.category;
@@ -477,7 +477,7 @@ export class UsersService {
             }
         }
 
-        if (user.role === 'influencer') {
+        if (user.roles.includes('influencer')) {
             const profileData: any = {};
             if (dto.socialMediaLinks) profileData.socialMediaLinks = dto.socialMediaLinks;
             if (dto.reach) profileData.reach = dto.reach;

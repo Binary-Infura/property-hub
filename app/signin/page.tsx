@@ -27,6 +27,16 @@ export default function SignInPage() {
                 return;
             }
 
+            // 0. Use defaultRole if available
+            if (user.defaultRole && roles.includes(user.defaultRole)) {
+                if (user.defaultRole === 'buyer') {
+                    router.push('/dashboard');
+                } else {
+                    router.push(`/${user.defaultRole}/dashboard`);
+                }
+                return;
+            }
+
             // 1. Central Authority
             if (roles.includes('central-authority')) {
                 router.push('/central-authority/dashboard');
@@ -47,11 +57,7 @@ export default function SignInPage() {
 
             const foundRole = staffRoles.find(role => roles.includes(role));
             if (foundRole) {
-                // Map specific team roles to their parent dashboard if needed, 
-                // or just redirect to their specific path if it exists.
-                const redirectPath = foundRole;
-
-                router.push(`/${redirectPath}/dashboard`);
+                router.push(`/${foundRole}/dashboard`);
                 return;
             }
 

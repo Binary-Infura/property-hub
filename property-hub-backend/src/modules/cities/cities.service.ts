@@ -44,7 +44,7 @@ export class CitiesService {
             // Validate user role
             const user = await this.prisma.user.findUnique({
                 where: { id: dto.userId },
-                select: { role: true }
+                select: { roles: true }
             });
 
             if (!user) {
@@ -52,8 +52,8 @@ export class CitiesService {
             }
 
             const allowedRoles = ['marketing-manager', 'onboarding-manager'];
-            if (!allowedRoles.includes(user.role)) {
-                throw new ConflictException(`City allocation is not allowed for users with role: ${user.role}`);
+            if (!user.roles.some(role => allowedRoles.includes(role))) {
+                throw new ConflictException(`City allocation is not allowed for users with roles: ${user.roles.join(', ')}`);
             }
 
             return await this.prisma.cityAllocation.create({
@@ -98,7 +98,7 @@ export class CitiesService {
                         firstName: true,
                         lastName: true,
                         email: true,
-                        role: true,
+                        roles: true,
                     },
                 },
             },
@@ -114,7 +114,7 @@ export class CitiesService {
                     { lastName: { contains: query, mode: 'insensitive' } },
                     { email: { contains: query, mode: 'insensitive' } },
                 ],
-                role: { in: ['marketing-manager', 'onboarding-manager'] },
+                roles: { hasSome: ['marketing-manager', 'onboarding-manager'] },
                 status: 'active',
             },
             select: {
@@ -122,7 +122,7 @@ export class CitiesService {
                 firstName: true,
                 lastName: true,
                 email: true,
-                role: true,
+                roles: true,
             },
             take: 10,
         });

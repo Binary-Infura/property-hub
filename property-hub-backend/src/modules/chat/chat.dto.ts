@@ -22,7 +22,7 @@ export class ChatParticipantDto {
     id: string;
     name: string;
     email: string;
-    role: string;
+    roles: string[];
 }
 
 export class ChatSessionResponseDto {

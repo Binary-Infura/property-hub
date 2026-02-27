@@ -58,16 +58,14 @@ export class ChatPermissionsService {
                 return false;
             }
 
-            const rules = CHAT_PERMISSION_RULES[user.role];
-            if (!rules) {
-                this.logger.warn(`No chat permission rules for role: ${user.role}`);
-                return false;
-            }
+            // Check if ANY of the user's roles allow chatting with ANY of the target user's roles
+            const canChat = user.roles.some((userRole: string) => {
+                const rules = CHAT_PERMISSION_RULES[userRole];
+                if (!rules) return false;
+                return targetUser.roles.some((targetRole: string) => rules.canChatWith.includes(targetRole));
+            });
 
-            // Check if target role is in allowed list
-            const canChat = rules.canChatWith.includes(targetUser.role);
-
-            this.logger.log(`User ${userId} (${user.role}) can chat with ${targetUserId} (${targetUser.role}): ${canChat}`);
+            this.logger.log(`User ${userId} (${user.roles.join(', ')}) can chat with ${targetUserId} (${targetUser.roles.join(', ')}): ${canChat}`);
             return canChat;
         } catch (error) {
             this.logger.error('Error checking chat permissions', error);

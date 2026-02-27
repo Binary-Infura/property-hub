@@ -43,7 +43,7 @@ export class CentralAuthorityService {
                 lastName: dto.lastName,
                 email: dto.email,
                 phone: dto.phone,
-                role: 'central-authority',
+                roles: ['central-authority'],
                 passwordHash: await this.usersService['hashPassword']('password'), // Or generate temporary
                 status: 'active',
             },
@@ -55,7 +55,7 @@ export class CentralAuthorityService {
     async findAll(page: number = 1, limit: number = 10, role: string = 'central-authority'): Promise<{ data: CentralAuthorityUserDto[], total: number }> {
         const skip = (page - 1) * limit;
 
-        const where: any = { role };
+        const where: any = { roles: { has: role } };
         const include: any = {};
 
         if (role === 'influencer') {
@@ -95,11 +95,8 @@ export class CentralAuthorityService {
                     _all: true
                 }
             }),
-            this.prisma.user.groupBy({
-                by: ['role'],
-                _count: {
-                    _all: true
-                }
+            this.prisma.user.findMany({
+                select: { roles: true }
             }),
             [] // Removed recentRegions
         ]);
@@ -111,12 +108,13 @@ export class CentralAuthorityService {
             pending: propertyStats.find(i => i.status === 'SUBMITTED')?._count._all || 0
         };
 
-        // Process user stats
+        // Process user stats (Manually aggregate since roles are arrays)
+        const userRolesFlattened = userStats.flatMap(u => u.roles);
         const users = {
-            total: userStats.reduce((sum, item) => sum + item._count._all, 0),
-            partners: userStats.find(i => i.role === 'property-partner')?._count._all || 0,
-            consultants: userStats.find(i => i.role === 'consultant')?._count._all || 0,
-            channelPartners: userStats.find(i => i.role === 'dsa')?._count._all || 0
+            total: userStats.length,
+            partners: userRolesFlattened.filter(r => r === 'property-partner').length,
+            consultants: userRolesFlattened.filter(r => r === 'consultant').length,
+            channelPartners: userRolesFlattened.filter(r => r === 'dsa').length
         };
 
         // Simplified recent activity (replace with actual audit logs if available later)

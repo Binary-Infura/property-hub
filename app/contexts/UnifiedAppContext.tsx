@@ -136,7 +136,7 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
     const { user, roles, authenticated, initialized, token } = useAuth();
     const router = useRouter();
 
-    const [activeRole, setActiveRole] = useState<UserRole>(KNOWN_ROLES[KNOWN_ROLES.length - 1]);
+    const [activeRole, setActiveRole] = useState<UserRole | null>(null);
     const [availableRoles, setAvailableRoles] = useState<UserRole[]>([]);
     const [myCities, setMyCities] = useState<CityAllocation[]>([]);
     const [activeCity, setActiveCity] = useState<CityAllocation | null>(null);
@@ -162,6 +162,17 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
 
             if (roleList.length > 0) {
                 setAvailableRoles(roleList);
+
+                // 2. Set activeRole: prefer localStorage → defaultRole → first matched role
+                const savedRoleId = localStorage.getItem('activeRoleId') as RoleId | null;
+                const defaultRoleId = user?.defaultRole as RoleId | undefined;
+
+                const resolvedRole =
+                    (savedRoleId && roleList.find(r => r.id === savedRoleId)) ||
+                    (defaultRoleId && roleList.find(r => r.id === defaultRoleId)) ||
+                    roleList[0];
+
+                setActiveRole(resolvedRole);
             }
 
             // 4. Fetch Cities for Manager/Field roles
@@ -169,7 +180,7 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
                 'marketing-manager',
                 'onboarding-manager'
             ];
-            if (activeRole && cityBasedRoles.includes(activeRole.id) && token) {
+            if (activeRole && cityBasedRoles.includes(activeRole.id as RoleId) && token) {
                 try {
                     const response = await fetch(`${API_URL}/api/cities/allocations/my-cities`, {
                         headers: { Authorization: `Bearer ${token}` }
@@ -221,6 +232,8 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
     const displayName = user ? (user.name || `${user.given_name || ''} ${user.family_name || ''}`.trim() || user.preferred_username || 'User') : 'Guest';
     const avatarUrl = user ? `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0D8ABC&color=fff` : DEFAULT_CONTEXT.currentUser.avatar;
 
+    const fallbackRole = KNOWN_ROLES[KNOWN_ROLES.length - 1]; // buyer as last-resort default
+
     const value = {
         currentUser: {
             name: displayName,
@@ -228,7 +241,7 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
             availableRoles
         },
         activeContext: {
-            activeRole,
+            activeRole: activeRole ?? fallbackRole,
             activeCity
         },
         myCities,

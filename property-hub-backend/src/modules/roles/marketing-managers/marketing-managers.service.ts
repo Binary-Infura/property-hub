@@ -18,7 +18,7 @@ export class MarketingManagersService {
                 lastName: dto.lastName,
                 email: dto.email,
                 phone: dto.phone,
-                role: 'marketing-manager',
+                roles: ['marketing-manager'],
                 passwordHash: await this.usersService['hashPassword']('password'),
                 status: 'active',
             },
@@ -32,7 +32,7 @@ export class MarketingManagersService {
         const [data, total] = await Promise.all([
             this.prisma.user.findMany({
                 where: {
-                    role: 'marketing-manager',
+                    roles: { has: 'marketing-manager' },
                 },
                 orderBy: {
                     createdAt: 'desc',
@@ -41,7 +41,7 @@ export class MarketingManagersService {
                 take: limit,
             }),
             this.prisma.user.count({
-                where: { role: 'marketing-manager' }
+                where: { roles: { has: 'marketing-manager' } }
             })
         ]);
         return { data: data as any, total };

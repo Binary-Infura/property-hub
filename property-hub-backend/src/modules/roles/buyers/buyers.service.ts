@@ -81,7 +81,7 @@ export class BuyersService {
             lastName: dto.lastName,
             email: dto.email,
             phone: dto.phone,
-            role: 'buyer',
+            roles: ['buyer'],
         });
 
         // 3. Create Buyer Profile
