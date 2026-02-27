@@ -78,9 +78,6 @@ export default function VisitExecutiveDashboard() {
         totalClients: 45
     };
 
-    if (!activeContext.activeCity) {
-        return <NoAllocationPlaceholder />;
-    }
 
     return (
         <div className="max-w-7xl mx-auto">

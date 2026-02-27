@@ -41,6 +41,21 @@ export class CitiesService {
 
     async assignCity(dto: AssignCityDto) {
         try {
+            // Validate user role
+            const user = await this.prisma.user.findUnique({
+                where: { id: dto.userId },
+                select: { role: true }
+            });
+
+            if (!user) {
+                throw new NotFoundException('User not found');
+            }
+
+            const allowedRoles = ['marketing-manager', 'onboarding-manager'];
+            if (!allowedRoles.includes(user.role)) {
+                throw new ConflictException(`City allocation is not allowed for users with role: ${user.role}`);
+            }
+
             return await this.prisma.cityAllocation.create({
                 data: {
                     userId: dto.userId,

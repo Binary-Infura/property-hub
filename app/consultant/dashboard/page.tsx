@@ -245,9 +245,6 @@ export default function ConsultantDashboard() {
   const pendingClients = clients.filter(c => c.status === 'pending');
   const closedDeals = deals.filter(d => d.stage === 'closed');
 
-  if (!activeContext.activeCity) {
-    return <NoAllocationPlaceholder />;
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">

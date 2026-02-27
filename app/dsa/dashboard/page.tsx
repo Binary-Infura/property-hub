@@ -195,9 +195,6 @@ export default function DsaDashboard() {
     );
   };
 
-  if (!activeContext.activeCity) {
-    return <NoAllocationPlaceholder />;
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">

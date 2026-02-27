@@ -167,11 +167,7 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
             // 4. Fetch Cities for Manager/Field roles
             const cityBasedRoles: RoleId[] = [
                 'marketing-manager',
-                'onboarding-manager',
-                'consultant',
-                'visit-executive',
-                'loan-adviser',
-                'dsa'
+                'onboarding-manager'
             ];
             if (activeRole && cityBasedRoles.includes(activeRole.id) && token) {
                 try {

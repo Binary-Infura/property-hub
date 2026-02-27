@@ -230,9 +230,6 @@ export default function LoanAdviserDashboard() {
   const pendingDocuments = documents.filter(d => d.status === 'required' || d.status === 'uploaded').length;
   const approvedLoans = loanApplications.filter(l => l.status === 'sanction-letter' || l.status === 'disbursement' || l.status === 'completed').length;
 
-  if (!activeContext.activeCity) {
-    return <NoAllocationPlaceholder />;
-  }
 
   return (
     <div className="p-8">
