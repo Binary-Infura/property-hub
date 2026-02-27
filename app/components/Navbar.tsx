@@ -9,7 +9,12 @@ export default function Navbar() {
     const { authenticated, user, roles, token, logout, initialized } = useAuth();
 
     const getDashboardUrl = () => {
-        // Preference order for redirection
+        // 1. If they have a default role set, definitely use that first
+        if (user?.defaultRole && roles.includes(user.defaultRole)) {
+            return DASHBOARD_ROUTES[user.defaultRole as keyof typeof DASHBOARD_ROUTES] || '/dashboard';
+        }
+
+        // 2. Fallback preference order
         const priorityRoles: (keyof typeof DASHBOARD_ROUTES)[] = [
             'central-authority',
             'dsa',
@@ -48,7 +53,6 @@ export default function Navbar() {
                                     roles={roles}
                                     token={token}
                                     logout={logout}
-                                    dashboardUrl={getDashboardUrl()}
                                 />
                             ) : (
                                 <>
@@ -70,12 +74,11 @@ export default function Navbar() {
     );
 }
 
-function AuthUserMenu({ user, roles, token, logout, dashboardUrl }: {
+function AuthUserMenu({ user, roles, token, logout }: {
     user: any;
     roles: string[];
     token: string | undefined;
     logout: () => void;
-    dashboardUrl: string;
 }) {
     const [open, setOpen] = React.useState(false);
     const ref = React.useRef<HTMLDivElement>(null);
@@ -124,17 +127,6 @@ function AuthUserMenu({ user, roles, token, logout, dashboardUrl }: {
 
             {open && (
                 <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
-                    {/* Dashboard link */}
-                    <Link
-                        href={dashboardUrl}
-                        onClick={() => setOpen(false)}
-                        className="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-blue-600 hover:bg-blue-50 border-b border-gray-100 transition-colors"
-                    >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                        </svg>
-                        My Dashboard
-                    </Link>
 
                     {/* Role switcher — only if multiple roles */}
                     {roles.length > 1 && (

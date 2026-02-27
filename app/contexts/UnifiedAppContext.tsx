@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from './AuthContext';
 
 // --- Types ---
@@ -135,6 +135,7 @@ const UnifiedAppContext = createContext<UnifiedAppContextType>(DEFAULT_CONTEXT);
 export function UnifiedAppProvider({ children }: { children: ReactNode }) {
     const { user, roles, authenticated, initialized, token } = useAuth();
     const router = useRouter();
+    const pathname = usePathname();
 
     const [activeRole, setActiveRole] = useState<UserRole | null>(null);
     const [availableRoles, setAvailableRoles] = useState<UserRole[]>([]);
@@ -163,16 +164,37 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
             if (roleList.length > 0) {
                 setAvailableRoles(roleList);
 
-                // 2. Set activeRole: prefer localStorage → defaultRole → first matched role
+                // 2. Determine Active Role intelligently
+                // - Highest Priority: The actual URL path we are on (prevents mismatch)
+                // - Second Priority: The locally stored selection for this device
+                // - Third Priority: The user's global default role
+                // - Fallback: First available role
+
+                let pathMatchedRole: UserRole | undefined;
+
+                // Check if current URL matches a specific role dashboard pattern
+                for (const r of roleList) {
+                    if (pathname && pathname.startsWith(`/${r.id}`)) {
+                        pathMatchedRole = r;
+                        break;
+                    }
+                }
+
                 const savedRoleId = localStorage.getItem('activeRoleId') as RoleId | null;
                 const defaultRoleId = user?.defaultRole as RoleId | undefined;
 
                 const resolvedRole =
+                    pathMatchedRole ||
                     (savedRoleId && roleList.find(r => r.id === savedRoleId)) ||
                     (defaultRoleId && roleList.find(r => r.id === defaultRoleId)) ||
                     roleList[0];
 
                 setActiveRole(resolvedRole);
+
+                // Sync to localStorage so it persists across reloads on non-dashboard pages
+                if (resolvedRole) {
+                    localStorage.setItem('activeRoleId', resolvedRole.id);
+                }
             }
 
             // 4. Fetch Cities for Manager/Field roles
@@ -208,7 +230,7 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
         };
 
         syncAppData();
-    }, [initialized, authenticated, user, roles, token, activeRole]);
+    }, [initialized, authenticated, user, roles, token, activeRole?.id, pathname]);
 
     const switchContext = (roleId: RoleId) => {
         const role = availableRoles.find(r => r.id === roleId);

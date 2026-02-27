@@ -3,66 +3,95 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useUnifiedApp, UserRole } from '../contexts/UnifiedAppContext';
 import { useAuth } from '../contexts/AuthContext';
-import Image from 'next/image';
 
 export default function UnifiedContextSwitcher() {
     const { currentUser, activeContext, switchContext, myCities, switchCity } = useUnifiedApp();
-    const { user, roles, logout } = useAuth();
+    const { user, roles, token, logout } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
+    const [settingDefault, setSettingDefault] = useState<string | null>(null);
+    const [toast, setToast] = useState<string | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const firstName = user?.given_name || user?.firstName || '';
     const lastName = user?.family_name || user?.lastName || '';
     const displayName = firstName || lastName ? `${firstName} ${lastName}`.trim() : (user?.name || 'User');
-    const activeRoleName = activeContext.activeRole.name;
     const { activeRole, activeCity } = activeContext;
-    const avatarUrl = user ? `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0D8ABC&color=fff` : currentUser.avatar;
+    const activeRoleName = activeRole.name;
+    const defaultRoleId = user?.defaultRole as string | undefined;
+    const avatarUrl = user
+        ? `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0D8ABC&color=fff`
+        : currentUser.avatar;
 
-    // Close dropdown on click outside
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsOpen(false);
             }
         }
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    // Check for restricted roles
-    // const isRestricted = true; // Region switching is removed
+    const showToast = (msg: string) => {
+        setToast(msg);
+        setTimeout(() => setToast(null), 2500);
+    };
+
+    const handleSetDefault = async (roleId: string, e: React.MouseEvent) => {
+        e.stopPropagation(); // don't close the dropdown or fire the role switch
+        if (roleId === defaultRoleId) return; // already default
+        setSettingDefault(roleId);
+        try {
+            const res = await fetch(
+                `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/users/profile`,
+                {
+                    method: 'PATCH',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        Authorization: `Bearer ${token}`,
+                    },
+                    body: JSON.stringify({ defaultRole: roleId }),
+                }
+            );
+            if (res.ok) {
+                const roleName = currentUser.availableRoles.find(r => r.id === roleId)?.name || roleId;
+                showToast(`✓ Default role set to ${roleName}`);
+                // Patch local user object so UI reflects immediately
+                if (user) user.defaultRole = roleId;
+            }
+        } catch {
+            showToast('Failed to update default role');
+        } finally {
+            setSettingDefault(null);
+        }
+    };
 
     return (
         <div className="relative" ref={dropdownRef}>
+            {/* Toast notification */}
+            {toast && (
+                <div className="absolute right-0 -top-12 z-[200] bg-gray-900 text-white text-xs font-medium px-3 py-2 rounded-lg shadow-lg whitespace-nowrap animate-in fade-in slide-in-from-top-2 duration-200">
+                    {toast}
+                </div>
+            )}
+
             {/* Header Trigger */}
             <button
                 onClick={() => setIsOpen(!isOpen)}
                 className="flex items-center gap-3 p-1.5 pr-3 rounded-lg hover:bg-gray-100 transition-colors border border-transparent hover:border-gray-200"
             >
                 <div className="relative w-8 h-8 rounded-full overflow-hidden border border-gray-200">
-                    <img
-                        src={avatarUrl}
-                        alt={displayName}
-                        className="w-full h-full object-cover"
-                    />
+                    <img src={avatarUrl} alt={displayName} className="w-full h-full object-cover" />
                 </div>
                 <div className="flex flex-col items-start leading-tight">
-                    <span className="text-sm font-semibold text-gray-900">
-                        {displayName}
+                    <span className="text-sm font-semibold text-gray-900">{displayName}</span>
+                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">
+                        {activeRoleName}{activeCity ? ` • ${activeCity.cityName}` : ''}
                     </span>
-                    <div className="flex flex-col items-start">
-                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">
-                            {activeRoleName} {activeCity ? `• ${activeCity.cityName}` : ''}
-                        </span>
-                    </div>
                 </div>
                 <svg
-                    className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'transform rotate-180' : ''}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
+                    className={`w-4 h-4 text-gray-400 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor"
                 >
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
@@ -70,29 +99,68 @@ export default function UnifiedContextSwitcher() {
 
             {/* Dropdown Panel */}
             {isOpen && (
-                <div className="absolute right-0 top-full mt-2 w-[200px] bg-white rounded-xl shadow-2xl border border-gray-200 z-[100] overflow-hidden flex flex-col animate-in fade-in zoom-in-95 duration-100 origin-top-right">
+                <div className="absolute right-0 top-full mt-2 w-[240px] bg-white rounded-xl shadow-2xl border border-gray-200 z-[100] overflow-hidden flex flex-col">
 
                     {/* Role Switcher */}
-                    <div className="p-2 border-b border-gray-100 max-h-48 overflow-y-auto custom-scrollbar">
+                    <div className="p-2 border-b border-gray-100 max-h-56 overflow-y-auto custom-scrollbar">
                         <p className="px-3 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">Switch Role</p>
-                        {currentUser.availableRoles.map((role) => (
-                            <button
-                                key={role.id}
-                                onClick={() => {
-                                    switchContext(role.id as any);
-                                    setIsOpen(false);
-                                }}
-                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${activeRole.id === role.id ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
-                            >
-                                <div className={`w-2 h-2 rounded-full ${activeRole.id === role.id ? 'bg-blue-600 shadow-sm shadow-blue-200' : 'bg-gray-200'}`}></div>
-                                {role.name}
-                            </button>
-                        ))}
+                        {currentUser.availableRoles.map((role) => {
+                            const isActive = activeRole.id === role.id;
+                            const isDefault = defaultRoleId === role.id;
+                            const isSetting = settingDefault === role.id;
+
+                            return (
+                                <div
+                                    key={role.id}
+                                    className={`w-full flex items-center justify-between px-2 py-2 mb-1 rounded-lg transition-colors group ${isActive ? 'bg-blue-50/80 ring-1 ring-blue-100' : 'hover:bg-gray-50'}`}
+                                >
+                                    {/* Role name button — switches active context */}
+                                    <button
+                                        onClick={() => { switchContext(role.id as any); setIsOpen(false); }}
+                                        className="flex items-center gap-2.5 flex-1 text-left px-1"
+                                    >
+                                        <div className={`w-2 h-2 rounded-full flex-shrink-0 ${isActive ? 'bg-blue-600 shadow-sm shadow-blue-200' : 'bg-gray-300'}`}></div>
+                                        <div className="flex flex-col">
+                                            <span className={`text-[13px] ${isActive ? 'text-blue-700 font-bold' : 'text-gray-700 font-medium'}`}>
+                                                {role.name}
+                                            </span>
+                                            {isDefault && (
+                                                <span className="text-[9px] font-bold text-gray-400 uppercase tracking-wider mt-0.5">
+                                                    Default Login
+                                                </span>
+                                            )}
+                                        </div>
+                                    </button>
+
+                                    {/* Star button — sets as default role (persisted) */}
+                                    <button
+                                        onClick={(e) => handleSetDefault(role.id, e)}
+                                        title={isDefault ? 'This is your default role' : 'Set as default role on login'}
+                                        className={`flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-md transition-all ml-2 ${isDefault
+                                                ? 'text-yellow-500 bg-yellow-50'
+                                                : 'text-gray-300 hover:text-gray-600 hover:bg-gray-100 opacity-0 group-hover:opacity-100'
+                                            }`}
+                                        disabled={isDefault || isSetting}
+                                    >
+                                        {isSetting ? (
+                                            <svg className="w-3.5 h-3.5 animate-spin text-gray-500" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                            </svg>
+                                        ) : (
+                                            <svg className="w-4 h-4" fill={isDefault ? 'currentColor' : 'none'} viewBox="0 0 24 24" stroke="currentColor" strokeWidth={isDefault ? 1.5 : 1.5}>
+                                                <path strokeLinecap="round" strokeLinejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                                            </svg>
+                                        )}
+                                    </button>
+                                </div>
+                            );
+                        })}
                     </div>
 
                     {/* City Switcher for Managers */}
                     {['marketing-manager', 'onboarding-manager'].includes(activeRole.id) && (
-                        <div className="p-2 border-b border-gray-100 max-h-64 overflow-y-auto custom-scrollbar">
+                        <div className="p-2 border-b border-gray-100 max-h-64 overflow-y-auto">
                             <p className="px-3 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">Switch City</p>
                             {myCities.length === 0 ? (
                                 <p className="px-3 py-4 text-xs text-gray-400 italic text-center">No cities allocated</p>
@@ -100,10 +168,7 @@ export default function UnifiedContextSwitcher() {
                                 myCities.map((city) => (
                                     <button
                                         key={city.id}
-                                        onClick={() => {
-                                            switchCity(city);
-                                            setIsOpen(false);
-                                        }}
+                                        onClick={() => { switchCity(city); setIsOpen(false); }}
                                         className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors ${activeCity?.cityName === city.cityName ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
                                     >
                                         <div className="flex flex-col items-start text-left">
@@ -121,7 +186,7 @@ export default function UnifiedContextSwitcher() {
                         </div>
                     )}
 
-                    {/* Section: Logout */}
+                    {/* Logout */}
                     <div className="p-2 bg-gray-50">
                         <button
                             onClick={logout}
@@ -138,3 +203,4 @@ export default function UnifiedContextSwitcher() {
         </div>
     );
 }
+
