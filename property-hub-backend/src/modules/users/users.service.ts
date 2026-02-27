@@ -114,6 +114,10 @@ export class UsersService {
             });
         }
 
+        if (user) {
+            return user;
+        }
+
         const roles = authenticatedUser.roles.includes('central-authority')
             ? ['central-authority']
             : authenticatedUser.roles.includes('onboarding-manager')
