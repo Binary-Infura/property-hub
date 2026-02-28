@@ -11,15 +11,15 @@ async function main() {
     // 1. Cities
     console.log('Creating Cities...');
     const cities = [
-        { name: 'Mumbai', cityCode: 'BOM', state: 'Maharashtra', country: 'India', continent: 'Asia' },
-        { name: 'Pune', cityCode: 'PNQ', state: 'Maharashtra', country: 'India', continent: 'Asia' },
-        { name: 'Bangalore', cityCode: 'BLR', state: 'Karnataka', country: 'India', continent: 'Asia' },
-        { name: 'Delhi', cityCode: 'DEL', state: 'Delhi', country: 'India', continent: 'Asia' },
+        { name: 'Mumbai', state: 'Maharashtra' },
+        { name: 'Pune', state: 'Maharashtra' },
+        { name: 'Bangalore', state: 'Karnataka' },
+        { name: 'Delhi', state: 'Delhi' },
     ];
 
     for (const city of cities) {
-        await (prisma as any).city.upsert({
-            where: { cityCode: city.cityCode },
+        await prisma.city.upsert({
+            where: { name: city.name },
             update: {},
             create: city,
         });
