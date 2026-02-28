@@ -11,7 +11,7 @@ interface Manager {
     firstName: string;
     lastName: string;
     email: string;
-    role: string;
+    roles: string[];
 }
 
 interface Allocation {
@@ -24,7 +24,7 @@ interface Allocation {
         firstName: string;
         lastName: string;
         email: string;
-        role: string;
+        roles: string[];
     };
 }
 
@@ -185,7 +185,7 @@ export default function CityAllocationPage() {
                                     className={`p-3 rounded-xl border cursor-pointer transition ${selectedManager === manager.id ? 'bg-blue-50 border-blue-200' : 'bg-slate-50 border-slate-100 hover:border-slate-200'}`}
                                 >
                                     <p className="font-bold text-sm text-slate-900">{manager.firstName} {manager.lastName}</p>
-                                    <p className="text-xs text-slate-500 capitalize">{manager.role.replace('-', ' ')}</p>
+                                    <p className="text-xs text-slate-500 capitalize">{manager.roles?.[0]?.replace('-', ' ')}</p>
                                 </div>
                             ))}
                             {managers.length === 0 && !loading && (
