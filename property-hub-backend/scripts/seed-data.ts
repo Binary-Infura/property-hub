@@ -37,7 +37,7 @@ async function main() {
             email: 'central@propertyhub.com',
             firstName: 'Central',
             lastName: 'Authority',
-            role: 'central-authority',
+            roles: ['central-authority'],
 
             status: 'active',
             passwordHash,
@@ -63,12 +63,12 @@ async function main() {
     const ppEmail = 'property@propertyhub.com';
     const ppUser = await prisma.user.upsert({
         where: { email: ppEmail },
-        update: { role: 'property-partner' },
+        update: { roles: ['property-partner'] },
         create: {
             email: ppEmail,
             firstName: 'Property',
             lastName: 'Partner',
-            role: 'property-partner',
+            roles: ['property-partner'],
 
             status: 'active',
             agencyName: 'Prestige Builders',
@@ -93,13 +93,13 @@ async function main() {
     await prisma.user.upsert({
         where: { email: obEmail },
         update: {
-            role: 'onboarding-manager',
+            roles: ['onboarding-manager'],
         },
         create: {
             email: obEmail,
             firstName: 'Onboarding',
             lastName: 'Manager',
-            role: 'onboarding-manager',
+            roles: ['onboarding-manager'],
 
             status: 'active',
             passwordHash,
@@ -111,12 +111,12 @@ async function main() {
     const consEmail = 'testconsultant@gmail.com';
     const consUser = await prisma.user.upsert({
         where: { email: consEmail },
-        update: { role: 'consultant' },
+        update: { roles: ['consultant'] },
         create: {
             email: consEmail,
             firstName: 'Test',
             lastName: 'Consultant',
-            role: 'consultant',
+            roles: ['consultant'],
 
             status: 'active',
             passwordHash,
@@ -178,7 +178,7 @@ async function main() {
                 email: `marketing${i}@propertyhub.com`,
                 firstName: 'Marketing',
                 lastName: `Head ${i}`,
-                role: 'marketing-manager',
+                roles: ['marketing-manager'],
 
                 status: 'active',
                 passwordHash,
@@ -205,7 +205,7 @@ async function main() {
             email: buyerEmail,
             firstName: 'Test',
             lastName: 'Buyer',
-            role: 'buyer',
+            roles: ['buyer'],
 
             status: 'active',
             passwordHash,
@@ -222,7 +222,7 @@ async function main() {
             email: loanEmail,
             firstName: 'Expert',
             lastName: 'Loaner',
-            role: 'loan-adviser',
+            roles: ['loan-adviser'],
 
             status: 'active',
             passwordHash,
@@ -239,7 +239,7 @@ async function main() {
             email: visitEmail,
             firstName: 'Visit',
             lastName: 'Executive',
-            role: 'visit-executive',
+            roles: ['visit-executive'],
 
             status: 'active',
             passwordHash,
@@ -256,7 +256,7 @@ async function main() {
             email: cpEmail,
             firstName: 'Direct Selling',
             lastName: 'Agent',
-            role: 'dsa',
+            roles: ['dsa'],
 
             status: 'active',
             passwordHash,
