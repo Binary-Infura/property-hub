@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreatePropertyDto, UpdatePropertyDto } from './properties.dto';
 import { Property } from '@prisma/client';
@@ -135,7 +135,37 @@ export class PropertiesService {
         });
     }
 
-    async assignConsultants(id: string, consultantIds: string[]): Promise<Property> {
+    async assignConsultants(id: string, consultantIds: string[], user: AuthenticatedUser): Promise<Property> {
+        const isPropertyPartner = user.roles.includes('property-partner');
+        const isCentralAuthority = user.roles.includes('central-authority');
+
+        if (isPropertyPartner) {
+            // Verify property ownership
+            const property = await this.prisma.property.findUnique({
+                where: { id },
+                select: { onboardedById: true }
+            });
+
+            const internalUser = await this.usersService.ensureUserSynced(user);
+            if (!property || property.onboardedById !== internalUser.id) {
+                throw new BadRequestException('You can only allocate properties you have onboarded.');
+            }
+
+            // Verify agents ownership (all consultants must be onboarded by this partner)
+            const agentsCount = await this.prisma.user.count({
+                where: {
+                    id: { in: consultantIds },
+                    onboardedById: internalUser.id
+                }
+            });
+
+            if (agentsCount !== consultantIds.length) {
+                throw new BadRequestException('You can only allocate properties to agents you have onboarded.');
+            }
+        } else if (!isCentralAuthority) {
+            throw new BadRequestException('You do not have permission to allocate properties.');
+        }
+
         return this.prisma.property.update({
             where: { id },
             data: {
@@ -150,7 +180,40 @@ export class PropertiesService {
         });
     }
 
-    async bulkAssignConsultants(propertyIds: string[], consultantIds: string[]) {
+    async bulkAssignConsultants(propertyIds: string[], consultantIds: string[], user: AuthenticatedUser) {
+        const isPropertyPartner = user.roles.includes('property-partner');
+        const isCentralAuthority = user.roles.includes('central-authority');
+
+        if (isPropertyPartner) {
+            const internalUser = await this.usersService.ensureUserSynced(user);
+
+            // Verify all properties ownership
+            const propsCount = await this.prisma.property.count({
+                where: {
+                    id: { in: propertyIds },
+                    onboardedById: internalUser.id
+                }
+            });
+
+            if (propsCount !== propertyIds.length) {
+                throw new BadRequestException('You can only allocate properties you have onboarded.');
+            }
+
+            // Verify all agents ownership
+            const agentsCount = await this.prisma.user.count({
+                where: {
+                    id: { in: consultantIds },
+                    onboardedById: internalUser.id
+                }
+            });
+
+            if (agentsCount !== consultantIds.length) {
+                throw new BadRequestException('You can only allocate properties to agents you have onboarded.');
+            }
+        } else if (!isCentralAuthority) {
+            throw new BadRequestException('You do not have permission to allocate properties.');
+        }
+
         const updates = propertyIds.map(propertyId =>
             this.prisma.property.update({
                 where: { id: propertyId },

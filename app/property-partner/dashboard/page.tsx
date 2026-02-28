@@ -148,6 +148,7 @@ export default function PropertyPartnerDashboard() {
               { name: 'Consultants', href: '/property-partner/dashboard/consultants', icon: 'person' as const, color: 'blue' },
               { name: 'Loan Advisers', href: '/property-partner/dashboard/loan-advisers', icon: 'bank' as const, color: 'indigo' },
               { name: 'Visit Executives', href: '/property-partner/dashboard/visit-executives', icon: 'pin' as const, color: 'rose' },
+              { name: 'Property Allocation', href: '/property-partner/dashboard/properties/allocation', icon: 'building' as const, color: 'emerald' },
               { name: 'Leads', href: '/property-partner/dashboard/leads', icon: 'clipboard' as const, color: 'orange' },
             ].map((item) => (
               <Link

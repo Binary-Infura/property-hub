@@ -23,6 +23,11 @@ export interface User {
         isPremium: boolean;
     };
     serviceProviderProfile?: any;
+    onboardedBy?: {
+        firstName: string;
+        lastName: string;
+        roles: string[];
+    };
     createdAt: string;
 }
 

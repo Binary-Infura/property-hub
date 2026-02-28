@@ -6,11 +6,10 @@ import { propertyService, Property } from '@/app/services/propertyService';
 import { userService, User } from '@/app/services/userService';
 import { cityService, City } from '@/app/services/cityService';
 
-export default function PropertyBulkAllocationPage() {
+export default function PropertyPartnerBulkAllocationPage() {
     const { token } = useAuth();
     const [properties, setProperties] = useState<Property[]>([]);
     const [agents, setAgents] = useState<User[]>([]);
-    const [cities, setCities] = useState<City[]>([]);
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
 
@@ -21,7 +20,7 @@ export default function PropertyBulkAllocationPage() {
     // Centralized Filter States
     const [states, setStates] = useState<{ name: string; code: string }[]>([]);
     const [citiesInState, setCitiesInState] = useState<{ name: string }[]>([]);
-    const [filterState, setFilterState] = useState('all'); // This will store the state code
+    const [filterState, setFilterState] = useState('all');
     const [filterCity, setFilterCity] = useState('all');
 
     // Selection states
@@ -37,22 +36,23 @@ export default function PropertyBulkAllocationPage() {
             if (!token) return;
             try {
                 setLoading(true);
+                // Fetch only "my" properties and agents
                 const [props, consultantsData, loanAdvisersData, visitExecutivesData, statesData] = await Promise.all([
-                    propertyService.getAll(token),
-                    userService.getAllByRole('consultant', token),
-                    userService.getAllByRole('loan-adviser', token),
-                    userService.getAllByRole('visit-executive', token),
+                    propertyService.getAll(token, true),
+                    userService.getAllByRole('consultant', token, true, 1, 100),
+                    userService.getAllByRole('loan-adviser', token, true, 1, 100),
+                    userService.getAllByRole('visit-executive', token, true, 1, 100),
                     cityService.getStates(token)
                 ]);
 
-                // Combine all eligible roles into one agents list with guaranteed role property
+                // Combine all eligible roles into one agents list
                 const combined = [
                     ...consultantsData.data.map((u: User) => ({ ...u, role: u.role || 'consultant' })),
                     ...loanAdvisersData.data.map((u: User) => ({ ...u, role: u.role || 'loan-adviser' })),
                     ...visitExecutivesData.data.map((u: User) => ({ ...u, role: u.role || 'visit-executive' }))
                 ];
 
-                // De-duplicate by ID to avoid React key collisions if a user has multiple roles
+                // De-duplicate by ID
                 const allAgents = Array.from(new Map(combined.map(u => [u.id, u])).values());
 
                 setProperties(props);
@@ -85,29 +85,22 @@ export default function PropertyBulkAllocationPage() {
         loadCities();
     }, [filterState, token]);
 
-    // Derive filter options - Robust version using global city data
     const availableStates = useMemo(() => {
-        const combined = new Map<string, string>(); // code -> name
+        const combined = new Map<string, string>();
         states.forEach(s => combined.set(s.code, s.name));
-
-        // Ensure states from existing properties are also included (just in case)
         properties.forEach(p => {
             if (p.city?.state) {
-                // Try to find code for this state name if missing
                 const entry = states.find(s => s.name === p.city?.state);
                 if (entry) combined.set(entry.code, entry.name);
                 else combined.set(p.city.state, p.city.state);
             }
         });
-
         return Array.from(combined.entries()).map(([code, name]) => ({ code, name })).sort((a, b) => a.name.localeCompare(b.name));
     }, [states, properties]);
 
     const availableCitiesList = useMemo(() => {
         const citiesList = new Set<string>();
         citiesInState.forEach(c => citiesList.add(c.name));
-
-        // Also add from existing properties matching the selected state
         const selectedStateName = states.find(s => s.code === filterState)?.name;
         properties.forEach(p => {
             if (p.city?.name && (filterState === 'all' || p.city.state === selectedStateName || p.city.state === filterState)) {
@@ -123,13 +116,11 @@ export default function PropertyBulkAllocationPage() {
         return Array.from(statuses).sort();
     }, [properties]);
 
-    // Handle central filter resets
     const handleStateChange = (state: string) => {
         setFilterState(state);
         setFilterCity('all');
     };
 
-    // Filtered lists - Optimized for scalability
     const filteredProperties = useMemo(() => {
         const selectedStateName = states.find(s => s.code === filterState)?.name;
         return properties.filter(p => {
@@ -154,7 +145,6 @@ export default function PropertyBulkAllocationPage() {
 
     const itemsCount = filteredProperties.length;
 
-    // Selection logic
     const toggleProperty = (id: string) => {
         setSelectedPropertyIds(prev =>
             prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
@@ -183,7 +173,7 @@ export default function PropertyBulkAllocationPage() {
             await propertyService.bulkAssignConsultants(selectedPropertyIds, selectedAgentIds, token);
 
             // Refresh
-            const updatedProps = await propertyService.getAll(token);
+            const updatedProps = await propertyService.getAll(token, true);
             setProperties(updatedProps);
 
             setSelectedPropertyIds([]);
@@ -207,15 +197,13 @@ export default function PropertyBulkAllocationPage() {
 
     return (
         <div className="space-y-6 animate-in fade-in duration-500 pb-24">
-            {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Property Allocation</h1>
-                    <p className="text-slate-500 font-medium mt-1">Centralized management for assigning properties to consultants, loan advisers and visit executives.</p>
+                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Property Control</h1>
+                    <p className="text-slate-500 font-medium mt-1">Manage allocations for your properties to your onboarded agents.</p>
                 </div>
             </div>
 
-            {/* Centralized Filter Bar */}
             <div className="bg-white p-6 rounded-[32px] shadow-sm border border-gray-100 flex flex-wrap gap-6 items-center">
                 <div className="flex flex-col gap-1.5">
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Location Filter</span>
@@ -281,7 +269,6 @@ export default function PropertyBulkAllocationPage() {
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 h-[calc(100vh-320px)] min-h-[600px]">
-                {/* Section 1: Properties */}
                 <div className="bg-white rounded-[32px] border border-gray-100 shadow-sm flex flex-col overflow-hidden">
                     <div className="p-6 border-b border-gray-50 bg-slate-50/30">
                         <div className="flex items-center justify-between mb-4">
@@ -302,7 +289,7 @@ export default function PropertyBulkAllocationPage() {
                             </svg>
                             <input
                                 type="text"
-                                placeholder="Search by name or micro-location..."
+                                placeholder="Search by name or location..."
                                 className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
                                 value={propSearch}
                                 onChange={(e) => setPropSearch(e.target.value)}
@@ -351,25 +338,6 @@ export default function PropertyBulkAllocationPage() {
                                                     <span className="w-1 h-1 rounded-full bg-slate-200 shrink-0"></span>
                                                     <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest truncate">{p.city?.name || 'Uncategorized City'}</span>
                                                 </div>
-                                                {/* Assigned agents mini-list */}
-                                                {p.assignedTo && p.assignedTo.length > 0 && (
-                                                    <div className="flex -space-x-1.5 mt-2">
-                                                        {p.assignedTo.slice(0, 5).map((con, i) => (
-                                                            <div
-                                                                key={`${p.id}-${con.id}`}
-                                                                className="w-5 h-5 rounded-full border border-white bg-slate-100 flex items-center justify-center text-[7px] font-black text-slate-400"
-                                                                title={con.firstName}
-                                                            >
-                                                                {con.firstName[0]}
-                                                            </div>
-                                                        ))}
-                                                        {p.assignedTo.length > 5 && (
-                                                            <div className="w-5 h-5 rounded-full border border-white bg-slate-100 flex items-center justify-center text-[7px] font-black text-slate-400">
-                                                                +{p.assignedTo.length - 5}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )}
                                             </div>
                                         </div>
                                         <div className="text-right ml-4 shrink-0">
@@ -383,7 +351,6 @@ export default function PropertyBulkAllocationPage() {
                     </div>
                 </div>
 
-                {/* Section 2: Consultants */}
                 <div className="bg-white rounded-[32px] border border-gray-100 shadow-sm flex flex-col overflow-hidden">
                     <div className="p-6 border-b border-gray-50 bg-slate-50/30">
                         <h2 className="text-lg font-black text-slate-900 flex items-center gap-2 uppercase tracking-tight mb-4">
@@ -451,7 +418,6 @@ export default function PropertyBulkAllocationPage() {
                 </div>
             </div>
 
-            {/* Sticky Execution Bar */}
             <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-[95%] md:max-w-3xl z-50">
                 <div className="bg-slate-900 rounded-[40px] p-6 shadow-2xl border border-slate-800 flex items-center justify-between gap-8 h-24">
                     <div className="hidden sm:flex items-center gap-8 pl-4">

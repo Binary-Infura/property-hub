@@ -46,7 +46,7 @@ export class CitiesController {
     }
 
     @Get('india/states')
-    @RequireRoles('central-authority')
+    @RequireRoles('central-authority', 'property-partner')
     getStates() {
         return this.citiesService.getIndianStates();
     }
