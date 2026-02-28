@@ -9,7 +9,7 @@ import { cityService, City } from '@/app/services/cityService';
 export default function PropertyBulkAllocationPage() {
     const { token } = useAuth();
     const [properties, setProperties] = useState<Property[]>([]);
-    const [consultants, setConsultants] = useState<User[]>([]);
+    const [agents, setAgents] = useState<User[]>([]);
     const [cities, setCities] = useState<City[]>([]);
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
@@ -26,24 +26,37 @@ export default function PropertyBulkAllocationPage() {
 
     // Selection states
     const [selectedPropertyIds, setSelectedPropertyIds] = useState<string[]>([]);
-    const [selectedConsultantIds, setSelectedConsultantIds] = useState<string[]>([]);
+    const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
 
     // Search states (for individual columns)
     const [propSearch, setPropSearch] = useState('');
-    const [conSearch, setConSearch] = useState('');
+    const [agentSearch, setAgentSearch] = useState('');
 
     useEffect(() => {
         const loadInitialData = async () => {
             if (!token) return;
             try {
                 setLoading(true);
-                const [props, consData, statesData] = await Promise.all([
+                const [props, consultantsData, loanAdvisersData, visitExecutivesData, statesData] = await Promise.all([
                     propertyService.getAll(token),
                     userService.getAllByRole('consultant', token),
+                    userService.getAllByRole('loan-adviser', token),
+                    userService.getAllByRole('visit-executive', token),
                     cityService.getStates(token)
                 ]);
+
+                // Combine all eligible roles into one agents list with guaranteed role property
+                const combined = [
+                    ...consultantsData.data.map((u: User) => ({ ...u, role: u.role || 'consultant' })),
+                    ...loanAdvisersData.data.map((u: User) => ({ ...u, role: u.role || 'loan-adviser' })),
+                    ...visitExecutivesData.data.map((u: User) => ({ ...u, role: u.role || 'visit-executive' }))
+                ];
+
+                // De-duplicate by ID to avoid React key collisions if a user has multiple roles
+                const allAgents = Array.from(new Map(combined.map(u => [u.id, u])).values());
+
                 setProperties(props);
-                setConsultants(consData.data);
+                setAgents(allAgents);
                 setStates(statesData);
             } catch (error) {
                 console.error('Failed to load initial allocation data:', error);
@@ -131,12 +144,13 @@ export default function PropertyBulkAllocationPage() {
         });
     }, [properties, propSearch, filterState, filterCity, statusFilter, showOnlyUnassigned, states]);
 
-    const filteredConsultants = useMemo(() => {
-        return consultants.filter(c =>
-            `${c.firstName} ${c.lastName || ''}`.toLowerCase().includes(conSearch.toLowerCase()) ||
-            c.email.toLowerCase().includes(conSearch.toLowerCase())
+    const filteredAgents = useMemo(() => {
+        return agents.filter(a =>
+            `${a.firstName} ${a.lastName || ''}`.toLowerCase().includes(agentSearch.toLowerCase()) ||
+            a.email.toLowerCase().includes(agentSearch.toLowerCase()) ||
+            (a.role && a.role.toLowerCase().includes(agentSearch.toLowerCase()))
         );
-    }, [consultants, conSearch]);
+    }, [agents, agentSearch]);
 
     const itemsCount = filteredProperties.length;
 
@@ -147,8 +161,8 @@ export default function PropertyBulkAllocationPage() {
         );
     };
 
-    const toggleConsultant = (id: string) => {
-        setSelectedConsultantIds(prev =>
+    const toggleAgent = (id: string) => {
+        setSelectedAgentIds(prev =>
             prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
         );
     };
@@ -162,18 +176,18 @@ export default function PropertyBulkAllocationPage() {
     };
 
     const handleBulkAssign = async () => {
-        if (!token || selectedPropertyIds.length === 0 || selectedConsultantIds.length === 0) return;
+        if (!token || selectedPropertyIds.length === 0 || selectedAgentIds.length === 0) return;
 
         try {
             setProcessing(true);
-            await propertyService.bulkAssignConsultants(selectedPropertyIds, selectedConsultantIds, token);
+            await propertyService.bulkAssignConsultants(selectedPropertyIds, selectedAgentIds, token);
 
             // Refresh
             const updatedProps = await propertyService.getAll(token);
             setProperties(updatedProps);
 
             setSelectedPropertyIds([]);
-            setSelectedConsultantIds([]);
+            setSelectedAgentIds([]);
             alert('Bulk assignment completed successfully!');
         } catch (error) {
             console.error(error);
@@ -197,7 +211,7 @@ export default function PropertyBulkAllocationPage() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
                     <h1 className="text-4xl font-black text-slate-900 tracking-tight">Property Allocation</h1>
-                    <p className="text-slate-500 font-medium mt-1">Centralized management for assigning properties to consultants at scale.</p>
+                    <p className="text-slate-500 font-medium mt-1">Centralized management for assigning properties to consultants, loan advisers and visit executives.</p>
                 </div>
             </div>
 
@@ -259,8 +273,8 @@ export default function PropertyBulkAllocationPage() {
                             <span className="text-sm font-black text-slate-900">{selectedPropertyIds.length} <span className="text-slate-400 text-[10px] uppercase font-bold">Properties Selected</span></span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full bg-purple-600 ${selectedConsultantIds.length > 0 ? 'animate-pulse' : ''}`}></div>
-                            <span className="text-sm font-black text-slate-900">{selectedConsultantIds.length} <span className="text-slate-400 text-[10px] uppercase font-bold">Consultants Selected</span></span>
+                            <div className={`w-2 h-2 rounded-full bg-purple-600 ${selectedAgentIds.length > 0 ? 'animate-pulse' : ''}`}></div>
+                            <span className="text-sm font-black text-slate-900">{selectedAgentIds.length} <span className="text-slate-400 text-[10px] uppercase font-bold">Agents Selected</span></span>
                         </div>
                     </div>
                 </div>
@@ -337,7 +351,7 @@ export default function PropertyBulkAllocationPage() {
                                                     <span className="w-1 h-1 rounded-full bg-slate-200 shrink-0"></span>
                                                     <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest truncate">{p.city?.name || 'Uncategorized City'}</span>
                                                 </div>
-                                                {/* Assigned consultants mini-list */}
+                                                {/* Assigned agents mini-list */}
                                                 {p.assignedTo && p.assignedTo.length > 0 && (
                                                     <div className="flex -space-x-1.5 mt-2">
                                                         {p.assignedTo.slice(0, 5).map((con, i) => (
@@ -374,7 +388,7 @@ export default function PropertyBulkAllocationPage() {
                     <div className="p-6 border-b border-gray-50 bg-slate-50/30">
                         <h2 className="text-lg font-black text-slate-900 flex items-center gap-2 uppercase tracking-tight mb-4">
                             <span className="w-1.5 h-6 bg-purple-600 rounded-full"></span>
-                            Step 2: Assign to Consultants
+                            Step 2: Assign to Agents
                         </h2>
                         <div className="relative">
                             <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -384,29 +398,34 @@ export default function PropertyBulkAllocationPage() {
                                 type="text"
                                 placeholder="Search by name or email..."
                                 className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-purple-500/5 focus:border-purple-500 outline-none transition-all placeholder:text-slate-300"
-                                value={conSearch}
-                                onChange={(e) => setConSearch(e.target.value)}
+                                value={agentSearch}
+                                onChange={(e) => setAgentSearch(e.target.value)}
                             />
                         </div>
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
-                        {filteredConsultants.map(c => {
-                            const isSelected = selectedConsultantIds.includes(c.id);
+                        {filteredAgents.map(a => {
+                            const isSelected = selectedAgentIds.includes(a.id);
                             return (
                                 <div
-                                    key={c.id}
-                                    onClick={() => toggleConsultant(c.id)}
+                                    key={a.id}
+                                    onClick={() => toggleAgent(a.id)}
                                     className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-4 group ${isSelected ? 'border-purple-600 bg-purple-50/40 shadow-sm' : 'border-transparent hover:bg-slate-50'
                                         }`}
                                 >
                                     <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-sm transition-all ${isSelected ? 'bg-purple-600 text-white scale-105 shadow-xl shadow-purple-200' : 'bg-slate-100 text-slate-400'
                                         }`}>
-                                        {c.firstName[0]}{c.lastName?.[0] || ''}
+                                        {a.firstName[0]}{a.lastName?.[0] || ''}
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                        <p className={`font-bold text-sm truncate ${isSelected ? 'text-purple-900' : 'text-slate-900'}`}>{c.firstName} {c.lastName}</p>
-                                        <p className="text-xs text-slate-400 font-medium truncate">{c.email}</p>
+                                        <div className="flex items-center gap-2">
+                                            <p className={`font-bold text-sm truncate ${isSelected ? 'text-purple-900' : 'text-slate-900'}`}>{a.firstName} {a.lastName}</p>
+                                            <span className="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-[8px] font-black rounded-md uppercase tracking-tighter">
+                                                {a.role?.replace('-', ' ') || 'agent'}
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-slate-400 font-medium truncate">{a.email}</p>
                                     </div>
                                     <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-purple-600 border-purple-600' : 'bg-white border-slate-200 group-hover:border-purple-300'
                                         }`}>
@@ -438,15 +457,15 @@ export default function PropertyBulkAllocationPage() {
                         <div className="flex flex-col">
                             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-2">Targeting</span>
                             <div className="flex items-baseline gap-1">
-                                <span className="text-2xl font-black text-white">{selectedConsultantIds.length}</span>
-                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Consultants</span>
+                                <span className="text-2xl font-black text-white">{selectedAgentIds.length}</span>
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Agents</span>
                             </div>
                         </div>
                     </div>
 
                     <button
                         onClick={handleBulkAssign}
-                        disabled={selectedPropertyIds.length === 0 || selectedConsultantIds.length === 0 || processing}
+                        disabled={selectedPropertyIds.length === 0 || selectedAgentIds.length === 0 || processing}
                         className="flex-1 sm:flex-none h-14 px-12 bg-blue-600 text-white rounded-3xl font-black text-[11px] uppercase tracking-[0.25em] shadow-2xl shadow-blue-500/20 hover:bg-blue-500 hover:scale-[1.03] active:scale-95 transition-all disabled:opacity-20 disabled:hover:scale-100 flex items-center justify-center gap-3 group"
                     >
                         {processing ? (

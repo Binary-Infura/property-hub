@@ -125,7 +125,7 @@ export default function CentralAuthorityPropertiesPage() {
                                 <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Location</th>
                                 <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Price</th>
                                 <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Status</th>
-                                <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Consultants</th>
+                                <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Agents</th>
                                 <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Partner</th>
                                 <th className="px-6 py-5 text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Actions</th>
                             </tr>

@@ -42,23 +42,34 @@ export default function CentralAuthorityPropertyDetailPage() {
 
     const [property, setProperty] = useState<Property | null>(null);
     const [loading, setLoading] = useState(true);
-    const [allConsultants, setAllConsultants] = useState<User[]>([]);
+    const [allAgents, setAllAgents] = useState<User[]>([]);
     const [isAssigning, setIsAssigning] = useState(false);
     const [assignmentModalOpen, setAssignmentModalOpen] = useState(false);
-    const [selectedConsultantIds, setSelectedConsultantIds] = useState<string[]>([]);
+    const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
 
     const fetchData = async () => {
         if (!token) return;
         try {
             setLoading(true);
-            const [propertyData, consultantData] = await Promise.all([
+            const [propertyData, consultantsData, loanAdvisersData, visitExecutivesData] = await Promise.all([
                 propertyService.getOne(propertyId, token),
-                userService.getAllByRole('consultant', token)
+                userService.getAllByRole('consultant', token),
+                userService.getAllByRole('loan-adviser', token),
+                userService.getAllByRole('visit-executive', token)
             ]);
 
+            const combined = [
+                ...consultantsData.data.map((u: User) => ({ ...u, role: u.role || 'consultant' })),
+                ...loanAdvisersData.data.map((u: User) => ({ ...u, role: u.role || 'loan-adviser' })),
+                ...visitExecutivesData.data.map((u: User) => ({ ...u, role: u.role || 'visit-executive' }))
+            ];
+
+            // De-duplicate by ID
+            const combinedAgents = Array.from(new Map(combined.map(u => [u.id, u])).values());
+
             setProperty(propertyData as any);
-            setAllConsultants(consultantData.data);
-            setSelectedConsultantIds((propertyData as any).assignedTo?.map((u: User) => u.id) || []);
+            setAllAgents(combinedAgents);
+            setSelectedAgentIds((propertyData as any).assignedTo?.map((u: User) => u.id) || []);
         } catch (error) {
             console.error('Error fetching data:', error);
         } finally {
@@ -74,18 +85,18 @@ export default function CentralAuthorityPropertyDetailPage() {
         if (!token || !property) return;
         try {
             setIsAssigning(true);
-            await propertyService.assignConsultants(property.id, selectedConsultantIds, token);
+            await propertyService.assignConsultants(property.id, selectedAgentIds, token);
             await fetchData(); // Refresh data
             setAssignmentModalOpen(false);
         } catch (error) {
-            alert('Failed to assign consultants');
+            alert('Failed to assign agents');
         } finally {
             setIsAssigning(false);
         }
     };
 
-    const toggleConsultantSelection = (id: string) => {
-        setSelectedConsultantIds(prev =>
+    const toggleAgentSelection = (id: string) => {
+        setSelectedAgentIds(prev =>
             prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
         );
     };
@@ -207,9 +218,9 @@ export default function CentralAuthorityPropertyDetailPage() {
                                     <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
                                     </svg>
-                                    Assigned Consultants
+                                    Assigned Agents
                                 </h2>
-                                <p className="text-xs text-gray-500 mt-1">Consultants who can manage leads for this property.</p>
+                                <p className="text-xs text-gray-500 mt-1">Personnel who can manage leads for this property.</p>
                             </div>
                             <button
                                 onClick={() => setAssignmentModalOpen(true)}
@@ -224,14 +235,19 @@ export default function CentralAuthorityPropertyDetailPage() {
 
                         {property.assignedTo && property.assignedTo.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {property.assignedTo.map((consultant) => (
-                                    <div key={consultant.id} className="flex items-center gap-4 p-4 rounded-2xl border border-gray-50 bg-gray-50/50 hover:bg-white hover:border-blue-100 transition-all group">
+                                {property.assignedTo.map((agent) => (
+                                    <div key={agent.id} className="flex items-center gap-4 p-4 rounded-2xl border border-gray-50 bg-gray-50/50 hover:bg-white hover:border-blue-100 transition-all group">
                                         <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-sm shrink-0 shadow-lg shadow-blue-100 group-hover:scale-105 transition-transform">
-                                            {consultant.firstName[0]}{consultant.lastName?.[0] || ''}
+                                            {agent.firstName[0]}{agent.lastName?.[0] || ''}
                                         </div>
                                         <div className="min-w-0">
-                                            <p className="font-bold text-gray-900 truncate">{consultant.firstName} {consultant.lastName}</p>
-                                            <p className="text-[10px] text-gray-500 truncate font-medium">{consultant.email}</p>
+                                            <div className="flex items-center gap-2">
+                                                <p className="font-bold text-gray-900 truncate">{agent.firstName} {agent.lastName}</p>
+                                                <span className="px-1.5 py-0.5 bg-white text-slate-400 text-[7px] font-black rounded-md uppercase tracking-tighter border border-slate-100">
+                                                    {agent.role?.replace('-', ' ') || 'agent'}
+                                                </span>
+                                            </div>
+                                            <p className="text-[10px] text-gray-500 truncate font-medium">{agent.email}</p>
                                         </div>
                                     </div>
                                 ))}
@@ -322,8 +338,8 @@ export default function CentralAuthorityPropertyDetailPage() {
                     <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden transform transition-all animate-in zoom-in-95 slide-in-from-bottom-5 duration-300 border border-gray-100">
                         <div className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
                             <div>
-                                <h2 className="text-2xl font-black text-gray-900 tracking-tight">Assign Consultants</h2>
-                                <p className="text-sm text-gray-500 font-medium mt-1">Select one or more consultants for this property.</p>
+                                <h2 className="text-2xl font-black text-gray-900 tracking-tight">Assign Agents</h2>
+                                <p className="text-sm text-gray-500 font-medium mt-1">Select consultants, loan advisers, or visit executives.</p>
                             </div>
                             <button
                                 onClick={() => setAssignmentModalOpen(false)}
@@ -336,12 +352,12 @@ export default function CentralAuthorityPropertyDetailPage() {
                         </div>
 
                         <div className="p-8 pb-4 max-h-[400px] overflow-y-auto space-y-3 custom-scrollbar">
-                            {allConsultants.map((consultant) => {
-                                const isSelected = selectedConsultantIds.includes(consultant.id);
+                            {allAgents.map((agent) => {
+                                const isSelected = selectedAgentIds.includes(agent.id);
                                 return (
                                     <div
-                                        key={consultant.id}
-                                        onClick={() => toggleConsultantSelection(consultant.id)}
+                                        key={agent.id}
+                                        onClick={() => toggleAgentSelection(agent.id)}
                                         className={`flex items-center gap-4 p-5 rounded-2xl border-2 transition-all cursor-pointer group select-none ${isSelected
                                             ? 'border-blue-600 bg-blue-50/50 shadow-md shadow-blue-100/50'
                                             : 'border-gray-50 bg-gray-50/30 hover:bg-white hover:border-gray-200'
@@ -349,14 +365,19 @@ export default function CentralAuthorityPropertyDetailPage() {
                                     >
                                         <div className={`w-12 h-12 rounded-xl flex items-center justify-center font-black text-lg shadow-sm transition-all duration-300 ${isSelected ? 'bg-blue-600 text-white scale-110 shadow-blue-200' : 'bg-gray-100 text-gray-400 group-hover:bg-blue-100 group-hover:text-blue-600'
                                             }`}>
-                                            {consultant.firstName[0]}{consultant.lastName?.[0] || ''}
+                                            {agent.firstName[0]}{agent.lastName?.[0] || ''}
                                         </div>
                                         <div className="flex-1 min-w-0">
-                                            <p className={`font-black text-sm tracking-tight transition-colors ${isSelected ? 'text-blue-900' : 'text-gray-900 group-hover:text-blue-700'}`}>
-                                                {consultant.firstName} {consultant.lastName}
-                                            </p>
+                                            <div className="flex items-center gap-2">
+                                                <p className={`font-black text-sm tracking-tight transition-colors ${isSelected ? 'text-blue-900' : 'text-gray-900 group-hover:text-blue-700'}`}>
+                                                    {agent.firstName} {agent.lastName}
+                                                </p>
+                                                <span className={`px-1.5 py-0.5 text-[8px] font-black rounded-md uppercase tracking-tighter ${isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-500'}`}>
+                                                    {agent.role?.replace('-', ' ') || 'agent'}
+                                                </span>
+                                            </div>
                                             <p className={`text-xs font-bold truncate transition-colors ${isSelected ? 'text-blue-500/80' : 'text-gray-400'}`}>
-                                                {consultant.email}
+                                                {agent.email}
                                             </p>
                                         </div>
                                         <div className={`w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-blue-600 border-blue-600 scale-110' : 'border-gray-200 bg-white'
@@ -370,9 +391,9 @@ export default function CentralAuthorityPropertyDetailPage() {
                                     </div>
                                 );
                             })}
-                            {allConsultants.length === 0 && (
+                            {allAgents.length === 0 && (
                                 <div className="text-center py-10">
-                                    <p className="text-gray-400 font-bold">No consultants found in the system.</p>
+                                    <p className="text-gray-400 font-bold">No agents found in the system.</p>
                                 </div>
                             )}
                         </div>
