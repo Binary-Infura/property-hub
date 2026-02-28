@@ -1,23 +1,73 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext';
 import SidebarIcon from '@/app/components/SidebarIcon';
+import { userService } from '@/app/services/userService';
+import { propertyService, Property } from '@/app/services/propertyService';
 
 export default function PropertyPartnerDashboard() {
-  const { profileStatus } = useAuth();
+  const { profileStatus, token } = useAuth();
   const isPremium = profileStatus?.['property-partner']?.profileData?.isPremium;
-  // Mock analytics data - replace with actual API calls
-  const analyticsData = {
-    totalProperties: 12,
-    activeProperties: 8,
-    totalUnits: 840,
-    bookedUnits: 547,
-    totalRevenue: 4250000000,
-    monthlyLeads: 156,
-    conversionRate: 42.8,
-    avgDaysToClose: 28,
-  };
+
+  const [agentCounts, setAgentCounts] = useState({
+    consultants: 0,
+    loanAdvisers: 0,
+    visitExecutives: 0,
+    totalAgents: 0
+  });
+
+  const [analyticsData, setAnalyticsData] = useState({
+    totalProperties: 0,
+    activeProperties: 0,
+    totalUnits: 0,
+    bookedUnits: 0,
+    totalRevenue: 0,
+    monthlyLeads: 0,
+    conversionRate: 0,
+    avgDaysToClose: 0,
+  });
+
+  useEffect(() => {
+    const fetchData = async () => {
+      if (!token) return;
+      try {
+        const [consultants, loanAdvisers, visitExecutives, properties] = await Promise.all([
+          userService.getAllByRole('consultant', token, true, 1, 1),
+          userService.getAllByRole('loan-adviser', token, true, 1, 1),
+          userService.getAllByRole('visit-executive', token, true, 1, 1),
+          propertyService.getAll(token, true)
+        ]);
+
+        const cCount = consultants.total || 0;
+        const lCount = loanAdvisers.total || 0;
+        const vCount = visitExecutives.total || 0;
+
+        setAgentCounts({
+          consultants: cCount,
+          loanAdvisers: lCount,
+          visitExecutives: vCount,
+          totalAgents: cCount + lCount + vCount
+        });
+
+        setAnalyticsData({
+          totalProperties: properties.length,
+          activeProperties: properties.filter((p: Property) => p.status === 'AVAILABLE').length,
+          totalUnits: 840, // Mocked for now
+          bookedUnits: 547, // Mocked for now
+          totalRevenue: 4250000000, // Mocked for now
+          monthlyLeads: 156, // Mocked for now
+          conversionRate: 42.8, // Mocked for now
+          avgDaysToClose: 28, // Mocked for now
+        });
+      } catch (error) {
+        console.error('Failed to fetch dashboard data:', error);
+      }
+    };
+
+    fetchData();
+  }, [token]);
 
   const recentActivity = [
     { type: 'booking', message: 'New booking for Unit 1204, Block A - Sunset Towers', time: '2 hours ago' },
@@ -129,6 +179,23 @@ export default function PropertyPartnerDashboard() {
             <p className="text-sm text-gray-600 mt-2">
               <span className="font-medium text-green-600">{analyticsData.conversionRate}%</span> conversion rate
             </p>
+          </div>
+
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">Total Agents</p>
+                <p className="text-3xl font-bold text-purple-600 mt-2">{agentCounts.totalAgents}</p>
+              </div>
+              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
+                <SidebarIcon name="person" className="w-6 h-6 text-purple-600" />
+              </div>
+            </div>
+            <div className="flex gap-2 mt-2">
+              <span className="text-[10px] font-bold bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">C: {agentCounts.consultants}</span>
+              <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded">L: {agentCounts.loanAdvisers}</span>
+              <span className="text-[10px] font-bold bg-rose-50 text-rose-600 px-1.5 py-0.5 rounded">V: {agentCounts.visitExecutives}</span>
+            </div>
           </div>
         </div>
 
