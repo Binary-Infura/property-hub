@@ -65,4 +65,8 @@ export interface Property {
   continent?: string;
   cityAllocationId?: string;
   videoUrl?: string;
+  buyerName?: string;
+  buyerPhone?: string;
+  salePrice?: number;
+  soldAt?: Date;
 }

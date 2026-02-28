@@ -133,7 +133,7 @@ export class PropertiesService {
             cityId,
         };
 
-        return this.prisma.property.update({
+        const propertyAfter = await this.prisma.property.update({
             where: { id },
             data,
             include: {
@@ -141,6 +141,23 @@ export class PropertiesService {
                 onboardedBy: true,
             },
         });
+
+        if (updatePropertyDto.status === 'SOLD' && property.status !== 'SOLD') {
+            const internalUser = await this.usersService.ensureUserSynced(user);
+            await this.activityLogsService.log({
+                userId: internalUser.id,
+                type: 'info',
+                action: 'Property Sold',
+                target: propertyAfter.name,
+                details: {
+                    propertyId: propertyAfter.id,
+                    buyerName: updatePropertyDto.buyerName,
+                    salePrice: updatePropertyDto.salePrice,
+                }
+            });
+        }
+
+        return propertyAfter;
     }
 
     async remove(id: string, user: AuthenticatedUser): Promise<Property> {

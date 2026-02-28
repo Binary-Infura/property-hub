@@ -96,6 +96,10 @@ export default function PropertyDetailPage() {
             createdAt: new Date(data.createdAt),
             buildings: [],
             images: [],
+            buyerName: data.buyerName,
+            buyerPhone: data.buyerPhone,
+            salePrice: parseFloat(data.salePrice) || 0,
+            soldAt: data.soldAt ? new Date(data.soldAt) : undefined,
           };
           setProperty(mapped);
           // Blocks are not supported yet, keeping empty
@@ -259,6 +263,40 @@ export default function PropertyDetailPage() {
                         <span className="text-gray-700">{amenity}</span>
                       </div>
                     ))}
+                  </div>
+                </div>
+              )}
+              {property.status === 'sold' && (
+                <div className="mt-8 bg-emerald-50 rounded-2xl border-2 border-emerald-100 p-6 shadow-sm">
+                  <h3 className="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Sale Information
+                  </h3>
+                  <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                    <div>
+                      <dt className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Sold To</dt>
+                      <dd className="text-lg font-black text-emerald-900">{property.buyerName}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Contact</dt>
+                      <dd className="text-lg font-black text-emerald-900">{property.buyerPhone}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Sale Price</dt>
+                      <dd className="text-lg font-black text-emerald-900">₹{property.salePrice?.toLocaleString()}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Date of Sale</dt>
+                      <dd className="text-lg font-black text-emerald-900">
+                        {property.soldAt ? property.soldAt.toLocaleDateString('en-IN', {
+                          day: 'numeric',
+                          month: 'short',
+                          year: 'numeric'
+                        }) : 'N/A'}
+                      </dd>
+                    </div>
                   </div>
                 </div>
               )}

@@ -10,6 +10,7 @@ import AddPropertyModal from '@/app/components/property-partner/AddPropertyModal
 import SelectPropertyModal from '@/app/components/property-partner/SelectPropertyModal';
 import ViewListingModal from '@/app/components/property-partner/ViewListingModal';
 import ImportReraPropertyModal from '@/app/components/property-partner/ImportReraPropertyModal';
+import MarkAsSoldModal from '@/app/components/property-partner/MarkAsSoldModal';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -38,8 +39,10 @@ export default function PropertiesPage() {
   const [isSelectModalOpen, setIsSelectModalOpen] = useState(false);
   const [isViewListingModalOpen, setIsViewListingModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [isMarkAsSoldModalOpen, setIsMarkAsSoldModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedPropertyForView, setSelectedPropertyForView] = useState<Property | null>(null);
+  const [selectedPropertyForSale, setSelectedPropertyForSale] = useState<Property | null>(null);
 
   const fetchProperties = async () => {
     if (!token) return;
@@ -97,6 +100,10 @@ export default function PropertiesPage() {
             videoUrl: p.videoUrl || '',
             continent: p.locationRel?.continent || p.continent || '',
             country: p.locationRel?.country || p.country || '',
+            buyerName: p.buyerName,
+            buyerPhone: p.buyerPhone,
+            salePrice: parseFloat(p.salePrice) || 0,
+            soldAt: p.soldAt ? new Date(p.soldAt) : undefined,
           };
         });
 
@@ -132,6 +139,11 @@ export default function PropertiesPage() {
     setIsSelectModalOpen(true);
   };
 
+  const handleMarkAsSold = (property: Property) => {
+    setSelectedPropertyForSale(property);
+    setIsMarkAsSoldModalOpen(true);
+  };
+
   if (loading && properties.length === 0) {
     return (
       <div className="p-8 text-center text-gray-500">
@@ -154,6 +166,7 @@ export default function PropertiesPage() {
     submitted: properties.filter(p => p.status === 'submitted').length,
     approved: properties.filter(p => p.status === 'approved' || p.status === 'published').length,
     rejected: properties.filter(p => p.status === 'rejected').length,
+    sold: properties.filter(p => p.status === 'sold').length,
   };
 
   return (
@@ -224,6 +237,16 @@ export default function PropertiesPage() {
         onSuccess={fetchProperties}
       />
 
+      <MarkAsSoldModal
+        isOpen={isMarkAsSoldModalOpen}
+        onClose={() => {
+          setIsMarkAsSoldModalOpen(false);
+          setSelectedPropertyForSale(null);
+        }}
+        property={selectedPropertyForSale}
+        onSuccess={fetchProperties}
+      />
+
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         {[
@@ -231,6 +254,7 @@ export default function PropertiesPage() {
           { label: 'Drafts', count: statusCounts.drafts, color: 'text-amber-600', bgColor: 'bg-white' },
           { label: 'Submitted', count: statusCounts.submitted, color: 'text-blue-600', bgColor: 'bg-white' },
           { label: 'Approved', count: statusCounts.approved, color: 'text-emerald-600', bgColor: 'bg-white' },
+          { label: 'Sold', count: statusCounts.sold, color: 'text-gray-900', bgColor: 'bg-white' },
           { label: 'Rejected', count: statusCounts.rejected, color: 'text-red-600', bgColor: 'bg-white' },
         ].map(stat => (
           <div key={stat.label} className={`${stat.bgColor} rounded-lg shadow-sm border border-gray-100 p-4`}>
@@ -259,7 +283,7 @@ export default function PropertiesPage() {
           </div>
 
           <div className="flex gap-1.5 flex-wrap">
-            {['all', 'available', 'submitted', 'approved', 'rejected'].map((status) => (
+            {['all', 'available', 'submitted', 'approved', 'sold', 'rejected'].map((status) => (
               <button
                 key={status}
                 onClick={() => setFilterStatus(status as any)}
@@ -327,6 +351,7 @@ export default function PropertiesPage() {
               {filteredProperties.map(property => {
                 const statusConfig = PROPERTY_STATUS_CONFIG[property.status];
                 const isDraft = property.status === 'available' || property.status === 'draft';
+                const canMarkAsSold = property.status === 'available' || property.status === 'draft' || property.status === 'approved' || property.status === 'published';
                 const hasListingData = ['submitted', 'approved', 'published', 'rejected'].includes(property.status);
 
                 return (
@@ -383,6 +408,17 @@ export default function PropertiesPage() {
                             </svg>
                           </button>
                         )}
+                        {canMarkAsSold && (
+                          <button
+                            onClick={() => handleMarkAsSold(property)}
+                            className="p-2 text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-all"
+                            title="Mark as Sold"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          </button>
+                        )}
                         <Link
                           href={`/property-partner/dashboard/properties/${property.id}`}
                           className="px-3 py-1.5 bg-gray-50 text-gray-700 text-xs font-bold rounded-lg border border-gray-100 hover:bg-white hover:shadow-sm transition-all"
@@ -402,6 +438,7 @@ export default function PropertiesPage() {
           {filteredProperties.map(property => {
             const statusConfig = PROPERTY_STATUS_CONFIG[property.status];
             const isDraft = property.status === 'available' || property.status === 'draft';
+            const canMarkAsSold = property.status === 'available' || property.status === 'draft' || property.status === 'approved' || property.status === 'published';
             const hasListingData = ['submitted', 'approved', 'published', 'rejected'].includes(property.status);
 
             return (
@@ -464,6 +501,14 @@ export default function PropertiesPage() {
                           className="text-[10px] font-bold text-blue-600 hover:text-blue-700 uppercase tracking-wider"
                         >
                           Listing Data
+                        </button>
+                      )}
+                      {canMarkAsSold && (
+                        <button
+                          onClick={() => handleMarkAsSold(property)}
+                          className="text-[10px] font-bold text-emerald-600 hover:text-emerald-700 uppercase tracking-wider"
+                        >
+                          Mark Sold
                         </button>
                       )}
                     </div>

@@ -58,6 +58,22 @@ export class CreatePropertyDto {
     @IsUUID()
     @IsOptional()
     onboardedById?: string;
+
+    @IsString()
+    @IsOptional()
+    buyerName?: string;
+
+    @IsString()
+    @IsOptional()
+    buyerPhone?: string;
+
+    @IsNumber()
+    @IsOptional()
+    salePrice?: number;
+
+    @IsString()
+    @IsOptional()
+    soldAt?: string;
 }
 
 export class UpdatePropertyDto {
@@ -117,5 +133,19 @@ export class UpdatePropertyDto {
     @IsOptional()
     cityId?: string;
 
+    @IsString()
+    @IsOptional()
+    buyerName?: string;
 
+    @IsString()
+    @IsOptional()
+    buyerPhone?: string;
+
+    @IsNumber()
+    @IsOptional()
+    salePrice?: number;
+
+    @IsString()
+    @IsOptional()
+    soldAt?: string;
 }

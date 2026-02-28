@@ -34,6 +34,11 @@ model Property {
   onboardedBy   User?          @relation("UserOnboardedProperties", fields: [onboardedById], references: [id])
   postalCode    PostalCode?    @relation("PropertyPostalCode", fields: [postalCodeId], references: [id])
 
+  buyerName     String?
+  buyerPhone    String?
+  salePrice     Decimal?       @db.Decimal(15, 2)
+  soldAt        DateTime?
+
   @@index([postalCodeId])
   @@index([status])
   @@index([onboardedById])
