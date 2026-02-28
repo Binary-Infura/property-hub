@@ -5,14 +5,17 @@ import { useAuth } from '@/app/contexts/AuthContext';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+import { PropertyCategory } from '@/app/types/property';
+
 interface AddUnitModalProps {
     isOpen: boolean;
     onClose: () => void;
     projectId: string;
+    projectCategory?: PropertyCategory;
     onAdded: () => void;
 }
 
-export default function AddUnitModal({ isOpen, onClose, projectId, onAdded }: AddUnitModalProps) {
+export default function AddUnitModal({ isOpen, onClose, projectId, projectCategory, onAdded }: AddUnitModalProps) {
     const { token } = useAuth();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({
@@ -64,8 +67,8 @@ export default function AddUnitModal({ isOpen, onClose, projectId, onAdded }: Ad
     return (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
             <div className="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center">
-                    <h2 className="text-xl font-bold text-gray-900">Add New Unit</h2>
+                <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center text-gray-900">
+                    <h2 className="text-xl font-bold">{projectCategory === 'plot' ? 'Add New Plot' : 'Add New Unit'}</h2>
                     <button onClick={onClose} className="text-gray-400 hover:text-gray-600 transition">
                         <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -75,7 +78,7 @@ export default function AddUnitModal({ isOpen, onClose, projectId, onAdded }: Ad
 
                 <form onSubmit={handleSubmit} className="p-6 space-y-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Unit Number / ID *</label>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">{projectCategory === 'plot' ? 'Plot Number / ID *' : 'Unit Number / ID *'}</label>
                         <input
                             required
                             type="text"
@@ -87,24 +90,26 @@ export default function AddUnitModal({ isOpen, onClose, projectId, onAdded }: Ad
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Floor</label>
-                            <input
-                                type="number"
-                                value={formData.floor}
-                                onChange={(e) => setFormData({ ...formData, floor: e.target.value })}
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900"
-                                placeholder="e.g. 1"
-                            />
-                        </div>
-                        <div>
+                        {projectCategory !== 'plot' && (
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1">Floor</label>
+                                <input
+                                    type="number"
+                                    value={formData.floor}
+                                    onChange={(e) => setFormData({ ...formData, floor: e.target.value })}
+                                    className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-600 outline-none transition-all"
+                                    placeholder="e.g. 1"
+                                />
+                            </div>
+                        )}
+                        <div className={projectCategory === 'plot' ? 'col-span-2' : ''}>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
                             <input
                                 type="text"
                                 value={formData.type}
                                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900"
-                                placeholder="e.g. 2BHK"
+                                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-gray-900 focus:ring-2 focus:ring-blue-600 outline-none transition-all"
+                                placeholder={projectCategory === 'plot' ? "e.g. Residential Plot" : "e.g. 2BHK"}
                             />
                         </div>
                     </div>

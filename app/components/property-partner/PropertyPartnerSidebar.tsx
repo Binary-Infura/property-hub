@@ -5,13 +5,14 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/app/contexts/AuthContext';
 import SidebarIcon from '@/app/components/SidebarIcon';
 
-export default function PropertyPartnerSidebar() {
+export default function ProjectPartnerSidebar() {
   const pathname = usePathname();
   const { profileStatus } = useAuth();
 
   const mainNavigation = [
     { name: 'Dashboard', href: '/property-partner/dashboard', icon: 'dashboard' as const },
-    { name: 'Properties', href: '/property-partner/dashboard/properties', icon: 'building' as const },
+    { name: 'Projects', href: '/property-partner/dashboard/projects', icon: 'building' as const },
+    { name: 'Units', href: '/property-partner/dashboard/units', icon: 'home' as const },
     { name: 'Business Info', href: '/property-partner/dashboard/profile', icon: 'briefcase' as const },
   ];
 
@@ -19,6 +20,7 @@ export default function PropertyPartnerSidebar() {
     { name: 'Consultants', href: '/property-partner/dashboard/consultants', icon: 'person' as const },
     { name: 'Loan Advisers', href: '/property-partner/dashboard/loan-advisers', icon: 'bank' as const },
     { name: 'Visit Executives', href: '/property-partner/dashboard/visit-executives', icon: 'pin' as const },
+    { name: 'Project Allocation', href: '/property-partner/dashboard/projects/allocation', icon: 'building' as const },
     { name: 'Leads', href: '/property-partner/dashboard/leads', icon: 'clipboard' as const },
   ];
 
@@ -37,7 +39,7 @@ export default function PropertyPartnerSidebar() {
       <div className="h-16 flex items-center px-6 border-b border-gray-200">
         <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-900">
           <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
-          <span>PropertyHub</span>
+          <span>ProjectHub</span>
         </Link>
       </div>
 

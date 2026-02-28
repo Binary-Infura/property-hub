@@ -70,7 +70,7 @@ export default function ImportReraPropertyModal({ isOpen, onClose, onSuccess }: 
         setImportingId(projectId);
         try {
             await reraService.importProject(token, projectId);
-            toast.success('Property imported successfully as draft');
+            toast.success('Project imported successfully as draft');
             onSuccess();
             onClose();
         } catch (error: any) {
@@ -97,7 +97,7 @@ export default function ImportReraPropertyModal({ isOpen, onClose, onSuccess }: 
                     <div className="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                         <div>
                             <h3 className="text-xl font-bold text-gray-900">Import Verified Project</h3>
-                            <p className="text-sm text-gray-500">Search and import verified properties from the RERA database</p>
+                            <p className="text-sm text-gray-500">Search and import verified projects from the RERA database</p>
                         </div>
                         <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
                             <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">

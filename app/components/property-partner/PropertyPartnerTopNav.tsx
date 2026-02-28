@@ -9,13 +9,13 @@ interface BreadcrumbItem {
   href?: string;
 }
 
-interface PropertyPartnerTopNavProps {
+interface ProjectPartnerTopNavProps {
   breadcrumbs?: BreadcrumbItem[];
   title?: string;
   showLogo?: boolean;
 }
 
-export default function PropertyPartnerTopNav({ breadcrumbs = [], title, showLogo = false }: PropertyPartnerTopNavProps) {
+export default function ProjectPartnerTopNav({ breadcrumbs = [], title, showLogo = false }: ProjectPartnerTopNavProps) {
   const pathname = usePathname();
 
   // Generate default breadcrumbs from pathname if not provided

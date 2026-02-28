@@ -7,7 +7,7 @@ import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-interface SelectPropertyModalProps {
+interface SelectProjectModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
@@ -31,15 +31,15 @@ interface City {
     name: string;
 }
 
-export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: SelectPropertyModalProps) {
+export default function SelectProjectModal({ isOpen, onClose, onSuccess }: SelectProjectModalProps) {
     const { token } = useAuth();
     const { activeContext } = useUnifiedApp();
 
     const [step, setStep] = useState(1);
-    const [selectedPropertyId, setSelectedPropertyId] = useState<string | null>(null);
+    const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [submittingId, setSubmittingId] = useState<string | null>(null);
-    const [properties, setProperties] = useState<Property[]>([]);
+    const [projects, setProjects] = useState<Property[]>([]);
 
     // Form Data for Step 2 (Address)
     const [addressData, setAddressData] = useState({
@@ -79,7 +79,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
     useEffect(() => {
         if (isOpen) {
             setStep(1);
-            setSelectedPropertyId(null);
+            setSelectedProjectId(null);
             setAddressData({ location: '', address: '', city: '', state: '' });
             setPricingData({ startingPrice: '', description: '', amenities: [] });
             setFiles({ images: [], brochure: null, specification: null });
@@ -90,7 +90,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
                 // fetchCountries('Asia'); // Removed
                 fetchStates('IN'); // Directly fetch states for India
             }
-            fetchAvailableProperties();
+            fetchAvailableProjects();
         }
     }, [isOpen]);
 
@@ -220,7 +220,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
     };
 
 
-    const fetchAvailableProperties = async () => {
+    const fetchAvailableProjects = async () => {
         if (!token) return;
         setLoading(true);
         try {
@@ -229,7 +229,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
             });
             if (res.ok) {
                 const data = await res.json();
-                const allProps = data
+                const allProjects = data
                     .map((p: any) => ({
                         id: p.id,
                         title: p.name,
@@ -237,7 +237,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
                         startingPrice: parseFloat(p.price) || 0,
                         status: p.status?.toLowerCase() as PropertyStatus,
                     }));
-                setProperties(allProps);
+                setProjects(allProjects);
             }
         } catch (e) {
             console.error(e);
@@ -247,7 +247,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
     };
 
     const handleNextStep = () => {
-        if (step === 1 && selectedPropertyId) {
+        if (step === 1 && selectedProjectId) {
             setStep(2);
         } else if (step === 2) {
             // Validate Step 2 (Address)
@@ -267,8 +267,8 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
     };
 
     const handleSubmit = async () => {
-        if (!token || !selectedPropertyId) return;
-        setSubmittingId(selectedPropertyId);
+        if (!token || !selectedProjectId) return;
+        setSubmittingId(selectedProjectId);
 
         try {
             // 1. Update Property with Status = SUBMITTED AND Pricing Data
@@ -288,7 +288,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
                 continent: 'Asia',
             };
 
-            const res = await fetch(`${API_URL}/api/projects/${selectedPropertyId}`, {
+            const res = await fetch(`${API_URL}/api/projects/${selectedProjectId}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -313,7 +313,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
 
     const getStepTitle = () => {
         switch (step) {
-            case 1: return 'Select Property';
+            case 1: return 'Select Project';
             case 2: return 'Address & Location';
             case 3: return 'Pricing & Details';
             case 4: return 'Upload Documents';
@@ -345,23 +345,23 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
                             loading ? (
                                 <div className="text-center py-8 text-gray-500">
                                     <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                                    Loading available properties...
+                                    Loading available projects...
                                 </div>
-                            ) : properties.length === 0 ? (
+                            ) : projects.length === 0 ? (
                                 <div className="text-center py-8">
-                                    <p className="text-gray-500 font-medium">No available properties found.</p>
-                                    <p className="text-sm text-gray-400 mt-1">Add properties in "My Properties" first.</p>
+                                    <p className="text-gray-500 font-medium">No available projects found.</p>
+                                    <p className="text-sm text-gray-400 mt-1">Add projects in "My Projects" first.</p>
                                 </div>
                             ) : (
                                 <div className="space-y-3">
-                                    {properties.map(property => {
-                                        const isAlreadySubmitted = ['submitted', 'approved', 'published'].includes(property.status);
-                                        const isSelected = selectedPropertyId === property.id;
+                                    {projects.map(project => {
+                                        const isAlreadySubmitted = ['submitted', 'approved', 'published'].includes(project.status);
+                                        const isSelected = selectedProjectId === project.id;
 
                                         return (
                                             <div
-                                                key={property.id}
-                                                onClick={() => !isAlreadySubmitted && setSelectedPropertyId(property.id)}
+                                                key={project.id}
+                                                onClick={() => !isAlreadySubmitted && setSelectedProjectId(project.id)}
                                                 className={`flex items-center justify-between p-4 border rounded-xl transition-all ${isAlreadySubmitted
                                                     ? 'bg-gray-50 border-gray-100 cursor-not-allowed opacity-75'
                                                     : isSelected
@@ -371,14 +371,14 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
                                             >
                                                 <div className="flex-1">
                                                     <div className="flex items-center gap-2">
-                                                        <h4 className={`font-bold ${isAlreadySubmitted ? 'text-gray-400' : 'text-gray-900'}`}>{property.title}</h4>
+                                                        <h4 className={`font-bold ${isAlreadySubmitted ? 'text-gray-400' : 'text-gray-900'}`}>{project.title}</h4>
                                                         {isAlreadySubmitted && (
                                                             <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-gray-200 text-gray-500">
-                                                                Already {property.status}
+                                                                Already {project.status}
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <p className="text-sm text-gray-500 truncate max-w-[400px]">{property.location}</p>
+                                                    <p className="text-sm text-gray-500 truncate max-w-[400px]">{project.location}</p>
                                                     {!isAlreadySubmitted && (
                                                         <p className="text-xs text-emerald-600 font-semibold mt-1">Available to List</p>
                                                     )}
@@ -489,7 +489,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
                                         name="description"
                                         value={pricingData.description}
                                         onChange={handlePricingChange}
-                                        placeholder="Describe your property project in detail..."
+                                        placeholder="Describe your project in detail..."
                                         rows={4}
                                         className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
                                     />
@@ -526,7 +526,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
                                     <svg className="w-12 h-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
-                                    <p className="text-sm font-bold text-gray-900">Upload Property Media</p>
+                                    <p className="text-sm font-bold text-gray-900">Upload Project Media</p>
                                     <p className="text-xs text-gray-500 mt-1 mb-4">Upload high-quality images and brochures</p>
                                     <input
                                         type="file"
@@ -561,7 +561,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
 
                                 {/* Video Upload Section */}
                                 <div className="p-6 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 hover:bg-gray-100/50 transition-colors">
-                                    <h4 className="text-sm font-bold text-gray-900 mb-4">Property Video</h4>
+                                    <h4 className="text-sm font-bold text-gray-900 mb-4">Project Video</h4>
                                     {videoUrl ? (
                                         <div className="relative">
                                             <video src={videoUrl} controls className="w-full max-h-64 rounded-lg bg-black mx-auto" />
@@ -582,7 +582,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                                                 </svg>
                                             </div>
-                                            <p className="text-sm font-medium text-gray-900 mb-1">Upload Property Video</p>
+                                            <p className="text-sm font-medium text-gray-900 mb-1">Upload Project Video</p>
                                             <p className="text-xs text-gray-500 mb-4">MP4, WebM up to 50MB</p>
                                             <label className="inline-block">
                                                 <input
@@ -623,7 +623,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
                         {step < 4 ? (
                             <button
                                 onClick={handleNextStep}
-                                disabled={step === 1 && !selectedPropertyId}
+                                disabled={step === 1 && !selectedProjectId}
                                 className="px-6 py-2 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 disabled:opacity-50 transition shadow-lg shadow-blue-200"
                             >
                                 Next: {step === 1 ? 'Location' : step === 2 ? 'Pricing' : 'Documents'}

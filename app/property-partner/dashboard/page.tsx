@@ -7,6 +7,8 @@ import SidebarIcon from '@/app/components/SidebarIcon';
 import { userService } from '@/app/services/userService';
 import { propertyService, Property } from '@/app/services/propertyService';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 export default function PropertyPartnerDashboard() {
   const { profileStatus, token } = useAuth();
   const isPremium = profileStatus?.['property-partner']?.profileData?.isPremium;
@@ -19,8 +21,8 @@ export default function PropertyPartnerDashboard() {
   });
 
   const [analyticsData, setAnalyticsData] = useState({
-    totalProperties: 0,
-    activeProperties: 0,
+    totalProjects: 0,
+    activeProjects: 0,
     totalUnits: 0,
     bookedUnits: 0,
     totalRevenue: 0,
@@ -29,15 +31,22 @@ export default function PropertyPartnerDashboard() {
     avgDaysToClose: 0,
   });
 
+  const [topProperties, setTopProperties] = useState<any[]>([]);
+
   useEffect(() => {
     const fetchData = async () => {
       if (!token) return;
       try {
-        const [consultants, loanAdvisers, visitExecutives, properties] = await Promise.all([
+        const [consultants, loanAdvisers, visitExecutives, projects, units] = await Promise.all([
           userService.getAllByRole('consultant', token, true, 1, 1),
           userService.getAllByRole('loan-adviser', token, true, 1, 1),
           userService.getAllByRole('visit-executive', token, true, 1, 1),
-          propertyService.getAll(token, true)
+          propertyService.getAll(token, true),
+          fetch(`${API_URL}/api/units/my`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          }).then(r => r.json())
         ]);
 
         const cCount = consultants.total || 0;
@@ -51,16 +60,35 @@ export default function PropertyPartnerDashboard() {
           totalAgents: cCount + lCount + vCount
         });
 
+        const totalUnits = units.length || 0;
+        const bookedUnits = units.filter((u: any) => u.status === 'SOLD').length;
+        const totalRevenue = units.filter((u: any) => u.status === 'SOLD').reduce((sum: number, u: any) => sum + (parseFloat(u.salePrice) || 0), 0);
+
         setAnalyticsData({
-          totalProperties: properties.length,
-          activeProperties: properties.filter((p: Property) => p.status === 'AVAILABLE').length,
-          totalUnits: 840, // Mocked for now
-          bookedUnits: 547, // Mocked for now
-          totalRevenue: 4250000000, // Mocked for now
-          monthlyLeads: 156, // Mocked for now
-          conversionRate: 42.8, // Mocked for now
-          avgDaysToClose: 28, // Mocked for now
+          totalProjects: projects.length,
+          activeProjects: projects.filter((p: Property) => p.status === 'AVAILABLE').length,
+          totalUnits,
+          bookedUnits,
+          totalRevenue,
+          monthlyLeads: 156, // Still mock
+          conversionRate: 42.8, // Still mock
+          avgDaysToClose: 28, // Still mock
         });
+
+        const projectStats = projects.map((p: any) => {
+          const pUnits = units.filter((u: any) => u.projectId === p.id);
+          const pBooked = pUnits.filter((u: any) => u.status === 'SOLD').length;
+          const rate = pUnits.length > 0 ? Math.round((pBooked / pUnits.length) * 100) : 0;
+          return {
+            name: p.name,
+            location: p.location,
+            bookingRate: rate,
+            units: pUnits.length,
+            soldUnits: pBooked
+          };
+        }).sort((a: any, b: any) => b.soldUnits - a.soldUnits).slice(0, 3);
+
+        setTopProperties(projectStats);
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
       }
@@ -75,12 +103,6 @@ export default function PropertyPartnerDashboard() {
     { type: 'visit', message: 'Site visit scheduled - Green Valley, Block B', time: '5 hours ago' },
     { type: 'approval', message: 'Property "Metro Heights" approved and published', time: '1 day ago' },
     { type: 'booking', message: 'Booking confirmed for Unit 503, City Square', time: '1 day ago' },
-  ];
-
-  const topProperties = [
-    { name: 'Sunset Towers', location: 'Bandra, Mumbai', bookingRate: 78, units: 240 },
-    { name: 'Green Valley', location: 'Powai, Mumbai', bookingRate: 70, units: 400 },
-    { name: 'City Square', location: 'Andheri, Mumbai', bookingRate: 38, units: 120 },
   ];
 
   const formatCurrency = (value: number) => {
@@ -102,11 +124,14 @@ export default function PropertyPartnerDashboard() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex justify-between items-center">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-600 mt-1">Overview of your property portfolio</p>
+            <p className="text-gray-600 mt-1">Overview of your project portfolio</p>
           </div>
           <div className="flex gap-3">
-            <Link href="/property-partner/dashboard/properties" className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-semibold hover:bg-blue-100 transition-colors flex items-center gap-2">
-              <SidebarIcon name="building" className="w-4 h-4" /> My Properties
+            <Link href="/property-partner/dashboard/projects" className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-semibold hover:bg-blue-100 transition-colors flex items-center gap-2">
+              <SidebarIcon name="building" className="w-4 h-4" /> My Projects
+            </Link>
+            <Link href="/property-partner/dashboard/units" className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg font-semibold hover:bg-emerald-100 transition-colors flex items-center gap-2">
+              <SidebarIcon name="home" className="w-4 h-4" /> All Units
             </Link>
           </div>
         </div>
@@ -118,8 +143,8 @@ export default function PropertyPartnerDashboard() {
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm font-medium">Total Properties</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{analyticsData.totalProperties}</p>
+                <p className="text-gray-600 text-sm font-medium">Total Projects</p>
+                <p className="text-3xl font-bold text-gray-900 mt-2">{analyticsData.totalProjects}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -128,7 +153,7 @@ export default function PropertyPartnerDashboard() {
               </div>
             </div>
             <p className="text-sm text-green-600 mt-2">
-              <span className="font-medium">{analyticsData.activeProperties}</span> active
+              <span className="font-medium">{analyticsData.activeProjects}</span> active
             </p>
           </div>
 
@@ -215,7 +240,8 @@ export default function PropertyPartnerDashboard() {
               { name: 'Consultants', href: '/property-partner/dashboard/consultants', icon: 'person' as const, color: 'blue' },
               { name: 'Loan Advisers', href: '/property-partner/dashboard/loan-advisers', icon: 'bank' as const, color: 'indigo' },
               { name: 'Visit Executives', href: '/property-partner/dashboard/visit-executives', icon: 'pin' as const, color: 'rose' },
-              { name: 'Property Allocation', href: '/property-partner/dashboard/properties/allocation', icon: 'building' as const, color: 'emerald' },
+              { name: 'Project Allocation', href: '/property-partner/dashboard/projects/allocation', icon: 'building' as const, color: 'emerald' },
+              { name: 'Units Inventory', href: '/property-partner/dashboard/units', icon: 'home' as const, color: 'purple' },
               { name: 'Leads', href: '/property-partner/dashboard/leads', icon: 'clipboard' as const, color: 'orange' },
             ].map((item) => (
               <Link
@@ -264,9 +290,9 @@ export default function PropertyPartnerDashboard() {
             </div>
           </div>
 
-          {/* Top Properties */}
+          {/* Top Projects */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-            <h2 className="text-lg font-bold text-gray-900 mb-6">Top Performing Properties</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-6">Top Performing Projects</h2>
             <div className="space-y-4">
               {topProperties.map((property, idx) => (
                 <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
@@ -346,8 +372,8 @@ export default function PropertyPartnerDashboard() {
                 <p className="text-2xl font-bold text-green-900">{analyticsData.conversionRate}%</p>
               </div>
               <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg">
-                <p className="text-sm text-purple-700 font-medium">Active Properties</p>
-                <p className="text-2xl font-bold text-purple-900">{analyticsData.activeProperties}</p>
+                <p className="text-sm text-purple-700 font-medium">Active Projects</p>
+                <p className="text-2xl font-bold text-purple-900">{analyticsData.activeProjects}</p>
               </div>
               <div className="p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg">
                 <p className="text-sm text-orange-700 font-medium">This Month&apos;s Leads</p>

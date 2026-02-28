@@ -6,9 +6,9 @@ import { propertyService, Property } from '@/app/services/propertyService';
 import { userService, User } from '@/app/services/userService';
 import { cityService, City } from '@/app/services/cityService';
 
-export default function PropertyPartnerBulkAllocationPage() {
+export default function ProjectPartnerBulkAllocationPage() {
     const { token } = useAuth();
-    const [properties, setProperties] = useState<Property[]>([]);
+    const [projects, setProjects] = useState<Property[]>([]);
     const [agents, setAgents] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [processing, setProcessing] = useState(false);
@@ -24,7 +24,7 @@ export default function PropertyPartnerBulkAllocationPage() {
     const [filterCity, setFilterCity] = useState('all');
 
     // Selection states
-    const [selectedPropertyIds, setSelectedPropertyIds] = useState<string[]>([]);
+    const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
     const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
 
     // Search states (for individual columns)
@@ -55,7 +55,7 @@ export default function PropertyPartnerBulkAllocationPage() {
                 // De-duplicate by ID
                 const allAgents = Array.from(new Map(combined.map(u => [u.id, u])).values());
 
-                setProperties(props);
+                setProjects(props);
                 setAgents(allAgents);
                 setStates(statesData);
             } catch (error) {
@@ -88,7 +88,7 @@ export default function PropertyPartnerBulkAllocationPage() {
     const availableStates = useMemo(() => {
         const combined = new Map<string, string>();
         states.forEach(s => combined.set(s.code, s.name));
-        properties.forEach(p => {
+        projects.forEach(p => {
             if (p.city?.state) {
                 const entry = states.find(s => s.name === p.city?.state);
                 if (entry) combined.set(entry.code, entry.name);
@@ -96,34 +96,34 @@ export default function PropertyPartnerBulkAllocationPage() {
             }
         });
         return Array.from(combined.entries()).map(([code, name]) => ({ code, name })).sort((a, b) => a.name.localeCompare(b.name));
-    }, [states, properties]);
+    }, [states, projects]);
 
     const availableCitiesList = useMemo(() => {
         const citiesList = new Set<string>();
         citiesInState.forEach(c => citiesList.add(c.name));
         const selectedStateName = states.find(s => s.code === filterState)?.name;
-        properties.forEach(p => {
+        projects.forEach(p => {
             if (p.city?.name && (filterState === 'all' || p.city.state === selectedStateName || p.city.state === filterState)) {
                 citiesList.add(p.city.name);
             }
         });
         return Array.from(citiesList).sort();
-    }, [citiesInState, properties, filterState, states]);
+    }, [citiesInState, projects, filterState, states]);
 
     const availableStatuses = useMemo(() => {
         const statuses = new Set<string>();
-        properties.forEach(p => statuses.add(p.status));
+        projects.forEach(p => statuses.add(p.status));
         return Array.from(statuses).sort();
-    }, [properties]);
+    }, [projects]);
 
     const handleStateChange = (state: string) => {
         setFilterState(state);
         setFilterCity('all');
     };
 
-    const filteredProperties = useMemo(() => {
+    const filteredProjects = useMemo(() => {
         const selectedStateName = states.find(s => s.code === filterState)?.name;
-        return properties.filter(p => {
+        return projects.filter(p => {
             const matchesSearch = p.name.toLowerCase().includes(propSearch.toLowerCase()) ||
                 p.location.toLowerCase().includes(propSearch.toLowerCase());
             const matchesState = filterState === 'all' || p.city?.state === selectedStateName || p.city?.state === filterState;
@@ -133,7 +133,7 @@ export default function PropertyPartnerBulkAllocationPage() {
 
             return matchesSearch && matchesState && matchesCity && matchesStatus && matchesAssignment;
         });
-    }, [properties, propSearch, filterState, filterCity, statusFilter, showOnlyUnassigned, states]);
+    }, [projects, propSearch, filterState, filterCity, statusFilter, showOnlyUnassigned, states]);
 
     const filteredAgents = useMemo(() => {
         return agents.filter(a =>
@@ -143,10 +143,10 @@ export default function PropertyPartnerBulkAllocationPage() {
         );
     }, [agents, agentSearch]);
 
-    const itemsCount = filteredProperties.length;
+    const itemsCount = filteredProjects.length;
 
-    const toggleProperty = (id: string) => {
-        setSelectedPropertyIds(prev =>
+    const toggleProject = (id: string) => {
+        setSelectedProjectIds(prev =>
             prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
         );
     };
@@ -157,26 +157,26 @@ export default function PropertyPartnerBulkAllocationPage() {
         );
     };
 
-    const selectAllFilteredProperties = () => {
-        if (selectedPropertyIds.length === filteredProperties.length && filteredProperties.length > 0) {
-            setSelectedPropertyIds([]);
+    const selectAllFilteredProjects = () => {
+        if (selectedProjectIds.length === filteredProjects.length && filteredProjects.length > 0) {
+            setSelectedProjectIds([]);
         } else {
-            setSelectedPropertyIds(filteredProperties.map(p => p.id));
+            setSelectedProjectIds(filteredProjects.map(p => p.id));
         }
     };
 
     const handleBulkAssign = async () => {
-        if (!token || selectedPropertyIds.length === 0 || selectedAgentIds.length === 0) return;
+        if (!token || selectedProjectIds.length === 0 || selectedAgentIds.length === 0) return;
 
         try {
             setProcessing(true);
-            await propertyService.bulkAssignConsultants(selectedPropertyIds, selectedAgentIds, token);
+            await propertyService.bulkAssignConsultants(selectedProjectIds, selectedAgentIds, token);
 
             // Refresh
             const updatedProps = await propertyService.getAll(token, true);
-            setProperties(updatedProps);
+            setProjects(updatedProps);
 
-            setSelectedPropertyIds([]);
+            setSelectedProjectIds([]);
             setSelectedAgentIds([]);
             alert('Bulk assignment completed successfully!');
         } catch (error) {
@@ -199,8 +199,8 @@ export default function PropertyPartnerBulkAllocationPage() {
         <div className="space-y-6 animate-in fade-in duration-500 pb-24">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Property Control</h1>
-                    <p className="text-slate-500 font-medium mt-1">Manage allocations for your properties to your onboarded agents.</p>
+                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Project Control</h1>
+                    <p className="text-slate-500 font-medium mt-1">Manage allocations for your projects to your onboarded agents.</p>
                 </div>
             </div>
 
@@ -257,8 +257,8 @@ export default function PropertyPartnerBulkAllocationPage() {
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Selection Summary</span>
                     <div className="flex gap-6 items-center">
                         <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full bg-blue-600 ${selectedPropertyIds.length > 0 ? 'animate-pulse' : ''}`}></div>
-                            <span className="text-sm font-black text-slate-900">{selectedPropertyIds.length} <span className="text-slate-400 text-[10px] uppercase font-bold">Projects Selected</span></span>
+                            <div className={`w-2 h-2 rounded-full bg-blue-600 ${selectedProjectIds.length > 0 ? 'animate-pulse' : ''}`}></div>
+                            <span className="text-sm font-black text-slate-900">{selectedProjectIds.length} <span className="text-slate-400 text-[10px] uppercase font-bold">Projects Selected</span></span>
                         </div>
                         <div className="flex items-center gap-2">
                             <div className={`w-2 h-2 rounded-full bg-purple-600 ${selectedAgentIds.length > 0 ? 'animate-pulse' : ''}`}></div>
@@ -277,10 +277,10 @@ export default function PropertyPartnerBulkAllocationPage() {
                                 Step 1: Select Projects ({itemsCount})
                             </h2>
                             <button
-                                onClick={selectAllFilteredProperties}
+                                onClick={selectAllFilteredProjects}
                                 className="text-[10px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-[0.15em] bg-blue-50 px-3 py-1.5 rounded-full transition-colors"
                             >
-                                {selectedPropertyIds.length === filteredProperties.length && filteredProperties.length > 0 ? 'Deselect All' : 'Select All Filtered'}
+                                {selectedProjectIds.length === filteredProjects.length && filteredProjects.length > 0 ? 'Deselect All' : 'Select All Filtered'}
                             </button>
                         </div>
                         <div className="relative">
@@ -298,7 +298,7 @@ export default function PropertyPartnerBulkAllocationPage() {
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
-                        {filteredProperties.length === 0 ? (
+                        {filteredProjects.length === 0 ? (
                             <div className="h-full flex flex-col items-center justify-center text-slate-300 py-12">
                                 <svg className="w-12 h-12 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
@@ -306,12 +306,12 @@ export default function PropertyPartnerBulkAllocationPage() {
                                 <p className="font-bold text-sm">No projects match your filters</p>
                             </div>
                         ) : (
-                            filteredProperties.map(p => {
-                                const isSelected = selectedPropertyIds.includes(p.id);
+                            filteredProjects.map(p => {
+                                const isSelected = selectedProjectIds.includes(p.id);
                                 return (
                                     <div
                                         key={p.id}
-                                        onClick={() => toggleProperty(p.id)}
+                                        onClick={() => toggleProject(p.id)}
                                         className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between group ${isSelected ? 'border-blue-600 bg-blue-50/40 shadow-md shadow-blue-100/10' : 'border-transparent hover:bg-slate-50'
                                             }`}
                                     >
@@ -424,8 +424,8 @@ export default function PropertyPartnerBulkAllocationPage() {
                         <div className="flex flex-col">
                             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-2">Assigning</span>
                             <div className="flex items-baseline gap-1">
-                                <span className="text-2xl font-black text-white">{selectedPropertyIds.length}</span>
-                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Props</span>
+                                <span className="text-2xl font-black text-white">{selectedProjectIds.length}</span>
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Projects</span>
                             </div>
                         </div>
                         <div className="w-px h-8 bg-slate-800"></div>
@@ -440,7 +440,7 @@ export default function PropertyPartnerBulkAllocationPage() {
 
                     <button
                         onClick={handleBulkAssign}
-                        disabled={selectedPropertyIds.length === 0 || selectedAgentIds.length === 0 || processing}
+                        disabled={selectedProjectIds.length === 0 || selectedAgentIds.length === 0 || processing}
                         className="flex-1 sm:flex-none h-14 px-12 bg-blue-600 text-white rounded-3xl font-black text-[11px] uppercase tracking-[0.25em] shadow-2xl shadow-blue-500/20 hover:bg-blue-500 hover:scale-[1.03] active:scale-95 transition-all disabled:opacity-20 disabled:hover:scale-100 flex items-center justify-center gap-3 group"
                     >
                         {processing ? (

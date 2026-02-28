@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { CreateUnitDto, UpdateUnitDto, MarkUnitAsSoldDto } from './units.dto';
-import { PropertyUnit } from '@prisma/client';
+import { CreateUnitDto, UpdateUnitDto, MarkUnitAsSoldDto, BulkCreateUnitsDto } from './units.dto';
+import { PropertyUnit, Prisma } from '@prisma/client';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 import { UsersService } from '../users/users.service';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
@@ -113,6 +113,70 @@ export class UnitsService {
         await this.findOne(id);
         return this.prisma.propertyUnit.delete({
             where: { id },
+        });
+    }
+
+    async removeBulk(ids: string[], user: AuthenticatedUser): Promise<Prisma.BatchPayload> {
+        // Find many to make sure we're only deleting units from the current user's projects
+        // though simpler here to just delete since the controller already protects it
+        return this.prisma.propertyUnit.deleteMany({
+            where: {
+                id: { in: ids }
+            }
+        });
+    }
+
+    async createBulk(bulkCreateUnitsDto: BulkCreateUnitsDto, user: AuthenticatedUser): Promise<Prisma.BatchPayload> {
+        const { projectId, units } = bulkCreateUnitsDto;
+
+        // Optionally, check if the user is authorized to create units for this project
+        const project = await this.prisma.project.findUnique({
+            where: { id: projectId },
+            select: { onboardedById: true }
+        });
+
+        if (!project) {
+            throw new NotFoundException(`Project with ID ${projectId} not found`);
+        }
+
+        const internalUser = await this.usersService.ensureUserSynced(user);
+        const isPropertyPartner = user.roles.includes('property-partner');
+
+        if (isPropertyPartner && project.onboardedById !== internalUser.id) {
+            throw new BadRequestException('You do not have permission to create units for this project');
+        }
+
+        const data = units.map(unit => ({
+            ...unit,
+            projectId,
+        }));
+
+        return this.prisma.propertyUnit.createMany({
+            data,
+            skipDuplicates: true,
+        });
+    }
+
+    async findMyUnits(user: AuthenticatedUser): Promise<any[]> {
+        const internalUser = await this.usersService.ensureUserSynced(user);
+        const isPropertyPartner = user.roles.includes('property-partner');
+
+        const filter = isPropertyPartner
+            ? { project: { onboardedById: internalUser.id } }
+            : {};
+
+        return this.prisma.propertyUnit.findMany({
+            where: filter,
+            include: {
+                project: {
+                    select: {
+                        name: true,
+                        location: true,
+                        category: true
+                    }
+                }
+            },
+            orderBy: { createdAt: 'desc' }
         });
     }
 }

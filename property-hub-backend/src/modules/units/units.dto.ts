@@ -74,3 +74,23 @@ export class MarkUnitAsSoldDto {
     @IsDateString()
     soldAt: string;
 }
+
+export class BulkCreateUnitsDto {
+    @ApiProperty()
+    @IsUUID()
+    projectId: string;
+
+    @ApiProperty()
+    units: {
+        unitNumber: string;
+        floor?: number;
+        type?: string;
+        area?: number;
+        price: number;
+    }[];
+}
+
+export class BulkDeleteUnitsDto {
+    @ApiProperty()
+    ids: string[];
+}

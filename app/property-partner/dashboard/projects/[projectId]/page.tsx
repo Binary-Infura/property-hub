@@ -10,6 +10,7 @@ import { STATUS_CONFIG } from '@/app/constants/block';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import AddUnitModal from '@/app/components/property-partner/AddUnitModal';
+import BulkAddUnitModal from '@/app/components/property-partner/BulkAddUnitModal';
 import MarkAsSoldModal from '@/app/components/property-partner/MarkAsSoldModal';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -43,25 +44,88 @@ const TABS: TabType[] = [
   },
 ];
 
-export default function PropertyDetailPage() {
+export default function ProjectDetailPage() {
   const params = useParams();
   const router = useRouter();
-  const propertyId = params.propertyId as string;
+  const projectId = params.projectId as string;
   const { token } = useAuth();
   const { activeContext } = useUnifiedApp();
 
-  const [property, setProperty] = useState<Property | null>(null);
+  const [project, setProject] = useState<Property | null>(null);
   const [blocks, setBlocks] = useState<Block[]>([]);
   const [units, setUnits] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'overview' | 'buildings' | 'blocks' | 'settings'>('overview');
   const [loading, setLoading] = useState(true);
   const [isAddUnitModalOpen, setIsAddUnitModalOpen] = useState(false);
   const [isMarkAsSoldModalOpen, setIsMarkAsSoldModalOpen] = useState(false);
+  const [isBulkAddUnitModalOpen, setIsBulkAddUnitModalOpen] = useState(false);
+  const [selectedUnitIds, setSelectedUnitIds] = useState<string[]>([]);
+
+  const fetchProject = async () => {
+    if (!token) return;
+
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/api/projects/${projectId}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+
+        // Extract amenities from description
+        let description = data.description || '';
+        let amenities: string[] = [];
+        if (description.includes('Amenities:')) {
+          const parts = description.split('Amenities:');
+          description = parts[0].trim(); // Remove amenities string from display description
+          amenities = parts[1].split(',').map((a: string) => a.trim());
+        }
+
+        const mapped: Property = {
+          id: data.id,
+          title: data.name,
+          propertyType: data.projectType === 'COMMERCIAL' ? 'commercial' : 'residential',
+          propertyCategory: data.category?.toLowerCase() as any,
+          location: data.location,
+          address: data.address || '',
+          city: data.city || '',
+          state: data.state || '',
+          pincode: data.pincode || '',
+          totalArea: parseFloat(data.area) || 0,
+          totalBuildings: 0,
+          totalUnits: 0,
+          startingPrice: parseFloat(data.price) || 0,
+          description: description,
+          amenities: amenities,
+          status: data.status.toLowerCase() as PropertyStatus,
+          createdAt: new Date(data.createdAt),
+          buildings: [],
+          images: [],
+          buyerName: data.buyerName,
+          buyerPhone: data.buyerPhone,
+          salePrice: parseFloat(data.salePrice) || 0,
+          soldAt: data.soldAt ? new Date(data.soldAt) : undefined,
+        };
+        setProject(mapped);
+        // Blocks are not supported yet, keeping empty
+        setBlocks([]);
+      } else {
+        console.error('Project not found');
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const fetchUnits = async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${API_URL}/api/units/project/${propertyId}`);
+      const res = await fetch(`${API_URL}/api/units/project/${projectId}`);
       if (res.ok) {
         setUnits(await res.json());
       }
@@ -70,76 +134,66 @@ export default function PropertyDetailPage() {
     }
   };
 
-  useEffect(() => {
-    const fetchProperty = async () => {
-      if (!token) return;
+  const toggleSelectUnit = (id: string) => {
+    setSelectedUnitIds(prev =>
+      prev.includes(id) ? prev.filter(uid => uid !== id) : [...prev, id]
+    );
+  };
 
-      try {
-        setLoading(true);
-        const res = await fetch(`${API_URL}/api/projects/${propertyId}`, {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-
-          // Extract amenities from description
-          let description = data.description || '';
-          let amenities: string[] = [];
-          if (description.includes('Amenities:')) {
-            const parts = description.split('Amenities:');
-            description = parts[0].trim(); // Remove amenities string from display description
-            amenities = parts[1].split(',').map((a: string) => a.trim());
-          }
-
-          const mapped: Property = {
-            id: data.id,
-            title: data.name,
-            propertyType: data.projectType === 'COMMERCIAL' ? 'commercial' : 'residential',
-            location: data.location,
-            address: data.address || '',
-            city: '',
-            state: '',
-            pincode: '',
-            totalArea: parseFloat(data.area) || 0,
-            totalBuildings: 0,
-            totalUnits: 0, // Backend doesn't support yet
-            startingPrice: parseFloat(data.price) || 0,
-            description: description,
-            amenities: amenities,
-            status: data.status.toLowerCase() as PropertyStatus,
-            createdAt: new Date(data.createdAt),
-            buildings: [],
-            images: [],
-            buyerName: data.buyerName,
-            buyerPhone: data.buyerPhone,
-            salePrice: parseFloat(data.salePrice) || 0,
-            soldAt: data.soldAt ? new Date(data.soldAt) : undefined,
-          };
-          setProperty(mapped);
-          // Blocks are not supported yet, keeping empty
-          setBlocks([]);
-        } else {
-          console.error('Property not found');
-        }
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProperty();
-    fetchUnits();
-  }, [propertyId, token]);
-
-  const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this property?')) return;
+  const handleBulkDelete = async () => {
+    const label = getUnitLabel(project?.propertyCategory, true).toLowerCase();
+    if (!selectedUnitIds.length) return;
+    if (!confirm(`Are you sure you want to delete ${selectedUnitIds.length} ${label}?`)) return;
 
     try {
-      const res = await fetch(`${API_URL}/api/projects/${propertyId}`, {
+      const res = await fetch(`${API_URL}/api/units/bulk`, {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ ids: selectedUnitIds })
+      });
+
+      if (res.ok) {
+        fetchUnits();
+        setSelectedUnitIds([]);
+      } else {
+        alert('Failed to delete units');
+      }
+    } catch (e) {
+      console.error('Error in bulk delete:', e);
+    }
+  };
+
+  const removeUnit = async (id: string) => {
+    const label = getUnitLabel(project?.propertyCategory, false).toLowerCase();
+    if (!confirm(`Are you sure you want to delete this ${label}?`)) return;
+    try {
+      const res = await fetch(`${API_URL}/api/units/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (res.ok) {
+        fetchUnits();
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    fetchProject();
+    fetchUnits();
+  }, [projectId, token]);
+
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this project?')) return;
+
+    try {
+      const res = await fetch(`${API_URL}/api/projects/${projectId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -147,31 +201,56 @@ export default function PropertyDetailPage() {
       });
 
       if (res.ok) {
-        router.push('/property-partner/dashboard/properties');
+        router.push('/property-partner/dashboard/projects');
       } else {
-        alert('Failed to delete property');
+        alert('Failed to delete project');
       }
     } catch (e) {
-      alert('Error deleting property');
+      alert('Error deleting project');
     }
+  };
+
+  const getUnitLabel = (category?: string, plural = true) => {
+    const cat = category?.toLowerCase();
+    if (cat === 'plot') return plural ? 'Plots' : 'Plot';
+    if (cat === 'villa') return plural ? 'Villas' : 'Villa';
+    if (cat === 'shop') return plural ? 'Shops' : 'Shop';
+    if (cat === 'office') return plural ? 'Offices' : 'Office';
+    if (cat === 'warehouse') return plural ? 'Warehouses' : 'Warehouse';
+    return plural ? 'Units' : 'Unit';
   };
 
   if (loading) {
     return <div className="text-center py-12">Loading...</div>;
   }
 
-  if (!property) {
+  if (!project) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-600 mb-4">Property not found</p>
-        <Link href="/property-partner/dashboard/properties" className="text-blue-600 hover:text-blue-700">
-          Back to Properties
+        <p className="text-gray-600 mb-4">Project not found</p>
+        <Link href="/property-partner/dashboard/projects" className="text-blue-600 hover:text-blue-700">
+          Back to Projects
         </Link>
       </div>
     );
   }
 
-  const statusConfig = PROPERTY_STATUS_CONFIG[property.status];
+  const statusConfig = PROPERTY_STATUS_CONFIG[project.status];
+  const isStandalone = ['plot', 'villa'].includes(project.propertyCategory || '');
+  const unitLabel = getUnitLabel(project.propertyCategory);
+  const singleUnitLabel = getUnitLabel(project.propertyCategory, false);
+
+  const filteredTabs = TABS.filter(tab => {
+    if (isStandalone) {
+      return tab.id !== 'buildings';
+    }
+    return true;
+  }).map(tab => {
+    if (tab.id === 'blocks') {
+      return { ...tab, label: isStandalone ? unitLabel : `Blocks & ${unitLabel}` };
+    }
+    return tab;
+  });
 
   return (
     <div className="space-y-6">
@@ -179,19 +258,19 @@ export default function PropertyDetailPage() {
       <div className="flex justify-between items-start">
         <div>
           <div className="flex items-center gap-4 mb-2">
-            <h1 className="text-3xl font-bold text-gray-900">{property.title}</h1>
+            <h1 className="text-3xl font-bold text-gray-900">{project.title}</h1>
             <span className={`px-3 py-1 rounded-full text-sm font-semibold ${statusConfig.bgColor} ${statusConfig.color}`}>
               {statusConfig.label}
             </span>
           </div>
-          <p className="text-gray-600">{property.location} • {property.city}, {property.state}</p>
+          <p className="text-gray-600">{project.location} • {project.city}, {project.state}</p>
         </div>
         <div className="text-right">
-          <p className="text-3xl font-bold text-blue-600">₹{(property.startingPrice / 100000).toFixed(1)}L+</p>
+          <p className="text-3xl font-bold text-blue-600">₹{(project.startingPrice / 100000).toFixed(1)}L+</p>
           <p className="text-sm text-gray-600 mt-1">Starting Price</p>
-          {property.status === 'draft' && (
+          {(project.status as string) === 'draft' && (
             <Link
-              href={`/property-partner/dashboard/properties/add?id=${property.id}`}
+              href={`/property-partner/dashboard/projects/add?id=${project.id}`}
               className="mt-2 inline-block px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 text-sm font-medium transition"
             >
               Continue Editing
@@ -201,33 +280,37 @@ export default function PropertyDetailPage() {
       </div>
 
       {/* Quick Stats */}
-      <div className="grid md:grid-cols-4 gap-4">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-          <p className="text-gray-600 text-sm">Total Area</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{property.totalArea.toLocaleString()} Sq Ft</p>
+      <div className={`grid gap-4 ${isStandalone ? 'md:grid-cols-2' : 'md:grid-cols-4'}`}>
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 font-bold text-gray-900">
+          <p className="text-gray-600 text-sm font-medium">Total Area</p>
+          <p className="text-2xl mt-1">{project.totalArea.toLocaleString()} Sq Ft</p>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-          <p className="text-gray-600 text-sm">Buildings</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{property.totalBuildings}</p>
+        {!isStandalone && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 font-bold text-gray-900">
+            <p className="text-gray-600 text-sm font-medium">Buildings</p>
+            <p className="text-2xl mt-1">{project.totalBuildings}</p>
+          </div>
+        )}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 font-bold text-gray-900">
+          <p className="text-gray-600 text-sm font-medium">Total {unitLabel}</p>
+          <p className="text-2xl mt-1">{units.length || project.totalUnits}</p>
         </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-          <p className="text-gray-600 text-sm">Total Units</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{units.length || property.totalUnits}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-          <p className="text-gray-600 text-sm">Blocks</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{blocks.length}</p>
-        </div>
+        {!isStandalone && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4 font-bold text-gray-900">
+            <p className="text-gray-600 text-sm font-medium">Blocks</p>
+            <p className="text-2xl mt-1">{blocks.length}</p>
+          </div>
+        )}
       </div>
 
       {/* Tabs */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-100">
         <div className="flex border-b border-gray-200 overflow-x-auto">
-          {TABS.map(tab => (
+          {filteredTabs.map(tab => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-6 py-4 font-medium border-b-2 transition whitespace-nowrap ${activeTab === tab.id
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex items-center gap-2 px-6 py-4 font-bold border-b-2 transition whitespace-nowrap ${activeTab === tab.id
                 ? 'border-blue-600 text-blue-600'
                 : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
@@ -243,8 +326,8 @@ export default function PropertyDetailPage() {
           {activeTab === 'overview' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Property Description</h3>
-                <p className="text-gray-700 whitespace-pre-wrap">{property.description}</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Description</h3>
+                <p className="text-gray-700 whitespace-pre-wrap">{project.description}</p>
               </div>
 
               <div>
@@ -252,28 +335,28 @@ export default function PropertyDetailPage() {
                 <dl className="grid md:grid-cols-2 gap-4">
                   <div>
                     <dt className="text-sm text-gray-600">Address</dt>
-                    <dd className="text-gray-900 font-medium">{property.address}</dd>
+                    <dd className="text-gray-900 font-medium">{project.address}</dd>
                   </div>
                   <div>
                     <dt className="text-sm text-gray-600">City</dt>
-                    <dd className="text-gray-900 font-medium">{property.city}</dd>
+                    <dd className="text-gray-900 font-medium">{project.city}</dd>
                   </div>
                   <div>
                     <dt className="text-sm text-gray-600">State</dt>
-                    <dd className="text-gray-900 font-medium">{property.state}</dd>
+                    <dd className="text-gray-900 font-medium">{project.state}</dd>
                   </div>
                   <div>
                     <dt className="text-sm text-gray-600">Pincode</dt>
-                    <dd className="text-gray-900 font-medium">{property.pincode}</dd>
+                    <dd className="text-gray-900 font-medium">{project.pincode}</dd>
                   </div>
                 </dl>
               </div>
 
-              {property.amenities.length > 0 && (
+              {project.amenities.length > 0 && (
                 <div>
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Amenities</h3>
                   <div className="grid md:grid-cols-3 gap-3">
-                    {property.amenities.map(amenity => (
+                    {project.amenities.map(amenity => (
                       <div key={amenity} className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
                         <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
@@ -284,7 +367,7 @@ export default function PropertyDetailPage() {
                   </div>
                 </div>
               )}
-              {property.status === 'sold' && (
+              {project.status === 'sold' && (
                 <div className="mt-8 bg-emerald-50 rounded-2xl border-2 border-emerald-100 p-6 shadow-sm">
                   <h3 className="text-lg font-bold text-emerald-900 mb-4 flex items-center gap-2">
                     <svg className="w-5 h-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -295,20 +378,20 @@ export default function PropertyDetailPage() {
                   <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
                     <div>
                       <dt className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Sold To</dt>
-                      <dd className="text-lg font-black text-emerald-900">{property.buyerName}</dd>
+                      <dd className="text-lg font-black text-emerald-900">{project.buyerName}</dd>
                     </div>
                     <div>
                       <dt className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Contact</dt>
-                      <dd className="text-lg font-black text-emerald-900">{property.buyerPhone}</dd>
+                      <dd className="text-lg font-black text-emerald-900">{project.buyerPhone}</dd>
                     </div>
                     <div>
                       <dt className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Sale Price</dt>
-                      <dd className="text-lg font-black text-emerald-900">₹{property.salePrice?.toLocaleString()}</dd>
+                      <dd className="text-lg font-black text-emerald-900">₹{project.salePrice?.toLocaleString()}</dd>
                     </div>
                     <div>
                       <dt className="text-[10px] font-black text-emerald-600 uppercase tracking-widest mb-1">Date of Sale</dt>
                       <dd className="text-lg font-black text-emerald-900">
-                        {property.soldAt ? property.soldAt.toLocaleDateString('en-IN', {
+                        {project.soldAt ? project.soldAt.toLocaleDateString('en-IN', {
                           day: 'numeric',
                           month: 'short',
                           year: 'numeric'
@@ -324,12 +407,12 @@ export default function PropertyDetailPage() {
           {/* Buildings Tab */}
           {activeTab === 'buildings' && (
             <div className="space-y-4">
-              {property.buildings.length === 0 ? (
+              {project.buildings.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-gray-500">No buildings added yet</p>
                 </div>
               ) : (
-                property.buildings.map(building => (
+                project.buildings.map(building => (
                   <div key={building.id} className="p-4 border border-gray-200 rounded-lg hover:shadow-md transition">
                     <div className="flex justify-between items-start">
                       <div>
@@ -350,20 +433,37 @@ export default function PropertyDetailPage() {
           {activeTab === 'blocks' && (
             <div className="space-y-6">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-900">Units Overview</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{isStandalone ? `${unitLabel} Overview` : `Blocks & ${unitLabel} Overview`}</h3>
                 <div className="flex gap-3">
                   <button
                     onClick={() => setIsMarkAsSoldModalOpen(true)}
                     className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 text-sm font-medium transition"
                   >
-                    Mark Unit as Sold
+                    Mark {singleUnitLabel} as Sold
                   </button>
                   <button
                     onClick={() => setIsAddUnitModalOpen(true)}
                     className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium transition"
                   >
-                    Add Unit
+                    Add {singleUnitLabel}
                   </button>
+                  <button
+                    onClick={() => setIsBulkAddUnitModalOpen(true)}
+                    className="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 text-sm font-medium transition flex items-center gap-1.5"
+                  >
+                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Bulk Add
+                  </button>
+                  {selectedUnitIds.length > 0 && (
+                    <button
+                      onClick={handleBulkDelete}
+                      className="bg-red-50 text-red-600 px-4 py-2 rounded-lg hover:bg-red-100 text-sm font-bold border border-red-200"
+                    >
+                      Delete {selectedUnitIds.length} Selected
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -372,12 +472,12 @@ export default function PropertyDetailPage() {
                   <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
-                  <p className="text-gray-500 text-lg font-medium mb-4">No units created yet</p>
+                  <p className="text-gray-500 text-lg font-medium mb-4">No {unitLabel.toLowerCase()} created yet</p>
                   <button
                     onClick={() => setIsAddUnitModalOpen(true)}
                     className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium transition text-sm"
                   >
-                    Create First Unit
+                    Create First {singleUnitLabel}
                   </button>
                 </div>
               ) : (
@@ -385,17 +485,37 @@ export default function PropertyDetailPage() {
                   {units.map((unit: any) => (
                     <div
                       key={unit.id}
-                      className="p-6 border border-gray-200 bg-white rounded-xl shadow-sm hover:shadow-md transition relative overflow-hidden"
+                      className={`p-6 border bg-white rounded-xl shadow-sm hover:shadow-md transition relative overflow-hidden ${selectedUnitIds.includes(unit.id) ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-200'}`}
+                      onClick={() => toggleSelectUnit(unit.id)}
                     >
-                      <div className="flex justify-between items-start mb-4">
+                      <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
+                        <input
+                          type="checkbox"
+                          checked={selectedUnitIds.includes(unit.id)}
+                          onChange={() => toggleSelectUnit(unit.id)}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
+                        />
+                      </div>
+                      <div className="flex justify-between items-start mb-4 pl-4">
                         <div>
                           <h4 className="font-bold text-gray-900 text-xl">{unit.unitNumber}</h4>
-                          <p className="text-sm text-gray-500">{unit.type || 'Standard Unit'} • Floor {unit.floor || 'N/A'}</p>
+                          <p className="text-sm text-gray-500">{unit.type || `Standard ${singleUnitLabel}`} {!isStandalone && `• Floor ${unit.floor || 'N/A'}`}</p>
                         </div>
-                        <span className={`px-2 py-1 rounded-md text-xs font-semibold uppercase tracking-wider ${unit.status === 'SOLD' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
-                          }`}>
-                          {unit.status}
-                        </span>
+                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={() => removeUnit(unit.id)}
+                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete Unit"
+                          >
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                          <span className={`px-2 py-1 rounded-md text-xs font-semibold uppercase tracking-wider ${unit.status === 'SOLD' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                            }`}>
+                            {unit.status}
+                          </span>
+                        </div>
                       </div>
 
                       <div className="space-y-3 pt-4 border-t border-gray-100">
@@ -432,7 +552,7 @@ export default function PropertyDetailPage() {
           {activeTab === 'settings' && (
             <div className="space-y-6">
               <div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Property Status</h3>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Status</h3>
                 <p className="text-gray-700 mb-4">Current Status: <span className={`font-bold ${statusConfig.color}`}>{statusConfig.label}</span></p>
                 <div className="flex gap-2">
                   <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition text-sm">
@@ -445,8 +565,8 @@ export default function PropertyDetailPage() {
               </div>
 
               <div className="border-t border-gray-200 pt-6">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">Property Type</h3>
-                <p className="text-gray-700 capitalize">{property.propertyType.replace('-', ' ')}</p>
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Type</h3>
+                <p className="text-gray-700 capitalize">{project.propertyType.replace('-', ' ')}</p>
               </div>
 
               <div className="border-t border-gray-200 pt-6">
@@ -455,7 +575,7 @@ export default function PropertyDetailPage() {
                   onClick={handleDelete}
                   className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 font-medium transition text-sm"
                 >
-                  Delete Property
+                  Delete Project
                 </button>
               </div>
             </div>
@@ -466,16 +586,25 @@ export default function PropertyDetailPage() {
       <AddUnitModal
         isOpen={isAddUnitModalOpen}
         onClose={() => setIsAddUnitModalOpen(false)}
-        projectId={propertyId}
+        projectId={projectId}
+        projectCategory={project?.propertyCategory}
         onAdded={fetchUnits}
       />
 
       <MarkAsSoldModal
         isOpen={isMarkAsSoldModalOpen}
         onClose={() => setIsMarkAsSoldModalOpen(false)}
-        projectId={propertyId}
+        projectId={projectId}
         units={units}
-        onSold={fetchUnits}
+        onSold={fetchProject}
+      />
+
+      <BulkAddUnitModal
+        isOpen={isBulkAddUnitModalOpen}
+        onClose={() => setIsBulkAddUnitModalOpen(false)}
+        projectId={project.id}
+        projectCategory={project.propertyCategory as any}
+        onAdded={fetchProject}
       />
     </div>
   );

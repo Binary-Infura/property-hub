@@ -9,7 +9,7 @@ import {
     UseGuards,
 } from '@nestjs/common';
 import { UnitsService } from './units.service';
-import { CreateUnitDto, UpdateUnitDto, MarkUnitAsSoldDto } from './units.dto';
+import { CreateUnitDto, UpdateUnitDto, MarkUnitAsSoldDto, BulkCreateUnitsDto, BulkDeleteUnitsDto } from './units.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { RequireRoles } from '../../common/decorators/require-roles.decorator';
@@ -26,6 +26,18 @@ export class UnitsController {
     @RequireRoles('onboarding-manager', 'property-partner', 'broker', 'central-authority')
     create(@Body() createUnitDto: CreateUnitDto, @CurrentUser() user: AuthenticatedUser) {
         return this.unitsService.create(createUnitDto, user);
+    }
+
+    @Post('bulk')
+    @RequireRoles('onboarding-manager', 'property-partner', 'broker', 'central-authority')
+    createBulk(@Body() bulkCreateUnitsDto: BulkCreateUnitsDto, @CurrentUser() user: AuthenticatedUser) {
+        return this.unitsService.createBulk(bulkCreateUnitsDto, user);
+    }
+
+    @Delete('bulk')
+    @RequireRoles('property-partner', 'central-authority')
+    removeBulk(@Body() bulkDeleteUnitsDto: BulkDeleteUnitsDto, @CurrentUser() user: AuthenticatedUser) {
+        return this.unitsService.removeBulk(bulkDeleteUnitsDto.ids, user);
     }
 
     @Get('project/:projectId')
@@ -58,6 +70,12 @@ export class UnitsController {
         @CurrentUser() user: AuthenticatedUser,
     ) {
         return this.unitsService.markAsSold(id, markUnitAsSoldDto, user);
+    }
+
+    @Get('my')
+    @RequireRoles('property-partner', 'central-authority')
+    findMyUnits(@CurrentUser() user: AuthenticatedUser) {
+        return this.unitsService.findMyUnits(user);
     }
 
     @Delete(':id')

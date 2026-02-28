@@ -8,22 +8,30 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 interface MarkAsSoldModalProps {
     isOpen: boolean;
     onClose: () => void;
-    projectId: string;
-    units: any[];
+    projectId?: string;
+    initialUnitId?: string;
+    units?: any[];
     onSold: () => void;
 }
 
-export default function MarkAsSoldModal({ isOpen, onClose, projectId, units, onSold }: MarkAsSoldModalProps) {
+export default function MarkAsSoldModal({ isOpen, onClose, projectId, initialUnitId, units = [], onSold }: MarkAsSoldModalProps) {
     const { token } = useAuth();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const [selectedUnitId, setSelectedUnitId] = useState<string>('');
+    const [selectedUnitId, setSelectedUnitId] = useState<string>(initialUnitId || '');
     const [formData, setFormData] = useState({
         buyerName: '',
         buyerPhone: '',
         salePrice: '',
         soldAt: new Date().toISOString().split('T')[0],
+    });
+
+    useState(() => {
+        if (initialUnitId && units.length > 0) {
+            const unit = units.find(u => u.id === initialUnitId);
+            if (unit) setFormData(prev => ({ ...prev, salePrice: unit.price?.toString() || '' }));
+        }
     });
 
     if (!isOpen) return null;

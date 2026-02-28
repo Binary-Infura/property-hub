@@ -1,7 +1,7 @@
 'use client';
 
-import PropertyPartnerSidebar from './PropertyPartnerSidebar';
-import PropertyPartnerTopNav from './PropertyPartnerTopNav';
+import ProjectPartnerSidebar from './PropertyPartnerSidebar';
+import ProjectPartnerTopNav from './PropertyPartnerTopNav';
 import RouteGuard from '../auth/RouteGuard';
 import ProfileCompletionPrompt from '../ProfileCompletionPrompt';
 
@@ -13,11 +13,11 @@ export default function PropertyPartnerLayoutWrapper({
   return (
     <RouteGuard requiredRole="property-partner">
       <div className="flex h-screen bg-gray-50 overflow-hidden">
-        <PropertyPartnerSidebar />
+        <ProjectPartnerSidebar />
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-          <PropertyPartnerTopNav />
+          <ProjectPartnerTopNav />
 
           <main className="flex-1 overflow-y-auto">
             <ProfileCompletionPrompt />

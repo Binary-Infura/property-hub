@@ -1,8 +1,8 @@
 
 
 export const metadata = {
-  title: 'Property Partner Dashboard - PropertyHub',
-  description: 'Property Partner dashboard for managing property submissions',
+  title: 'Project Partner Dashboard - ProjectHub',
+  description: 'Project Partner dashboard for managing project submissions',
 };
 
 /**

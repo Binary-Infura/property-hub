@@ -14,7 +14,7 @@ interface StepConfig {
     description: string;
 }
 
-const PROPERTY_CATEGORIES = [
+const PROJECT_CATEGORIES = [
     { value: 'flat', label: 'Flat / Apartment', description: 'Residential units in multi-story buildings' },
     { value: 'plot', label: 'Plot / Land', description: 'Vacant land for development' },
     { value: 'shop', label: 'Shop / Retail', description: 'Commercial retail spaces' },
@@ -24,25 +24,25 @@ const PROPERTY_CATEGORIES = [
 ];
 
 const STEPS: StepConfig[] = [
-    { number: 1, title: 'Category', description: 'Select property type' },
+    { number: 1, title: 'Category', description: 'Select project type' },
     { number: 2, title: 'Basic Info', description: 'Title, type, and location' },
     { number: 3, title: 'Details', description: 'Area, buildings, and units' },
 ];
 
-interface AddPropertyModalProps {
+interface AddProjectModalProps {
     isOpen: boolean;
     onClose: () => void;
     editId: string | null;
     onSuccess: () => void;
 }
 
-export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }: AddPropertyModalProps) {
+export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: AddProjectModalProps) {
     const { token } = useAuth();
     const { activeContext } = useUnifiedApp();
 
     const [currentStep, setCurrentStep] = useState(1); // Start at category selection (Step 1)
-    const [propertyCategory, setPropertyCategory] = useState<string>(''); // Selected category
-    const [propertyId, setPropertyId] = useState<string | null>(editId);
+    const [projectCategory, setProjectCategory] = useState<string>(''); // Selected category
+    const [projectId, setProjectId] = useState<string | null>(editId);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -76,13 +76,13 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
     useEffect(() => {
         if (!isOpen) {
             setCurrentStep(1);
-            setPropertyId(null);
+            setProjectId(null);
             setError(null);
             return;
         }
 
         if (isOpen && editId && token) {
-            fetchPropertyDetails();
+            fetchProjectDetails();
         } else if (isOpen && !editId) {
             setFormData({
                 title: '',
@@ -95,11 +95,11 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                 amenities: [],
             });
             setCurrentStep(1);
-            setPropertyCategory('');
+            setProjectCategory('');
         }
     }, [isOpen, editId, token]);
 
-    const fetchPropertyDetails = async () => {
+    const fetchProjectDetails = async () => {
         if (!token || !editId) return;
         setLoading(true);
         try {
@@ -112,7 +112,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
 
                 // Set Category based on backend propertyType or other logic
                 // For now, mapping residential -> flat, etc. or keeping it simple
-                setPropertyCategory(data.propertyType?.toLowerCase() || '');
+                setProjectCategory(data.propertyType?.toLowerCase() || '');
 
                 const description = data.description || '';
                 const amenitiesPart = description.split('\n\nAmenities: ')[1];
@@ -131,7 +131,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
             }
         } catch (e) {
             console.error(e);
-            setError('Failed to fetch property details');
+            setError('Failed to fetch project details');
         } finally {
             setLoading(false);
         }
@@ -153,7 +153,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
         const payload = {
             name: formData.title,
             description: fullDescription,
-            category: propertyCategory.toUpperCase(),
+            category: projectCategory.toUpperCase(),
             location: formData.title, // Provide title as temporary location string (required by backend)
 
 
@@ -163,11 +163,11 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
             propertyType: backendPropertyType,
         };
 
-        const url = propertyId
-            ? `${API_URL}/api/projects/${propertyId}`
+        const url = projectId
+            ? `${API_URL}/api/projects/${projectId}`
             : `${API_URL}/api/projects`;
 
-        const method = propertyId ? 'PATCH' : 'POST';
+        const method = projectId ? 'PATCH' : 'POST';
 
         try {
             const res = await fetch(url, {
@@ -181,11 +181,11 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
 
             if (res.ok) {
                 const data = await res.json();
-                setPropertyId(data.id);
+                setProjectId(data.id);
                 return data.id;
             } else {
                 const errData = await res.json();
-                setError(errData.message || 'Failed to save property');
+                setError(errData.message || 'Failed to save project');
                 throw new Error(errData.message || 'Failed to save');
             }
         } catch (e: any) {
@@ -241,7 +241,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
     };
 
     const isStepValid = () => {
-        if (currentStep === 1) return !!propertyCategory;
+        if (currentStep === 1) return !!projectCategory;
         if (currentStep === 2) {
             return !!formData.title && !!formData.propertyType;
         }
@@ -252,7 +252,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
     };
 
     const isFormComplete = () => {
-        return !!propertyCategory &&
+        return !!projectCategory &&
             !!formData.title &&
             !!formData.totalArea &&
             !!formData.totalBuildings &&
@@ -274,7 +274,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                     {/* Header */}
                     <div className="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                         <div>
-                            <h3 className="text-2xl font-bold text-gray-900">{editId ? 'Edit Property' : 'Add New Property'}</h3>
+                            <h3 className="text-2xl font-bold text-gray-900">{editId ? 'Edit Project' : 'Add New Project'}</h3>
                             <p className="text-sm text-gray-600 mt-1">Complete all steps to {editId ? 'update' : 'create'} a listing</p>
                         </div>
                         <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
@@ -317,22 +317,22 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                             {currentStep === 1 && (
                                 <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                                     <div className="text-center mb-6">
-                                        <h3 className="text-lg font-bold text-gray-900 mb-2">What type of property are you adding?</h3>
-                                        <p className="text-sm text-gray-600">Select the category that best describes your property</p>
+                                        <h3 className="text-lg font-bold text-gray-900 mb-2">What type of project are you adding?</h3>
+                                        <p className="text-sm text-gray-600">Select the category that best describes your project</p>
                                     </div>
 
                                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                        {PROPERTY_CATEGORIES.map(category => (
+                                        {PROJECT_CATEGORIES.map(category => (
                                             <button
                                                 key={category.value}
                                                 type="button"
-                                                onClick={() => setPropertyCategory(category.value)}
-                                                className={`p-6 rounded-xl border-2 transition-all text-left hover:shadow-lg ${propertyCategory === category.value
+                                                onClick={() => setProjectCategory(category.value)}
+                                                className={`p-6 rounded-xl border-2 transition-all text-left hover:shadow-lg ${projectCategory === category.value
                                                     ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200'
                                                     : 'border-gray-200 hover:border-blue-300 bg-white'
                                                     }`}
                                             >
-                                                <h4 className={`font-bold mb-1 ${propertyCategory === category.value ? 'text-blue-700' : 'text-gray-900'}`}>
+                                                <h4 className={`font-bold mb-1 ${projectCategory === category.value ? 'text-blue-700' : 'text-gray-900'}`}>
                                                     {category.label}
                                                 </h4>
                                                 <p className="text-xs text-gray-600">{category.description}</p>
@@ -346,7 +346,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                                 <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                                     <div className="grid grid-cols-2 gap-6">
                                         <div className="col-span-2">
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Property Title *</label>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Project Title *</label>
                                             <input
                                                 type="text"
                                                 name="title"
@@ -358,7 +358,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                                         </div>
 
                                         <div className="col-span-2">
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Property Type *</label>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Project Type *</label>
                                             <select
                                                 name="propertyType"
                                                 value={formData.propertyType}
@@ -454,7 +454,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                                     className="px-8 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 shadow-lg shadow-green-200 disabled:opacity-50 transition-all flex items-center gap-2"
                                 >
                                     {loading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
-                                    Save Property
+                                    Save Project
                                 </button>
                             )}
                         </div>
