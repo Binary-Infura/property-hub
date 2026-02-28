@@ -9,6 +9,7 @@ import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import AddPropertyModal from '@/app/components/property-partner/AddPropertyModal';
 import SelectPropertyModal from '@/app/components/property-partner/SelectPropertyModal';
 import ViewListingModal from '@/app/components/property-partner/ViewListingModal';
+import ImportReraPropertyModal from '@/app/components/property-partner/ImportReraPropertyModal';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -36,6 +37,7 @@ export default function PropertiesPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSelectModalOpen, setIsSelectModalOpen] = useState(false);
   const [isViewListingModalOpen, setIsViewListingModalOpen] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedPropertyForView, setSelectedPropertyForView] = useState<Property | null>(null);
 
@@ -174,6 +176,15 @@ export default function PropertiesPage() {
             List to Public
           </button>
           <button
+            onClick={() => setIsImportModalOpen(true)}
+            className="bg-emerald-600 text-white px-6 py-3 rounded-xl hover:bg-emerald-700 font-bold transition flex items-center gap-2 shadow-lg shadow-emerald-200"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+            Import Verified Project
+          </button>
+          <button
             onClick={handleAddProperty}
             className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 font-bold transition flex items-center gap-2 shadow-lg shadow-blue-200"
           >
@@ -205,6 +216,12 @@ export default function PropertiesPage() {
           setSelectedPropertyForView(null);
         }}
         property={selectedPropertyForView}
+      />
+
+      <ImportReraPropertyModal
+        isOpen={isImportModalOpen}
+        onClose={() => setIsImportModalOpen(false)}
+        onSuccess={fetchProperties}
       />
 
       {/* Stats */}

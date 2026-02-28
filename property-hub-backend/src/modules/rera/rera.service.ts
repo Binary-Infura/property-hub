@@ -5,6 +5,9 @@ import { Queue } from 'bullmq';
 import { RajasthanScraper } from './scrapers/rajasthan.scraper';
 import { MaharashtraScraper } from './scrapers/maharashtra.scraper';
 import { IReraScraper } from './interfaces/rera-scraper.interface';
+import { UsersService } from '../users/users.service';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
+import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 
 @Injectable()
 export class ReraService {
@@ -14,6 +17,8 @@ export class ReraService {
     constructor(
         private readonly prisma: PrismaService,
         @InjectQueue('rera-sync') private readonly reraQueue: Queue,
+        private readonly usersService: UsersService,
+        private readonly activityLogsService: ActivityLogsService,
         rajasthanScraper: RajasthanScraper,
         maharashtraScraper: MaharashtraScraper,
     ) {
@@ -102,12 +107,88 @@ export class ReraService {
         });
     }
 
-    async getProjects(state?: string, limit: number = 200) {
+    async getProjects(state?: string, district?: string, search?: string, limit: number = 200) {
+        const where: any = {};
+        if (state) {
+            where.state = { equals: state, mode: 'insensitive' };
+        }
+        if (district) {
+            where.district = { equals: district, mode: 'insensitive' };
+        }
+        if (search) {
+            where.OR = [
+                { projectName: { contains: search, mode: 'insensitive' } },
+                { reraNumber: { contains: search, mode: 'insensitive' } },
+                { promoterName: { contains: search, mode: 'insensitive' } },
+                { district: { contains: search, mode: 'insensitive' } },
+            ];
+        }
+
         return this.prisma.reraProject.findMany({
-            where: state ? { state: { equals: state, mode: 'insensitive' } } : {},
+            where,
             orderBy: { updatedAt: 'desc' },
-            take: limit,
+            take: Number(limit) || 200,
         });
+    }
+
+    async getUniqueDistricts(state: string) {
+        const projects = await this.prisma.reraProject.findMany({
+            where: { state: { equals: state, mode: 'insensitive' } },
+            select: { district: true },
+            distinct: ['district'],
+        });
+
+        return projects
+            .map(p => p.district)
+            .filter((d): d is string => !!d)
+            .sort();
+    }
+
+    async importProject(projectId: string, user: AuthenticatedUser) {
+        const reraProject = await this.prisma.reraProject.findUnique({
+            where: { id: projectId },
+        });
+
+        if (!reraProject) {
+            throw new Error('RERA project not found');
+        }
+
+        const internalUser = await this.usersService.ensureUserSynced(user);
+
+        // Check if already imported
+        const existing = await this.prisma.property.findFirst({
+            where: { name: reraProject.projectName, onboardedById: internalUser.id },
+        });
+
+        if (existing) {
+            return existing;
+        }
+
+        // Create property from RERA project
+        const property = await this.prisma.property.create({
+            data: {
+                name: reraProject.projectName,
+                description: `Imported from RERA. Promoter: ${reraProject.promoterName}. RERA Number: ${reraProject.reraNumber}`,
+                location: reraProject.district || reraProject.state,
+                address: reraProject.address,
+                price: 0, // Default price, to be updated by user
+                propertyType: 'APARTMENT', // Default type
+                status: 'DRAFT',
+                onboardedById: internalUser.id,
+                category: 'flat',
+            },
+        });
+
+        // Log activity
+        await this.activityLogsService.log({
+            userId: internalUser.id,
+            type: 'info',
+            action: 'Property Imported from RERA',
+            target: property.name,
+            details: { propertyId: property.id, reraNumber: reraProject.reraNumber }
+        });
+
+        return property;
     }
 
     async getTotalCount(state: string, district?: string): Promise<number> {

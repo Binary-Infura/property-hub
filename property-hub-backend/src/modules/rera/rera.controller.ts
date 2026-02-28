@@ -1,9 +1,13 @@
-import { Controller, Post, Body, Get, Param } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { ReraService } from './rera.service';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { CurrentUser } from '../../common/decorators/current-user.decorator';
+import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 
 @ApiTags('RERA')
 @Controller('rera')
+@UseGuards(JwtAuthGuard)
 export class ReraController {
     constructor(private readonly reraService: ReraService) { }
 
@@ -22,14 +26,39 @@ export class ReraController {
 
     @Get('projects')
     @ApiOperation({ summary: 'Get scraped RERA projects' })
-    async getProjects(@Param('state') state?: string) {
-        return await this.reraService.getProjects(state);
+    async getProjects(
+        @Query('state') state?: string,
+        @Query('district') district?: string,
+        @Query('search') search?: string,
+        @Query('limit') limit?: number
+    ) {
+        return await this.reraService.getProjects(state, district, search, limit);
     }
 
     @Get('projects/:state')
     @ApiOperation({ summary: 'Get scraped RERA projects for a specific state' })
-    async getProjectsByState(@Param('state') state: string) {
-        return await this.reraService.getProjects(state);
+    async getProjectsByState(
+        @Param('state') state: string,
+        @Query('district') district?: string,
+        @Query('search') search?: string,
+        @Query('limit') limit?: number
+    ) {
+        return await this.reraService.getProjects(state, district, search, limit);
+    }
+
+    @Get('districts/:state')
+    @ApiOperation({ summary: 'Get unique districts for a state' })
+    async getDistricts(@Param('state') state: string) {
+        return await this.reraService.getUniqueDistricts(state);
+    }
+
+    @Post('import/:id')
+    @ApiOperation({ summary: 'Import a RERA project as a property' })
+    async importProject(
+        @Param('id') projectId: string,
+        @CurrentUser() user: AuthenticatedUser
+    ) {
+        return await this.reraService.importProject(projectId, user);
     }
 
     @Post('count/:state')

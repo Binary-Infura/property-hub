@@ -42,10 +42,21 @@ export const reraService = {
         return response.json();
     },
 
-    async getProjects(token: string, state?: string): Promise<any[]> {
-        const url = state
-            ? `${API_URL}/rera/projects/${state.toLowerCase()}`
-            : `${API_URL}/rera/projects`;
+    async getProjects(token: string, state?: string, district?: string, search?: string, limit: number = 20): Promise<any[]> {
+        let url = `${API_URL}/rera/projects`;
+        if (state) {
+            url = `${API_URL}/rera/projects/${state.toLowerCase()}`;
+        }
+
+        const params = new URLSearchParams();
+        if (district) params.append('district', district);
+        if (search) params.append('search', search);
+        if (limit) params.append('limit', limit.toString());
+
+        const queryString = params.toString();
+        if (queryString) {
+            url += `?${queryString}`;
+        }
 
         const response = await fetch(url, {
             headers: {
@@ -55,6 +66,38 @@ export const reraService = {
 
         if (!response.ok) {
             throw new Error('Failed to fetch RERA projects');
+        }
+
+        return response.json();
+    },
+
+    async getDistricts(token: string, state: string): Promise<string[]> {
+        const response = await fetch(`${API_URL}/rera/districts/${state.toLowerCase()}`, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            return [];
+        }
+
+        return response.json();
+    },
+
+    async importProject(token: string, projectId: string): Promise<any> {
+        const response = await fetch(`${API_URL}/rera/import/${projectId}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to import RERA project');
         }
 
         return response.json();

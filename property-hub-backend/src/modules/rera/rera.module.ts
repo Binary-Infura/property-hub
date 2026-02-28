@@ -8,9 +8,14 @@ import { RajasthanScraper } from './scrapers/rajasthan.scraper';
 import { MaharashtraScraper } from './scrapers/maharashtra.scraper';
 import { DatabaseModule } from '../../database/database.module';
 
+import { UsersModule } from '../users/users.module';
+import { ActivityLogsModule } from '../activity-logs/activity-logs.module';
+
 @Module({
     imports: [
         DatabaseModule,
+        UsersModule,
+        ActivityLogsModule,
         BullModule.registerQueue({
             name: 'rera-sync',
             defaultJobOptions: {
