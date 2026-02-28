@@ -72,4 +72,16 @@ export class ReraController {
     async getLogs() {
         return await this.reraService.getActivityLogs();
     }
+
+    @Get('district-counts')
+    @ApiOperation({ summary: 'Get stored district-wise project counts' })
+    async getDistrictCounts(@Query('state') state?: string) {
+        return await this.reraService.getDistrictCounts(state);
+    }
+
+    @Post('sync-district-counts/:state')
+    @ApiOperation({ summary: 'Trigger RERA total count sync for all districts in a state' })
+    async syncDistrictCounts(@Param('state') state: string) {
+        return await this.reraService.syncDistrictCounts(state);
+    }
 }

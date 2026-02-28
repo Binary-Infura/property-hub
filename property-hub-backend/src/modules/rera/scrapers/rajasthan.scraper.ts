@@ -134,57 +134,86 @@ export class RajasthanScraper implements IReraScraper {
         const browser: Browser = await chromium.launch({ headless: true });
         try {
             const page: Page = await browser.newPage();
-            await page.goto(`${this.baseUrl}/ProjectSearch?status=3`, { waitUntil: 'networkidle' });
-
-            if (options?.district) {
-                // Find option by text content case-insensitively
-                const districtValue = await page.evaluate((district) => {
-                    const select = document.querySelector('#DistrictId') as HTMLSelectElement;
-                    if (!select) return null;
-                    const options = Array.from(select.options);
-                    const target = options.find(o => o.text.trim().toLowerCase() === district.toLowerCase());
-                    return target ? target.value : null;
-                }, options.district);
-
-                if (districtValue) {
-                    await page.selectOption('#DistrictId', districtValue);
-                    await page.click('#btn_SearchProjectSubmit');
-
-                    // Wait for grid to load and update
-                    try {
-                        await page.waitForSelector('.ds4u-grid', { timeout: 15000 });
-                        await page.waitForTimeout(2000); // Wait for pagination to settle
-                    } catch (e) {
-                        this.logger.warn(`Grid didn't load in search, continuing anyway: ${e.message}`);
-                    }
-                } else {
-                    this.logger.warn(`District "${options.district}" not found in dropdown`);
-                }
-            } else {
-                // If no district, just wait for initial grid
-                await page.waitForSelector('.ds4u-grid', { timeout: 15000 });
-            }
-
-            // Robust count extraction: Try specific selector first, then whole body
-            const totalCount = await page.evaluate(() => {
-                const footer = document.querySelector('.ds4u-pagination-info');
-                const text = footer ? footer.textContent : document.body.innerText;
-                const match = text?.match(/of\s+(\d+)\s+items/i);
-                return match ? parseInt(match[1], 10) : 0;
-            });
-
-            if (totalCount > 0) {
-                this.logger.log(`Total projects found: ${totalCount}`);
-                return totalCount;
-            }
-
-            return 0;
+            return await this.getCountInternal(page, options);
         } catch (error) {
             this.logger.error(`Failed to get total count: ${error.message}`);
             return 0;
         } finally {
             await browser.close();
         }
+    }
+
+    async getDistrictCounts(): Promise<{ district: string, count: number }[]> {
+        this.logger.log(`Fetching all district counts for Rajasthan...`);
+        const browser: Browser = await chromium.launch({ headless: true });
+        try {
+            const page: Page = await browser.newPage();
+            await page.goto(`${this.baseUrl}/ProjectSearch?status=3`, { waitUntil: 'networkidle' });
+
+            const districts = await page.evaluate(() => {
+                const select = document.querySelector('#DistrictId') as HTMLSelectElement;
+                if (!select) return [];
+                return Array.from(select.options)
+                    .map(o => ({ value: o.value, text: o.text.trim() }))
+                    .filter(o => o.value !== '' && o.value !== '0' && o.text !== '-- Select District --');
+            });
+
+            const results: { district: string, count: number }[] = [];
+            for (const district of districts) {
+                try {
+                    this.logger.log(`Fetching count for district: ${district.text}`);
+                    const count = await this.getCountInternal(page, { district: district.text });
+                    results.push({ district: district.text, count });
+                    // Small delay to avoid hammering
+                    await page.waitForTimeout(500);
+                } catch (err) {
+                    this.logger.error(`Failed to get count for district ${district.text}: ${err.message}`);
+                }
+            }
+
+            return results;
+        } catch (error) {
+            this.logger.error(`Failed to get district counts: ${error.message}`);
+            throw error;
+        } finally {
+            await browser.close();
+        }
+    }
+
+    private async getCountInternal(page: Page, options?: ScrapeOptions): Promise<number> {
+        await page.goto(`${this.baseUrl}/ProjectSearch?status=3`, { waitUntil: 'networkidle' });
+
+        if (options?.district) {
+            const districtValue = await page.evaluate((district) => {
+                const select = document.querySelector('#DistrictId') as HTMLSelectElement;
+                if (!select) return null;
+                const options = Array.from(select.options);
+                const target = options.find(o => o.text.trim().toLowerCase() === district.toLowerCase());
+                return target ? target.value : null;
+            }, options.district);
+
+            if (districtValue) {
+                await page.selectOption('#DistrictId', districtValue);
+                await page.click('#btn_SearchProjectSubmit');
+                try {
+                    await page.waitForSelector('.ds4u-grid', { timeout: 15000 });
+                    await page.waitForTimeout(1000);
+                } catch (e) {
+                    this.logger.warn(`Grid didn't load in search: ${e.message}`);
+                }
+            }
+        } else {
+            await page.waitForSelector('.ds4u-grid', { timeout: 15000 });
+        }
+
+        const totalCount = await page.evaluate(() => {
+            const footer = document.querySelector('.ds4u-pagination-info');
+            const text = footer ? footer.textContent : document.body.innerText;
+            const match = text?.match(/of\s+(\d+)\s+items/i);
+            return match ? parseInt(match[1], 10) : 0;
+        });
+
+        return totalCount || 0;
     }
 
     private async scrapeProjectDetails(browser: Browser, projectId: string): Promise<Partial<ReraProject>> {

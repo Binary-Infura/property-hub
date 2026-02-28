@@ -56,8 +56,11 @@ export default function ReraScraperPage() {
         }
     ]);
     const [globalSyncing, setGlobalSyncing] = useState(false);
-    const [activeTab, setActiveTab] = useState<'status' | 'data' | 'logs'>('status');
+    const [activeTab, setActiveTab] = useState<'status' | 'data' | 'logs' | 'counts'>('status');
     const [activityLogs, setActivityLogs] = useState<any[]>([]);
+    const [districtCounts, setDistrictCounts] = useState<any[]>([]);
+    const [fetchingCounts, setFetchingCounts] = useState(false);
+    const [syncingCounts, setSyncingCounts] = useState(false);
     const [fetchingLogs, setFetchingLogs] = useState(false);
     const [selectedViewStateId, setSelectedViewStateId] = useState('rajasthan');
     const [selectedViewDistrict, setSelectedViewDistrict] = useState('');
@@ -168,11 +171,40 @@ export default function ReraScraperPage() {
         }
     };
 
+    const fetchDistrictCounts = async () => {
+        if (!token) return;
+        setFetchingCounts(true);
+        try {
+            const counts = await reraService.getDistrictCounts(token, selectedViewStateId);
+            setDistrictCounts(counts);
+        } catch (error) {
+            console.error('Failed to fetch district counts', error);
+        } finally {
+            setFetchingCounts(false);
+        }
+    };
+
+    const handleSyncCounts = async () => {
+        if (!token) return;
+        setSyncingCounts(true);
+        try {
+            await reraService.syncDistrictCounts(token, selectedViewStateId);
+            alert(`Count synchronization started for ${selectedViewStateId}. This might take a minute.`);
+            await fetchDistrictCounts();
+        } catch (error: any) {
+            alert('Failed to sync counts: ' + error.message);
+        } finally {
+            setSyncingCounts(false);
+        }
+    };
+
     useEffect(() => {
         if (activeTab === 'logs') {
             fetchActivityLogs();
+        } else if (activeTab === 'counts') {
+            fetchDistrictCounts();
         }
-    }, [activeTab]);
+    }, [activeTab, selectedViewStateId]);
 
     const selectedState = states.find(s => s.id === selectedViewStateId);
     const filteredProjects = selectedState?.projects.filter(p => {
@@ -248,6 +280,12 @@ export default function ReraScraperPage() {
                     className={`px-6 py-3 text-sm font-bold transition-all border-b-2 ${activeTab === 'logs' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
                 >
                     Scraper Activity
+                </button>
+                <button
+                    onClick={() => setActiveTab('counts')}
+                    className={`px-6 py-3 text-sm font-bold transition-all border-b-2 ${activeTab === 'counts' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-slate-400 hover:text-slate-600'}`}
+                >
+                    Project Counts
                 </button>
             </div>
 
@@ -691,6 +729,94 @@ export default function ReraScraperPage() {
                                                     <div className="text-[10px] text-slate-500 truncate" title={log.error}>
                                                         {log.error || 'Sync successful'}
                                                     </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {activeTab === 'counts' && (
+                <div className="animate-in fade-in slide-in-from-bottom-4 duration-500 max-w-5xl mx-auto space-y-6">
+                    <div className="bg-white p-5 rounded-2xl border border-slate-100 shadow-sm flex items-center justify-between">
+                        <div>
+                            <h3 className="text-lg font-bold text-slate-900">District-wise Project Counts</h3>
+                            <p className="text-xs text-slate-500">View and sync total project counts reported by RERA portals</p>
+                        </div>
+                        <div className="flex gap-3">
+                            <select
+                                value={selectedViewStateId}
+                                onChange={(e) => setSelectedViewStateId(e.target.value)}
+                                className="bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
+                            >
+                                {states.map(s => (
+                                    <option key={s.id} value={s.id}>{s.name}</option>
+                                ))}
+                            </select>
+                            <button
+                                onClick={handleSyncCounts}
+                                disabled={syncingCounts}
+                                className="px-4 py-2 bg-indigo-600 text-white rounded-xl text-xs font-bold hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-md shadow-indigo-100 disabled:opacity-50"
+                            >
+                                {syncingCounts ? (
+                                    <div className="w-3 h-3 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                    </svg>
+                                )}
+                                Sync All Counts
+                            </button>
+                        </div>
+                    </div>
+
+                    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm overflow-hidden text-center">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left border-collapse">
+                                <thead>
+                                    <tr className="bg-slate-50 text-[10px] font-black tracking-widest text-slate-400 uppercase">
+                                        <th className="px-6 py-4">District</th>
+                                        <th className="px-6 py-4">State</th>
+                                        <th className="px-6 py-4 text-center">Project Count</th>
+                                        <th className="px-6 py-4 text-right">Last Synced</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-50">
+                                    {fetchingCounts ? (
+                                        <tr>
+                                            <td colSpan={4} className="px-6 py-12 text-center text-sm text-slate-400">
+                                                <div className="flex flex-col items-center gap-3">
+                                                    <div className="w-8 h-8 border-4 border-slate-100 border-t-indigo-500 rounded-full animate-spin" />
+                                                    Loading counts...
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    ) : districtCounts.length === 0 ? (
+                                        <tr>
+                                            <td colSpan={4} className="px-6 py-12 text-center text-sm text-slate-400">
+                                                No district counts found. Click "Sync All Counts" to fetch them from the RERA portal.
+                                            </td>
+                                        </tr>
+                                    ) : (
+                                        districtCounts.map((item) => (
+                                            <tr key={item.id} className="hover:bg-slate-50/50 transition-colors">
+                                                <td className="px-6 py-4 border-b border-slate-50 font-bold text-slate-900">
+                                                    {item.district}
+                                                </td>
+                                                <td className="px-6 py-4 border-b border-slate-50 text-sm text-slate-500">
+                                                    {item.state}
+                                                </td>
+                                                <td className="px-6 py-4 border-b border-slate-50 text-center">
+                                                    <span className="px-3 py-1 bg-indigo-50 text-indigo-700 rounded-lg font-extrabold text-base">
+                                                        {item.projectCount.toLocaleString()}
+                                                    </span>
+                                                </td>
+                                                <td className="px-6 py-4 border-b border-slate-50 text-right text-xs text-slate-400">
+                                                    {new Date(item.updatedAt).toLocaleString()}
                                                 </td>
                                             </tr>
                                         ))

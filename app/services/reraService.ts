@@ -133,5 +133,35 @@ export const reraService = {
         }
 
         return response.json();
+    },
+    async getDistrictCounts(token: string, state?: string): Promise<any[]> {
+        let url = `${API_URL}/rera/district-counts`;
+        if (state) {
+            url += `?state=${state.toLowerCase()}`;
+        }
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+        if (!response.ok) {
+            throw new Error('Failed to fetch district counts');
+        }
+        return response.json();
+    },
+    async syncDistrictCounts(token: string, state: string): Promise<SyncResponse> {
+        const response = await fetch(`${API_URL}/rera/sync-district-counts/${state.toLowerCase()}`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({}),
+        });
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || `Failed to sync district counts for ${state}`);
+        }
+        return response.json();
     }
 };

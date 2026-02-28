@@ -198,4 +198,51 @@ export class ReraService {
         }
         return scraper.getTotalCount({ district });
     }
+
+    async syncDistrictCounts(state: string) {
+        const scraper = this.scrapers.find((s) => s.getState().toLowerCase() === state.toLowerCase());
+        if (!scraper || !scraper.getDistrictCounts) {
+            throw new Error(`Scraper not found or counts not supported for state: ${state}`);
+        }
+
+        this.logger.log(`Syncing district counts for ${state}...`);
+        const counts = await scraper.getDistrictCounts();
+
+        for (const item of counts) {
+            await this.prisma.reraDistrictCount.upsert({
+                where: {
+                    state_district: {
+                        state: scraper.getState(),
+                        district: item.district,
+                    },
+                },
+                update: {
+                    projectCount: item.count,
+                    updatedAt: new Date(),
+                },
+                create: {
+                    state: scraper.getState(),
+                    district: item.district,
+                    projectCount: item.count,
+                },
+            });
+        }
+
+        this.logger.log(`Synced counts for ${counts.length} districts in ${state}.`);
+        return { state, processed: counts.length };
+    }
+
+    async getDistrictCounts(state?: string) {
+        const where: any = {};
+        if (state) {
+            where.state = { equals: state, mode: 'insensitive' };
+        }
+        return this.prisma.reraDistrictCount.findMany({
+            where,
+            orderBy: [
+                { state: 'asc' },
+                { district: 'asc' },
+            ],
+        });
+    }
 }

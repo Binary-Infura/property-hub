@@ -124,4 +124,9 @@ export class MaharashtraScraper implements IReraScraper {
         // Implement when needed
         return 0;
     }
+
+    async getDistrictCounts(): Promise<{ district: string, count: number }[]> {
+        // Implement when needed
+        return [];
+    }
 }

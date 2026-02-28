@@ -21,4 +21,9 @@ export interface IReraScraper {
      * Get the total number of projects available on the portal without scraping them.
      */
     getTotalCount?(options?: ScrapeOptions): Promise<number>;
+
+    /**
+     * Get the total number of projects per district for this state.
+     */
+    getDistrictCounts?(): Promise<{ district: string, count: number }[]>;
 }

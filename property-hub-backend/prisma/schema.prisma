@@ -444,6 +444,17 @@ model ReraSyncLog {
   @@map("rera_sync_logs")
 }
 
+model ReraDistrictCount {
+  id           String   @id @default(uuid())
+  state        String
+  district     String
+  projectCount Int
+  updatedAt    DateTime @updatedAt
+
+  @@unique([state, district])
+  @@map("rera_district_counts")
+}
+
 model PostalCodeSyncLog {
   id              String    @id @default(uuid())
   status          String    // 'IN_PROGRESS', 'COMPLETED', 'FAILED'

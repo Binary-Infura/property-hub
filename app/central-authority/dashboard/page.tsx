@@ -52,8 +52,10 @@ export default function CentralAuthorityDashboardPage() {
     const { token } = useAuth();
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [partners, setPartners] = useState<PropertyPartner[]>([]);
+    const [districtCounts, setDistrictCounts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [updatingPartner, setUpdatingPartner] = useState<string | null>(null);
+    const [fetchingCounts, setFetchingCounts] = useState(false);
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -71,6 +73,26 @@ export default function CentralAuthorityDashboardPage() {
             }
         } catch (error) {
             console.error('Failed to fetch partners:', error);
+        }
+    };
+
+    const fetchDistrictCounts = async () => {
+        if (!token) return;
+        setFetchingCounts(true);
+        try {
+            const response = await fetch(`${API_URL}/rera/district-counts`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setDistrictCounts(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch district counts:', error);
+        } finally {
+            setFetchingCounts(false);
         }
     };
 
@@ -96,6 +118,7 @@ export default function CentralAuthorityDashboardPage() {
 
         fetchStats();
         fetchPartners();
+        fetchDistrictCounts();
     }, [token, API_URL]);
 
     const handleUpdateSubscription = async (userId: string, isPremium: boolean, mode: 'PAID' | 'FREE') => {
@@ -278,6 +301,83 @@ export default function CentralAuthorityDashboardPage() {
                         </tbody>
                     </table>
                 </div>
+            </div>
+
+
+            {/* RERA District-wise Counts Section */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div className="flex justify-between items-center mb-6">
+                    <div>
+                        <h2 className="text-xl font-bold text-gray-900">RERA District-wise Projects</h2>
+                        <p className="text-sm text-gray-500 mt-1">Total registered projects per district (from RERA portals)</p>
+                    </div>
+                    <Link
+                        href="/central-authority/dashboard/rera-counts"
+                        className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                    >
+                        View Details
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                    </Link>
+                </div>
+
+                <div className="overflow-x-auto min-h-[200px]">
+                    {fetchingCounts ? (
+                        <div className="flex items-center justify-center p-12">
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                        </div>
+                    ) : (
+                        <table className="w-full text-left border-collapse">
+                            <thead>
+                                <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+                                    <th className="px-4 py-3">District Name</th>
+                                    <th className="px-4 py-3">State</th>
+                                    <th className="px-4 py-3 text-center">Project Count</th>
+                                    <th className="px-4 py-3 text-right">Last Updated</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {districtCounts.slice(0, 5).map((item) => (
+                                    <tr key={item.id} className="text-sm group hover:bg-gray-50 transition-colors">
+                                        <td className="px-4 py-4 font-bold text-gray-900">
+                                            {item.district}
+                                        </td>
+                                        <td className="px-4 py-4 text-gray-600">{item.state}</td>
+                                        <td className="px-4 py-4 text-center">
+                                            <span className="bg-blue-50 text-blue-700 font-bold px-3 py-1 rounded-lg">
+                                                {item.projectCount.toLocaleString()}
+                                            </span>
+                                        </td>
+                                        <td className="px-4 py-4 text-right text-gray-400 text-xs">
+                                            {new Date(item.updatedAt).toLocaleDateString()}
+                                        </td>
+                                    </tr>
+                                ))}
+                                {districtCounts.length === 0 && (
+                                    <tr>
+                                        <td colSpan={4} className="px-4 py-8 text-center text-gray-500 italic">
+                                            No RERA data synchronized yet. Go to scraper to sync.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    )}
+                </div>
+                {districtCounts.length > 5 && (
+                    <div className="mt-4 pt-4 border-t border-gray-50">
+                        <Link
+                            href="/central-authority/dashboard/rera-counts"
+                            className="text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-wider flex items-center justify-center gap-1"
+                        >
+                            View All {districtCounts.length} Districts
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                            </svg>
+                        </Link>
+                    </div>
+                )}
             </div>
 
             {/* Property Management Quick Access */}
