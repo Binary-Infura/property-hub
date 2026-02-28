@@ -150,6 +150,7 @@ model User {
   onboardedUsers           User[]                    @relation("UserOnboardedUsers")
   campaignsAssigned        MarketingCampaign[]       @relation("CampaignToUser")
   assignedProperties       Property[]                @relation("PropertyAssignment")
+  activityLogs             ActivityLog[]
   @@map("users")
 }
 
@@ -470,6 +471,22 @@ model City {
   properties  Property[]
 
   @@map("cities")
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  type      String   // 'info', 'alert', 'warning'
+  action    String   // e.g., 'Property Created', 'User Registered'
+  target    String   // e.g., 'Luxury Villa', 'Broker John'
+  timestamp DateTime @default(now())
+  details   Json?
+
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([timestamp])
+  @@index([userId])
+  @@map("activity_logs")
 }
 
 

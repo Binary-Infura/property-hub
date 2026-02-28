@@ -343,9 +343,9 @@ export default function CentralAuthorityDashboardPage() {
                         ))}
                     </div>
                     <div className="mt-6 pt-4 border-t border-gray-100">
-                        <button className="w-full py-2.5 bg-gray-50 text-xs text-center text-gray-500 hover:text-gray-900 font-bold uppercase tracking-[0.2em] rounded-lg transition-all hover:bg-gray-100 active:scale-95">
+                        <Link href="/central-authority/dashboard/audit-log" className="block w-full py-2.5 bg-gray-50 text-xs text-center text-gray-500 hover:text-gray-900 font-bold uppercase tracking-[0.2em] rounded-lg transition-all hover:bg-gray-100 active:scale-95">
                             View Audit Log
-                        </button>
+                        </Link>
                     </div>
                 </div>
             </div>

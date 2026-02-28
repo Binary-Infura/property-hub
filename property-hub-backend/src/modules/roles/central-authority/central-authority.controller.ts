@@ -33,8 +33,11 @@ export class CentralAuthorityController {
 
     @Post('users')
     @RequireRoles('central-authority')
-    create(@Body() dto: CreateCentralAuthorityUserDto) {
-        return this.centralAuthorityService.create(dto);
+    create(
+        @CurrentUser() user: AuthenticatedUser,
+        @Body() dto: CreateCentralAuthorityUserDto
+    ) {
+        return this.centralAuthorityService.create(user, dto);
     }
 
     @Get('users')
@@ -53,11 +56,13 @@ export class CentralAuthorityController {
 
     @Patch('property-partners/:userId/subscription')
     async updatePartnerSubscription(
-        @Param('userId') userId: string,
+        @CurrentUser() currentUser: AuthenticatedUser,
+        @Param('userId') targetUserId: string,
         @Body() body: { isPremium: boolean, subscriptionMode: 'PAID' | 'FREE' }
     ) {
         return this.centralAuthorityService.updatePartnerSubscription(
-            userId,
+            currentUser,
+            targetUserId,
             body.isPremium,
             body.subscriptionMode
         );

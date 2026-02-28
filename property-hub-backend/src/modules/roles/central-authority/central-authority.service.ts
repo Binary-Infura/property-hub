@@ -1,6 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { AuthenticatedUser } from '../../../common/interfaces/jwt-payload.interface';
 import { PrismaService } from '../../../database/prisma.service';
 import { UsersService } from '../../users/users.service';
+import { ActivityLogsService } from '../../activity-logs/activity-logs.service';
 import { UpdateCentralAuthorityProfileDto, CreateCentralAuthorityUserDto, CentralAuthorityUserDto } from './central-authority.dto';
 
 @Injectable()
@@ -8,6 +10,7 @@ export class CentralAuthorityService {
     constructor(
         private prisma: PrismaService,
         private usersService: UsersService,
+        private activityLogsService: ActivityLogsService,
     ) { }
 
     async getProfile(userId: string) {
@@ -34,22 +37,11 @@ export class CentralAuthorityService {
             },
         });
     }
-
-    async create(dto: CreateCentralAuthorityUserDto) {
-        // 1. Create in Database
-        const user = await this.prisma.user.create({
-            data: {
-                firstName: dto.firstName,
-                lastName: dto.lastName,
-                email: dto.email,
-                phone: dto.phone,
-                roles: ['central-authority'],
-                passwordHash: await this.usersService['hashPassword']('password'), // Or generate temporary
-                status: 'active',
-            },
-        });
-
-        return user;
+    async create(currentUser: AuthenticatedUser, dto: CreateCentralAuthorityUserDto) {
+        return this.usersService.createUser({
+            ...dto,
+            roles: ['central-authority'],
+        }, currentUser);
     }
 
     async findAll(page: number = 1, limit: number = 10, role: string = 'central-authority'): Promise<{ data: CentralAuthorityUserDto[], total: number }> {
@@ -131,7 +123,17 @@ export class CentralAuthorityService {
             leads: { monthly: 0 }, // Placeholder for now
             regions: [],
 
-            recentActivity
+            recentActivity: (await (this.prisma as any).activityLog.findMany({
+                take: 5,
+                orderBy: { timestamp: 'desc' },
+                select: {
+                    id: true,
+                    type: true,
+                    action: true,
+                    target: true,
+                    timestamp: true
+                }
+            }))
         };
     }
     async getAllPropertyPartners() {
@@ -150,9 +152,9 @@ export class CentralAuthorityService {
         });
     }
 
-    async updatePartnerSubscription(userId: string, isPremium: boolean, subscriptionMode: 'PAID' | 'FREE') {
+    async updatePartnerSubscription(currentUser: AuthenticatedUser, targetUserId: string, isPremium: boolean, subscriptionMode: 'PAID' | 'FREE') {
         const user = await this.prisma.user.findUnique({
-            where: { id: userId },
+            where: { id: targetUserId },
             include: { propertyPartnerProfile: true }
         });
 
@@ -160,18 +162,30 @@ export class CentralAuthorityService {
             throw new NotFoundException('Property Partner not found');
         }
 
-        return this.prisma.propertyPartnerProfile.upsert({
-            where: { userId },
+        const internalCurrentUser = await this.usersService.ensureUserSynced(currentUser);
+
+        const result = await (this.prisma.propertyPartnerProfile as any).upsert({
+            where: { userId: targetUserId },
             update: {
                 isPremium,
                 subscriptionMode
             },
             create: {
-                userId,
+                userId: targetUserId,
                 isPremium,
                 subscriptionMode,
                 companyName: user.agencyName || 'Unknown Company'
             }
         });
+
+        await this.activityLogsService.log({
+            userId: internalCurrentUser.id,
+            type: isPremium ? 'info' : 'warning',
+            action: isPremium ? 'Premium Subscription Granted' : 'Premium Subscription Revoked',
+            target: user.firstName + ' ' + (user.lastName || ''),
+            details: { mode: subscriptionMode, targetUserId }
+        });
+
+        return result;
     }
 }

@@ -4,12 +4,14 @@ import { CreatePropertyDto, UpdatePropertyDto } from './properties.dto';
 import { Property } from '@prisma/client';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 import { UsersService } from '../users/users.service';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 
 @Injectable()
 export class PropertiesService {
     constructor(
         private prisma: PrismaService,
         private usersService: UsersService,
+        private activityLogsService: ActivityLogsService,
     ) { }
 
     async findAll(user: AuthenticatedUser | undefined, myOnly?: boolean, city?: string): Promise<Property[]> {
@@ -99,13 +101,26 @@ export class PropertiesService {
 
 
 
-        return this.prisma.property.create({
+        const property = await this.prisma.property.create({
             data,
             include: {
 
                 onboardedBy: true,
             },
         });
+
+        // Use the performing user's ID for the log
+        const internalUser = user ? await this.usersService.ensureUserSynced(user) : null;
+
+        await this.activityLogsService.log({
+            userId: internalUser?.id || data.onboardedById,
+            type: 'info',
+            action: 'Property Onboarded',
+            target: property.name,
+            details: { propertyId: property.id }
+        });
+
+        return property;
     }
 
     async update(id: string, updatePropertyDto: UpdatePropertyDto, user: AuthenticatedUser): Promise<Property> {
@@ -166,7 +181,7 @@ export class PropertiesService {
             throw new BadRequestException('You do not have permission to allocate properties.');
         }
 
-        return this.prisma.property.update({
+        const result = await this.prisma.property.update({
             where: { id },
             data: {
                 assignedTo: {
@@ -178,6 +193,18 @@ export class PropertiesService {
                 onboardedBy: true,
             }
         });
+
+        const internalUser = user ? await this.usersService.ensureUserSynced(user) : null;
+
+        await this.activityLogsService.log({
+            userId: internalUser?.id,
+            type: 'info',
+            action: 'Property Allocated',
+            target: result.name,
+            details: { consultantIds, propertyId: result.id }
+        });
+
+        return result;
     }
 
     async bulkAssignConsultants(propertyIds: string[], consultantIds: string[], user: AuthenticatedUser) {

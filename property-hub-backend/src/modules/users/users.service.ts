@@ -1,5 +1,6 @@
-import { Injectable, BadRequestException, NotFoundException, InternalServerErrorException, HttpException } from '@nestjs/common';
+import { Injectable, BadRequestException, NotFoundException, InternalServerErrorException, HttpException, Inject, forwardRef } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { UpdateUserMetadataDto, CreateUserDto, UpdateUserDto, InviteUserDto, InviteCentralAuthorityDto, InvitationResponse, UpdateProfileDto } from './users.dto';
 import { UserMetadata, User } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
@@ -12,6 +13,7 @@ export class UsersService {
     constructor(
         private prisma: PrismaService,
         private configService: ConfigService,
+        private activityLogsService: ActivityLogsService,
     ) { }
 
     private async hashPassword(password: string): Promise<string> {
@@ -209,6 +211,14 @@ export class UsersService {
                 }
             });
         }
+
+        await this.activityLogsService.log({
+            userId: onboardedById || createdUser.id,
+            type: 'info',
+            action: 'User Registered',
+            target: createdUser.firstName + ' ' + (createdUser.lastName || ''),
+            details: { roles: createdUser.roles }
+        });
 
         return createdUser;
     }
