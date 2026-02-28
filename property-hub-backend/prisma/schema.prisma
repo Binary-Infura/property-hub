@@ -188,7 +188,8 @@ model PropertyPartnerProfile {
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
   isPremium      Boolean  @default(false)
-  user           User     @relation(fields: [userId], references: [id])
+  subscriptionMode SubscriptionMode @default(PAID)
+  user           User             @relation(fields: [userId], references: [id])
 
   @@map("property_partner_profiles")
 }
@@ -472,3 +473,7 @@ model City {
 }
 
 
+enum SubscriptionMode {
+  PAID
+  FREE
+}

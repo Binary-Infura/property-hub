@@ -134,4 +134,44 @@ export class CentralAuthorityService {
             recentActivity
         };
     }
+    async getAllPropertyPartners() {
+        return this.prisma.user.findMany({
+            where: {
+                roles: {
+                    has: 'property-partner'
+                }
+            },
+            include: {
+                propertyPartnerProfile: true
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
+    }
+
+    async updatePartnerSubscription(userId: string, isPremium: boolean, subscriptionMode: 'PAID' | 'FREE') {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            include: { propertyPartnerProfile: true }
+        });
+
+        if (!user || !user.roles.includes('property-partner')) {
+            throw new NotFoundException('Property Partner not found');
+        }
+
+        return this.prisma.propertyPartnerProfile.upsert({
+            where: { userId },
+            update: {
+                isPremium,
+                subscriptionMode
+            },
+            create: {
+                userId,
+                isPremium,
+                subscriptionMode,
+                companyName: user.agencyName || 'Unknown Company'
+            }
+        });
+    }
 }

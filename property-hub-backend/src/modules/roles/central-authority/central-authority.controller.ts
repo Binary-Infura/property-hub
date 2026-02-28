@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, UseGuards, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, UseGuards, Query, Patch, Param } from '@nestjs/common';
 import { CentralAuthorityService } from './central-authority.service';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/guards/roles.guard';
@@ -45,5 +45,21 @@ export class CentralAuthorityController {
         @Query('limit') limit: string = '10'
     ) {
         return this.centralAuthorityService.findAll(Number(page), Number(limit), role);
+    }
+    @Get('property-partners')
+    async getAllPropertyPartners() {
+        return this.centralAuthorityService.getAllPropertyPartners();
+    }
+
+    @Patch('property-partners/:userId/subscription')
+    async updatePartnerSubscription(
+        @Param('userId') userId: string,
+        @Body() body: { isPremium: boolean, subscriptionMode: 'PAID' | 'FREE' }
+    ) {
+        return this.centralAuthorityService.updatePartnerSubscription(
+            userId,
+            body.isPremium,
+            body.subscriptionMode
+        );
     }
 }

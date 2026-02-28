@@ -21,6 +21,7 @@ export interface User {
         taxId?: string;
         licenseNumber?: string;
         isPremium: boolean;
+        subscriptionMode: 'PAID' | 'FREE';
     };
     serviceProviderProfile?: any;
     onboardedBy?: {
