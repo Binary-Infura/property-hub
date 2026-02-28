@@ -19,9 +19,7 @@ export default function PropertyPartnerSidebar() {
   const advancedNavigation = [
     { name: 'Consultants', href: '/property-partner/dashboard/consultants', icon: 'person' as const },
     { name: 'Loan Advisers', href: '/property-partner/dashboard/loan-advisers', icon: 'bank' as const },
-    { name: 'Channel Partners', href: '/property-partner/dashboard/channel-partners', icon: 'handshake' as const },
     { name: 'Visit Executives', href: '/property-partner/dashboard/visit-executives', icon: 'pin' as const },
-    { name: 'Service Providers', href: '/property-partner/dashboard/service-providers', icon: 'wrench' as const },
     { name: 'Leads', href: '/property-partner/dashboard/leads', icon: 'clipboard' as const },
   ];
 

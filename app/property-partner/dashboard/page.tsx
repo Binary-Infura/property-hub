@@ -143,13 +143,11 @@ export default function PropertyPartnerDashboard() {
               </span>
             )}
           </div>
-          <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { name: 'Consultants', href: '/property-partner/dashboard/consultants', icon: 'person' as const, color: 'blue' },
               { name: 'Loan Advisers', href: '/property-partner/dashboard/loan-advisers', icon: 'bank' as const, color: 'indigo' },
-              { name: 'Channel Partners', href: '/property-partner/dashboard/channel-partners', icon: 'handshake' as const, color: 'amber' },
               { name: 'Visit Executives', href: '/property-partner/dashboard/visit-executives', icon: 'pin' as const, color: 'rose' },
-              { name: 'Service Providers', href: '/property-partner/dashboard/service-providers', icon: 'wrench' as const, color: 'teal' },
               { name: 'Leads', href: '/property-partner/dashboard/leads', icon: 'clipboard' as const, color: 'orange' },
             ].map((item) => (
               <Link
