@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
-import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
+
 
 // Types
 interface User {

@@ -150,8 +150,6 @@ model User {
   onboardedUsers           User[]                    @relation("UserOnboardedUsers")
   campaignsAssigned        MarketingCampaign[]       @relation("CampaignToUser")
   assignedProperties       Property[]                @relation("PropertyAssignment")
-  cityAllocations          CityAllocation[]
-
   @@map("users")
 }
 
@@ -473,14 +471,4 @@ model City {
   @@map("cities")
 }
 
-model CityAllocation {
-  id         String   @id @default(uuid())
-  userId     String
-  stateCode  String
-  cityName   String
-  assignedAt DateTime @default(now())
-  user       User     @relation(fields: [userId], references: [id])
 
-  @@unique([userId, stateCode, cityName])
-  @@map("city_allocations")
-}

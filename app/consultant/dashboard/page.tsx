@@ -9,7 +9,7 @@ import SiteVisitScheduling from '@/app/components/consultant/SiteVisitScheduling
 import DealProgressTracking from '@/app/components/consultant/DealProgressTracking';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import { useAuth } from '@/app/contexts/AuthContext';
-import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
+
 import { consultantService } from '@/app/services/consultantService';
 
 export default function ConsultantDashboard() {

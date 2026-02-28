@@ -19,15 +19,7 @@ export class PropertiesService {
             ['central-authority', 'property-partner', 'buyer', 'consultant', 'loan-adviser', 'marketing-manager', 'onboarding-manager', 'channel-partner', 'visit-executive', 'service-provider'].includes(role)
         ) || false;
 
-        // Check if user has access to the requested city
-        if (user && !isGlobalRole && city) {
-            const citySlug = city.toLowerCase().replace(/\s+/g, '-');
-            const hasAccess = (user.groups || []).some(g => g.endsWith(`/${citySlug}`));
 
-            if (!hasAccess) {
-                return []; // Access denied
-            }
-        }
 
         let where: any = {};
 
@@ -82,15 +74,7 @@ export class PropertiesService {
             const internalUser = await this.usersService.ensureUserSynced(user);
             const isOwner = property.onboardedById === internalUser.id;
 
-            // Check city access (skip if owner or central authority)
-            if (!isCentralAuthority && !isOwner) {
-                const cityName = property.city?.name;
-                const hasLocationCityAccess = cityName && userRegions.some(g => g.toLowerCase() === cityName.toLowerCase());
 
-                if (!hasLocationCityAccess) {
-                    throw new NotFoundException(`Property with ID ${id} not found`);
-                }
-            }
         }
 
         return property;

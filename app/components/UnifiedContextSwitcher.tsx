@@ -5,7 +5,7 @@ import { useUnifiedApp, UserRole } from '../contexts/UnifiedAppContext';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function UnifiedContextSwitcher() {
-    const { currentUser, activeContext, switchContext, myCities, switchCity } = useUnifiedApp();
+    const { currentUser, activeContext, switchContext } = useUnifiedApp();
     const { user, roles, token, logout } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [settingDefault, setSettingDefault] = useState<string | null>(null);
@@ -15,7 +15,7 @@ export default function UnifiedContextSwitcher() {
     const firstName = user?.given_name || user?.firstName || '';
     const lastName = user?.family_name || user?.lastName || '';
     const displayName = firstName || lastName ? `${firstName} ${lastName}`.trim() : (user?.name || 'User');
-    const { activeRole, activeCity } = activeContext;
+    const { activeRole } = activeContext;
     const activeRoleName = activeRole.name;
     const defaultRoleId = user?.defaultRole as string | undefined;
     const avatarUrl = user
@@ -86,7 +86,7 @@ export default function UnifiedContextSwitcher() {
                 <div className="flex flex-col items-start leading-tight">
                     <span className="text-sm font-semibold text-gray-900">{displayName}</span>
                     <span className="text-[10px] text-gray-500 font-bold uppercase tracking-tight">
-                        {activeRoleName}{activeCity ? ` • ${activeCity.cityName}` : ''}
+                        {activeRoleName}
                     </span>
                 </div>
                 <svg
@@ -137,8 +137,8 @@ export default function UnifiedContextSwitcher() {
                                         onClick={(e) => handleSetDefault(role.id, e)}
                                         title={isDefault ? 'This is your default role' : 'Set as default role on login'}
                                         className={`flex-shrink-0 w-7 h-7 flex items-center justify-center rounded-md transition-all ml-2 ${isDefault
-                                                ? 'text-yellow-500 bg-yellow-50'
-                                                : 'text-gray-300 hover:text-gray-600 hover:bg-gray-100 opacity-0 group-hover:opacity-100'
+                                            ? 'text-yellow-500 bg-yellow-50'
+                                            : 'text-gray-300 hover:text-gray-600 hover:bg-gray-100 opacity-0 group-hover:opacity-100'
                                             }`}
                                         disabled={isDefault || isSetting}
                                     >
@@ -157,34 +157,6 @@ export default function UnifiedContextSwitcher() {
                             );
                         })}
                     </div>
-
-                    {/* City Switcher for Managers */}
-                    {['marketing-manager', 'onboarding-manager'].includes(activeRole.id) && (
-                        <div className="p-2 border-b border-gray-100 max-h-64 overflow-y-auto">
-                            <p className="px-3 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest">Switch City</p>
-                            {myCities.length === 0 ? (
-                                <p className="px-3 py-4 text-xs text-gray-400 italic text-center">No cities allocated</p>
-                            ) : (
-                                myCities.map((city) => (
-                                    <button
-                                        key={city.id}
-                                        onClick={() => { switchCity(city); setIsOpen(false); }}
-                                        className={`w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-sm transition-colors ${activeCity?.cityName === city.cityName ? 'bg-blue-50 text-blue-600 font-bold' : 'text-gray-600 hover:bg-gray-50'}`}
-                                    >
-                                        <div className="flex flex-col items-start text-left">
-                                            <span>{city.cityName}</span>
-                                            <span className="text-[10px] text-gray-400">{city.stateCode}</span>
-                                        </div>
-                                        {activeCity?.cityName === city.cityName && (
-                                            <svg className="w-4 h-4 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        )}
-                                    </button>
-                                ))
-                            )}
-                        </div>
-                    )}
 
                     {/* Logout */}
                     <div className="p-2 bg-gray-50">

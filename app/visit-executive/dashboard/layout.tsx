@@ -8,7 +8,7 @@ import { usePathname } from 'next/navigation';
 import SidebarIcon from '@/app/components/SidebarIcon';
 
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
-import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
+
 
 function VisitExecutiveDashboardLayoutContent({
     children,
@@ -35,7 +35,6 @@ function VisitExecutiveDashboardLayoutContent({
 
     return (
         <div className="flex h-screen bg-gray-50 overflow-hidden">
-            {/* Sidebar */}
             <aside className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0">
                 <div className="h-16 flex items-center px-6 border-b border-gray-100">
                     <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-900">

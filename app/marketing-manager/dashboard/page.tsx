@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { marketingService } from '@/app/services/marketingService';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
-import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
+
 
 interface Campaign {
     id: string;
@@ -62,9 +62,7 @@ export default function MarketingManagerDashboard() {
         return <div className="p-8 flex items-center justify-center min-h-screen">Loading dashboard...</div>;
     }
 
-    if (!activeContext.activeCity) {
-        return <NoAllocationPlaceholder />;
-    }
+
 
     return (
         <div className="p-8 bg-gray-50 min-h-screen">

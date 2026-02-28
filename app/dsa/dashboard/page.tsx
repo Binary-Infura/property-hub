@@ -9,7 +9,7 @@ import PerformanceMetrics from '@/app/components/dsa/PerformanceMetrics';
 import AddPropertyModal from '@/app/components/dsa/AddPropertyModal';
 import { Lead } from '@/app/types/lead';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
-import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
+
 
 interface Commission {
   id: string;

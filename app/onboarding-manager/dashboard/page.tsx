@@ -6,7 +6,6 @@ import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import { propertyService } from '@/app/services/propertyService';
 import { userService } from '@/app/services/userService';
 import Link from 'next/link';
-import NoAllocationPlaceholder from '@/app/components/dashboard/NoAllocationPlaceholder';
 
 export default function OnboardingManagerDashboard() {
     const { user, token } = useAuth();
@@ -84,9 +83,7 @@ export default function OnboardingManagerDashboard() {
         { id: 4, action: 'System Update', subject: 'City switching enabled', time: '2 days ago', type: 'system', status: 'success' },
     ];
 
-    if (!activeContext.activeCity) {
-        return <NoAllocationPlaceholder />;
-    }
+
 
     return (
         <div className="max-w-[1600px] mx-auto space-y-10 pb-12">
@@ -110,7 +107,7 @@ export default function OnboardingManagerDashboard() {
                         <p className="mt-4 text-blue-100 text-lg flex items-center gap-2">
                             Overview for
                             <span className="px-3 py-1 bg-white/10 rounded-lg text-white font-bold border border-white/20">
-                                {activeContext.activeCity.cityName} Dashboard
+                                Management Dashboard
                             </span>
                         </p>
                     </div>

@@ -1,6 +1,6 @@
 import { Injectable, ConflictException, NotFoundException, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { AssignCityDto, CreateCityDto } from './cities.dto';
+import { CreateCityDto } from './cities.dto';
 import {
     getStatesOfCountry,
     getCitiesOfState
@@ -39,94 +39,7 @@ export class CitiesService {
         }
     }
 
-    async assignCity(dto: AssignCityDto) {
-        try {
-            // Validate user role
-            const user = await this.prisma.user.findUnique({
-                where: { id: dto.userId },
-                select: { roles: true }
-            });
 
-            if (!user) {
-                throw new NotFoundException('User not found');
-            }
-
-            const allowedRoles = ['marketing-manager', 'onboarding-manager'];
-            if (!user.roles.some(role => allowedRoles.includes(role))) {
-                throw new ConflictException(`City allocation is not allowed for users with roles: ${user.roles.join(', ')}`);
-            }
-
-            return await this.prisma.cityAllocation.create({
-                data: {
-                    userId: dto.userId,
-                    stateCode: dto.stateCode,
-                    cityName: dto.cityName,
-                },
-            });
-        } catch (error) {
-            if (error.code === 'P2002') {
-                throw new ConflictException('This city is already assigned to this user');
-            }
-            throw error;
-        }
-    }
-
-    async unassignCity(id: string) {
-        const allocation = await this.prisma.cityAllocation.findUnique({
-            where: { id },
-        });
-        if (!allocation) {
-            throw new NotFoundException('City allocation not found');
-        }
-        return this.prisma.cityAllocation.delete({
-            where: { id },
-        });
-    }
-
-    async getUserAllocations(userId: string) {
-        return this.prisma.cityAllocation.findMany({
-            where: { userId },
-            orderBy: { assignedAt: 'desc' },
-        });
-    }
-
-    async getAllAllocations() {
-        return this.prisma.cityAllocation.findMany({
-            include: {
-                user: {
-                    select: {
-                        firstName: true,
-                        lastName: true,
-                        email: true,
-                        roles: true,
-                    },
-                },
-            },
-            orderBy: { assignedAt: 'desc' },
-        });
-    }
-
-    async searchManagers(query: string) {
-        return this.prisma.user.findMany({
-            where: {
-                OR: [
-                    { firstName: { contains: query, mode: 'insensitive' } },
-                    { lastName: { contains: query, mode: 'insensitive' } },
-                    { email: { contains: query, mode: 'insensitive' } },
-                ],
-                roles: { hasSome: ['marketing-manager', 'onboarding-manager'] },
-                status: 'active',
-            },
-            select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true,
-                roles: true,
-            },
-            take: 10,
-        });
-    }
 
     async createCity(dto: CreateCityDto) {
         try {
