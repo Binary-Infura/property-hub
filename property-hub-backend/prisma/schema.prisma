@@ -384,6 +384,7 @@ model PostalCode {
 
   @@index([code])
   @@index([district])
+  @@unique([code, officeName])
   @@map("postal_codes")
 }
 
@@ -415,6 +416,20 @@ model ReraSyncLog {
   completedAt     DateTime?
 
   @@map("rera_sync_logs")
+}
+
+model PostalCodeSyncLog {
+  id              String    @id @default(uuid())
+  status          String    // 'IN_PROGRESS', 'COMPLETED', 'FAILED'
+  recordsImported Int       @default(0)
+  totalRecords    Int       @default(0)
+  lastOffset      Int       @default(0)
+  error           String?
+  startedById     String?
+  startedAt       DateTime  @default(now())
+  completedAt     DateTime?
+
+  @@map("postal_code_sync_logs")
 }
 
 enum PropertyStatus {
