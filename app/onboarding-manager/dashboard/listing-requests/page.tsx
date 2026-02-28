@@ -96,7 +96,7 @@ export default function ListingRequestsPage() {
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">Listing Requests</h1>
-                    <p className="text-gray-600 mt-1">Review and approve property listings from partners</p>
+                    <p className="text-gray-600 mt-1">Review and approve project listings from partners</p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">

@@ -5,7 +5,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import { propertyService, Property, PropertyType } from '@/app/services/propertyService';
 
-export default function OnboardingPropertiesPage() {
+export default function OnboardingProjectsPage() {
     const { token } = useAuth();
     const { activeContext } = useUnifiedApp();
     const [properties, setProperties] = useState<Property[]>([]);
@@ -44,8 +44,8 @@ export default function OnboardingPropertiesPage() {
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Properties Inventory</h1>
-                    <p className="text-gray-600 mt-1">Manage and track property onboarding across cities.</p>
+                    <h1 className="text-3xl font-bold text-gray-900">Projects Inventory</h1>
+                    <p className="text-gray-600 mt-1">Manage and track project onboarding across cities.</p>
                 </div>
                 <button
                     onClick={() => { const el = document.getElementById('pom-add-property-modal'); if (el) el.classList.remove('hidden'); }}
@@ -54,7 +54,7 @@ export default function OnboardingPropertiesPage() {
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
-                    Onboard New Property
+                    Onboard New Project
                 </button>
             </div>
 
@@ -77,7 +77,7 @@ export default function OnboardingPropertiesPage() {
                             : 'text-gray-500 hover:text-gray-700'
                             }`}
                     >
-                        All Properties
+                        All Projects
                     </button>
                 </div>
 
@@ -102,7 +102,7 @@ export default function OnboardingPropertiesPage() {
                     <table className="min-w-full divide-y divide-gray-100">
                         <thead className="bg-gray-50/50">
                             <tr>
-                                <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Property Details</th>
+                                <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Project Details</th>
                                 <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Type & Price</th>
                                 <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Onboarded By</th>
                                 <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
@@ -115,7 +115,7 @@ export default function OnboardingPropertiesPage() {
                                     <td colSpan={5} className="px-6 py-10 text-center text-gray-400">
                                         <div className="flex flex-col items-center gap-2">
                                             <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                                            <span>Loading inventory...</span>
+                                            <span>Loading projects...</span>
                                         </div>
                                     </td>
                                 </tr>
@@ -129,7 +129,7 @@ export default function OnboardingPropertiesPage() {
                                     return (
                                         <tr>
                                             <td colSpan={5} className="px-6 py-10 text-center text-gray-400">
-                                                {searchQuery ? `No properties matching "${searchQuery}"` : 'No properties found.'}
+                                                {searchQuery ? `No projects matching "${searchQuery}"` : 'No projects found.'}
                                             </td>
                                         </tr>
                                     );
@@ -191,7 +191,7 @@ export default function OnboardingPropertiesPage() {
                                                 <td colSpan={5} className="px-6 py-4 border-t border-gray-100 bg-gray-50/30">
                                                     <div className="flex items-center justify-between">
                                                         <p className="text-sm text-gray-500 font-medium">
-                                                            Showing <span className="text-gray-900">{startIndex + 1}</span> to <span className="text-gray-900">{Math.min(startIndex + itemsPerPage, filtered.length)}</span> of <span className="text-gray-900">{filtered.length}</span> properties
+                                                            Showing <span className="text-gray-900">{startIndex + 1}</span> to <span className="text-gray-900">{Math.min(startIndex + itemsPerPage, filtered.length)}</span> of <span className="text-gray-900">{filtered.length}</span> projects
                                                         </p>
                                                         <div className="flex items-center gap-2">
                                                             <button
@@ -239,13 +239,13 @@ export default function OnboardingPropertiesPage() {
                 </div>
             </div>
 
-            {/* Onboard New Property Modal */}
+            {/* Onboard New Project Modal */}
             <div id="pom-add-property-modal" className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200 hidden">
                 <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all animate-in zoom-in-95 duration-200">
                     <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                         <div>
-                            <h2 className="text-xl font-bold text-gray-900">Onboard New Property</h2>
-                            <p className="text-sm text-gray-500 mt-1">Enter property details to onboard into the system.</p>
+                            <h2 className="text-xl font-bold text-gray-900">Onboard New Project</h2>
+                            <p className="text-sm text-gray-500 mt-1">Enter project details to onboard into the system.</p>
                         </div>
                         <button
                             onClick={() => { const el = document.getElementById('pom-add-property-modal'); if (el) el.classList.add('hidden'); }}
@@ -260,7 +260,7 @@ export default function OnboardingPropertiesPage() {
                     <div className="p-6 space-y-5">
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div className="col-span-1 md:col-span-2">
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Property Name</label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Project Name</label>
                                 <input
                                     id="prop-name"
                                     type="text"
@@ -280,7 +280,7 @@ export default function OnboardingPropertiesPage() {
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Property Type (Segment)</label>
+                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Project Type (Segment)</label>
                                 <select id="prop-type" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm">
                                     <option value="APARTMENT">Residential</option>
                                     <option value="COMMERCIAL">Commercial</option>
@@ -341,12 +341,12 @@ export default function OnboardingPropertiesPage() {
                                         if (el) el.classList.add('hidden');
                                         fetchProperties();
                                     } catch (err: any) {
-                                        alert(err.message || 'Failed to onboard property');
+                                        alert(err.message || 'Failed to onboard project');
                                     }
                                 }}
                                 className="flex-1 px-4 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-200 text-sm"
                             >
-                                Submit Property
+                                Submit Project
                             </button>
                         </div>
                     </div>
