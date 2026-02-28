@@ -1,4 +1,3 @@
-import Image from "next/image";
 import ConsultantProfile from "./components/ConsultantProfile";
 import RecommendedProperties from "./components/RecommendedProperties";
 import Navbar from "./components/Navbar";
@@ -84,7 +83,7 @@ export default function Home() {
               How Our Expert Process Works
             </h2>
             <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              We've simplified the home-buying journey into 3 easy steps
+              We&apos;ve simplified the home-buying journey into 3 easy steps
             </p>
           </div>
 
@@ -118,7 +117,7 @@ export default function Home() {
               </div>
               <h3 className="text-xl font-bold text-gray-900 mt-4 mb-3">Expert Support Throughout</h3>
               <p className="text-gray-600 leading-relaxed">
-                Our consultants guide you through negotiations, inspections, and documentation. We're with you every step until you get the keys.
+                Our consultants guide you through negotiations, inspections, and documentation. We&apos;re with you every step until you get the keys.
               </p>
             </div>
           </div>
@@ -194,6 +193,19 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Partner With Us */}
+      <section id="partner" className="py-20 md:py-32 bg-gradient-to-br from-blue-900 to-indigo-900 border-t border-gray-100">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
+          <h2 className="text-3xl md:text-5xl font-bold mb-6">Partner With PropertyHub</h2>
+          <p className="text-xl text-blue-100 md:max-w-3xl mx-auto mb-10 leading-relaxed text-opacity-90">
+            Join our growing network of real estate professionals. Whether you are a DSA, Property Partner, Service Provider, or an Influencer, we have a place for you to grow your business and increase your earnings.
+          </p>
+          <a href="/partners" className="inline-block bg-white text-blue-900 px-10 py-4 rounded-full font-bold text-lg hover:bg-blue-50 hover:shadow-xl hover:scale-105 transition transform duration-300">
+            Explore Partnership Opportunities
+          </a>
+        </div>
+      </section>
+
       {/* Loan Calculator Section */}
       <LoanCalculator />
 
@@ -231,7 +243,7 @@ export default function Home() {
                     <span>5-yr old</span>
                   </div>
                   <p className="text-gray-600 text-sm mb-4">
-                    "Perfect for growing families. Strong community, great schools nearby." - Your Consultant
+                    &quot;Perfect for growing families. Strong community, great schools nearby.&quot; - Your Consultant
                   </p>
                   <button className="w-full border border-blue-600 text-blue-600 py-2 rounded-lg hover:bg-blue-50 font-medium">
                     Learn More
@@ -294,7 +306,7 @@ export default function Home() {
                     </svg>
                   ))}
                 </div>
-                <p className="text-gray-700 mb-6 leading-relaxed">"{testimonial.text}"</p>
+                <p className="text-gray-700 mb-6 leading-relaxed">&quot;{testimonial.text}&quot;</p>
                 <div>
                   <p className="font-bold text-gray-900">{testimonial.name}</p>
                   <p className="text-gray-600 text-sm">{testimonial.role}</p>
