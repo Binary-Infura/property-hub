@@ -45,14 +45,20 @@ export const userService = {
         return response.json();
     },
 
-    async create(userData: Partial<User>, token: string): Promise<User> {
+    async create(userData: any, token: string): Promise<User> {
+        const payload = { ...userData };
+        if (payload.role && !payload.roles) {
+            payload.roles = [payload.role];
+            delete payload.role;
+        }
+
         const response = await fetch(`${API_URL}/api/users`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify(userData),
+            body: JSON.stringify(payload),
         });
         if (!response.ok) {
             const error = await response.json();
@@ -61,14 +67,20 @@ export const userService = {
         return response.json();
     },
 
-    async update(id: string, userData: Partial<User>, token: string): Promise<User> {
+    async update(id: string, userData: any, token: string): Promise<User> {
+        const payload = { ...userData };
+        if (payload.role && !payload.roles) {
+            payload.roles = [payload.role];
+            delete payload.role;
+        }
+
         const response = await fetch(`${API_URL}/api/users/${id}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
                 Authorization: `Bearer ${token}`,
             },
-            body: JSON.stringify(userData),
+            body: JSON.stringify(payload),
         });
         if (!response.ok) throw new Error('Failed to update user');
         return response.json();
