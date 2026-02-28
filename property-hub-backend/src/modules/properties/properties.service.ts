@@ -89,7 +89,7 @@ export class PropertiesService {
             onboardedById = internalUser.id;
         }
 
-        const { continent, country, cityId, locationId, ...rest } = createPropertyDto;
+        const { cityId, ...rest } = createPropertyDto;
 
         const data: any = {
             ...rest,
@@ -111,7 +111,7 @@ export class PropertiesService {
     async update(id: string, updatePropertyDto: UpdatePropertyDto, user: AuthenticatedUser): Promise<Property> {
         const property = await this.findOne(id, user);
 
-        const { continent, country, cityId, locationId, ...rest } = updatePropertyDto;
+        const { cityId, ...rest } = updatePropertyDto;
 
         const data: any = {
             ...rest,
