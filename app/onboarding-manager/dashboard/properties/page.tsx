@@ -121,7 +121,7 @@ export default function OnboardingPropertiesPage() {
                                 </tr>
                             ) : (() => {
                                 const filtered = properties.filter(prop => {
-                                    const searchStr = `${prop.name} ${prop.location} ${prop.propertyType || ''} ${prop.onboardedBy?.name || ''}`.toLowerCase();
+                                    const searchStr = `${prop.name} ${prop.location} ${prop.projectType || ''} ${prop.onboardedBy?.name || ''}`.toLowerCase();
                                     return searchStr.includes(searchQuery.toLowerCase());
                                 });
 
@@ -151,7 +151,7 @@ export default function OnboardingPropertiesPage() {
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex flex-col">
-                                                        <span className="text-sm text-gray-700">{property.propertyType}</span>
+                                                        <span className="text-sm text-gray-700">{property.projectType}</span>
                                                         <span className="text-xs font-semibold text-blue-600">₹{(Number(property.price) / 100000).toFixed(2)} Lacs</span>
                                                     </div>
                                                 </td>
@@ -330,7 +330,7 @@ export default function OnboardingPropertiesPage() {
                                     try {
                                         const payload = {
                                             name: (document.getElementById('prop-name') as HTMLInputElement).value,
-                                            propertyType: (document.getElementById('prop-type') as HTMLSelectElement).value as any,
+                                            projectType: (document.getElementById('prop-type') as HTMLSelectElement).value as any,
                                             category: (document.getElementById('prop-category') as HTMLSelectElement).value,
                                             location: (document.getElementById('prop-location') as HTMLInputElement).value,
                                             price: Number((document.getElementById('prop-price') as HTMLInputElement).value),

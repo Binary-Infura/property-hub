@@ -16,7 +16,7 @@ export class LeadsService {
             where,
             include: {
 
-                property: true,
+                project: true,
             },
             orderBy: {
                 createdAt: 'desc',
@@ -29,7 +29,7 @@ export class LeadsService {
             where: { id },
             include: {
 
-                property: true,
+                project: true,
                 visits: true,
             },
         });
@@ -52,17 +52,17 @@ export class LeadsService {
 
     async create(createLeadDto: CreateLeadDto): Promise<Lead> {
         try {
-            const { propertyId, campaignId, assignedTo, ...data } = createLeadDto;
+            const { projectId, campaignId, assignedTo, ...data } = createLeadDto;
 
             return await this.prisma.lead.create({
                 data: {
                     ...data,
-                    property: propertyId ? { connect: { id: propertyId } } : undefined,
+                    project: projectId ? { connect: { id: projectId } } : undefined,
                     campaign: campaignId ? { connect: { id: campaignId } } : undefined,
                     assignedToUser: assignedTo ? { connect: { id: assignedTo } } : undefined,
                 },
                 include: {
-                    property: true,
+                    project: true,
                     campaign: true,
                 },
             });
@@ -81,18 +81,18 @@ export class LeadsService {
 
     async update(id: string, updateLeadDto: UpdateLeadDto, user: AuthenticatedUser): Promise<Lead> {
         await this.findOne(id, user);
-        const { propertyId, campaignId, assignedTo, ...data } = updateLeadDto;
+        const { projectId, campaignId, assignedTo, ...data } = updateLeadDto;
 
         return this.prisma.lead.update({
             where: { id },
             data: {
                 ...data,
-                property: propertyId ? { connect: { id: propertyId } } : undefined,
+                project: projectId ? { connect: { id: projectId } } : undefined,
                 campaign: campaignId ? { connect: { id: campaignId } } : undefined,
                 assignedToUser: assignedTo ? { connect: { id: assignedTo } } : undefined,
             },
             include: {
-                property: true,
+                project: true,
                 campaign: true,
             },
         });

@@ -15,7 +15,7 @@ export class CreateAdsRequestDto {
     @ApiProperty({ required: false })
     @IsOptional()
     @IsString()
-    propertyId?: string;
+    projectId?: string;
 
     @ApiProperty({ required: false })
     @IsOptional()

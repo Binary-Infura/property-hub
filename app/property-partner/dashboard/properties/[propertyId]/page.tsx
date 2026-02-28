@@ -9,6 +9,8 @@ import { PROPERTY_STATUS_CONFIG } from '@/app/constants/property';
 import { STATUS_CONFIG } from '@/app/constants/block';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+import AddUnitModal from '@/app/components/property-partner/AddUnitModal';
+import MarkAsSoldModal from '@/app/components/property-partner/MarkAsSoldModal';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -50,8 +52,23 @@ export default function PropertyDetailPage() {
 
   const [property, setProperty] = useState<Property | null>(null);
   const [blocks, setBlocks] = useState<Block[]>([]);
+  const [units, setUnits] = useState<any[]>([]);
   const [activeTab, setActiveTab] = useState<'overview' | 'buildings' | 'blocks' | 'settings'>('overview');
   const [loading, setLoading] = useState(true);
+  const [isAddUnitModalOpen, setIsAddUnitModalOpen] = useState(false);
+  const [isMarkAsSoldModalOpen, setIsMarkAsSoldModalOpen] = useState(false);
+
+  const fetchUnits = async () => {
+    if (!token) return;
+    try {
+      const res = await fetch(`${API_URL}/api/units/project/${propertyId}`);
+      if (res.ok) {
+        setUnits(await res.json());
+      }
+    } catch (e) {
+      console.error(e);
+    }
+  };
 
   useEffect(() => {
     const fetchProperty = async () => {
@@ -59,7 +76,7 @@ export default function PropertyDetailPage() {
 
       try {
         setLoading(true);
-        const res = await fetch(`${API_URL}/api/properties/${propertyId}`, {
+        const res = await fetch(`${API_URL}/api/projects/${propertyId}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -80,7 +97,7 @@ export default function PropertyDetailPage() {
           const mapped: Property = {
             id: data.id,
             title: data.name,
-            propertyType: data.propertyType === 'COMMERCIAL' ? 'commercial' : 'residential',
+            propertyType: data.projectType === 'COMMERCIAL' ? 'commercial' : 'residential',
             location: data.location,
             address: data.address || '',
             city: '',
@@ -115,13 +132,14 @@ export default function PropertyDetailPage() {
     };
 
     fetchProperty();
+    fetchUnits();
   }, [propertyId, token]);
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this property?')) return;
 
     try {
-      const res = await fetch(`${API_URL}/api/properties/${propertyId}`, {
+      const res = await fetch(`${API_URL}/api/projects/${propertyId}`, {
         method: 'DELETE',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -194,7 +212,7 @@ export default function PropertyDetailPage() {
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
           <p className="text-gray-600 text-sm">Total Units</p>
-          <p className="text-2xl font-bold text-gray-900 mt-1">{property.totalUnits}</p>
+          <p className="text-2xl font-bold text-gray-900 mt-1">{units.length || property.totalUnits}</p>
         </div>
         <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
           <p className="text-gray-600 text-sm">Blocks</p>
@@ -332,74 +350,79 @@ export default function PropertyDetailPage() {
           {activeTab === 'blocks' && (
             <div className="space-y-6">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-900">Blocks Overview</h3>
-                <Link
-                  href={`/property-partner/dashboard/projects/${property.id}/buildings/building-001/blocks/add`}
-                  className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium transition"
-                >
-                  Add Block
-                </Link>
+                <h3 className="text-lg font-semibold text-gray-900">Units Overview</h3>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setIsMarkAsSoldModalOpen(true)}
+                    className="bg-emerald-600 text-white px-4 py-2 rounded-lg hover:bg-emerald-700 text-sm font-medium transition"
+                  >
+                    Mark Unit as Sold
+                  </button>
+                  <button
+                    onClick={() => setIsAddUnitModalOpen(true)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium transition"
+                  >
+                    Add Unit
+                  </button>
+                </div>
               </div>
 
-              {blocks.length === 0 ? (
+              {units.length === 0 ? (
                 <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
                   <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M20 7l-8-4-8 4m0 0l8 4m-8-4v10l8 4m0-10l8 4m-8-4v10M7 12l8 4m0 0l8-4" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                   </svg>
-                  <p className="text-gray-500 text-lg font-medium mb-4">No blocks created yet</p>
-                  <Link
-                    href={`/property-partner/dashboard/projects/${property.id}/buildings/building-001/blocks/add`}
+                  <p className="text-gray-500 text-lg font-medium mb-4">No units created yet</p>
+                  <button
+                    onClick={() => setIsAddUnitModalOpen(true)}
                     className="inline-block bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 font-medium transition text-sm"
                   >
-                    Create First Block
-                  </Link>
+                    Create First Unit
+                  </button>
                 </div>
               ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {blocks.map(block => {
-                    const blockStatusConfig = STATUS_CONFIG[block.status];
-                    const totalUnits = block.floors?.reduce((sum, floor) => sum + floor.totalUnits, 0) || 0;
-                    const bookedUnits = block.floors?.reduce((sum, floor) => sum + floor.bookedUnits, 0) || 0;
+                  {units.map((unit: any) => (
+                    <div
+                      key={unit.id}
+                      className="p-6 border border-gray-200 bg-white rounded-xl shadow-sm hover:shadow-md transition relative overflow-hidden"
+                    >
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <h4 className="font-bold text-gray-900 text-xl">{unit.unitNumber}</h4>
+                          <p className="text-sm text-gray-500">{unit.type || 'Standard Unit'} • Floor {unit.floor || 'N/A'}</p>
+                        </div>
+                        <span className={`px-2 py-1 rounded-md text-xs font-semibold uppercase tracking-wider ${unit.status === 'SOLD' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                          }`}>
+                          {unit.status}
+                        </span>
+                      </div>
 
-                    return (
-                      <Link
-                        key={block.id}
-                        href={`/property-partner/dashboard/projects/${block.projectId}/buildings/${block.buildingId}/blocks/${block.id}`}
-                        className="p-6 border border-gray-200 rounded-lg hover:shadow-lg transition cursor-pointer"
-                      >
-                        <div className="flex justify-between items-start mb-3">
-                          <h4 className="font-bold text-gray-900">{block.name}</h4>
-                          <span className={`px-2 py-1 rounded text-xs font-semibold ${blockStatusConfig.color}`}>
-                            {blockStatusConfig.label}
+                      <div className="space-y-3 pt-4 border-t border-gray-100">
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-gray-500 flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+                            Area
                           </span>
+                          <span className="font-semibold text-gray-900">{unit.area ? `${unit.area} Sq Ft` : 'N/A'}</span>
                         </div>
-
-                        <p className="text-sm text-gray-600 mb-4">Code: {block.code}</p>
-
-                        <div className="space-y-2 text-sm mb-4">
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Total Units:</span>
-                            <span className="font-semibold text-gray-900">{totalUnits}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Booked:</span>
-                            <span className="font-semibold text-blue-600">{bookedUnits}</span>
-                          </div>
-                          <div className="flex justify-between">
-                            <span className="text-gray-600">Available:</span>
-                            <span className="font-semibold text-green-600">{totalUnits - bookedUnits}</span>
-                          </div>
+                        <div className="flex justify-between items-center text-sm">
+                          <span className="text-gray-500 flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            Price
+                          </span>
+                          <span className="font-semibold text-gray-900">₹{unit.price.toLocaleString()}</span>
                         </div>
+                      </div>
 
-                        <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                          <div
-                            className="bg-blue-600 h-full transition-all"
-                            style={{ width: `${(bookedUnits / totalUnits) * 100}%` }}
-                          />
+                      {unit.status === 'SOLD' && (
+                        <div className="mt-4 p-3 bg-emerald-50 rounded-lg border border-emerald-100 text-sm">
+                          <p className="text-emerald-800 font-medium">Sold To: <span className="font-bold">{unit.buyerName}</span></p>
+                          <p className="text-emerald-600 text-xs mt-1">₹{unit.salePrice.toLocaleString()} on {new Date(unit.soldAt).toLocaleDateString()}</p>
                         </div>
-                      </Link>
-                    );
-                  })}
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -439,6 +462,21 @@ export default function PropertyDetailPage() {
           )}
         </div>
       </div>
+
+      <AddUnitModal
+        isOpen={isAddUnitModalOpen}
+        onClose={() => setIsAddUnitModalOpen(false)}
+        projectId={propertyId}
+        onAdded={fetchUnits}
+      />
+
+      <MarkAsSoldModal
+        isOpen={isMarkAsSoldModalOpen}
+        onClose={() => setIsMarkAsSoldModalOpen(false)}
+        projectId={propertyId}
+        units={units}
+        onSold={fetchUnits}
+      />
     </div>
   );
 }

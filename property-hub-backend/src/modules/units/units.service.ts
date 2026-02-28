@@ -1,0 +1,118 @@
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { PrismaService } from '../../database/prisma.service';
+import { CreateUnitDto, UpdateUnitDto, MarkUnitAsSoldDto } from './units.dto';
+import { PropertyUnit } from '@prisma/client';
+import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
+import { UsersService } from '../users/users.service';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
+
+@Injectable()
+export class UnitsService {
+    constructor(
+        private prisma: PrismaService,
+        private usersService: UsersService,
+        private activityLogsService: ActivityLogsService,
+    ) { }
+
+    async create(createUnitDto: CreateUnitDto, user: AuthenticatedUser): Promise<PropertyUnit> {
+        const internalUser = await this.usersService.ensureUserSynced(user);
+
+        // Verify project ownership (optional: depending on business logic, right now allowed for onboarding-manager, partner etc)
+        const project = await this.prisma.project.findUnique({
+            where: { id: createUnitDto.projectId },
+        });
+
+        if (!project) throw new NotFoundException('Project not found');
+
+        const isPropertyPartner = user.roles.includes('property-partner');
+        if (isPropertyPartner && project.onboardedById !== internalUser.id) {
+            throw new BadRequestException('You can only add units to projects you have onboarded.');
+        }
+
+        const { projectId, ...rest } = createUnitDto;
+
+        const unit = await this.prisma.propertyUnit.create({
+            data: {
+                ...rest,
+                projectId,
+            },
+        });
+
+        await this.activityLogsService.log({
+            userId: internalUser.id,
+            type: 'info',
+            action: 'Unit Created',
+            target: `Unit ${unit.unitNumber} - ${project.name}`,
+            details: { unitId: unit.id, projectId: project.id }
+        });
+
+        return unit;
+    }
+
+    async findByProject(projectId: string): Promise<PropertyUnit[]> {
+        return this.prisma.propertyUnit.findMany({
+            where: { projectId },
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+
+    async findOne(id: string): Promise<PropertyUnit> {
+        const unit = await this.prisma.propertyUnit.findUnique({
+            where: { id },
+            include: { project: true },
+        });
+        if (!unit) throw new NotFoundException('Unit not found');
+        return unit;
+    }
+
+    async update(id: string, updateUnitDto: UpdateUnitDto, user: AuthenticatedUser): Promise<PropertyUnit> {
+        await this.findOne(id);
+        return this.prisma.propertyUnit.update({
+            where: { id },
+            data: updateUnitDto,
+        });
+    }
+
+    async markAsSold(id: string, dto: MarkUnitAsSoldDto, user: AuthenticatedUser): Promise<PropertyUnit> {
+        const unit = await this.findOne(id);
+        if (unit.status === 'SOLD') {
+            throw new BadRequestException('Unit is already sold');
+        }
+
+        const internalUser = await this.usersService.ensureUserSynced(user);
+
+        const updatedUnit = await this.prisma.propertyUnit.update({
+            where: { id },
+            data: {
+                status: 'SOLD',
+                buyerName: dto.buyerName,
+                buyerPhone: dto.buyerPhone,
+                salePrice: dto.salePrice,
+                soldAt: new Date(dto.soldAt),
+            },
+            include: { project: true }
+        });
+
+        await this.activityLogsService.log({
+            userId: internalUser.id,
+            type: 'info',
+            action: 'Unit Sold',
+            target: `Unit ${updatedUnit.unitNumber} - ${updatedUnit.project.name}`,
+            details: {
+                unitId: updatedUnit.id,
+                projectId: updatedUnit.projectId,
+                buyerName: dto.buyerName,
+                salePrice: dto.salePrice,
+            }
+        });
+
+        return updatedUnit;
+    }
+
+    async remove(id: string, user: AuthenticatedUser): Promise<PropertyUnit> {
+        await this.findOne(id);
+        return this.prisma.propertyUnit.delete({
+            where: { id },
+        });
+    }
+}

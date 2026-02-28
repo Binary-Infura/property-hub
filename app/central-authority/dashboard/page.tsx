@@ -5,7 +5,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
 
 interface DashboardStats {
-    properties: {
+    projects: {
         total: number;
         active: number;
         pending: number;
@@ -144,12 +144,12 @@ export default function CentralAuthorityDashboardPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
 
                 <Link href="/central-authority/dashboard/properties" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-blue-300 transition-all hover:shadow-md group">
-                    <h3 className="text-sm font-medium text-gray-500 group-hover:text-blue-600 transition-colors">Total Properties</h3>
+                    <h3 className="text-sm font-medium text-gray-500 group-hover:text-blue-600 transition-colors">Total Projects</h3>
                     <div className="flex items-end gap-2 mt-2">
-                        <span className="text-3xl font-bold text-slate-900">{stats.properties.total}</span>
-                        <span className="text-sm text-gray-500 mb-1">({stats.properties.active} Active)</span>
+                        <span className="text-3xl font-bold text-slate-900">{stats.projects.total}</span>
+                        <span className="text-sm text-gray-500 mb-1">({stats.projects.active} Active)</span>
                     </div>
-                    <p className="text-xs text-orange-600 mt-1">{stats.properties.pending} Pending Approval</p>
+                    <p className="text-xs text-orange-600 mt-1">{stats.projects.pending} Pending Approval</p>
                     <div className="mt-4 text-xs font-semibold text-blue-600 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         View All Properties
                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -290,8 +290,8 @@ export default function CentralAuthorityDashboardPage() {
                             </svg>
                         </div>
                         <div>
-                            <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">Property Allocation</h3>
-                            <p className="text-xs text-gray-500">Assign properties to consultants</p>
+                            <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">Project Allocation</h3>
+                            <p className="text-xs text-gray-500">Assign projects to consultants</p>
                         </div>
                     </div>
                     <div className="text-xs font-semibold text-blue-600 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">

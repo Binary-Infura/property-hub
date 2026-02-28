@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import AssignedClients from '@/app/components/consultant/AssignedClients';
 import ConsultationStatus from '@/app/components/consultant/ConsultationStatus';
 import ConsultantNotes from '@/app/components/consultant/ConsultantNotes';
-import RecommendedPropertiesSection from '@/app/components/consultant/RecommendedPropertiesSection';
+import RecommendedProjectsSection from '@/app/components/consultant/RecommendedProjectsSection';
 import SiteVisitScheduling from '@/app/components/consultant/SiteVisitScheduling';
 import DealProgressTracking from '@/app/components/consultant/DealProgressTracking';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
@@ -15,7 +15,7 @@ import { consultantService } from '@/app/services/consultantService';
 export default function ConsultantDashboard() {
   const { token } = useAuth();
   const { activeContext } = useUnifiedApp();
-  const [assignedProperties, setAssignedProperties] = useState<any[]>([]);
+  const [assignedProjects, setAssignedProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Keep existing mock data for other sections for now
@@ -191,8 +191,8 @@ export default function ConsultantDashboard() {
     async function fetchData() {
       if (!token) return;
       try {
-        const props = await consultantService.getAssignedProperties(token);
-        setAssignedProperties(props);
+        const props = await consultantService.getAssignedProjects(token);
+        setAssignedProjects(props);
       } catch (error) {
         console.error('Error fetching consultant properties:', error);
       } finally {
@@ -230,21 +230,21 @@ export default function ConsultantDashboard() {
         {/* Stats Grid */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-            <p className="text-gray-600 text-sm font-medium">Assigned Properties</p>
-            <p className="text-3xl font-bold text-blue-600 mt-2">{assignedProperties.length}</p>
+            <p className="text-gray-600 text-sm font-medium">Assigned Projects</p>
+            <p className="text-3xl font-bold text-blue-600 mt-2">{assignedProjects.length}</p>
             <p className="text-xs text-gray-500 mt-2">Active assignments</p>
           </div>
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
             <p className="text-gray-600 text-sm font-medium">Total Campaigns</p>
             <p className="text-3xl font-bold text-green-600 mt-2">
-              {assignedProperties.reduce((acc, prop) => acc + (prop.campaigns?.length || 0), 0)}
+              {assignedProjects.reduce((acc, prop) => acc + (prop.campaigns?.length || 0), 0)}
             </p>
             <p className="text-xs text-gray-500 mt-2">Marketing campaigns</p>
           </div>
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
             <p className="text-gray-600 text-sm font-medium">Total Leads</p>
             <p className="text-3xl font-bold text-yellow-600 mt-2">
-              {assignedProperties.reduce((acc, prop) => acc + (prop.campaigns?.reduce((cAcc: any, camp: any) => cAcc + camp.leads.length, 0) || 0), 0)}
+              {assignedProjects.reduce((acc, prop) => acc + (prop.campaigns?.reduce((cAcc: any, camp: any) => cAcc + camp.leads.length, 0) || 0), 0)}
             </p>
             <p className="text-xs text-gray-500 mt-2">Leads from campaigns</p>
           </div>
@@ -265,7 +265,7 @@ export default function ConsultantDashboard() {
                 : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
             >
-              Assigned Properties
+              Assigned Projects
             </button>
             <button
               onClick={() => setActiveTab('clients')}
@@ -317,7 +317,7 @@ export default function ConsultantDashboard() {
           {/* Tab Content */}
           <div className="p-6">
             {activeTab === 'properties' && (
-              <RecommendedPropertiesSection properties={assignedProperties} />
+              <RecommendedProjectsSection projects={assignedProjects} />
             )}
             {activeTab === 'clients' && (
               <AssignedClients

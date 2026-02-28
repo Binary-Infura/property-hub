@@ -224,7 +224,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
         if (!token) return;
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/api/properties?myOnly=true`, {
+            const res = await fetch(`${API_URL}/api/projects?myOnly=true`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
@@ -288,7 +288,7 @@ export default function SelectPropertyModal({ isOpen, onClose, onSuccess }: Sele
                 continent: 'Asia',
             };
 
-            const res = await fetch(`${API_URL}/api/properties/${selectedPropertyId}`, {
+            const res = await fetch(`${API_URL}/api/projects/${selectedPropertyId}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

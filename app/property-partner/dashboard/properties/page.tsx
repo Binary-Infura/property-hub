@@ -49,7 +49,7 @@ export default function PropertiesPage() {
 
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/api/properties/my`, {
+      const res = await fetch(`${API_URL}/api/projects/my`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -82,7 +82,7 @@ export default function PropertiesPage() {
           return {
             id: p.id,
             title: p.name,
-            propertyType: p.propertyType === 'COMMERCIAL' ? 'commercial' : 'residential',
+            projectType: p.projectType === 'COMMERCIAL' ? 'commercial' : 'residential',
             propertyCategory: p.category?.toLowerCase() as any,
             location: p.location,
             address: p.address || '',
@@ -237,15 +237,7 @@ export default function PropertiesPage() {
         onSuccess={fetchProperties}
       />
 
-      <MarkAsSoldModal
-        isOpen={isMarkAsSoldModalOpen}
-        onClose={() => {
-          setIsMarkAsSoldModalOpen(false);
-          setSelectedPropertyForSale(null);
-        }}
-        property={selectedPropertyForSale}
-        onSuccess={fetchProperties}
-      />
+      
 
       {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">

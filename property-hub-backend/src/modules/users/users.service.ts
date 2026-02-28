@@ -204,7 +204,7 @@ export class UsersService {
             await this.prisma.propertyPartnerProfile.create({
                 data: {
                     userId: createdUser.id,
-                    companyName: dto.companyName || dto.agencyName || 'New Property Partner',
+                    companyName: dto.companyName || dto.agencyName || 'New Project Partner',
                     companyAddress: dto.companyAddress || '',
                     taxId: dto.taxId || '',
                     licenseNumber: dto.licenseNumber || '',
@@ -323,7 +323,7 @@ export class UsersService {
                     where: { userId: id },
                     create: {
                         userId: id,
-                        companyName: dto.companyName || dto.agencyName || 'New Property Partner',
+                        companyName: dto.companyName || dto.agencyName || 'New Project Partner',
                         ...profileData
                     },
                     update: profileData
@@ -461,7 +461,7 @@ export class UsersService {
                     where: { userId: user.id },
                     create: {
                         userId: user.id,
-                        companyName: dto.companyName || user.agencyName || 'New Property Partner',
+                        companyName: dto.companyName || user.agencyName || 'New Project Partner',
                         ...profileData
                     },
                     update: profileData

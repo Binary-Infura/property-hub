@@ -19,26 +19,26 @@ interface Campaign {
   leads: Lead[];
 }
 
-interface Property {
+interface Project {
   id: string;
   name: string;
   location: string;
   price: string | number;
   area?: string | number;
-  propertyType: string;
+  projectType: string;
   status: string;
   city?: { name: string };
   campaigns?: Campaign[];
 }
 
 interface RecommendedPropertiesSectionProps {
-  properties: Property[];
+  projects: Project[];
 }
 
 export default function RecommendedPropertiesSection({
-  properties,
+  projects,
 }: RecommendedPropertiesSectionProps) {
-  const [expandedProperty, setExpandedProperty] = useState<string | null>(null);
+  const [expandedProject, setExpandedProject] = useState<string | null>(null);
 
   const getStatusColor = (status: string) => {
     switch (status.toUpperCase()) {
@@ -54,67 +54,67 @@ export default function RecommendedPropertiesSection({
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6">
         <h3 className="text-lg font-bold text-gray-900 mb-2">Assigned Properties</h3>
         <p className="text-gray-700">
-          You are assigned to {properties.length} properties. Expand a property to see related marketing campaigns and leads.
+          You are assigned to {projects.length} projects. Expand a project to see related marketing campaigns and leads.
         </p>
       </div>
 
-      {properties.length === 0 ? (
+      {projects.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-200">
-          <p className="text-gray-600 font-medium">No properties assigned yet.</p>
+          <p className="text-gray-600 font-medium">No projects assigned yet.</p>
         </div>
       ) : (
         <div className="grid gap-6">
-          {properties.map(property => (
+          {projects.map(project => (
             <div
-              key={property.id}
+              key={project.id}
               className="bg-white border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition"
             >
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-xl font-bold text-gray-900">{property.name}</h3>
+                    <h3 className="text-xl font-bold text-gray-900">{project.name}</h3>
                     <p className="text-gray-600 flex items-center gap-1">
                       <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                       </svg>
-                      {property.location}{property.city ? `, ${property.city.name}` : ''}
+                      {project.location}{project.city ? `, ${project.city.name}` : ''}
                     </p>
                   </div>
-                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(property.status)}`}>
-                    {property.status}
+                  <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(project.status)}`}>
+                    {project.status}
                   </span>
                 </div>
 
                 <div className="grid grid-cols-3 gap-4 mb-6">
                   <div>
                     <p className="text-xs text-gray-500 uppercase font-semibold">Price</p>
-                    <p className="text-lg font-bold text-gray-900">₹{Number(property.price).toLocaleString()}</p>
+                    <p className="text-lg font-bold text-gray-900">₹{Number(project.price).toLocaleString()}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 uppercase font-semibold">Area</p>
-                    <p className="text-lg font-bold text-gray-900">{property.area || 'N/A'} sqft</p>
+                    <p className="text-lg font-bold text-gray-900">{project.area || 'N/A'} sqft</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 uppercase font-semibold">Type</p>
-                    <p className="text-lg font-bold text-gray-900">{property.propertyType}</p>
+                    <p className="text-lg font-bold text-gray-900">{project.projectType}</p>
                   </div>
                 </div>
 
                 <button
-                  onClick={() => setExpandedProperty(expandedProperty === property.id ? null : property.id)}
+                  onClick={() => setExpandedProject(expandedProject === project.id ? null : project.id)}
                   className="w-full flex items-center justify-center gap-2 py-2 bg-gray-50 hover:bg-gray-100 text-gray-700 font-semibold rounded-lg border border-gray-200 transition"
                 >
-                  {expandedProperty === property.id ? 'Hide Campaigns & Leads' : `View Campaigns & Leads (${property.campaigns?.length || 0})`}
-                  <svg className={`w-4 h-4 transition-transform ${expandedProperty === property.id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  {expandedProject === project.id ? 'Hide Campaigns & Leads' : `View Campaigns & Leads (${project.campaigns?.length || 0})`}
+                  <svg className={`w-4 h-4 transition-transform ${expandedProject === project.id ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
 
-                {expandedProperty === property.id && (
+                {expandedProject === project.id && (
                   <div className="mt-6 border-t pt-6 space-y-6">
-                    {property.campaigns && property.campaigns.length > 0 ? (
-                      property.campaigns.map(campaign => (
+                    {project.campaigns && project.campaigns.length > 0 ? (
+                      project.campaigns.map(campaign => (
                         <div key={campaign.id} className="bg-gray-50 rounded-lg p-4 border border-gray-200">
                           <div className="flex justify-between items-center mb-4">
                             <div>
@@ -150,7 +150,7 @@ export default function RecommendedPropertiesSection({
                         </div>
                       ))
                     ) : (
-                      <p className="text-center text-gray-500 text-sm italic">No campaigns or leads found for this property.</p>
+                      <p className="text-center text-gray-500 text-sm italic">No campaigns or leads found for this project.</p>
                     )}
                   </div>
                 )}

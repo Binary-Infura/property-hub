@@ -210,7 +210,7 @@ export default function PropertyBulkAllocationPage() {
             {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Property Allocation</h1>
+                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Project Allocation</h1>
                     <p className="text-slate-500 font-medium mt-1">Centralized management for assigning properties to consultants, loan advisers and visit executives.</p>
                 </div>
             </div>
@@ -243,7 +243,7 @@ export default function PropertyBulkAllocationPage() {
                 <div className="h-10 w-px bg-slate-100 mx-2 hidden lg:block"></div>
 
                 <div className="flex flex-col gap-1.5">
-                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Properties Status</span>
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Project Status</span>
                     <div className="flex gap-2 items-center">
                         <select
                             className="bg-slate-50 border-none rounded-2xl px-4 py-2.5 text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-100 min-w-[140px]"
@@ -270,7 +270,7 @@ export default function PropertyBulkAllocationPage() {
                     <div className="flex gap-6 items-center">
                         <div className="flex items-center gap-2">
                             <div className={`w-2 h-2 rounded-full bg-blue-600 ${selectedPropertyIds.length > 0 ? 'animate-pulse' : ''}`}></div>
-                            <span className="text-sm font-black text-slate-900">{selectedPropertyIds.length} <span className="text-slate-400 text-[10px] uppercase font-bold">Properties Selected</span></span>
+                            <span className="text-sm font-black text-slate-900">{selectedPropertyIds.length} <span className="text-slate-400 text-[10px] uppercase font-bold">Projects Selected</span></span>
                         </div>
                         <div className="flex items-center gap-2">
                             <div className={`w-2 h-2 rounded-full bg-purple-600 ${selectedAgentIds.length > 0 ? 'animate-pulse' : ''}`}></div>
@@ -287,7 +287,7 @@ export default function PropertyBulkAllocationPage() {
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-lg font-black text-slate-900 flex items-center gap-2 uppercase tracking-tight">
                                 <span className="w-1.5 h-6 bg-blue-600 rounded-full"></span>
-                                Step 1: Select Properties ({itemsCount})
+                                Step 1: Select Projects ({itemsCount})
                             </h2>
                             <button
                                 onClick={selectAllFilteredProperties}
@@ -316,7 +316,7 @@ export default function PropertyBulkAllocationPage() {
                                 <svg className="w-12 h-12 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                                 </svg>
-                                <p className="font-bold text-sm">No properties match your filters</p>
+                                <p className="font-bold text-sm">No projects match your filters</p>
                             </div>
                         ) : (
                             filteredProperties.map(p => {

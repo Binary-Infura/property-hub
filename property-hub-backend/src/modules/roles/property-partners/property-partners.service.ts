@@ -11,7 +11,7 @@ export class PropertyPartnersService {
             where: { userId },
         });
         if (!profile) {
-            throw new NotFoundException('Property Partner profile not found');
+            throw new NotFoundException('Project Partner profile not found');
         }
         return profile;
     }

@@ -14,7 +14,7 @@ export class CreateLeadDto {
 
     @IsUUID()
     @IsOptional()
-    propertyId?: string;
+    projectId?: string;
 
     @IsUUID()
     @IsOptional()
@@ -51,7 +51,7 @@ export class UpdateLeadDto {
     phone?: string;
     @IsUUID()
     @IsOptional()
-    propertyId?: string;
+    projectId?: string;
 
     @IsUUID()
     @IsOptional()

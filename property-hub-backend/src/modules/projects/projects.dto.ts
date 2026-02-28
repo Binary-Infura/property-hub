@@ -1,7 +1,7 @@
 import { IsString, IsOptional, IsEnum, IsNumber, IsUUID, Min } from 'class-validator';
-import { PropertyStatus, PropertyType } from '@prisma/client';
+import { ProjectStatus, ProjectType } from '@prisma/client';
 
-export class CreatePropertyDto {
+export class CreateProjectDto {
     @IsString()
     @IsOptional()
     videoUrl?: string;
@@ -21,9 +21,9 @@ export class CreatePropertyDto {
     address?: string;
 
 
-    @IsEnum(PropertyStatus)
+    @IsEnum(ProjectStatus)
     @IsOptional()
-    status?: PropertyStatus;
+    status?: ProjectStatus;
 
     @IsNumber()
     @Min(0)
@@ -44,8 +44,8 @@ export class CreatePropertyDto {
     @Min(0)
     bathrooms?: number;
 
-    @IsEnum(PropertyType)
-    propertyType: PropertyType;
+    @IsEnum(ProjectType)
+    projectType: ProjectType;
 
     @IsString()
     @IsOptional()
@@ -76,7 +76,7 @@ export class CreatePropertyDto {
     soldAt?: string;
 }
 
-export class UpdatePropertyDto {
+export class UpdateProjectDto {
     @IsString()
     @IsOptional()
     videoUrl?: string;
@@ -97,9 +97,9 @@ export class UpdatePropertyDto {
     @IsOptional()
     address?: string;
 
-    @IsEnum(PropertyStatus)
+    @IsEnum(ProjectStatus)
     @IsOptional()
-    status?: PropertyStatus;
+    status?: ProjectStatus;
 
     @IsNumber()
     @IsOptional()
@@ -121,9 +121,9 @@ export class UpdatePropertyDto {
     @Min(0)
     bathrooms?: number;
 
-    @IsEnum(PropertyType)
+    @IsEnum(ProjectType)
     @IsOptional()
-    propertyType?: PropertyType;
+    projectType?: ProjectType;
 
     @IsString()
     @IsOptional()

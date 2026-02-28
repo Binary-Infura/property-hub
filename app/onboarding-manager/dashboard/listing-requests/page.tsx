@@ -23,7 +23,7 @@ export default function ListingRequestsPage() {
         if (!token) return;
         setLoading(true);
         try {
-            const url = `${API_URL}/api/properties`;
+            const url = `${API_URL}/api/projects`;
 
             const res = await fetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -53,7 +53,7 @@ export default function ListingRequestsPage() {
         if (!token) return;
         setProcessingId(id);
         try {
-            const res = await fetch(`${API_URL}/api/properties/${id}`, {
+            const res = await fetch(`${API_URL}/api/projects/${id}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',

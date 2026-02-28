@@ -146,7 +146,7 @@ export class CreateUserDto {
     @IsOptional()
     portfolio?: string;
 
-    // Property Partner Profile Fields
+    // Project Partner Profile Fields
     @IsString()
     @IsOptional()
     companyName?: string;
@@ -232,7 +232,7 @@ export class UpdateUserDto {
     @IsOptional()
     portfolio?: string;
 
-    // Property Partner Profile Fields
+    // Project Partner Profile Fields
     @IsString()
     @IsOptional()
     companyName?: string;
@@ -267,7 +267,7 @@ export class UpdateProfileDto {
     @IsOptional()
     defaultRole?: string;
 
-    // Property Partner Specific
+    // Project Partner Specific
     @IsString()
     @IsOptional()
     companyName?: string;

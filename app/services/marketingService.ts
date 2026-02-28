@@ -75,7 +75,7 @@ export const marketingService = {
     },
 
     async getProperties(token: string) {
-        const response = await fetch(`${API_URL}/api/properties`, {
+        const response = await fetch(`${API_URL}/api/projects`, {
             headers: {
                 Authorization: `Bearer ${token}`
             }

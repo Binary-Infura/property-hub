@@ -75,13 +75,13 @@ export class CentralAuthorityService {
         const [
             totalRegions,
             totalPostalCodes,
-            propertyStats,
+            projectStats,
             userStats,
             recentRegions
         ] = await Promise.all([
             Promise.resolve(0), // Removed totalRegions
             this.prisma.postalCode.count(),
-            this.prisma.property.groupBy({
+            this.prisma.project.groupBy({
                 by: ['status'],
                 _count: {
                     _all: true
@@ -93,11 +93,11 @@ export class CentralAuthorityService {
             [] // Removed recentRegions
         ]);
 
-        // Process property stats
-        const properties = {
-            total: propertyStats.reduce((sum, item) => sum + item._count._all, 0),
-            active: propertyStats.find(i => i.status === 'AVAILABLE' || i.status === 'PUBLISHED' || i.status === 'APPROVED')?._count._all || 0,
-            pending: propertyStats.find(i => i.status === 'SUBMITTED')?._count._all || 0
+        // Process project stats
+        const projects = {
+            total: projectStats?.reduce((sum, item) => sum + item._count._all, 0) || 0,
+            active: projectStats?.find(i => i.status === 'AVAILABLE' || i.status === 'PUBLISHED' || i.status === 'APPROVED')?._count._all || 0,
+            pending: projectStats?.find(i => i.status === 'SUBMITTED')?._count._all || 0
         };
 
         // Process user stats (Manually aggregate since roles are arrays)
@@ -118,7 +118,7 @@ export class CentralAuthorityService {
             totalRegions: 0, // Placeholder
 
             totalPostalCodes,
-            properties,
+            projects,
             users,
             leads: { monthly: 0 }, // Placeholder for now
             regions: [],
@@ -159,7 +159,7 @@ export class CentralAuthorityService {
         });
 
         if (!user || !user.roles.includes('property-partner')) {
-            throw new NotFoundException('Property Partner not found');
+            throw new NotFoundException('Project Partner not found');
         }
 
         const internalCurrentUser = await this.usersService.ensureUserSynced(currentUser);

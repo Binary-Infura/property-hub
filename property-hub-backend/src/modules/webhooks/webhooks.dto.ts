@@ -30,7 +30,7 @@ export class CreateWebhookLeadDto {
 
     @IsUUID()
     @IsOptional()
-    propertyId?: string;
+    projectId?: string;
 
     @IsString()
     @IsOptional()

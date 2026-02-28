@@ -192,7 +192,7 @@ export default function OnboardingServiceProvidersPage() {
                                                     </div>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
-                                                    <span className="text-sm text-gray-700">{sp.regions?.[0]?.name || 'N/A'}</span>
+                                                    <span className="text-sm text-gray-700">{(sp as any).serviceProviderProfile?.location || 'N/A'}</span>
                                                 </td>
                                                 <td className="px-6 py-4 whitespace-nowrap">
                                                     <div className="flex flex-col">

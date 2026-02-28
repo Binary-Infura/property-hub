@@ -7,7 +7,7 @@ import { PrismaService } from '../../database/prisma.service';
  * Rules:
  * - Buyers can chat with: consultants, property-partners, channel-partners
  * - Consultants can chat with: buyers
- * - Property Partners can chat with: buyers
+ * - Project Partners can chat with: buyers
  * - Channel Partners can chat with: buyers
  */
 

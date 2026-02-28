@@ -11,7 +11,7 @@ export class CommissionsService {
     async findAll(user: AuthenticatedUser): Promise<Commission[]> {
         return this.prisma.commission.findMany({
             include: {
-                property: true,
+                project: true,
             },
             orderBy: {
                 createdAt: 'desc',
@@ -23,7 +23,7 @@ export class CommissionsService {
         const commission = await this.prisma.commission.findUnique({
             where: { id },
             include: {
-                property: true,
+                project: true,
             },
         });
 
@@ -35,19 +35,19 @@ export class CommissionsService {
     }
 
     async create(createCommissionDto: CreateCommissionDto, user: AuthenticatedUser): Promise<Commission> {
-        // Verify property exists
-        const property = await this.prisma.property.findUnique({
-            where: { id: createCommissionDto.propertyId },
+        // Verify project exists
+        const project = await this.prisma.project.findUnique({
+            where: { id: createCommissionDto.projectId },
         });
 
-        if (!property) {
-            throw new NotFoundException('Property not found');
+        if (!project) {
+            throw new NotFoundException('Project not found');
         }
 
         return this.prisma.commission.create({
             data: createCommissionDto,
             include: {
-                property: true,
+                project: true,
             },
         });
     }
@@ -59,7 +59,7 @@ export class CommissionsService {
             where: { id },
             data: updateCommissionDto,
             include: {
-                property: true,
+                project: true,
             },
         });
     }

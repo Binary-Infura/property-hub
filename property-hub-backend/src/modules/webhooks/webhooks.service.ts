@@ -72,18 +72,18 @@ export class WebhooksService {
 
 
             // Create the lead
-            const { propertyId, campaignId, assignedTo: dtoAssignedTo, ...rest } = dto;
+            const { projectId, campaignId, assignedTo: dtoAssignedTo, ...rest } = dto;
             const lead = await this.prisma.lead.create({
                 data: {
                     ...rest,
                     source: dto.source || 'webhook',
                     status: 'NEW',
                     assignedToUser: (dtoAssignedTo || assignedTo) ? { connect: { id: dtoAssignedTo || assignedTo } } : undefined,
-                    property: propertyId ? { connect: { id: propertyId } } : undefined,
+                    project: projectId ? { connect: { id: projectId } } : undefined,
                     campaign: campaignId ? { connect: { id: campaignId } } : undefined,
                 },
                 include: {
-                    property: true,
+                    project: true,
                     campaign: true,
                 },
             });
@@ -160,7 +160,7 @@ export class WebhooksService {
                 },
                 include: {
 
-                    property: true,
+                    project: true,
                 },
             });
 

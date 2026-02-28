@@ -81,9 +81,9 @@ export class CitiesService {
                 take: limit,
                 include: {
                     _count: {
-                        select: { properties: true }
+                        select: { projects: true }
                     },
-                    properties: {
+                    projects: {
                         select: { price: true }
                     }
                 },
@@ -93,14 +93,14 @@ export class CitiesService {
         ]);
 
         const data = (cities as any[]).map(city => {
-            const propertiesCount = city._count?.properties || 0;
-            const revenue = city.properties?.reduce((sum: number, p: any) => sum + Number(p.price || 0), 0) || 0;
+            const projectsCount = city._count?.projects || 0;
+            const revenue = city.projects?.reduce((sum: number, p: any) => sum + Number(p.price || 0), 0) || 0;
             return {
                 id: city.id,
                 name: city.name,
                 state: city.state,
                 active: city.active ?? true,
-                propertiesCount,
+                projectsCount,
                 revenue,
                 location: {
                     state: city.state,

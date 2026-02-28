@@ -31,9 +31,9 @@ export class ConsultantsService {
         });
     }
 
-    async getAssignedPropertiesWithDetails(userId: string) {
-        // Fetch properties where this consultant is assigned
-        const properties = await this.prisma.property.findMany({
+    async getAssignedProjectsWithDetails(userId: string) {
+        // Fetch projects where this consultant is assigned
+        const projects = await this.prisma.project.findMany({
             where: {
                 assignedTo: {
                     some: { id: userId }
@@ -52,11 +52,11 @@ export class ConsultantsService {
             }
         });
 
-        // Group leads by campaign for each property
-        return properties.map(property => {
+        // Group leads by campaign for each project
+        return projects.map(project => {
             const campaignsMap = new Map();
 
-            property.leads.forEach(lead => {
+            project.leads.forEach(lead => {
                 if (lead.campaign) {
                     if (!campaignsMap.has(lead.campaign.id)) {
                         campaignsMap.set(lead.campaign.id, {
@@ -78,7 +78,7 @@ export class ConsultantsService {
             const campaigns = Array.from(campaignsMap.values());
 
             return {
-                ...property,
+                ...project,
                 leads: undefined, // Remove flat leads list
                 campaigns: campaigns
             };

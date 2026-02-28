@@ -1,7 +1,7 @@
-export type PropertyStatus = 'AVAILABLE' | 'SOLD' | 'RESERVED' | 'UNDER_CONSTRUCTION' | 'APPROVED';
-export type PropertyType = 'APARTMENT' | 'VILLA' | 'PLOT' | 'COMMERCIAL' | 'INDUSTRIAL';
+export type ProjectStatus = 'AVAILABLE' | 'SOLD' | 'RESERVED' | 'UNDER_CONSTRUCTION' | 'APPROVED';
+export type ProjectType = 'APARTMENT' | 'VILLA' | 'PLOT' | 'COMMERCIAL' | 'INDUSTRIAL';
 
-export interface Property {
+export interface Project {
     id: string;
     name: string;
     description?: string;
@@ -18,7 +18,7 @@ export interface Property {
     area?: number;
     bedrooms?: number;
     bathrooms?: number;
-    propertyType: PropertyType;
+    projectType: ProjectType; propertyType?: ProjectType;
     onboardedById?: string;
     onboardedBy?: {
         name?: string;
@@ -36,8 +36,8 @@ export interface Property {
     createdAt: string;
 }
 
-export const propertyService = {
-    async getAll(token: string | null, myOnly: boolean = false, city?: string): Promise<Property[]> {
+export const projectService = {
+    async getAll(token: string | null, myOnly: boolean = false, city?: string): Promise<Project[]> {
         const params = new URLSearchParams();
         if (myOnly) params.append('myOnly', 'true');
         if (city) params.append('city', city);
@@ -48,33 +48,33 @@ export const propertyService = {
             headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/properties${query}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/projects${query}`, {
             headers,
         });
         if (!response.ok) {
             const errorData = await response.json().catch(() => ({ message: 'No error details' }));
-            throw new Error(errorData.message || `Failed to fetch properties (${response.status})`);
+            throw new Error(errorData.message || `Failed to fetch projects (${response.status})`);
         }
         return response.json();
     },
 
-    async getOne(id: string, token: string | null): Promise<Property> {
+    async getOne(id: string, token: string | null): Promise<Project> {
         const headers: any = {};
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/properties/${id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/projects/${id}`, {
             headers,
         });
         if (!response.ok) {
-            throw new Error('Failed to fetch property details');
+            throw new Error('Failed to fetch project details');
         }
         return response.json();
     },
 
-    async create(data: Partial<Property>, token: string): Promise<Property> {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/properties`, {
+    async create(data: Partial<Project>, token: string): Promise<Project> {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/projects`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -84,13 +84,13 @@ export const propertyService = {
         });
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.message || 'Failed to create property');
+            throw new Error(error.message || 'Failed to create project');
         }
         return response.json();
     },
 
-    async update(id: string, data: Partial<Property>, token: string): Promise<Property> {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/properties/${id}`, {
+    async update(id: string, data: Partial<Project>, token: string): Promise<Project> {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/projects/${id}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
@@ -100,13 +100,13 @@ export const propertyService = {
         });
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.message || 'Failed to update property');
+            throw new Error(error.message || 'Failed to update project');
         }
         return response.json();
     },
 
     async delete(id: string, token: string): Promise<void> {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/properties/${id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/projects/${id}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -114,12 +114,12 @@ export const propertyService = {
         });
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.message || 'Failed to delete property');
+            throw new Error(error.message || 'Failed to delete project');
         }
     },
 
-    async assignConsultants(id: string, consultantIds: string[], token: string): Promise<Property> {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/properties/${id}/assign-consultants`, {
+    async assignConsultants(id: string, consultantIds: string[], token: string): Promise<Project> {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/projects/${id}/assign-consultants`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -134,14 +134,14 @@ export const propertyService = {
         return response.json();
     },
 
-    async bulkAssignConsultants(propertyIds: string[], consultantIds: string[], token: string): Promise<any> {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/properties/bulk-assign-consultants`, {
+    async bulkAssignConsultants(projectIds: string[], consultantIds: string[], token: string): Promise<any> {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/projects/bulk-assign-consultants`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
             },
-            body: JSON.stringify({ propertyIds, consultantIds }),
+            body: JSON.stringify({ propertyIds: projectIds, consultantIds }),
         });
         if (!response.ok) {
             const error = await response.json().catch(() => ({ message: 'Bulk assignment failed' }));
@@ -150,3 +150,8 @@ export const propertyService = {
         return response.json();
     }
 };
+
+export type PropertyStatus = ProjectStatus;
+export type PropertyType = ProjectType;
+export type Property = Project;
+export const propertyService = projectService;

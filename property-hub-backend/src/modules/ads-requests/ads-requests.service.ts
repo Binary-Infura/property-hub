@@ -10,7 +10,7 @@ export class AdsRequestsService {
         const where: any = {};
 
         // Marketing managers can see all requests
-        // Property partners can only see their own
+        // Project partners can only see their own
         if (roles.includes('property-partner') && !roles.includes('marketing-manager') && !roles.includes('central-authority')) {
             where.requestedById = userId;
         }
@@ -19,7 +19,7 @@ export class AdsRequestsService {
             where,
             include: {
 
-                property: true,
+                project: true,
                 requestedBy: {
                     select: {
                         id: true,
@@ -41,7 +41,7 @@ export class AdsRequestsService {
             where: { id },
             include: {
 
-                property: true,
+                project: true,
                 requestedBy: {
                     select: {
                         id: true,
@@ -78,7 +78,7 @@ export class AdsRequestsService {
             },
             include: {
 
-                property: true,
+                project: true,
                 requestedBy: {
                     select: {
                         id: true,
@@ -115,7 +115,7 @@ export class AdsRequestsService {
             data: dto,
             include: {
 
-                property: true,
+                project: true,
                 requestedBy: {
                     select: {
                         id: true,

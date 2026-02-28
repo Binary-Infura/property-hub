@@ -156,7 +156,7 @@ export class ReraService {
         const internalUser = await this.usersService.ensureUserSynced(user);
 
         // Check if already imported
-        const existing = await this.prisma.property.findFirst({
+        const existing = await this.prisma.project.findFirst({
             where: { name: reraProject.projectName, onboardedById: internalUser.id },
         });
 
@@ -164,15 +164,15 @@ export class ReraService {
             return existing;
         }
 
-        // Create property from RERA project
-        const property = await this.prisma.property.create({
+        // Create project from RERA project
+        const project = await this.prisma.project.create({
             data: {
                 name: reraProject.projectName,
                 description: `Imported from RERA. Promoter: ${reraProject.promoterName}. RERA Number: ${reraProject.reraNumber}`,
                 location: reraProject.district || reraProject.state,
                 address: reraProject.address,
                 price: 0, // Default price, to be updated by user
-                propertyType: 'APARTMENT', // Default type
+                projectType: 'APARTMENT', // Default type
                 status: 'DRAFT',
                 onboardedById: internalUser.id,
                 category: 'flat',
@@ -183,12 +183,12 @@ export class ReraService {
         await this.activityLogsService.log({
             userId: internalUser.id,
             type: 'info',
-            action: 'Property Imported from RERA',
-            target: property.name,
-            details: { propertyId: property.id, reraNumber: reraProject.reraNumber }
+            action: 'Project Imported from RERA',
+            target: project.name,
+            details: { projectId: project.id, reraNumber: reraProject.reraNumber }
         });
 
-        return property;
+        return project;
     }
 
     async getTotalCount(state: string, district?: string): Promise<number> {

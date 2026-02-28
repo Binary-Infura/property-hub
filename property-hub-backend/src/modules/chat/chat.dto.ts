@@ -7,7 +7,7 @@ export class StartChatDto {
 
     @IsOptional()
     @IsUUID()
-    propertyId?: string; // Context: specific property
+    projectId?: string; // Context: specific project
 
     @IsOptional()
     @IsUUID()

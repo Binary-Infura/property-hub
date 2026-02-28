@@ -192,7 +192,7 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
                                         location: property.location,
                                         area: `${property.area || 1200} sqft`,
                                         price: `₹${(Number(property.price) / 100000).toFixed(1)}L`,
-                                        propertyType: (property.propertyType === 'APARTMENT' ? 'Flat' : property.propertyType === 'VILLA' ? 'Villa' : 'Plot') as any,
+                                        propertyType: (property.projectType === 'APARTMENT' ? 'Flat' : property.projectType === 'VILLA' ? 'Villa' : 'Plot') as any,
                                         bhk: `${property.bedrooms || 2} BHK`,
                                         isNew: true,
                                         isReadyToMove: property.status === 'AVAILABLE' || property.status === 'APPROVED',

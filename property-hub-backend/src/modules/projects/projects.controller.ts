@@ -9,8 +9,8 @@ import {
     UseGuards,
     Query,
 } from '@nestjs/common';
-import { PropertiesService } from './properties.service';
-import { CreatePropertyDto, UpdatePropertyDto } from './properties.dto';
+import { ProjectsService } from './projects.service';
+import { CreateProjectDto, UpdateProjectDto } from './projects.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { RequireRoles } from '../../common/decorators/require-roles.decorator';
@@ -18,18 +18,18 @@ import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 
-@Controller('api/properties')
+@Controller('api/projects')
 @UseGuards(JwtAuthGuard, RolesGuard)
 @RequireRoles('central-authority', 'marketing-manager', 'onboarding-manager', 'property-partner', 'broker', 'consultant', 'buyer', 'loan-adviser', 'visit-executive', 'service-provider')
-export class PropertiesController {
-    constructor(private readonly propertiesService: PropertiesService) { }
+export class ProjectsController {
+    constructor(private readonly projectsService: ProjectsService) { }
 
     @Get('my')
     findAllMy(
         @CurrentUser() user: AuthenticatedUser,
         @Query('city') city?: string
     ) {
-        return this.propertiesService.findAll(user, true, city);
+        return this.projectsService.findAll(user, true, city);
     }
 
     @Get()
@@ -38,7 +38,7 @@ export class PropertiesController {
         @CurrentUser() user: AuthenticatedUser,
         @Query('city') city?: string
     ) {
-        return this.propertiesService.findAll(user, false, city);
+        return this.projectsService.findAll(user, false, city);
     }
 
     @Get(':id')
@@ -47,26 +47,26 @@ export class PropertiesController {
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
     ) {
-        return this.propertiesService.findOne(id, user);
+        return this.projectsService.findOne(id, user);
     }
 
     @Post()
     @RequireRoles('onboarding-manager', 'property-partner', 'broker')
     create(
-        @Body() createPropertyDto: CreatePropertyDto,
+        @Body() createProjectDto: CreateProjectDto,
         @CurrentUser() user: AuthenticatedUser
     ) {
-        return this.propertiesService.create(createPropertyDto, user);
+        return this.projectsService.create(createProjectDto, user);
     }
 
     @Patch(':id')
     @RequireRoles('onboarding-manager', 'property-partner', 'broker')
     update(
         @Param('id') id: string,
-        @Body() updatePropertyDto: UpdatePropertyDto,
+        @Body() updateProjectDto: UpdateProjectDto,
         @CurrentUser() user: AuthenticatedUser,
     ) {
-        return this.propertiesService.update(id, updatePropertyDto, user);
+        return this.projectsService.update(id, updateProjectDto, user);
     }
 
     @Delete(':id')
@@ -75,7 +75,7 @@ export class PropertiesController {
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
     ) {
-        return this.propertiesService.remove(id, user);
+        return this.projectsService.remove(id, user);
     }
 
     @Post(':id/assign-consultants')
@@ -85,16 +85,16 @@ export class PropertiesController {
         @Body('consultantIds') consultantIds: string[],
         @CurrentUser() user: AuthenticatedUser,
     ) {
-        return this.propertiesService.assignConsultants(id, consultantIds, user);
+        return this.projectsService.assignConsultants(id, consultantIds, user);
     }
 
     @Post('bulk-assign-consultants')
     @RequireRoles('central-authority', 'property-partner')
     bulkAssignConsultants(
-        @Body('propertyIds') propertyIds: string[],
+        @Body('projectIds') projectIds: string[],
         @Body('consultantIds') consultantIds: string[],
         @CurrentUser() user: AuthenticatedUser,
     ) {
-        return this.propertiesService.bulkAssignConsultants(propertyIds, consultantIds, user);
+        return this.projectsService.bulkAssignConsultants(projectIds, consultantIds, user);
     }
 }

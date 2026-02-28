@@ -7,18 +7,18 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Property {
+model Project {
   id            String         @id @default(uuid())
   name          String
   description   String?
   location      String
   address       String?
-  status        PropertyStatus @default(AVAILABLE)
-  price         Decimal        @db.Decimal(15, 2)
-  area          Decimal?       @db.Decimal(10, 2)
+  status        ProjectStatus @default(AVAILABLE)
+  price         Decimal       @db.Decimal(15, 2)
+  area          Decimal?      @db.Decimal(10, 2)
   bedrooms      Int?
   bathrooms     Int?
-  propertyType  PropertyType
+  projectType   ProjectType
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   onboardedById String?
@@ -29,20 +29,41 @@ model Property {
   adsRequests   AdsRequest[]
   commissions   Commission[]
   leads         Lead[]
-  assignedTo    User[]         @relation("PropertyAssignment")
+  units         PropertyUnit[]
+  assignedTo    User[]         @relation("ProjectAssignment")
   city          City?          @relation(fields: [cityId], references: [id])
-  onboardedBy   User?          @relation("UserOnboardedProperties", fields: [onboardedById], references: [id])
-  postalCode    PostalCode?    @relation("PropertyPostalCode", fields: [postalCodeId], references: [id])
-
-  buyerName     String?
-  buyerPhone    String?
-  salePrice     Decimal?       @db.Decimal(15, 2)
-  soldAt        DateTime?
+  onboardedBy   User?          @relation("UserOnboardedProjects", fields: [onboardedById], references: [id])
+  postalCode    PostalCode?    @relation("ProjectPostalCode", fields: [postalCodeId], references: [id])
 
   @@index([postalCodeId])
   @@index([status])
   @@index([onboardedById])
-  @@map("properties")
+  @@map("projects")
+}
+
+model PropertyUnit {
+  id          String     @id @default(uuid())
+  projectId   String
+  unitNumber  String
+  floor       Int?
+  type        String?    // e.g. "2BHK", "3BHK", "Studio"
+  area        Decimal?   @db.Decimal(10, 2)
+  price       Decimal    @db.Decimal(15, 2)
+  status      UnitStatus @default(AVAILABLE)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  buyerName   String?
+  buyerPhone  String?
+  salePrice   Decimal?   @db.Decimal(15, 2)
+  soldAt      DateTime?
+
+  project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, unitNumber])
+  @@index([projectId])
+  @@index([status])
+  @@map("property_units")
 }
 
 model Lead {
@@ -50,7 +71,7 @@ model Lead {
   name           String
   email          String?
   phone          String
-  propertyId     String?
+  projectId      String?
   status         LeadStatus         @default(NEW)
   source         String?
   assignedTo     String?
@@ -60,7 +81,7 @@ model Lead {
   campaignId     String?
   assignedToUser User?              @relation("LeadAssignee", fields: [assignedTo], references: [id])
   campaign       MarketingCampaign? @relation(fields: [campaignId], references: [id])
-  property       Property?          @relation(fields: [propertyId], references: [id])
+  project        Project?           @relation(fields: [projectId], references: [id])
   visits         Visit[]
 
   @@index([status])
@@ -84,20 +105,20 @@ model Visit {
 }
 
 model Commission {
-  id         String           @id @default(uuid())
-  amount     Decimal          @db.Decimal(15, 2)
+  id        String           @id @default(uuid())
+  amount    Decimal          @db.Decimal(15, 2)
   percentage Decimal?         @db.Decimal(5, 2)
-  agentId    String
-  propertyId String
-  status     CommissionStatus @default(PENDING)
-  paidAt     DateTime?
-  notes      String?
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
-  property   Property         @relation(fields: [propertyId], references: [id])
+  agentId   String
+  projectId String
+  status    CommissionStatus @default(PENDING)
+  paidAt    DateTime?
+  notes     String?
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  project   Project          @relation(fields: [projectId], references: [id])
 
   @@index([agentId])
-  @@index([propertyId])
+  @@index([projectId])
   @@index([status])
   @@map("commissions")
 }
@@ -147,14 +168,14 @@ model User {
   influencerProfile        InfluencerProfile?
   leads                    Lead[]                    @relation("LeadAssignee")
   marketingManagerProfile  MarketingManagerProfile?
-  propertiesOnboarded      Property[]                @relation("UserOnboardedProperties")
+  projectsOnboarded        Project[]                 @relation("UserOnboardedProjects")
   propertyPartnerProfile   PropertyPartnerProfile?
   serviceProviderProfile   ServiceProviderProfile?
   userMetadata             UserMetadata?
   onboardedBy              User?                     @relation("UserOnboardedUsers", fields: [onboardedById], references: [id])
   onboardedUsers           User[]                    @relation("UserOnboardedUsers")
   campaignsAssigned        MarketingCampaign[]       @relation("CampaignToUser")
-  assignedProperties       Property[]                @relation("PropertyAssignment")
+  assignedProjects         Project[]                 @relation("ProjectAssignment")
   activityLogs             ActivityLog[]
   @@map("users")
 }
@@ -333,17 +354,17 @@ model MarketingCampaign {
 }
 
 model AdsRequest {
-  id            String    @id @default(uuid())
+  id            String   @id @default(uuid())
   title         String
   description   String?
-  status        String    @default("PENDING")
-  priority      String    @default("MEDIUM")
-  propertyId    String?
+  status        String   @default("PENDING")
+  priority      String   @default("MEDIUM")
+  projectId     String?
   requestedById String
-  createdAt     DateTime  @default(now())
-  updatedAt     DateTime  @updatedAt
-  property      Property? @relation(fields: [propertyId], references: [id])
-  requestedBy   User      @relation(fields: [requestedById], references: [id])
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  project       Project? @relation(fields: [projectId], references: [id])
+  requestedBy   User     @relation(fields: [requestedById], references: [id])
 
   @@map("ads_requests")
 }
@@ -385,7 +406,7 @@ model PostalCode {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   continent    String?
-  properties   Property[] @relation("PropertyPostalCode")
+  projects     Project[]  @relation("ProjectPostalCode")
 
   @@index([code])
   @@index([district])
@@ -437,7 +458,7 @@ model PostalCodeSyncLog {
   @@map("postal_code_sync_logs")
 }
 
-enum PropertyStatus {
+enum ProjectStatus {
   AVAILABLE
   SOLD
   RESERVED
@@ -449,12 +470,19 @@ enum PropertyStatus {
   PUBLISHED
 }
 
-enum PropertyType {
+enum ProjectType {
   APARTMENT
   VILLA
   PLOT
   COMMERCIAL
   INDUSTRIAL
+}
+
+enum UnitStatus {
+  AVAILABLE
+  RESERVED
+  BOOKED
+  SOLD
 }
 
 enum LeadStatus {
@@ -488,7 +516,7 @@ model City {
   active      Boolean  @default(true)
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
-  properties  Property[]
+  projects    Project[]
 
   @@map("cities")
 }

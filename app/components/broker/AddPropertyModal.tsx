@@ -103,7 +103,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
         if (!token || !editId) return;
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/api/properties/${editId}`, {
+            const res = await fetch(`${API_URL}/api/projects/${editId}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -164,8 +164,8 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
         };
 
         const url = propertyId
-            ? `${API_URL}/api/properties/${propertyId}`
-            : `${API_URL}/api/properties`;
+            ? `${API_URL}/api/projects/${propertyId}`
+            : `${API_URL}/api/projects`;
 
         const method = propertyId ? 'PATCH' : 'POST';
 

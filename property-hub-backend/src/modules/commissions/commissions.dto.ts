@@ -15,7 +15,7 @@ export class CreateCommissionDto {
     agentId: string;
 
     @IsUUID()
-    propertyId: string;
+    projectId: string;
 
     @IsEnum(CommissionStatus)
     @IsOptional()

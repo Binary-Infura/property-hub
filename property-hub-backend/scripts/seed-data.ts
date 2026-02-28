@@ -1,4 +1,4 @@
-import { PrismaClient, PropertyStatus, PropertyType } from '@prisma/client';
+import { PrismaClient, ProjectStatus, ProjectType } from '@prisma/client';
 
 import * as bcrypt from 'bcrypt';
 
@@ -135,7 +135,7 @@ async function main() {
 
     // 6. Properties
     console.log('Creating Properties...');
-    await prisma.property.create({
+    await prisma.project.create({
         data: {
             name: 'Luxury Sea View Apartment',
             description: 'Beautiful 3BHK facing the sea',
@@ -143,7 +143,7 @@ async function main() {
             address: 'Worli Sea Face',
             price: 45000000,
             area: 1800,
-            propertyType: 'APARTMENT',
+            projectType: 'APARTMENT',
             status: 'PUBLISHED',
             onboardedById: ppUser.id,
             bedrooms: 3,
@@ -152,14 +152,14 @@ async function main() {
         }
     });
 
-    await prisma.property.create({
+    await prisma.project.create({
         data: {
             name: 'Green Valley Plot',
             description: 'Lush green plot for villa',
             location: 'Lonavala, Pune',
             price: 8000000,
             area: 5000,
-            propertyType: 'PLOT',
+            projectType: 'PLOT',
             status: 'AVAILABLE',
             onboardedById: ppUser.id,
             category: 'plot'

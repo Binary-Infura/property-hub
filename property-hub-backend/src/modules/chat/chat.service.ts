@@ -39,8 +39,8 @@ export class ChatService {
         }
 
         // Derive context from DTO
-        const contextType = dto.propertyId ? 'PROPERTY' : dto.leadId ? 'LEAD' : dto.contextType;
-        const contextId = dto.propertyId || dto.leadId;
+        const contextType = dto.projectId ? 'PROPERTY' : dto.leadId ? 'LEAD' : dto.contextType;
+        const contextId = dto.projectId || dto.leadId;
 
         // Check if chat session already exists between these users
         const existingSession = await this.findExistingChatSession(userId, dto.participantId, contextType, contextId);
@@ -212,7 +212,7 @@ export class ChatService {
             return mapping;
         }
 
-        // Get Property Hub user details
+        // Get Project Hub user details
         const user = await this.prisma.user.findUnique({
             where: { id: propertyHubUserId },
         });

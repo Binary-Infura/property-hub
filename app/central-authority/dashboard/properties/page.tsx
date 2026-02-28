@@ -19,7 +19,7 @@ export default function CentralAuthorityPropertiesPage() {
         const fetchProperties = async () => {
             if (!token) return;
             try {
-                const response = await fetch(`${API_URL}/api/properties`, {
+                const response = await fetch(`${API_URL}/api/projects`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
@@ -136,7 +136,7 @@ export default function CentralAuthorityPropertiesPage() {
                                     <td className="px-6 py-5">
                                         <div className="flex flex-col">
                                             <span className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{property.name}</span>
-                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">{property.propertyType}</span>
+                                            <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-0.5">{property.projectType}</span>
                                         </div>
                                     </td>
                                     <td className="px-6 py-5">

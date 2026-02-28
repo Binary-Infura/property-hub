@@ -1,20 +1,20 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { CreatePropertyDto, UpdatePropertyDto } from './properties.dto';
-import { Property } from '@prisma/client';
+import { CreateProjectDto, UpdateProjectDto } from './projects.dto';
+import { Project } from '@prisma/client';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 import { UsersService } from '../users/users.service';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 
 @Injectable()
-export class PropertiesService {
+export class ProjectsService {
     constructor(
         private prisma: PrismaService,
         private usersService: UsersService,
         private activityLogsService: ActivityLogsService,
     ) { }
 
-    async findAll(user: AuthenticatedUser | undefined, myOnly?: boolean, city?: string): Promise<Property[]> {
+    async findAll(user: AuthenticatedUser | undefined, myOnly?: boolean, city?: string): Promise<Project[]> {
         const isCentralAuthority = user?.roles?.includes('central-authority') || false;
         const isPropertyPartner = user?.roles?.includes('property-partner') || false;
         const isGlobalRole = user?.roles?.some(role =>
@@ -38,7 +38,7 @@ export class PropertiesService {
             where.onboardedById = internalUser.id;
         }
 
-        const results = await this.prisma.property.findMany({
+        const results = await this.prisma.project.findMany({
             where,
             include: {
                 onboardedBy: true,
@@ -53,8 +53,8 @@ export class PropertiesService {
         return results;
     }
 
-    async findOne(id: string, user?: AuthenticatedUser): Promise<Property> {
-        const property = await this.prisma.property.findUnique({
+    async findOne(id: string, user?: AuthenticatedUser): Promise<Project> {
+        const project = await this.prisma.project.findUnique({
             where: { id },
             include: {
                 commissions: true,
@@ -64,8 +64,8 @@ export class PropertiesService {
             },
         });
 
-        if (!property) {
-            throw new NotFoundException(`Property with ID ${id} not found`);
+        if (!project) {
+            throw new NotFoundException(`Project with ID ${id} not found`);
         }
 
         if (user) {
@@ -74,24 +74,24 @@ export class PropertiesService {
 
             // Check ownership
             const internalUser = await this.usersService.ensureUserSynced(user);
-            const isOwner = property.onboardedById === internalUser.id;
+            const isOwner = project.onboardedById === internalUser.id;
 
 
         }
 
-        return property;
+        return project;
     }
 
 
-    async create(createPropertyDto: CreatePropertyDto, user?: AuthenticatedUser): Promise<Property> {
-        let onboardedById = createPropertyDto.onboardedById;
+    async create(createProjectDto: CreateProjectDto, user?: AuthenticatedUser): Promise<Project> {
+        let onboardedById = createProjectDto.onboardedById;
 
         if (!onboardedById && user) {
             const internalUser = await this.usersService.ensureUserSynced(user);
             onboardedById = internalUser.id;
         }
 
-        const { cityId, ...rest } = createPropertyDto;
+        const { cityId, ...rest } = createProjectDto;
 
         const data: any = {
             ...rest,
@@ -101,7 +101,7 @@ export class PropertiesService {
 
 
 
-        const property = await this.prisma.property.create({
+        const project = await this.prisma.project.create({
             data,
             include: {
 
@@ -115,25 +115,25 @@ export class PropertiesService {
         await this.activityLogsService.log({
             userId: internalUser?.id || data.onboardedById,
             type: 'info',
-            action: 'Property Onboarded',
-            target: property.name,
-            details: { propertyId: property.id }
+            action: 'Project Onboarded',
+            target: project.name,
+            details: { projectId: project.id }
         });
 
-        return property;
+        return project;
     }
 
-    async update(id: string, updatePropertyDto: UpdatePropertyDto, user: AuthenticatedUser): Promise<Property> {
-        const property = await this.findOne(id, user);
+    async update(id: string, updateProjectDto: UpdateProjectDto, user: AuthenticatedUser): Promise<Project> {
+        const project = await this.findOne(id, user);
 
-        const { cityId, ...rest } = updatePropertyDto;
+        const { cityId, ...rest } = updateProjectDto;
 
         const data: any = {
             ...rest,
             cityId,
         };
 
-        const propertyAfter = await this.prisma.property.update({
+        const projectAfter = await this.prisma.project.update({
             where: { id },
             data,
             include: {
@@ -142,45 +142,45 @@ export class PropertiesService {
             },
         });
 
-        if (updatePropertyDto.status === 'SOLD' && property.status !== 'SOLD') {
+        if (updateProjectDto.status === 'SOLD' && project.status !== 'SOLD') {
             const internalUser = await this.usersService.ensureUserSynced(user);
             await this.activityLogsService.log({
                 userId: internalUser.id,
                 type: 'info',
-                action: 'Property Sold',
-                target: propertyAfter.name,
+                action: 'Project Sold',
+                target: projectAfter.name,
                 details: {
-                    propertyId: propertyAfter.id,
-                    buyerName: updatePropertyDto.buyerName,
-                    salePrice: updatePropertyDto.salePrice,
+                    projectId: projectAfter.id,
+                    buyerName: updateProjectDto.buyerName,
+                    salePrice: updateProjectDto.salePrice,
                 }
             });
         }
 
-        return propertyAfter;
+        return projectAfter;
     }
 
-    async remove(id: string, user: AuthenticatedUser): Promise<Property> {
+    async remove(id: string, user: AuthenticatedUser): Promise<Project> {
         await this.findOne(id, user);
-        return this.prisma.property.delete({
+        return this.prisma.project.delete({
             where: { id },
         });
     }
 
-    async assignConsultants(id: string, consultantIds: string[], user: AuthenticatedUser): Promise<Property> {
+    async assignConsultants(id: string, consultantIds: string[], user: AuthenticatedUser): Promise<Project> {
         const isPropertyPartner = user.roles.includes('property-partner');
         const isCentralAuthority = user.roles.includes('central-authority');
 
         if (isPropertyPartner) {
-            // Verify property ownership
-            const property = await this.prisma.property.findUnique({
+            // Verify project ownership
+            const project = await this.prisma.project.findUnique({
                 where: { id },
                 select: { onboardedById: true }
             });
 
             const internalUser = await this.usersService.ensureUserSynced(user);
-            if (!property || property.onboardedById !== internalUser.id) {
-                throw new BadRequestException('You can only allocate properties you have onboarded.');
+            if (!project || project.onboardedById !== internalUser.id) {
+                throw new BadRequestException('You can only allocate projects you have onboarded.');
             }
 
             // Verify agents ownership (all consultants must be onboarded by this partner)
@@ -192,13 +192,13 @@ export class PropertiesService {
             });
 
             if (agentsCount !== consultantIds.length) {
-                throw new BadRequestException('You can only allocate properties to agents you have onboarded.');
+                throw new BadRequestException('You can only allocate projects to agents you have onboarded.');
             }
         } else if (!isCentralAuthority) {
-            throw new BadRequestException('You do not have permission to allocate properties.');
+            throw new BadRequestException('You do not have permission to allocate projects.');
         }
 
-        const result = await this.prisma.property.update({
+        const result = await this.prisma.project.update({
             where: { id },
             data: {
                 assignedTo: {
@@ -216,31 +216,31 @@ export class PropertiesService {
         await this.activityLogsService.log({
             userId: internalUser?.id,
             type: 'info',
-            action: 'Property Allocated',
+            action: 'Project Allocated',
             target: result.name,
-            details: { consultantIds, propertyId: result.id }
+            details: { consultantIds, projectId: result.id }
         });
 
         return result;
     }
 
-    async bulkAssignConsultants(propertyIds: string[], consultantIds: string[], user: AuthenticatedUser) {
+    async bulkAssignConsultants(projectIds: string[], consultantIds: string[], user: AuthenticatedUser) {
         const isPropertyPartner = user.roles.includes('property-partner');
         const isCentralAuthority = user.roles.includes('central-authority');
 
         if (isPropertyPartner) {
             const internalUser = await this.usersService.ensureUserSynced(user);
 
-            // Verify all properties ownership
-            const propsCount = await this.prisma.property.count({
+            // Verify all projects ownership
+            const propsCount = await this.prisma.project.count({
                 where: {
-                    id: { in: propertyIds },
+                    id: { in: projectIds },
                     onboardedById: internalUser.id
                 }
             });
 
-            if (propsCount !== propertyIds.length) {
-                throw new BadRequestException('You can only allocate properties you have onboarded.');
+            if (propsCount !== projectIds.length) {
+                throw new BadRequestException('You can only allocate projects you have onboarded.');
             }
 
             // Verify all agents ownership
@@ -252,15 +252,15 @@ export class PropertiesService {
             });
 
             if (agentsCount !== consultantIds.length) {
-                throw new BadRequestException('You can only allocate properties to agents you have onboarded.');
+                throw new BadRequestException('You can only allocate projects to agents you have onboarded.');
             }
         } else if (!isCentralAuthority) {
-            throw new BadRequestException('You do not have permission to allocate properties.');
+            throw new BadRequestException('You do not have permission to allocate projects.');
         }
 
-        const updates = propertyIds.map(propertyId =>
-            this.prisma.property.update({
-                where: { id: propertyId },
+        const updates = projectIds.map(projectId =>
+            this.prisma.project.update({
+                where: { id: projectId },
                 data: {
                     assignedTo: {
                         set: consultantIds.map(id => ({ id }))
