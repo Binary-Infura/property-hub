@@ -7,6 +7,8 @@ import { PROPERTY_STATUS_CONFIG, PROPERTY_TYPES } from '@/app/constants/property
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import AddPropertyModal from '@/app/components/property-partner/AddPropertyModal';
+import SelectPropertyModal from '@/app/components/property-partner/SelectPropertyModal';
+import ViewListingModal from '@/app/components/property-partner/ViewListingModal';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -31,15 +33,17 @@ export default function PropertiesPage() {
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [searchQuery, setSearchQuery] = useState('');
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isSelectModalOpen, setIsSelectModalOpen] = useState(false);
+  const [isViewListingModalOpen, setIsViewListingModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [selectedPropertyForView, setSelectedPropertyForView] = useState<Property | null>(null);
 
   const fetchProperties = async () => {
     if (!token) return;
 
     try {
       setLoading(true);
-      // Fetch "my" properties
       const res = await fetch(`${API_URL}/api/properties/my`, {
         headers: {
           'Authorization': `Bearer ${token}`
@@ -48,33 +52,26 @@ export default function PropertiesPage() {
 
       if (res.ok) {
         const data = await res.json();
-        // Map backend data to frontend Property interface
         const mapped: Property[] = data.map((p: any) => {
-          // Backend returns status as uppercase (e.g., 'AVAILABLE', 'SUBMITTED')
           const backendStatus = p.status?.toUpperCase();
-          let frontendStatus: PropertyStatus = 'available'; // default
+          let frontendStatus: PropertyStatus = 'available';
 
           switch (backendStatus) {
-            case 'AVAILABLE':
-              frontendStatus = 'available';
-              break;
-            case 'SUBMITTED':
-              frontendStatus = 'submitted';
-              break;
-            case 'APPROVED':
-              frontendStatus = 'approved';
-              break;
-            case 'REJECTED':
-              frontendStatus = 'rejected';
-              break;
-            case 'PUBLISHED':
-              frontendStatus = 'published';
-              break;
-            case 'DRAFT':
-              frontendStatus = 'draft';
-              break;
-            default:
-              frontendStatus = p.status?.toLowerCase() as PropertyStatus;
+            case 'AVAILABLE': frontendStatus = 'available'; break;
+            case 'SUBMITTED': frontendStatus = 'submitted'; break;
+            case 'APPROVED': frontendStatus = 'approved'; break;
+            case 'REJECTED': frontendStatus = 'rejected'; break;
+            case 'PUBLISHED': frontendStatus = 'published'; break;
+            case 'DRAFT': frontendStatus = 'draft'; break;
+            default: frontendStatus = p.status?.toLowerCase() as PropertyStatus;
+          }
+
+          let description = p.description || '';
+          let amenities: string[] = [];
+          if (description.includes('Amenities:')) {
+            const parts = description.split('Amenities:');
+            description = parts[0].trim();
+            amenities = parts[1].split(',').map((a: string) => a.trim());
           }
 
           return {
@@ -86,22 +83,22 @@ export default function PropertiesPage() {
             address: p.address || '',
             city: p.locationRel?.city || p.city || '',
             state: p.locationRel?.state || '',
-            pincode: '',
+            pincode: p.pincode || '',
             totalArea: parseFloat(p.area) || 0,
             totalBuildings: 0,
             totalUnits: 0,
             startingPrice: parseFloat(p.price) || 0,
-            description: p.description || '',
-            amenities: [],
+            description: description,
+            amenities: amenities,
             status: frontendStatus,
             createdAt: new Date(p.createdAt),
+            videoUrl: p.videoUrl || '',
+            continent: p.locationRel?.continent || p.continent || '',
+            country: p.locationRel?.country || p.country || '',
           };
         });
 
-        console.log('Fetched properties:', mapped.map(p => ({ id: p.id, title: p.title, status: p.status })));
         setProperties(mapped);
-      } else {
-        console.error('Failed to fetch properties');
       }
     } catch (err) {
       console.error(err);
@@ -116,41 +113,45 @@ export default function PropertiesPage() {
 
   const handleAddProperty = () => {
     setEditingId(null);
-    setIsModalOpen(true);
+    setIsAddModalOpen(true);
   };
 
   const handleEditProperty = (id: string) => {
     setEditingId(id);
-    setIsModalOpen(true);
+    setIsAddModalOpen(true);
+  };
+
+  const handleViewListingData = (property: Property) => {
+    setSelectedPropertyForView(property);
+    setIsViewListingModalOpen(true);
+  };
+
+  const handleListProperty = () => {
+    setIsSelectModalOpen(true);
   };
 
   if (loading && properties.length === 0) {
-    return <div className="p-8 text-center text-gray-500">
-      <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-      Loading properties...
-    </div>;
+    return (
+      <div className="p-8 text-center text-gray-500">
+        <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+        Loading properties...
+      </div>
+    );
   }
 
   const filteredProperties = properties.filter(prop => {
-    // Show all internal inventory
-    // This is the builder's complete property portfolio
-    const allowedStatuses: PropertyStatus[] = ['available', 'submitted', 'rejected', 'draft', 'approved', 'published'];
-
-    if (!allowedStatuses.includes(prop.status)) return false;
-
-    // When 'available' filter is selected, show anything that is part of internal inventory
-    // (available, submitted, rejected, draft)
-    const statusMatch = filterStatus === 'all'
-      || (filterStatus === 'available' && (prop.status === 'available' || prop.status === 'submitted' || prop.status === 'draft' || prop.status === 'rejected'))
-      || prop.status === filterStatus;
-
+    const statusMatch = filterStatus === 'all' || prop.status === filterStatus;
     const searchMatch = prop.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
       prop.location.toLowerCase().includes(searchQuery.toLowerCase());
     return statusMatch && searchMatch;
   });
 
   const statusCounts = {
-    available: properties.filter(p => p.status === 'available' || p.status === 'submitted' || p.status === 'draft' || p.status === 'rejected').length,
+    total: properties.length,
+    drafts: properties.filter(p => p.status === 'available' || p.status === 'draft').length,
+    submitted: properties.filter(p => p.status === 'submitted').length,
+    approved: properties.filter(p => p.status === 'approved' || p.status === 'published').length,
+    rejected: properties.filter(p => p.status === 'rejected').length,
   };
 
   return (
@@ -158,80 +159,107 @@ export default function PropertiesPage() {
       {/* Header */}
       <div className="flex justify-between items-start">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">My Properties</h1>
-          <p className="text-gray-600 mt-1">Manage your internal inventory and property details</p>
+          <h1 className="text-3xl font-bold text-gray-900">Properties Portfolio</h1>
+          <p className="text-gray-600 mt-1">Manage your internal inventory and public listings</p>
         </div>
-        <button
-          onClick={handleAddProperty}
-          className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 font-bold transition flex items-center gap-2 shadow-lg shadow-blue-200"
-        >
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
-          </svg>
-          Add Property
-        </button>
+        <div className="flex gap-4">
+          <button
+            onClick={handleListProperty}
+            className="bg-gray-900 text-white px-6 py-3 rounded-xl hover:bg-black font-bold transition flex items-center gap-2 shadow-lg"
+          >
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            List to Public
+          </button>
+          <button
+            onClick={handleAddProperty}
+            className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 font-bold transition flex items-center gap-2 shadow-lg shadow-blue-200"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 4v16m8-8H4" />
+            </svg>
+            Add Property
+          </button>
+        </div>
       </div>
 
       <AddPropertyModal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        isOpen={isAddModalOpen}
+        onClose={() => setIsAddModalOpen(false)}
         editId={editingId}
         onSuccess={fetchProperties}
       />
 
+      <SelectPropertyModal
+        isOpen={isSelectModalOpen}
+        onClose={() => setIsSelectModalOpen(false)}
+        onSuccess={fetchProperties}
+      />
+
+      <ViewListingModal
+        isOpen={isViewListingModalOpen}
+        onClose={() => {
+          setIsViewListingModalOpen(false);
+          setSelectedPropertyForView(null);
+        }}
+        property={selectedPropertyForView}
+      />
+
       {/* Stats */}
-      <div className="grid md:grid-cols-2 gap-4">
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-          <p className="text-gray-600 text-sm font-medium">Available (Internal)</p>
-          <p className="text-2xl font-bold text-emerald-600 mt-2">{statusCounts.available}</p>
-        </div>
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-4">
-          <p className="text-gray-600 text-sm font-medium">Total Inventory</p>
-          <p className="text-2xl font-bold text-gray-900 mt-2">{properties.length}</p>
-        </div>
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+        {[
+          { label: 'Total', count: statusCounts.total, color: 'text-gray-900', bgColor: 'bg-white' },
+          { label: 'Drafts', count: statusCounts.drafts, color: 'text-amber-600', bgColor: 'bg-white' },
+          { label: 'Submitted', count: statusCounts.submitted, color: 'text-blue-600', bgColor: 'bg-white' },
+          { label: 'Approved', count: statusCounts.approved, color: 'text-emerald-600', bgColor: 'bg-white' },
+          { label: 'Rejected', count: statusCounts.rejected, color: 'text-red-600', bgColor: 'bg-white' },
+        ].map(stat => (
+          <div key={stat.label} className={`${stat.bgColor} rounded-lg shadow-sm border border-gray-100 p-4`}>
+            <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">{stat.label}</p>
+            <p className={`text-2xl font-black mt-2 ${stat.color}`}>{stat.count}</p>
+          </div>
+        ))}
       </div>
 
       {/* Filters & Search */}
       <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
         <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center">
-          <div className="flex-1 w-full">
+          <div className="flex-1 w-full relative">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </span>
             <input
               type="text"
-              placeholder="Search properties by name or location..."
+              placeholder="Search by title, location..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 text-sm transition-all"
             />
           </div>
 
-          <div className="flex gap-2 flex-wrap">
-            <button
-              onClick={() => setFilterStatus('all')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filterStatus === 'all'
-                ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              All
-            </button>
-            <button
-              onClick={() => setFilterStatus('available')}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition ${filterStatus === 'available'
-                ? 'bg-emerald-100 text-emerald-700'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                }`}
-            >
-              Available ({statusCounts.available})
-            </button>
+          <div className="flex gap-1.5 flex-wrap">
+            {['all', 'available', 'submitted', 'approved', 'rejected'].map((status) => (
+              <button
+                key={status}
+                onClick={() => setFilterStatus(status as any)}
+                className={`px-4 py-2 rounded-lg text-xs font-bold uppercase tracking-wider transition-all ${filterStatus === status
+                  ? 'bg-blue-600 text-white shadow-md shadow-blue-200'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  }`}
+              >
+                {status}
+              </button>
+            ))}
           </div>
 
-          <div className="flex gap-2 flex-shrink-0">
+          <div className="flex gap-2 flex-shrink-0 bg-gray-50 p-1 rounded-xl border border-gray-100">
             <button
               onClick={() => setViewMode('list')}
-              className={`p-2 rounded-lg transition ${viewMode === 'list'
-                ? 'bg-blue-100 text-blue-600'
-                : 'text-gray-600 hover:bg-gray-100'
-                }`}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'list' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
               title="List view"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -240,10 +268,7 @@ export default function PropertiesPage() {
             </button>
             <button
               onClick={() => setViewMode('grid')}
-              className={`p-2 rounded-lg transition ${viewMode === 'grid'
-                ? 'bg-blue-100 text-blue-600'
-                : 'text-gray-600 hover:bg-gray-100'
-                }`}
+              className={`p-2 rounded-lg transition-all ${viewMode === 'grid' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-400 hover:text-gray-600'}`}
               title="Grid view"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -256,77 +281,96 @@ export default function PropertiesPage() {
 
       {/* Properties List/Grid */}
       {filteredProperties.length === 0 ? (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-12 text-center">
-          <svg className="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 11l4-4m-4 4l-4-4m9-5l4-4m-4 4l-4-4" />
-          </svg>
-          <p className="text-gray-500 text-lg font-medium mb-2">No properties found</p>
-          <p className="text-gray-400 mb-4">
-            {searchQuery || filterStatus !== 'all' ? 'Try adjusting your search or filters' : 'Create your first property to get started'}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-16 text-center">
+          <div className="w-20 h-20 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <svg className="w-10 h-10 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-bold text-gray-900 mb-2">No properties found</h3>
+          <p className="text-gray-500 max-w-sm mx-auto">
+            {searchQuery || filterStatus !== 'all'
+              ? 'Try adjusting your search or filters to find what you are looking for.'
+              : 'Your property portfolio is empty. Add your first property or list existing ones to the public directory.'}
           </p>
-          {!searchQuery && filterStatus === 'all' && (
-            <p className="text-sm text-gray-400">Click the &quot;Add Property&quot; button above to create your first listing</p>
-          )}
         </div>
       ) : viewMode === 'list' ? (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
           <table className="w-full">
-            <thead className="bg-gray-50 border-b border-gray-200">
+            <thead className="bg-gray-50/80 border-b border-gray-100">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700">Title</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700">Location</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700">Type</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700">Buildings</th>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-700">Category</th>
-                <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700">Actions</th>
+                <th className="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Property Details</th>
+                <th className="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Location</th>
+                <th className="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Status</th>
+                <th className="px-6 py-4 text-left text-[10px] font-bold text-gray-400 uppercase tracking-widest">Type & Category</th>
+                <th className="px-6 py-4 text-right text-[10px] font-bold text-gray-400 uppercase tracking-widest">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-200">
+            <tbody className="divide-y divide-gray-50">
               {filteredProperties.map(property => {
                 const statusConfig = PROPERTY_STATUS_CONFIG[property.status];
+                const isDraft = property.status === 'available' || property.status === 'draft';
+                const hasListingData = ['submitted', 'approved', 'published', 'rejected'].includes(property.status);
+
                 return (
-                  <tr key={property.id} className="hover:bg-gray-50 transition">
+                  <tr key={property.id} className="hover:bg-gray-50/80 transition-colors group">
                     <td className="px-6 py-4">
                       <div>
-                        <p className="font-medium text-gray-900">{property.title}</p>
-                        <p className="text-sm text-gray-500">₹{(property.startingPrice / 100000).toFixed(1)}L+</p>
+                        <p className="font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{property.title}</p>
+                        <p className="text-xs font-semibold text-blue-600 mt-0.5">₹{(property.startingPrice / 100000).toFixed(1)}L+</p>
                       </div>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-gray-700">{property.location}</p>
+                      <p className="text-sm text-gray-600">{property.location}</p>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-gray-700 capitalize">{property.propertyType.replace('-', ' ')}</p>
+                      <span className={`px-2.5 py-1 rounded-lg text-[10px] font-black uppercase tracking-tighter ring-1 ring-inset ${statusConfig?.bgColor || 'bg-gray-100'} ${statusConfig?.color || 'text-gray-600'} ${statusConfig?.ringColor || 'ring-gray-200'}`}>
+                        {statusConfig?.label || property.status}
+                      </span>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-gray-700">{property.totalBuildings}</p>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-gray-500 capitalize">{property.propertyType}</span>
+                        <span className="w-1 h-1 rounded-full bg-gray-300"></span>
+                        {property.propertyCategory && CATEGORY_CONFIG[property.propertyCategory] ? (
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${CATEGORY_CONFIG[property.propertyCategory].bgColor} ${CATEGORY_CONFIG[property.propertyCategory].color}`}>
+                            {CATEGORY_CONFIG[property.propertyCategory].label}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400">Regular</span>
+                        )}
+                      </div>
                     </td>
                     <td className="px-6 py-4">
-                      {property.propertyCategory && CATEGORY_CONFIG[property.propertyCategory] ? (
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold ${CATEGORY_CONFIG[property.propertyCategory].bgColor} ${CATEGORY_CONFIG[property.propertyCategory].color}`}>
-                          {CATEGORY_CONFIG[property.propertyCategory].label}
-                        </span>
-                      ) : (
-                        <span className="px-3 py-1 rounded-full text-xs font-semibold bg-gray-100 text-gray-700">
-                          Flat
-                        </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="flex items-center justify-end gap-3">
-                        {(['available', 'rejected'].includes(property.status)) && (
+                      <div className="flex items-center justify-end gap-2">
+                        {isDraft && (
                           <button
                             onClick={() => handleEditProperty(property.id)}
-                            className="text-amber-600 hover:text-amber-700 font-bold text-sm"
+                            className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
+                            title="Edit Basic Info"
                           >
-                            Edit
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                        )}
+                        {hasListingData && (
+                          <button
+                            onClick={() => handleViewListingData(property)}
+                            className="p-2 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-all"
+                            title="View Listing Data"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
                           </button>
                         )}
                         <Link
                           href={`/property-partner/dashboard/properties/${property.id}`}
-                          className="text-blue-600 hover:text-blue-700 font-medium text-sm"
+                          className="px-3 py-1.5 bg-gray-50 text-gray-700 text-xs font-bold rounded-lg border border-gray-100 hover:bg-white hover:shadow-sm transition-all"
                         >
-                          View
+                          Details
                         </Link>
                       </div>
                     </td>
@@ -340,70 +384,88 @@ export default function PropertiesPage() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProperties.map(property => {
             const statusConfig = PROPERTY_STATUS_CONFIG[property.status];
+            const isDraft = property.status === 'available' || property.status === 'draft';
+            const hasListingData = ['submitted', 'approved', 'published', 'rejected'].includes(property.status);
+
             return (
-              <div key={property.id} className="relative group">
-                <Link
-                  href={`/property-partner/dashboard/properties/${property.id}`}
-                  className="block bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden hover:shadow-lg transition h-full"
-                >
-                  <div className="h-40 bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center">
-                    <svg className="w-16 h-16 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 11l4-4m-4 4l-4-4m9-5l4-4m-4 4l-4-4" />
-                    </svg>
+              <div key={property.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all group animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <div className="relative aspect-video bg-gray-100">
+                  {property.videoUrl ? (
+                    <video src={property.videoUrl} className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
+                      <svg className="w-12 h-12 text-blue-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 11l4-4m-4 4l-4-4m9-5l4-4m-4 4l-4-4" />
+                      </svg>
+                    </div>
+                  )}
+                  <div className="absolute top-3 left-3">
+                    <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm ring-1 ring-inset ${statusConfig?.bgColor || 'bg-white'} ${statusConfig?.color || 'text-gray-900'} ${statusConfig?.ringColor || 'ring-gray-200'}`}>
+                      {statusConfig?.label || property.status}
+                    </span>
                   </div>
-                  <div className="p-4">
-                    <div className="flex justify-between items-start mb-1">
-                      <h3 className="font-bold text-gray-900 truncate pr-2">{property.title}</h3>
-                      {(['available', 'rejected'].includes(property.status)) && (
+                  {isDraft && (
+                    <button
+                      onClick={() => handleEditProperty(property.id)}
+                      className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-md rounded-lg text-gray-600 hover:text-amber-600 shadow-sm opacity-0 group-hover:opacity-100 transition-all"
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+
+                <div className="p-5">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-bold text-gray-900 truncate pr-4">{property.title}</h3>
+                    <p className="text-sm font-black text-blue-600">₹{(property.startingPrice / 100000).toFixed(1)}L+</p>
+                  </div>
+                  <p className="text-xs text-gray-500 mb-4 flex items-center gap-1">
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    {property.location}
+                  </p>
+
+                  <div className="flex items-center gap-2 mb-4">
+                    <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{property.propertyType}</span>
+                    <span className="w-1 h-1 rounded-full bg-gray-200"></span>
+                    {property.propertyCategory && CATEGORY_CONFIG[property.propertyCategory] && (
+                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${CATEGORY_CONFIG[property.propertyCategory].bgColor} ${CATEGORY_CONFIG[property.propertyCategory].color}`}>
+                        {CATEGORY_CONFIG[property.propertyCategory].label}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center justify-between pt-4 border-t border-gray-50">
+                    <div className="flex gap-2">
+                      {hasListingData && (
                         <button
-                          onClick={(e) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleEditProperty(property.id);
-                          }}
-                          className="opacity-0 group-hover:opacity-100 transition-opacity p-1.5 bg-gray-100 hover:bg-amber-50 text-gray-500 hover:text-amber-600 rounded-lg"
-                          title="Edit Property"
+                          onClick={() => handleViewListingData(property)}
+                          className="text-[10px] font-bold text-blue-600 hover:text-blue-700 uppercase tracking-wider"
                         >
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                          </svg>
+                          Listing Data
                         </button>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 mb-3">{property.location}</p>
-                    <div className="flex items-center justify-between mb-3">
-                      {property.propertyCategory && CATEGORY_CONFIG[property.propertyCategory] ? (
-                        <span className={`px-2 py-1 rounded text-xs font-semibold ${CATEGORY_CONFIG[property.propertyCategory].bgColor} ${CATEGORY_CONFIG[property.propertyCategory].color}`}>
-                          {CATEGORY_CONFIG[property.propertyCategory].label}
-                        </span>
-                      ) : (
-                        <span className="px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-700">
-                          Flat
-                        </span>
-                      )}
-                      <p className="text-sm font-semibold text-gray-700">₹{(property.startingPrice / 100000).toFixed(1)}L+</p>
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 text-xs">
-                      <div className="text-center">
-                        <p className="text-gray-500">Buildings</p>
-                        <p className="font-bold text-gray-900">{property.totalBuildings}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-gray-500">Units</p>
-                        <p className="font-bold text-gray-900">{property.totalUnits}</p>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-gray-500">Area</p>
-                        <p className="font-bold text-gray-900">{property.totalArea}K</p>
-                      </div>
-                    </div>
+                    <Link
+                      href={`/property-partner/dashboard/properties/${property.id}`}
+                      className="text-[10px] font-bold text-gray-900 group-hover:text-blue-600 uppercase tracking-wider flex items-center gap-1"
+                    >
+                      View Details
+                      <svg className="w-3 h-3 transition-transform group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </Link>
                   </div>
-                </Link>
+                </div>
               </div>
             );
           })}
-        </div >
+        </div>
       )}
-    </div >
+    </div>
   );
 }

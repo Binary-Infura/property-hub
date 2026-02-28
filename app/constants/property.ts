@@ -10,15 +10,15 @@ export const PROPERTY_TYPES: { value: PropertyType; label: string }[] = [
   { value: 'mixed-use', label: 'Mixed-Use' },
 ];
 
-export const PROPERTY_STATUS_CONFIG: Record<PropertyStatus, { label: string; color: string; bgColor: string }> = {
-  draft: { label: 'Draft', color: 'text-yellow-600', bgColor: 'bg-yellow-100' },
-  submitted: { label: 'Submitted', color: 'text-blue-600', bgColor: 'bg-blue-100' },
-  approved: { label: 'Approved', color: 'text-green-600', bgColor: 'bg-green-100' },
-  rejected: { label: 'Rejected', color: 'text-red-600', bgColor: 'bg-red-100' },
-  published: { label: 'Published', color: 'text-purple-600', bgColor: 'bg-purple-100' },
-  available: { label: 'Available', color: 'text-emerald-600', bgColor: 'bg-emerald-100' },
-  sold: { label: 'Sold', color: 'text-gray-600', bgColor: 'bg-gray-100' },
-  reserved: { label: 'Reserved', color: 'text-orange-600', bgColor: 'bg-orange-100' },
+export const PROPERTY_STATUS_CONFIG: Record<PropertyStatus, { label: string; color: string; bgColor: string; ringColor: string }> = {
+  draft: { label: 'Draft', color: 'text-amber-600', bgColor: 'bg-amber-50', ringColor: 'ring-amber-200' },
+  submitted: { label: 'Submitted', color: 'text-blue-600', bgColor: 'bg-blue-50', ringColor: 'ring-blue-200' },
+  approved: { label: 'Approved', color: 'text-emerald-600', bgColor: 'bg-emerald-50', ringColor: 'ring-emerald-200' },
+  rejected: { label: 'Rejected', color: 'text-red-600', bgColor: 'bg-red-50', ringColor: 'ring-red-200' },
+  published: { label: 'Published', color: 'text-purple-600', bgColor: 'bg-purple-50', ringColor: 'ring-purple-200' },
+  available: { label: 'Available', color: 'text-emerald-600', bgColor: 'bg-emerald-50', ringColor: 'ring-emerald-200' },
+  sold: { label: 'Sold', color: 'text-gray-600', bgColor: 'bg-gray-50', ringColor: 'ring-gray-200' },
+  reserved: { label: 'Reserved', color: 'text-orange-600', bgColor: 'bg-orange-50', ringColor: 'ring-orange-200' },
 };
 
 export const INDIAN_STATES = [

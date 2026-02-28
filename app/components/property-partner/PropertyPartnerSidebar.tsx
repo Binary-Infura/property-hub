@@ -12,7 +12,6 @@ export default function PropertyPartnerSidebar() {
   const mainNavigation = [
     { name: 'Dashboard', href: '/property-partner/dashboard', icon: 'dashboard' as const },
     { name: 'Properties', href: '/property-partner/dashboard/properties', icon: 'building' as const },
-    { name: 'Public Listing', href: '/property-partner/dashboard/public-listing', icon: 'globe' as const },
     { name: 'Business Info', href: '/property-partner/dashboard/profile', icon: 'briefcase' as const },
   ];
 
