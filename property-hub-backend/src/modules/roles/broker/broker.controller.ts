@@ -1,28 +1,28 @@
 import { Controller, Get, Post, Body, UseGuards } from '@nestjs/common';
-import { DsaService } from './dsa.service';
+import { BrokerService } from './broker.service';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/guards/roles.guard';
 import { RequireRoles } from '../../../common/decorators/require-roles.decorator';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../../common/interfaces/jwt-payload.interface';
-import { UpdateDsaProfileDto } from './dsa.dto';
+import { UpdateBrokerProfileDto } from './broker.dto';
 
-@Controller('api/dsa')
+@Controller('api/broker')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RequireRoles('dsa')
-export class DsaController {
-    constructor(private readonly dsaService: DsaService) { }
+@RequireRoles('broker')
+export class BrokerController {
+    constructor(private readonly brokerService: BrokerService) { }
 
     @Get('profile')
     async getProfile(@CurrentUser() user: AuthenticatedUser) {
-        return this.dsaService.getProfile(user.userId);
+        return this.brokerService.getProfile(user.userId);
     }
 
     @Post('profile')
     async upsertProfile(
         @CurrentUser() user: AuthenticatedUser,
-        @Body() dto: UpdateDsaProfileDto,
+        @Body() dto: UpdateBrokerProfileDto,
     ) {
-        return this.dsaService.upsertProfile(user.userId, dto);
+        return this.brokerService.upsertProfile(user.userId, dto);
     }
 }

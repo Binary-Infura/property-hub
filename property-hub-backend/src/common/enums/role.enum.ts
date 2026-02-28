@@ -1,7 +1,7 @@
 export enum UserRole {
     CENTRAL_AUTHORITY = 'central-authority',
 
-    DSA = 'dsa',
+    BROKER = 'broker',
     MARKETING_MANAGER = 'marketing-manager',
     CONSULTANT = 'consultant',
     BUYER = 'buyer',

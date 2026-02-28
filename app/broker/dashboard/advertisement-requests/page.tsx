@@ -230,7 +230,7 @@ export default function AdvertisementRequestsPage() {
                                                 {req.status}
                                             </span>
                                             {req.status === 'Live' && (
-                                                <a href="/dsa/dashboard/campaigns-leads" className="text-blue-600 hover:text-blue-800 text-xs ml-2 underline">
+                                                <a href="/broker/dashboard/campaigns-leads" className="text-blue-600 hover:text-blue-800 text-xs ml-2 underline">
                                                     View Campaign
                                                 </a>
                                             )}

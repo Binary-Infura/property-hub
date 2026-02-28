@@ -16,7 +16,7 @@ function OnboardingManagerLayoutContent({
     const { activeContext } = useUnifiedApp();
 
     const navigation = [
-        { name: 'Dashboard', href: '/onboarding-manager/dashboard', icon: 'dashboard' as const },
+        { name: 'Broker Partners', href: '/onboarding-manager/dashboard', icon: 'handshake' as const },
         { name: 'Properties', href: '/onboarding-manager/dashboard/properties', icon: 'building' as const },
         { name: 'Listing Requests', href: '/onboarding-manager/dashboard/listing-requests', icon: 'clipboard' as const },
         { name: 'Property Partners', href: '/onboarding-manager/dashboard/property-partners', icon: 'handshake' as const },

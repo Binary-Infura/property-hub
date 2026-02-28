@@ -17,7 +17,7 @@ export default function Navbar() {
         // 2. Fallback preference order
         const priorityRoles: (keyof typeof DASHBOARD_ROUTES)[] = [
             'central-authority',
-            'dsa',
+            'broker',
             'consultant',
             'property-partner',
             'marketing-manager',

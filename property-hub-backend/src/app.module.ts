@@ -13,7 +13,7 @@ import { MarketingManagersModule } from './modules/roles/marketing-managers/mark
 import { BuyersModule } from './modules/roles/buyers/buyers.module';
 import { ConsultantsModule } from './modules/roles/consultants/consultants.module';
 import { PropertyPartnersModule } from './modules/roles/property-partners/property-partners.module';
-import { DsaModule } from './modules/roles/dsa/dsa.module';
+import { BrokerModule } from './modules/roles/broker/broker.module';
 
 import { CentralAuthorityModule } from './modules/roles/central-authority/central-authority.module';
 import { ChatModule } from './modules/chat/chat.module';
@@ -58,7 +58,7 @@ import { join } from 'path';
         BuyersModule,
         ConsultantsModule,
         PropertyPartnersModule,
-        DsaModule,
+        BrokerModule,
 
         CentralAuthorityModule,
         ChatModule,

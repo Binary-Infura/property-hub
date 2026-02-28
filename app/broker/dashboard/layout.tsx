@@ -8,7 +8,7 @@ import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
 import RouteGuard from '@/app/components/auth/RouteGuard';
 import ProfileCompletionPrompt from '@/app/components/ProfileCompletionPrompt';
 
-function DsaDashboardLayoutContent({
+function BrokerDashboardLayoutContent({
   children,
 }: {
   children: React.ReactNode;
@@ -17,16 +17,16 @@ function DsaDashboardLayoutContent({
   const { activeContext } = useUnifiedApp();
 
   const navigation = [
-    { name: 'Dashboard', href: '/dsa/dashboard', icon: 'dashboard' as const },
-    { name: 'Leads', href: '/dsa/dashboard/leads', icon: 'users' as const },
-    { name: 'Commissions', href: '/dsa/dashboard/commissions', icon: 'money' as const },
-    { name: 'Promotions', href: '/dsa/dashboard/promotions', icon: 'megaphone' as const },
-    { name: 'Ads & Campaigns', href: '/dsa/dashboard/campaigns-leads', icon: 'chart' as const },
-    { name: 'Ad Requests', href: '/dsa/dashboard/advertisement-requests', icon: 'note' as const },
+    { name: 'Dashboard', href: '/broker/dashboard', icon: 'dashboard' as const },
+    { name: 'Leads', href: '/broker/dashboard/leads', icon: 'users' as const },
+    { name: 'Commissions', href: '/broker/dashboard/commissions', icon: 'money' as const },
+    { name: 'Promotions', href: '/broker/dashboard/promotions', icon: 'megaphone' as const },
+    { name: 'Ads & Campaigns', href: '/broker/dashboard/campaigns-leads', icon: 'chart' as const },
+    { name: 'Ad Requests', href: '/broker/dashboard/advertisement-requests', icon: 'note' as const },
   ];
 
   const isActive = (href: string) => {
-    if (href === '/dsa/dashboard') return pathname === href;
+    if (href === '/broker/dashboard') return pathname === href;
     return pathname?.startsWith(href);
   };
 
@@ -63,7 +63,7 @@ function DsaDashboardLayoutContent({
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <DashboardHeader title="DSA Dashboard" />
+        <DashboardHeader title="Broker Dashboard" />
 
         <main className="flex-1 overflow-y-auto p-8">
           <ProfileCompletionPrompt />
@@ -74,10 +74,10 @@ function DsaDashboardLayoutContent({
   );
 }
 
-export default function DsaDashboardLayout({ children }: { children: React.ReactNode }) {
+export default function BrokerDashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <RouteGuard requiredRole="dsa">
-      <DsaDashboardLayoutContent>{children}</DsaDashboardLayoutContent>
+    <RouteGuard requiredRole="broker">
+      <BrokerDashboardLayoutContent>{children}</BrokerDashboardLayoutContent>
     </RouteGuard>
   );
 }

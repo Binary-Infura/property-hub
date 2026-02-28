@@ -20,7 +20,7 @@ export default function PartnersPage() {
     const [isSuccess, setIsSuccess] = useState(false);
 
     const partnerTypes = [
-        { id: 'dsa', label: 'DSA (Direct Selling Agent)' },
+        { id: 'broker', label: 'Real Estate Broker' },
         { id: 'property-partner', label: 'Property Partner' },
         { id: 'service-provider', label: 'Service Provider' },
         { id: 'influencer', label: 'Influencer' },
@@ -136,9 +136,9 @@ export default function PartnersPage() {
                             <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-4 text-xl font-bold">
                                 1
                             </div>
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">DSA</h3>
+                            <h3 className="text-lg font-bold text-gray-900 mb-2">Real Estate Broker</h3>
                             <p className="text-gray-600 text-sm leading-relaxed">
-                                Direct Selling Agents can refer clients to PropertyHub and earn unmatched commissions on successful closures.
+                                Brokers can refer clients AND upload properties to PropertyHub. Earn unmatched commissions on successful closures.
                             </p>
                         </div>
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">

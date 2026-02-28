@@ -7,7 +7,7 @@ import { useAuth } from './AuthContext';
 // --- Types ---
 export type RoleId =
     | 'central-authority'
-    | 'dsa'
+    | 'broker'
     | 'marketing-manager'
     | 'onboarding-manager'
     | 'property-partner'
@@ -74,10 +74,10 @@ const KNOWN_ROLES: UserRole[] = [
         dashboardUrl: '/property-partner/dashboard'
     },
     {
-        id: 'dsa',
-        name: 'DSA (Direct Selling Agent)',
+        id: 'broker',
+        name: 'Real Estate Broker',
         permissionHint: 'Referral, lead management and property creation',
-        dashboardUrl: '/dsa/dashboard'
+        dashboardUrl: '/broker/dashboard'
     },
     {
         id: 'consultant',

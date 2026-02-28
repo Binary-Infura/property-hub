@@ -246,29 +246,28 @@ async function main() {
         }
     });
 
-    // 12. DSA
-    console.log('Creating DSA...');
+    // 12. Broker
+    console.log('Creating Broker...');
     const cpEmail = 'cp@test.com';
     const cpUser = await prisma.user.upsert({
         where: { email: cpEmail },
         update: {},
         create: {
             email: cpEmail,
-            firstName: 'Direct Selling',
-            lastName: 'Agent',
-            roles: ['dsa'],
-
+            firstName: 'Broker',
+            lastName: 'Partner',
+            roles: ['broker'],
             status: 'active',
             passwordHash,
         }
     });
 
-    await (prisma as any).dsaProfile.upsert({
+    await (prisma as any).brokerProfile.upsert({
         where: { userId: cpUser.id },
         update: {},
         create: {
             userId: cpUser.id,
-            agencyBusinessName: 'Top DSA Agency',
+            agencyBusinessName: 'Top Brokerage',
             reraNumber: 'RERA12345',
             officeAddress: '456 Business Blvd, Mumbai'
         }

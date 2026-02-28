@@ -20,7 +20,7 @@ import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface
 
 @Controller('api/properties')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RequireRoles('central-authority', 'marketing-manager', 'onboarding-manager', 'property-partner', 'channel-partner', 'consultant', 'buyer', 'loan-adviser', 'visit-executive', 'service-provider')
+@RequireRoles('central-authority', 'marketing-manager', 'onboarding-manager', 'property-partner', 'broker', 'consultant', 'buyer', 'loan-adviser', 'visit-executive', 'service-provider')
 export class PropertiesController {
     constructor(private readonly propertiesService: PropertiesService) { }
 
@@ -51,7 +51,7 @@ export class PropertiesController {
     }
 
     @Post()
-    @RequireRoles('onboarding-manager', 'property-partner')
+    @RequireRoles('onboarding-manager', 'property-partner', 'broker')
     create(
         @Body() createPropertyDto: CreatePropertyDto,
         @CurrentUser() user: AuthenticatedUser
@@ -60,7 +60,7 @@ export class PropertiesController {
     }
 
     @Patch(':id')
-    @RequireRoles('onboarding-manager', 'property-partner')
+    @RequireRoles('onboarding-manager', 'property-partner', 'broker')
     update(
         @Param('id') id: string,
         @Body() updatePropertyDto: UpdatePropertyDto,

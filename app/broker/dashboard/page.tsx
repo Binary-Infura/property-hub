@@ -1,12 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import LeadSubmissionForm from '@/app/components/dsa/LeadSubmissionForm';
-import CommissionTracking from '@/app/components/dsa/CommissionTracking';
-import PropertyPromotions from '@/app/components/dsa/PropertyPromotions';
-import AssignedLeadsList from '@/app/components/dsa/AssignedLeadsList';
-import PerformanceMetrics from '@/app/components/dsa/PerformanceMetrics';
-import AddPropertyModal from '@/app/components/dsa/AddPropertyModal';
+import LeadSubmissionForm from '@/app/components/broker/LeadSubmissionForm';
+import CommissionTracking from '@/app/components/broker/CommissionTracking';
+import PropertyPromotions from '@/app/components/broker/PropertyPromotions';
+import AssignedLeadsList from '@/app/components/broker/AssignedLeadsList';
+import PerformanceMetrics from '@/app/components/broker/PerformanceMetrics';
+import AddPropertyModal from '@/app/components/broker/AddPropertyModal';
 import { Lead } from '@/app/types/lead';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 
@@ -43,7 +43,7 @@ interface PartnerMetrics {
   topProperty: string;
 }
 
-export default function DsaDashboard() {
+export default function BrokerDashboard() {
   const { activeContext } = useUnifiedApp();
   const REFERENCE_DATE = new Date('2024-12-29T10:00:00Z');
 
@@ -202,7 +202,7 @@ export default function DsaDashboard() {
       <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">DSA Dashboard</h1>
+            <h1 className="text-3xl font-bold text-gray-900">Broker Dashboard</h1>
             <p className="text-gray-600 mt-1">Manage leads, track commissions, and create properties</p>
           </div>
           <button
