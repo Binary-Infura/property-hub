@@ -31,6 +31,7 @@ import { CitiesModule } from './modules/cities/cities.module';
 import { ActivityLogsModule } from './modules/activity-logs/activity-logs.module';
 import { BanksModule } from './modules/banks/banks.module';
 import { ReelsModule } from './modules/reels/reels.module';
+import { LoansModule } from './modules/loans/loans.module';
 import { join } from 'path';
 
 @Module({
@@ -68,6 +69,7 @@ import { join } from 'path';
         ActivityLogsModule,
         BanksModule,
         ReelsModule,
+        LoansModule,
         ServeStaticModule.forRoot({
             rootPath: join(__dirname, '..', 'uploads'),
             serveRoot: '/uploads',

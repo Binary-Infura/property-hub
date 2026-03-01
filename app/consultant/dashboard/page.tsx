@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import AssignedClients from '@/app/components/consultant/AssignedClients';
 import ConsultationStatus from '@/app/components/consultant/ConsultationStatus';
 import ConsultantNotes from '@/app/components/consultant/ConsultantNotes';
@@ -11,181 +11,16 @@ import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import { useAuth } from '@/app/contexts/AuthContext';
 
 import { consultantService } from '@/app/services/consultantService';
+import { leadNoteService } from '@/app/services/leadNoteService';
 
 export default function ConsultantDashboard() {
   const { token } = useAuth();
   const { activeContext } = useUnifiedApp();
   const [assignedProjects, setAssignedProjects] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Keep existing mock data for other sections for now
-  const [clients, setClients] = useState<any[]>([
-    {
-      id: '1',
-      name: 'Rajesh Kumar',
-      phone: '+91 98765 43210',
-      email: 'rajesh.kumar@email.com',
-      budget: '₹50L - ₹75L',
-      location: 'Mumbai (Central)',
-      status: 'active',
-      assignedDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-      profileImage: 'RK',
-    },
-    {
-      id: '2',
-      name: 'Priya Sharma',
-      phone: '+91 97654 32109',
-      email: 'priya.sharma@email.com',
-      budget: '₹80L - ₹120L',
-      location: 'Mumbai (South)',
-      status: 'active',
-      assignedDate: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
-      profileImage: 'PS',
-    },
-    {
-      id: '3',
-      name: 'Arun Patel',
-      phone: '+91 96543 21098',
-      email: 'arun.patel@email.com',
-      budget: '₹1.5Cr+',
-      location: 'Mumbai (North)',
-      status: 'pending',
-      assignedDate: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-      profileImage: 'AP',
-    },
-  ]);
-
-  const [consultations, setConsultations] = useState<any[]>([
-    {
-      id: '1',
-      clientId: '1',
-      type: 'initial',
-      date: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000),
-      notes: 'Client is looking for 3BHK with modern amenities. Prefers central Mumbai locations.',
-      status: 'completed',
-      duration: 45,
-    },
-    {
-      id: '2',
-      clientId: '2',
-      type: 'site-visit',
-      date: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-      notes: 'Visit to property in Bandra',
-      status: 'scheduled',
-      duration: 60,
-    },
-    {
-      id: '3',
-      clientId: '1',
-      type: 'follow-up',
-      date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-      notes: 'Check on property preferences',
-      status: 'scheduled',
-      duration: 30,
-    },
-  ]);
-
-  const [notes, setNotes] = useState<any[]>([
-    {
-      id: '1',
-      clientId: '1',
-      content: 'Client mentioned interest in properties with gym and swimming pool.',
-      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-      category: 'preference',
-    },
-    {
-      id: '2',
-      clientId: '1',
-      content: 'Budget increased to ₹75L after family discussion.',
-      createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-      category: 'budget',
-    },
-    {
-      id: '3',
-      clientId: '2',
-      content: 'Awaiting loan approval letter from bank.',
-      createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000),
-      category: 'legal',
-    },
-  ]);
-
-  const [siteVisits, setSiteVisits] = useState<any[]>([
-    {
-      id: '1',
-      clientId: '2',
-      propertyId: '1',
-      scheduledDate: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
-      status: 'scheduled',
-    },
-    {
-      id: '2',
-      clientId: '1',
-      propertyId: '2',
-      scheduledDate: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      status: 'completed',
-      feedback: 'Client liked the location but mentioned the area feels cramped.',
-    },
-  ]);
-
-  const [deals, setDeals] = useState<any[]>([
-    {
-      id: '1',
-      clientId: '1',
-      propertyId: '2',
-      stage: 'site-visit',
-      progress: 40,
-      createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
-      updatedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      notes: 'Site visit completed, client considering this property.',
-    },
-    {
-      id: '2',
-      clientId: '2',
-      propertyId: '1',
-      stage: 'offer',
-      progress: 60,
-      createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
-      updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      notes: 'Offer made, awaiting builder response.',
-    },
-  ]);
-
-  const [properties, setProperties] = useState<any[]>([
-    {
-      id: '1',
-      title: 'Sunset Towers, Bandra',
-      location: 'Bandra, Mumbai',
-      price: '₹85L',
-      area: '1800 sqft',
-      config: '3 BHK',
-      matchScore: 92,
-      assignedToClients: ['1', '2'],
-    },
-    {
-      id: '2',
-      title: 'Green Valley Homes, Powai',
-      location: 'Powai, Mumbai',
-      price: '₹52L',
-      area: '1200 sqft',
-      config: '2 BHK',
-      matchScore: 85,
-      assignedToClients: ['1'],
-    },
-    {
-      id: '3',
-      title: 'Luxury Heights, Worli',
-      location: 'Worli, Mumbai',
-      price: '₹1.2Cr',
-      area: '2500 sqft',
-      config: '4 BHK',
-      matchScore: 88,
-      assignedToClients: ['3'],
-    },
-  ]);
-
-
-  const [activeTab, setActiveTab] = useState<'clients' | 'status' | 'notes' | 'properties' | 'visits' | 'deals'>('properties'); // Default to properties as requested
+  const [activeTab, setActiveTab] = useState<'clients' | 'status' | 'notes' | 'properties' | 'visits' | 'deals'>('properties');
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
+  const [dbNotes, setDbNotes] = useState<any[]>([]);
 
   useEffect(() => {
     async function fetchData() {
@@ -193,8 +28,22 @@ export default function ConsultantDashboard() {
       try {
         const props = await consultantService.getAssignedProjects(token);
         setAssignedProjects(props);
+
+        // Fetch all notes for all leads if possible, or just skip for now and fetch per lead
+        // For now, let's fetch notes for all leads in the assigned projects
+        const leads = props.flatMap((p: any) => p.leads || []);
+        const allDbNotes = await Promise.all(
+          leads.map(async (lead: any) => {
+            try {
+              return await leadNoteService.getNotes(token, lead.id);
+            } catch {
+              return [];
+            }
+          })
+        );
+        setDbNotes(allDbNotes.flat());
       } catch (error) {
-        console.error('Error fetching consultant properties:', error);
+        console.error('Error fetching dashboard data:', error);
       } finally {
         setLoading(false);
       }
@@ -202,9 +51,117 @@ export default function ConsultantDashboard() {
     fetchData();
   }, [token]);
 
+  // Derive real data from assignedProjects
+  const clients = useMemo(() => {
+    const leads = assignedProjects.flatMap(p => p.leads || []);
+    // Deduplicate leads by ID just in case
+    const uniqueLeadsMap = new Map();
+    leads.forEach(l => uniqueLeadsMap.set(l.id, l));
+    const uniqueLeads = Array.from(uniqueLeadsMap.values());
+
+    return uniqueLeads.map(lead => ({
+      id: lead.id,
+      name: lead.name,
+      phone: lead.phone,
+      email: lead.email,
+      budget: 'TBD',
+      location: lead.project?.location || 'N/A',
+      status: (['CONVERTED', 'LOST'].includes(lead.status)) ? 'closed' as const :
+        (lead.status === 'NEW' ? 'pending' : 'active') as 'active' | 'pending' | 'closed',
+      assignedDate: new Date(lead.createdAt),
+      profileImage: lead.name?.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || 'L',
+      projectId: lead.projectId,
+      projectName: lead.project?.name,
+    }));
+  }, [assignedProjects]);
+
+  const consultations = useMemo(() => {
+    const leads = assignedProjects.flatMap(p => p.leads || []);
+    const visits = leads.flatMap(l => (l.visits || []).map((v: any) => ({ ...v, leadId: l.id })));
+
+    return visits.map(v => ({
+      id: v.id,
+      clientId: v.leadId,
+      type: 'site-visit' as const,
+      date: new Date(v.scheduledAt),
+      notes: v.notes || 'No notes available',
+      status: v.status === 'COMPLETED' ? 'completed' as const :
+        v.status === 'CANCELLED' ? 'cancelled' as const : 'scheduled' as const,
+      duration: 60,
+    }));
+  }, [assignedProjects]);
+
+  const notes = useMemo(() => {
+    const leads = assignedProjects.flatMap(p => p.leads || []);
+    const leadNotes = leads.filter(l => l.notes).map(l => ({
+      id: `lead-note-${l.id}`,
+      clientId: l.id,
+      content: l.notes,
+      createdAt: new Date(l.updatedAt),
+      category: 'general',
+    }));
+
+    const visitNotes = leads.flatMap(l => (l.visits || []).filter((v: any) => v.notes).map((v: any) => ({
+      id: `visit-note-${v.id}`,
+      clientId: l.id,
+      content: v.notes,
+      createdAt: new Date(v.updatedAt || v.scheduledAt),
+      category: 'site-visit' as const,
+    })));
+
+    const formattedDbNotes = dbNotes.map(n => ({
+      id: n.id,
+      clientId: n.leadId,
+      content: n.content,
+      createdAt: new Date(n.createdAt),
+      category: n.category.toLowerCase().replace('_', '-') as any,
+    }));
+
+    return [...leadNotes, ...visitNotes, ...formattedDbNotes].sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  }, [assignedProjects, dbNotes]);
+
+  const siteVisits = useMemo(() => {
+    const leads = assignedProjects.flatMap(p => p.leads || []);
+    const visits = leads.flatMap(l => (l.visits || []).map((v: any) => ({ ...v, leadId: l.id, projectId: l.projectId })));
+
+    return visits.map(v => ({
+      id: v.id,
+      clientId: v.leadId,
+      propertyId: v.projectId,
+      scheduledDate: new Date(v.scheduledAt),
+      status: v.status.toLowerCase(),
+      feedback: v.notes || '',
+    }));
+  }, [assignedProjects]);
+
+  const deals = useMemo(() => {
+    const leads = assignedProjects.flatMap(p => p.leads || []);
+    return leads.filter(l => ['NEGOTIATING', 'CONVERTED'].includes(l.status)).map(l => ({
+      id: `deal-${l.id}`,
+      clientId: l.id,
+      propertyId: l.projectId,
+      stage: (l.status === 'CONVERTED' ? 'closed' : 'negotiation') as 'closed' | 'negotiation',
+      progress: l.status === 'CONVERTED' ? 100 : 75,
+      createdAt: new Date(l.createdAt),
+      updatedAt: new Date(l.updatedAt),
+      notes: l.notes || '',
+    }));
+  }, [assignedProjects]);
+
+  const properties = useMemo(() => {
+    return assignedProjects.map(p => ({
+      id: p.id,
+      title: p.name,
+      location: p.location,
+      price: `₹${p.price}`,
+      area: `${p.area} sqft`,
+      config: `${p.bedrooms} BHK`,
+      matchScore: 100,
+      assignedToClients: (p.leads || []).map((l: any) => l.id),
+    }));
+  }, [assignedProjects]);
+
   const activeClients = clients.filter(c => c.status === 'active');
-  const pendingClients = clients.filter(c => c.status === 'pending');
-  const closedDeals = deals.filter(d => d.stage === 'closed');
 
   if (loading) {
     return (
@@ -244,7 +201,7 @@ export default function ConsultantDashboard() {
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
             <p className="text-gray-600 text-sm font-medium">Total Leads</p>
             <p className="text-3xl font-bold text-yellow-600 mt-2">
-              {assignedProjects.reduce((acc, prop) => acc + (prop.campaigns?.reduce((cAcc: any, camp: any) => cAcc + camp.leads.length, 0) || 0), 0)}
+              {assignedProjects.reduce((acc, prop) => acc + (prop.leads?.length || 0), 0)}
             </p>
             <p className="text-xs text-gray-500 mt-2">Leads from campaigns</p>
           </div>
@@ -274,7 +231,7 @@ export default function ConsultantDashboard() {
                 : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
             >
-              Ongoing Leads
+              Follow-Ups
             </button>
             <button
               onClick={() => setActiveTab('status')}
@@ -334,17 +291,16 @@ export default function ConsultantDashboard() {
                 notes={notes}
                 clients={clients}
                 selectedClientId={selectedClientId}
-                onAddNote={(clientId: any, content: any, category: any) => {
-                  setNotes([
-                    ...notes,
-                    {
-                      id: Date.now().toString(),
-                      clientId,
-                      content,
-                      createdAt: new Date(),
-                      category,
-                    },
-                  ]);
+                onAddNote={async (clientId: string, content: string, category: string) => {
+                  if (!token) return;
+                  try {
+                    const newNote = await leadNoteService.addNote(token, clientId, content, category);
+                    setDbNotes(prev => [newNote, ...prev]);
+                    alert('Note saved successfully!');
+                  } catch (error) {
+                    console.error('Error adding note:', error);
+                    alert('Failed to save note.');
+                  }
                 }}
               />
             )}
@@ -354,17 +310,9 @@ export default function ConsultantDashboard() {
                 properties={properties}
                 clients={clients}
                 onScheduleVisit={(clientId: any, propertyId: any, date: any, visitExecutiveId: any) => {
-                  setSiteVisits([
-                    ...siteVisits,
-                    {
-                      id: Date.now().toString(),
-                      clientId,
-                      propertyId,
-                      scheduledDate: date,
-                      status: 'scheduled',
-                      visitExecutiveId,
-                    },
-                  ]);
+                  console.log('Schedule visit:', { clientId, propertyId, date, visitExecutiveId });
+                  // In a real app, this would call an API
+                  alert('Schedule visit functionality is read-only for now.');
                 }}
               />
             )}
@@ -377,4 +325,3 @@ export default function ConsultantDashboard() {
     </div>
   );
 }
-

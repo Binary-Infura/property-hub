@@ -44,7 +44,9 @@ export class ConsultantsService {
                 units: true,
                 leads: {
                     include: {
-                        campaign: true
+                        campaign: true,
+                        visits: true,
+                        project: true,
                     }
                 }
             },
@@ -53,7 +55,7 @@ export class ConsultantsService {
             }
         });
 
-        // Group leads by campaign for each project
+        // Group leads by campaign for each project, and also return all leads flat for the dashboard
         return projects.map(project => {
             const campaignsMap = new Map();
 
@@ -66,12 +68,7 @@ export class ConsultantsService {
                         });
                     }
                     campaignsMap.get(lead.campaign.id).leads.push({
-                        id: lead.id,
-                        name: lead.name,
-                        email: lead.email,
-                        phone: lead.phone,
-                        status: lead.status,
-                        createdAt: lead.createdAt
+                        ...lead,
                     });
                 }
             });
@@ -80,7 +77,7 @@ export class ConsultantsService {
 
             return {
                 ...project,
-                leads: undefined, // Remove flat leads list
+                leads: project.leads, // Keep leads list for dashboard
                 campaigns: campaigns
             };
         });

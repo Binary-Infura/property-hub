@@ -20,4 +20,15 @@ export const consultantService = {
         });
         return response.data;
     },
+
+    updateLeadStatus: async (token: string, leadId: string, status: string) => {
+        const response = await axios.patch(`${API_URL}/leads/${leadId}`, {
+            status,
+        }, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    },
 };

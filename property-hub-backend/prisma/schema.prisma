@@ -39,6 +39,7 @@ model Project {
   @@index([status])
   @@index([onboardedById])
   @@map("projects")
+  loans         Loan[]
 }
 
 model PropertyUnit {
@@ -87,6 +88,25 @@ model Lead {
   @@index([status])
   @@index([assignedTo])
   @@map("leads")
+  loans          Loan[]
+  leadNotes      LeadNote[]
+}
+
+model LeadNote {
+  id        String           @id @default(uuid())
+  leadId    String
+  authorId  String
+  content   String
+  category  LeadNoteCategory @default(GENERAL)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+
+  lead      Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  author    User             @relation("AuthorNotes", fields: [authorId], references: [id])
+
+  @@index([leadId])
+  @@index([authorId])
+  @@map("lead_notes")
 }
 
 model Visit {
@@ -102,6 +122,31 @@ model Visit {
 
   @@index([leadId])
   @@map("visits")
+}
+
+model Loan {
+  id           String     @id @default(uuid())
+  leadId       String
+  projectId    String
+  bankId       String
+  amount       Decimal    @db.Decimal(15, 2)
+  tenureYears  Int
+  interestRate Decimal    @db.Decimal(5, 2)
+  status       LoanStatus @default(PENDING)
+  notes        String?
+  documents    Json?      @default("{}")
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+
+  lead         Lead       @relation(fields: [leadId], references: [id])
+  project      Project    @relation(fields: [projectId], references: [id])
+  bank         Bank       @relation(fields: [bankId], references: [id])
+
+  @@index([leadId])
+  @@index([projectId])
+  @@index([bankId])
+  @@index([status])
+  @@map("loans")
 }
 
 model Commission {
@@ -178,6 +223,7 @@ model User {
   assignedProjects         Project[]                 @relation("ProjectAssignment")
   activityLogs             ActivityLog[]
   reels                    Reel[]                    @relation("UserReels")
+  authoredNotes            LeadNote[]                @relation("AuthorNotes")
   @@map("users")
 }
 
@@ -456,6 +502,7 @@ model Bank {
   updatedAt  DateTime @updatedAt
 
   @@map("banks")
+  loans      Loan[]
 }
 
 model ReraSyncLog {
@@ -526,6 +573,7 @@ enum UnitStatus {
 enum LeadStatus {
   NEW
   CONTACTED
+  FOLLOW_UP_STARTED
   QUALIFIED
   VISITING
   NEGOTIATING
@@ -579,4 +627,20 @@ model ActivityLog {
 enum SubscriptionMode {
   PAID
   FREE
+}
+
+enum LoanStatus {
+  PENDING
+  PROCESSING
+  APPROVED
+  DISBURSED
+  REJECTED
+}
+
+enum LeadNoteCategory {
+  GENERAL
+  PREFERENCE
+  BUDGET
+  LEGAL
+  FOLLOW_UP
 }

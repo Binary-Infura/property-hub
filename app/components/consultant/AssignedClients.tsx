@@ -1,3 +1,6 @@
+import React, { useState } from 'react';
+import LoanSubmitModal from './LoanSubmitModal';
+
 interface Client {
   id: string;
   name: string;
@@ -8,6 +11,8 @@ interface Client {
   status: 'active' | 'pending' | 'closed';
   assignedDate: Date;
   profileImage: string;
+  projectId?: string;
+  projectName?: string;
 }
 
 interface AssignedClientsProps {
@@ -17,6 +22,9 @@ interface AssignedClientsProps {
 }
 
 export default function AssignedClients({ clients, onSelectClient, selectedClientId }: AssignedClientsProps) {
+  const [isLoanModalOpen, setIsLoanModalOpen] = useState(false);
+  const [selectedLeadForLoan, setSelectedLeadForLoan] = useState<any>(null);
+
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-IN', {
       year: 'numeric',
@@ -40,6 +48,16 @@ export default function AssignedClients({ clients, onSelectClient, selectedClien
 
   const activeClients = clients.filter(c => c.status === 'active');
   const pendingClients = clients.filter(c => c.status === 'pending');
+
+  const handleLoanClick = (client: Client) => {
+    setSelectedLeadForLoan({
+      id: client.id,
+      name: client.name,
+      projectId: client.projectId,
+      projectName: client.projectName
+    });
+    setIsLoanModalOpen(true);
+  };
 
   return (
     <div className="space-y-8">
@@ -143,7 +161,10 @@ export default function AssignedClients({ clients, onSelectClient, selectedClien
                   <button className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-medium transition text-sm">
                     Schedule Visit
                   </button>
-                  <button className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium transition text-sm">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleLoanClick(client); }}
+                    className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium transition text-sm"
+                  >
                     Submit Loan
                   </button>
                   <button className="col-span-2 w-full bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium transition text-sm">
@@ -244,7 +265,10 @@ export default function AssignedClients({ clients, onSelectClient, selectedClien
                   <button className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-medium transition text-sm">
                     Schedule Visit
                   </button>
-                  <button className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium transition text-sm">
+                  <button
+                    onClick={(e) => { e.stopPropagation(); handleLoanClick(client); }}
+                    className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium transition text-sm"
+                  >
                     Submit Loan
                   </button>
                   <button className="col-span-2 w-full bg-yellow-600 text-white py-2 rounded-lg hover:bg-yellow-700 font-medium transition text-sm">
@@ -255,6 +279,17 @@ export default function AssignedClients({ clients, onSelectClient, selectedClien
             ))}
           </div>
         </div>
+      )}
+
+      {selectedLeadForLoan && (
+        <LoanSubmitModal
+          isOpen={isLoanModalOpen}
+          onClose={() => {
+            setIsLoanModalOpen(false);
+            setSelectedLeadForLoan(null);
+          }}
+          lead={selectedLeadForLoan}
+        />
       )}
     </div>
   );

@@ -16,6 +16,10 @@ export default function LeadsPage() {
     const [platformsList, setPlatformsList] = useState<string[]>(['All']);
     const [leadStatesList, setLeadStatesList] = useState<string[]>(['All']);
 
+    // Mapping of project name -> set of campaign names
+    const [projectCampaignsMap, setProjectCampaignsMap] = useState<Record<string, Set<string>>>({});
+    const [allCampaigns, setAllCampaigns] = useState<string[]>([]);
+
     // Selected filters
     const [selectedProject, setSelectedProject] = useState('All');
     const [selectedCampaign, setSelectedCampaign] = useState('All');
@@ -34,18 +38,26 @@ export default function LeadsPage() {
                 let campaignsSet = new Set<string>();
                 let platformsSet = new Set<string>();
                 let statusSet = new Set<string>();
+                let projectMap: Record<string, Set<string>> = {};
 
                 props.forEach((project: any) => {
+                    const projectName: string = project.name || 'Unknown';
                     if (project.name) projectsSet.add(project.name);
+
+                    if (!projectMap[projectName]) projectMap[projectName] = new Set();
+
                     project.campaigns?.forEach((campaign: any) => {
-                        if (campaign.name) campaignsSet.add(campaign.name);
+                        if (campaign.name) {
+                            campaignsSet.add(campaign.name);
+                            projectMap[projectName].add(campaign.name);
+                        }
                         if (campaign.platform) platformsSet.add(campaign.platform);
 
                         campaign.leads?.forEach((lead: any) => {
                             if (lead.status) statusSet.add(lead.status);
                             allLeads.push({
                                 ...lead,
-                                projectName: project.name || 'Unknown',
+                                projectName: projectName,
                                 campaignName: campaign.name || 'Unknown',
                                 platform: campaign.platform || 'Other',
                             });
@@ -53,11 +65,35 @@ export default function LeadsPage() {
                     });
                 });
 
+                setProjectCampaignsMap(projectMap);
+                setAllCampaigns(['All', ...Array.from(campaignsSet).sort()]);
+
+                const ALL_LEAD_STATUSES = [
+                    'NEW',
+                    'CONTACTED',
+                    'FOLLOW_UP_STARTED',
+                    'QUALIFIED',
+                    'VISITING',
+                    'NEGOTIATING',
+                    'CONVERTED',
+                    'LOST'
+                ];
+
+                const ALL_PLATFORMS = [
+                    'Google Ads',
+                    'Facebook',
+                    'Instagram',
+                    'LinkedIn',
+                    'Twitter',
+                    'Direct',
+                    'Organic'
+                ];
+
                 setLeads(allLeads);
                 setProjectsList(['All', ...Array.from(projectsSet).sort()]);
                 setCampaignsList(['All', ...Array.from(campaignsSet).sort()]);
-                setPlatformsList(['All', ...Array.from(platformsSet).sort()]);
-                setLeadStatesList(['All', ...Array.from(statusSet).sort()]);
+                setPlatformsList(['All', ...ALL_PLATFORMS]);
+                setLeadStatesList(['All', ...ALL_LEAD_STATUSES]);
             } catch (error) {
                 console.error('Error fetching consultant leads:', error);
             } finally {
@@ -66,6 +102,33 @@ export default function LeadsPage() {
         }
         fetchData();
     }, [token]);
+
+    // Update campaigns list when project changes
+    useEffect(() => {
+        if (selectedProject === 'All') {
+            setCampaignsList(allCampaigns);
+        } else {
+            const campaigns = projectCampaignsMap[selectedProject]
+                ? ['All', ...Array.from(projectCampaignsMap[selectedProject]).sort()]
+                : ['All'];
+            setCampaignsList(campaigns);
+        }
+        setSelectedCampaign('All'); // Reset campaign filter when project changes
+    }, [selectedProject, projectCampaignsMap, allCampaigns]);
+
+    const handleUpdateStatus = async (leadId: string, newStatus: string) => {
+        if (!token) return;
+        try {
+            await consultantService.updateLeadStatus(token, leadId, newStatus);
+            // Update local state
+            setLeads(prevLeads => prevLeads.map(lead =>
+                lead.id === leadId ? { ...lead, status: newStatus } : lead
+            ));
+        } catch (error) {
+            console.error('Error updating lead status:', error);
+            alert('Failed to update status');
+        }
+    };
 
     // Filter leads based on selected criteria
     const filteredLeads = leads.filter(lead => {
@@ -87,6 +150,7 @@ export default function LeadsPage() {
         const s = (state || '').toUpperCase();
         if (s.includes('NEW')) return 'bg-blue-100 text-blue-800';
         if (s.includes('CONTACTED')) return 'bg-yellow-100 text-yellow-800';
+        if (s.includes('FOLLOW_UP_STARTED') || s.includes('FOLLOW-UP')) return 'bg-indigo-100 text-indigo-800';
         if (s.includes('VISIT') || s.includes('SCHEDULED')) return 'bg-purple-100 text-purple-800';
         if (s.includes('NEGOTIATING')) return 'bg-orange-100 text-orange-800';
         if (s.includes('WON') || s.includes('CLOSED')) return 'bg-green-100 text-green-800';
@@ -228,9 +292,20 @@ export default function LeadsPage() {
                                                 </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(lead.status)}`}>
-                                                    {lead.status || 'Unknown'}
-                                                </span>
+                                                <select
+                                                    className={`px-3 py-1 text-xs leading-5 font-semibold rounded-full border-none focus:ring-2 focus:ring-blue-500 cursor-pointer ${getStatusColor(lead.status)}`}
+                                                    value={lead.status || 'NEW'}
+                                                    onChange={(e) => handleUpdateStatus(lead.id, e.target.value)}
+                                                >
+                                                    <option value="NEW">NEW</option>
+                                                    <option value="CONTACTED">CONTACTED</option>
+                                                    <option value="FOLLOW_UP_STARTED">FOLLOW-UP STARTED</option>
+                                                    <option value="QUALIFIED">QUALIFIED</option>
+                                                    <option value="VISITING">VISITING</option>
+                                                    <option value="NEGOTIATING">NEGOTIATING</option>
+                                                    <option value="CONVERTED">CONVERTED</option>
+                                                    <option value="LOST">LOST</option>
+                                                </select>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
