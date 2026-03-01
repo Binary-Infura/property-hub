@@ -13,9 +13,10 @@ interface ProjectPartnerTopNavProps {
   breadcrumbs?: BreadcrumbItem[];
   title?: string;
   showLogo?: boolean;
+  onMenuClick?: () => void;
 }
 
-export default function ProjectPartnerTopNav({ breadcrumbs = [], title, showLogo = false }: ProjectPartnerTopNavProps) {
+export default function ProjectPartnerTopNav({ breadcrumbs = [], title, showLogo = false, onMenuClick }: ProjectPartnerTopNavProps) {
   const pathname = usePathname();
 
   // Generate default breadcrumbs from pathname if not provided
@@ -44,6 +45,7 @@ export default function ProjectPartnerTopNav({ breadcrumbs = [], title, showLogo
       showSearch={true}
       showNotifications={true}
       showLogo={showLogo}
+      onMenuClick={onMenuClick}
     />
   );
 }
