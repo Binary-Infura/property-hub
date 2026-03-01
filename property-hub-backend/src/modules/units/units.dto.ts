@@ -1,4 +1,5 @@
-import { IsString, IsNumber, IsOptional, IsEnum, IsUUID, IsDateString } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsEnum, IsUUID, IsDateString, IsArray, ValidateNested } from 'class-validator';
+import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateUnitDto {
@@ -75,19 +76,41 @@ export class MarkUnitAsSoldDto {
     soldAt: string;
 }
 
+export class UnitItemDto {
+    @ApiProperty()
+    @IsString()
+    unitNumber: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsNumber()
+    floor?: number;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    type?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsNumber()
+    area?: number;
+
+    @ApiProperty()
+    @IsNumber()
+    price: number;
+}
+
 export class BulkCreateUnitsDto {
     @ApiProperty()
     @IsUUID()
     projectId: string;
 
-    @ApiProperty()
-    units: {
-        unitNumber: string;
-        floor?: number;
-        type?: string;
-        area?: number;
-        price: number;
-    }[];
+    @ApiProperty({ type: [UnitItemDto] })
+    @IsArray()
+    @ValidateNested({ each: true })
+    @Type(() => UnitItemDto)
+    units: UnitItemDto[];
 }
 
 export class BulkDeleteUnitsDto {

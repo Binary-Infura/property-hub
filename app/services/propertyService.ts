@@ -141,7 +141,7 @@ export const projectService = {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`,
             },
-            body: JSON.stringify({ propertyIds: projectIds, consultantIds }),
+            body: JSON.stringify({ projectIds, consultantIds }),
         });
         if (!response.ok) {
             const error = await response.json().catch(() => ({ message: 'Bulk assignment failed' }));

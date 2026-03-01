@@ -26,9 +26,10 @@ function ConsultantDashboardLayoutContent({
 
   const navigation = [
     { name: 'Dashboard', href: '/consultant/dashboard', icon: 'dashboard' as const },
-    { name: 'My Clients', href: '/consultant/dashboard/clients', icon: 'users' as const },
+    { name: 'Leads', href: '/consultant/dashboard/leads', icon: 'users' as const },
     { name: 'Calendar', href: '/consultant/dashboard/calendar', icon: 'calendar' as const },
-    { name: 'Properties', href: '/consultant/dashboard/properties', icon: 'home' as const },
+    { name: 'Projects', href: '/consultant/dashboard/projects', icon: 'home' as const },
+    { name: 'Units', href: '/consultant/dashboard/units', icon: 'pin' as const },
   ];
 
   const isActive = (href: string) => {

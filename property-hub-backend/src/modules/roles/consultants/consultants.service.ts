@@ -41,6 +41,7 @@ export class ConsultantsService {
             },
             include: {
                 city: true,
+                units: true,
                 leads: {
                     include: {
                         campaign: true

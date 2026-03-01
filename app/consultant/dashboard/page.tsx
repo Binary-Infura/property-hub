@@ -274,7 +274,7 @@ export default function ConsultantDashboard() {
                 : 'border-transparent text-gray-600 hover:text-gray-900'
                 }`}
             >
-              Assigned Clients
+              Ongoing Leads
             </button>
             <button
               onClick={() => setActiveTab('status')}

@@ -14,13 +14,13 @@ interface Lead {
     notes?: string;
     createdAt: string;
     campaignId?: string;
-    propertyId?: string;
+    projectId?: string;
     campaign?: {
         id: string;
         name: string;
         platform: string;
     };
-    property?: {
+    project?: {
         id: string;
         name: string;
     };
@@ -50,7 +50,7 @@ export default function CampaignLeadsPage() {
         name: '',
         phone: '',
         email: '',
-        propertyId: '',
+        projectId: '',
         campaignId: '',
         source: 'Manual',
         notes: ''
@@ -95,7 +95,7 @@ export default function CampaignLeadsPage() {
         try {
             await marketingService.createLead(token, {
                 ...leadFormData,
-                propertyId: leadFormData.propertyId || undefined,
+                projectId: leadFormData.projectId || undefined,
                 campaignId: leadFormData.campaignId || undefined,
             });
             setShowCreateModal(false);
@@ -103,7 +103,7 @@ export default function CampaignLeadsPage() {
                 name: '',
                 phone: '',
                 email: '',
-                propertyId: '',
+                projectId: '',
                 campaignId: '',
                 source: 'Manual',
                 notes: ''
@@ -364,8 +364,8 @@ export default function CampaignLeadsPage() {
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Property (Optional)</label>
                                 <select
-                                    name="propertyId"
-                                    value={leadFormData.propertyId}
+                                    name="projectId"
+                                    value={leadFormData.projectId}
                                     onChange={handleLeadInputChange}
                                     className="w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-purple-500 outline-none"
                                 >

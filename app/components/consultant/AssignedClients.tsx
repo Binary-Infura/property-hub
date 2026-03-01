@@ -47,7 +47,7 @@ export default function AssignedClients({ clients, onSelectClient, selectedClien
       <div>
         <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
           <span className="inline-block w-3 h-3 bg-green-600 rounded-full"></span>
-          Active Clients ({activeClients.length})
+          Active Leads ({activeClients.length})
         </h3>
 
         {activeClients.length === 0 ? (
@@ -60,7 +60,7 @@ export default function AssignedClients({ clients, onSelectClient, selectedClien
                 d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0z"
               />
             </svg>
-            <p className="text-gray-600 font-medium">No active clients</p>
+            <p className="text-gray-600 font-medium">No active leads</p>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
@@ -68,11 +68,10 @@ export default function AssignedClients({ clients, onSelectClient, selectedClien
               <div
                 key={client.id}
                 onClick={() => onSelectClient(client.id)}
-                className={`rounded-lg border-2 p-6 transition cursor-pointer ${
-                  selectedClientId === client.id
-                    ? 'border-blue-600 bg-blue-50 shadow-md'
-                    : 'border-gray-200 hover:border-blue-300 bg-white hover:shadow-md'
-                }`}
+                className={`rounded-lg border-2 p-6 transition cursor-pointer ${selectedClientId === client.id
+                  ? 'border-blue-600 bg-blue-50 shadow-md'
+                  : 'border-gray-200 hover:border-blue-300 bg-white hover:shadow-md'
+                  }`}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-4">
@@ -140,9 +139,17 @@ export default function AssignedClients({ clients, onSelectClient, selectedClien
                   </div>
                 </div>
 
-                <button className="mt-4 w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium transition text-sm">
-                  View Details
-                </button>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <button className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-medium transition text-sm">
+                    Schedule Visit
+                  </button>
+                  <button className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium transition text-sm">
+                    Submit Loan
+                  </button>
+                  <button className="col-span-2 w-full bg-gray-100 text-gray-700 py-2 rounded-lg hover:bg-gray-200 font-medium transition text-sm">
+                    View Details
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -154,7 +161,7 @@ export default function AssignedClients({ clients, onSelectClient, selectedClien
         <div>
           <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
             <span className="inline-block w-3 h-3 bg-yellow-600 rounded-full"></span>
-            Pending Clients ({pendingClients.length})
+            Pending Leads ({pendingClients.length})
           </h3>
 
           <div className="grid md:grid-cols-2 gap-6">
@@ -162,11 +169,10 @@ export default function AssignedClients({ clients, onSelectClient, selectedClien
               <div
                 key={client.id}
                 onClick={() => onSelectClient(client.id)}
-                className={`rounded-lg border-2 p-6 transition cursor-pointer ${
-                  selectedClientId === client.id
-                    ? 'border-yellow-500 bg-yellow-50 shadow-md'
-                    : 'border-gray-200 hover:border-yellow-300 bg-white hover:shadow-md'
-                }`}
+                className={`rounded-lg border-2 p-6 transition cursor-pointer ${selectedClientId === client.id
+                  ? 'border-yellow-500 bg-yellow-50 shadow-md'
+                  : 'border-gray-200 hover:border-yellow-300 bg-white hover:shadow-md'
+                  }`}
               >
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center gap-4">
@@ -234,9 +240,17 @@ export default function AssignedClients({ clients, onSelectClient, selectedClien
                   </div>
                 </div>
 
-                <button className="mt-4 w-full bg-yellow-600 text-white py-2 rounded-lg hover:bg-yellow-700 font-medium transition text-sm">
-                  Schedule Consultation
-                </button>
+                <div className="mt-4 grid grid-cols-2 gap-2">
+                  <button className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 font-medium transition text-sm">
+                    Schedule Visit
+                  </button>
+                  <button className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 font-medium transition text-sm">
+                    Submit Loan
+                  </button>
+                  <button className="col-span-2 w-full bg-yellow-600 text-white py-2 rounded-lg hover:bg-yellow-700 font-medium transition text-sm">
+                    Schedule Consultation
+                  </button>
+                </div>
               </div>
             ))}
           </div>
