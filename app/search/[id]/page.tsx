@@ -322,18 +322,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                         </div>
                     </div>
 
-                    {/* Upsell Card */}
-                    <div className="bg-gradient-to-br from-indigo-700 via-purple-700 to-indigo-900 rounded-[4rem] p-12 text-white shadow-2xl relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full blur-[80px] group-hover:scale-150 transition-transform duration-1000"></div>
-                        <div className="relative z-10 text-center">
-                            <div className="w-20 h-20 bg-white/20 backdrop-blur-3xl rounded-[2rem] flex items-center justify-center mx-auto mb-10 shadow-2xl border border-white/20 text-amber-300">
-                                <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M9.813 15.904 9 18.75l-.813-2.846a4.5 4.5 0 0 0-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 0 0 3.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 0 0 3.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 0 0-3.09 3.09ZM18.259 8.715 18 9.75l-.259-1.035a3.375 3.375 0 0 0-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 0 0 2.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 0 0 2.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 0 0-2.456 2.456ZM16.894 20.567 16.5 21.75l-.394-1.183a2.25 2.25 0 0 0-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 0 0 1.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 0 0 1.423 1.423l1.183.394-1.183.394a2.25 2.25 0 0 0-1.423 1.423Z" /></svg>
-                            </div>
-                            <h4 className="text-4xl font-black mb-6 tracking-tighter leading-none italic">PropertyHub <br /> Premium Plus</h4>
-                            <p className="text-indigo-100 font-bold mb-10 text-lg leading-relaxed opacity-80">Unlock yield forecasts & historical neighborhood data.</p>
-                            <button className="w-full py-6 bg-white text-indigo-700 rounded-[2rem] font-black tracking-widest text-sm uppercase hover:shadow-2xl hover:-translate-y-1 transition-all active:scale-95">Upgrade Strategy</button>
-                        </div>
-                    </div>
+
                 </div>
             </main>
         </div>
