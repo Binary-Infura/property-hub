@@ -431,6 +431,18 @@ model ReraProject {
   @@map("rera_projects")
 }
 
+model Bank {
+  id         String   @id @default(uuid())
+  name       String   @unique
+  percentage Decimal  @db.Decimal(5, 2)
+  logoUrl    String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("banks")
+}
+
 model ReraSyncLog {
   id              String    @id @default(uuid())
   state           String

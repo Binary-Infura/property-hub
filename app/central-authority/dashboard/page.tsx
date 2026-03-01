@@ -5,6 +5,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { reraService } from '@/app/services/reraService';
 import Link from 'next/link';
 import ReraImportSection from '@/app/components/dashboard/ReraImportSection';
+import BankManagerSection from '@/app/components/dashboard/BankManagerSection';
 
 interface DashboardStats {
     projects: {
@@ -423,6 +424,12 @@ export default function CentralAuthorityDashboardPage() {
                     </div>
                 )}
             </div>
+
+            {/* Bank Management Section */}
+            <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
+                <BankManagerSection />
+            </div>
+
 
             {/* Property Management Quick Access */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

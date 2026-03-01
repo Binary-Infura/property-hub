@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { bankService, Bank } from '@/app/services/bankService';
 
 export default function LoanCalculator() {
     const [loanAmount, setLoanAmount] = useState(5000000); // 50 Lakhs
@@ -9,6 +10,33 @@ export default function LoanCalculator() {
     const [emi, setEmi] = useState(0);
     const [totalInterest, setTotalInterest] = useState(0);
     const [totalAmount, setTotalAmount] = useState(0);
+    const [banks, setBanks] = useState<Bank[]>([]);
+    const [selectedBankId, setSelectedBankId] = useState<string>('');
+
+    useEffect(() => {
+        const fetchBanks = async () => {
+            try {
+                const data = await bankService.getActiveBanks();
+                setBanks(data);
+                if (data.length > 0) {
+                    setSelectedBankId(data[0].id);
+                    setInterestRate(Number(data[0].percentage));
+                }
+            } catch (error) {
+                console.error('Failed to fetch banks for calculator:', error);
+            }
+        };
+        fetchBanks();
+    }, []);
+
+    const handleBankChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const bankId = e.target.value;
+        setSelectedBankId(bankId);
+        const bank = banks.find(b => b.id === bankId);
+        if (bank) {
+            setInterestRate(Number(bank.percentage));
+        }
+    };
 
     useEffect(() => {
         calculateEMI();
@@ -61,6 +89,23 @@ export default function LoanCalculator() {
                 <div className="grid lg:grid-cols-2 gap-12 items-center bg-gray-50 p-8 md:p-12 rounded-3xl shadow-xl border border-gray-100">
                     {/* Inputs Section */}
                     <div className="space-y-8">
+                        {banks.length > 0 && (
+                            <div className="space-y-4">
+                                <label className="text-gray-700 font-semibold block">Select Preferred Bank</label>
+                                <select
+                                    value={selectedBankId}
+                                    onChange={handleBankChange}
+                                    className="w-full bg-white border border-gray-200 rounded-xl px-4 py-3 text-gray-700 focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 outline-none transition-all shadow-sm font-medium"
+                                >
+                                    {banks.map(bank => (
+                                        <option key={bank.id} value={bank.id}>
+                                            {bank.name} ({bank.percentage}%)
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+
                         <div className="space-y-4">
                             <div className="flex justify-between items-center">
                                 <label className="text-gray-700 font-semibold">Loan Amount</label>

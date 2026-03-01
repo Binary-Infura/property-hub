@@ -273,6 +273,24 @@ async function main() {
         }
     });
 
+    // 13. Banks
+    console.log('Creating Banks...');
+    const banks = [
+        { name: 'HDFC Bank', percentage: 8.4 },
+        { name: 'SBI Bank', percentage: 8.5 },
+        { name: 'ICICI Bank', percentage: 8.75 },
+        { name: 'Axis Bank', percentage: 8.65 },
+        { name: 'Kotak Bank', percentage: 8.8 },
+    ];
+
+    for (const bank of banks) {
+        await prisma.bank.upsert({
+            where: { name: bank.name },
+            update: {},
+            create: bank,
+        });
+    }
+
     console.log('✅ Seeding completed successfully.');
 }
 
