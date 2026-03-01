@@ -43,6 +43,7 @@ export default function Navbar() {
                         <Link href="/#how" className="text-gray-600 hover:text-gray-900 text-sm font-medium">How It Works</Link>
                         <Link href="/#why" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Why Us</Link>
                         <Link href="/#recommended" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Properties</Link>
+                        <Link href="/reels" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Reels</Link>
                         <Link href="/search" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Search</Link>
                     </div>
                     <div className="flex items-center gap-3">

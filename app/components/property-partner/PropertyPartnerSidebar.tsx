@@ -22,6 +22,7 @@ export default function ProjectPartnerSidebar() {
     { name: 'Visit Executives', href: '/property-partner/dashboard/visit-executives', icon: 'pin' as const },
     { name: 'Project Allocation', href: '/property-partner/dashboard/projects/allocation', icon: 'building' as const },
     { name: 'Leads', href: '/property-partner/dashboard/leads', icon: 'clipboard' as const },
+    { name: 'Reels', href: '/property-partner/dashboard/reels', icon: 'video' as const },
   ];
 
   const isActive = (href: string) => {

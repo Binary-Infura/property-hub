@@ -291,7 +291,52 @@ async function main() {
         });
     }
 
-    console.log('✅ Seeding completed successfully.');
+    // 14. Default Reels
+    console.log('Creating Default Reels...');
+
+    // Delete any existing seed reels to avoid duplicates
+    await prisma.reel.deleteMany({
+        where: { userId: ppUser.id }
+    });
+
+    const defaultReels = [
+        {
+            title: 'Luxury Sea View Apartment - Worli, Mumbai',
+            description: 'Step inside this stunning 3BHK sea-facing apartment in one of Mumbai\'s most iconic locations. Panoramic views, premium finishes, and world-class amenities await.',
+            videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+            thumbnailUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&q=80',
+        },
+        {
+            title: 'Green Valley Villa Plots - Lonavala, Pune',
+            description: 'Build your dream home amidst nature. These lush green plots in Lonavala offer the perfect escape from city life with clear titles and RERA approved layout.',
+            videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+            thumbnailUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80',
+        },
+        {
+            title: 'Premium 2BHK Ready-to-Move - Bandra, Mumbai',
+            description: 'No more waiting! This ready-to-move 2BHK in Bandra West is fully furnished with modular kitchen, wooden flooring, and a private balcony with stunning city views.',
+            videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
+            thumbnailUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=80',
+        },
+        {
+            title: 'Exclusive Penthouse - Powai, Mumbai',
+            description: 'The pinnacle of luxury living. This exclusive 4BHK penthouse overlooking Powai Lake features a private terrace, home theatre, and butler service in a gated community.',
+            videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
+            thumbnailUrl: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400&q=80',
+        },
+    ];
+
+    for (const reel of defaultReels) {
+        await prisma.reel.create({
+            data: {
+                ...reel,
+                userId: ppUser.id,
+            },
+        });
+    }
+
+    console.log(`Seeded ${defaultReels.length} default reels.`);
+    console.log('Seeding completed successfully.');
 }
 
 main()

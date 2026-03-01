@@ -243,6 +243,7 @@ export default function PropertyPartnerDashboard() {
               { name: 'Project Allocation', href: '/property-partner/dashboard/projects/allocation', icon: 'building' as const, color: 'emerald' },
               { name: 'Units Inventory', href: '/property-partner/dashboard/units', icon: 'home' as const, color: 'purple' },
               { name: 'Leads', href: '/property-partner/dashboard/leads', icon: 'clipboard' as const, color: 'orange' },
+              { name: 'Reels Management', href: '/property-partner/dashboard/reels', icon: 'video' as const, color: 'blue' },
             ].map((item) => (
               <Link
                 key={item.name}

@@ -177,7 +177,22 @@ model User {
   campaignsAssigned        MarketingCampaign[]       @relation("CampaignToUser")
   assignedProjects         Project[]                 @relation("ProjectAssignment")
   activityLogs             ActivityLog[]
+  reels                    Reel[]                    @relation("UserReels")
   @@map("users")
+}
+
+model Reel {
+  id          String   @id @default(uuid())
+  title       String?
+  description String?
+  videoUrl    String
+  thumbnailUrl String?
+  userId      String
+  user        User     @relation("UserReels", fields: [userId], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("reels")
 }
 
 model InfluencerProfile {

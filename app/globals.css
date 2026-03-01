@@ -28,3 +28,17 @@ body {
 html {
   scroll-behavior: smooth;
 }
+
+/* ─── Reels viewer: hide scrollbar cross-browser ─────────────────────── */
+.reels-scroll-container {
+  overflow-y: scroll;
+  scroll-snap-type: y mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.reels-scroll-container::-webkit-scrollbar { display: none; }
+.reels-scroll-container { scrollbar-width: none; -ms-overflow-style: none; }
+
+.reel-snap-item {
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}

@@ -30,6 +30,7 @@ import { ReraModule } from './modules/rera/rera.module';
 import { CitiesModule } from './modules/cities/cities.module';
 import { ActivityLogsModule } from './modules/activity-logs/activity-logs.module';
 import { BanksModule } from './modules/banks/banks.module';
+import { ReelsModule } from './modules/reels/reels.module';
 import { join } from 'path';
 
 @Module({
@@ -66,6 +67,7 @@ import { join } from 'path';
         CitiesModule,
         ActivityLogsModule,
         BanksModule,
+        ReelsModule,
         ServeStaticModule.forRoot({
             rootPath: join(__dirname, '..', 'uploads'),
             serveRoot: '/uploads',
