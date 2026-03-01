@@ -134,10 +134,15 @@ export const reraService = {
 
         return response.json();
     },
-    async getDistrictCounts(token: string, state?: string): Promise<any[]> {
+    async getDistrictCounts(token: string, state?: string, district?: string): Promise<any[]> {
         let url = `${API_URL}/rera/district-counts`;
-        if (state) {
-            url += `?state=${state.toLowerCase()}`;
+        const params = new URLSearchParams();
+        if (state) params.append('state', state);
+        if (district) params.append('district', district);
+
+        const queryString = params.toString();
+        if (queryString) {
+            url += `?${queryString}`;
         }
         const response = await fetch(url, {
             headers: {
@@ -162,6 +167,27 @@ export const reraService = {
             const error = await response.json();
             throw new Error(error.message || `Failed to sync district counts for ${state}`);
         }
+        return response.json();
+    },
+
+    async uploadData(token: string, file: File, state: string): Promise<{ success: boolean; processed: number }> {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('state', state);
+
+        const response = await fetch(`${API_URL}/rera/upload`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.message || 'Failed to upload RERA data');
+        }
+
         return response.json();
     }
 };

@@ -23,7 +23,6 @@ function CentralAuthorityDashboardLayoutContent({
         { name: 'Visit Executives', href: '/central-authority/dashboard/visit-executives', icon: 'car' as const },
         { name: 'Marketing Managers', href: '/central-authority/dashboard/marketing-managers', icon: 'megaphone' as const },
         { name: 'Onboarding Managers', href: '/central-authority/dashboard/onboarding-managers', icon: 'briefcase' as const },
-        { name: 'Rera Scraper', href: '/central-authority/dashboard/rera-scraper', icon: 'spider' as const },
         { name: 'Influencers', href: '/central-authority/dashboard/influencers', icon: 'phone' as const },
         { name: 'Global Users', href: '/central-authority/dashboard/global-users', icon: 'globe' as const },
     ];

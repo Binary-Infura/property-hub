@@ -1,10 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { InjectQueue } from '@nestjs/bullmq';
-import { Queue } from 'bullmq';
-import { RajasthanScraper } from './scrapers/rajasthan.scraper';
-import { MaharashtraScraper } from './scrapers/maharashtra.scraper';
-import { IReraScraper } from './interfaces/rera-scraper.interface';
 import { UsersService } from '../users/users.service';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
@@ -12,92 +7,56 @@ import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface
 @Injectable()
 export class ReraService {
     private readonly logger = new Logger(ReraService.name);
-    private readonly scrapers: IReraScraper[];
 
     constructor(
         private readonly prisma: PrismaService,
-        @InjectQueue('rera-sync') private readonly reraQueue: Queue,
         private readonly usersService: UsersService,
         private readonly activityLogsService: ActivityLogsService,
-        rajasthanScraper: RajasthanScraper,
-        maharashtraScraper: MaharashtraScraper,
-    ) {
-        this.scrapers = [rajasthanScraper, maharashtraScraper];
-    }
+    ) { }
 
-    async syncAllStates() {
-        this.logger.log('Queuing sync jobs for all states...');
-        for (const scraper of this.scrapers) {
-            await this.reraQueue.add('sync-state', { state: scraper.getState() });
+    /**
+     * Handles manual upload of RERA data in NDJSON format
+     */
+    async uploadReraData(fileContent: string, state: string, user: AuthenticatedUser) {
+        const lines = fileContent.split('\n').filter(line => line.trim());
+        this.logger.log(`Processing upload of ${lines.length} RERA projects for ${state}`);
+
+        let updatedCount = 0;
+        const internalUser = await this.usersService.ensureUserSynced(user);
+
+        for (const line of lines) {
+            try {
+                const project = JSON.parse(line);
+                if (!project.reraNumber) continue;
+
+                await this.prisma.reraProject.upsert({
+                    where: { reraNumber: project.reraNumber },
+                    update: {
+                        ...project,
+                        state: state,
+                        updatedAt: new Date(),
+                    },
+                    create: {
+                        ...project,
+                        state: state,
+                    },
+                });
+                updatedCount++;
+            } catch (err) {
+                this.logger.error(`Error processing line: ${err.message}`);
+            }
         }
-    }
 
-    async syncState(state: string, district?: string) {
-        const scraper = this.scrapers.find((s) => s.getState().toLowerCase() === state.toLowerCase());
-        if (!scraper) {
-            throw new Error(`Scraper not found for state: ${state}`);
-        }
-
-        // Create log entry
-        const log = await this.prisma.reraSyncLog.create({
-            data: {
-                state,
-                district,
-                status: 'STARTED',
-                startedAt: new Date(),
-            },
+        // Log upload activity
+        await this.activityLogsService.log({
+            userId: internalUser.id,
+            type: 'info',
+            action: 'RERA Data Manual Upload',
+            target: state,
+            details: { count: updatedCount }
         });
 
-        try {
-            this.logger.log(`Starting sync for ${state}${district ? ` (District: ${district})` : ''}...`);
-            const projects = await scraper.scrape({ district });
-            this.logger.log(`Found ${projects.length} projects for ${state}.`);
-
-            let updatedCount = 0;
-            for (const project of projects) {
-                try {
-                    if (!project.reraNumber) continue;
-
-                    await this.prisma.reraProject.upsert({
-                        where: { reraNumber: project.reraNumber },
-                        update: {
-                            ...project,
-                            updatedAt: new Date(),
-                        },
-                        create: {
-                            ...project as any,
-                        },
-                    });
-                    updatedCount++;
-                } catch (err) {
-                    this.logger.error(`Error upserting project ${project.reraNumber}: ${err.message}`);
-                }
-            }
-
-            // Update log entry as completed
-            await this.prisma.reraSyncLog.update({
-                where: { id: log.id },
-                data: {
-                    status: 'COMPLETED',
-                    projectsScraped: updatedCount,
-                    completedAt: new Date(),
-                },
-            });
-
-            this.logger.log(`Sync completed for ${state}. Processed ${updatedCount} projects.`);
-            return { state, processed: updatedCount };
-        } catch (error) {
-            // Update log entry as failed
-            await this.prisma.reraSyncLog.update({
-                where: { id: log.id },
-                data: {
-                    status: 'FAILED',
-                    error: error.message,
-                    completedAt: new Date(),
-                },
-            });
-            throw error;
-        }
+        return { success: true, processed: updatedCount };
     }
 
     async getActivityLogs(limit: number = 50) {
@@ -171,8 +130,8 @@ export class ReraService {
                 description: `Imported from RERA. Promoter: ${reraProject.promoterName}. RERA Number: ${reraProject.reraNumber}`,
                 location: reraProject.district || reraProject.state,
                 address: reraProject.address,
-                price: 0, // Default price, to be updated by user
-                projectType: 'APARTMENT', // Default type
+                price: 0,
+                projectType: 'APARTMENT',
                 status: 'DRAFT',
                 onboardedById: internalUser.id,
                 category: 'flat',
@@ -191,51 +150,13 @@ export class ReraService {
         return project;
     }
 
-    async getTotalCount(state: string, district?: string): Promise<number> {
-        const scraper = this.scrapers.find((s) => s.getState().toLowerCase() === state.toLowerCase());
-        if (!scraper || !scraper.getTotalCount) {
-            return 0;
-        }
-        return scraper.getTotalCount({ district });
-    }
-
-    async syncDistrictCounts(state: string) {
-        const scraper = this.scrapers.find((s) => s.getState().toLowerCase() === state.toLowerCase());
-        if (!scraper || !scraper.getDistrictCounts) {
-            throw new Error(`Scraper not found or counts not supported for state: ${state}`);
-        }
-
-        this.logger.log(`Syncing district counts for ${state}...`);
-        const counts = await scraper.getDistrictCounts();
-
-        for (const item of counts) {
-            await this.prisma.reraDistrictCount.upsert({
-                where: {
-                    state_district: {
-                        state: scraper.getState(),
-                        district: item.district,
-                    },
-                },
-                update: {
-                    projectCount: item.count,
-                    updatedAt: new Date(),
-                },
-                create: {
-                    state: scraper.getState(),
-                    district: item.district,
-                    projectCount: item.count,
-                },
-            });
-        }
-
-        this.logger.log(`Synced counts for ${counts.length} districts in ${state}.`);
-        return { state, processed: counts.length };
-    }
-
-    async getDistrictCounts(state?: string) {
+    async getDistrictCounts(state?: string, district?: string) {
         const where: any = {};
         if (state) {
             where.state = { equals: state, mode: 'insensitive' };
+        }
+        if (district) {
+            where.district = { contains: district, mode: 'insensitive' };
         }
         return this.prisma.reraDistrictCount.findMany({
             where,

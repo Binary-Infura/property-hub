@@ -10,6 +10,7 @@ export default function ReraCountsPage() {
     const { token } = useAuth();
     const router = useRouter();
     const [districtCounts, setDistrictCounts] = useState<any[]>([]);
+    const [districtSearch, setDistrictSearch] = useState('');
     const [fetchingCounts, setFetchingCounts] = useState(true);
     const [selectedState, setSelectedState] = useState('rajasthan');
     const [sortOrder, setSortOrder] = useState<'desc' | 'asc'>('desc');
@@ -22,7 +23,7 @@ export default function ReraCountsPage() {
         if (!token) return;
         setFetchingCounts(true);
         try {
-            const counts = await reraService.getDistrictCounts(token, selectedState);
+            const counts = await reraService.getDistrictCounts(token, selectedState, districtSearch);
             setDistrictCounts(counts);
         } catch (error) {
             console.error('Failed to fetch district counts', error);
@@ -43,7 +44,7 @@ export default function ReraCountsPage() {
         if (token) {
             fetchDistrictCounts();
         }
-    }, [token, selectedState]);
+    }, [token, selectedState, districtSearch]);
 
     return (
         <div className="space-y-6 max-w-5xl mx-auto">
@@ -84,6 +85,16 @@ export default function ReraCountsPage() {
                             <option value="desc">High to Low</option>
                             <option value="asc">Low to High</option>
                         </select>
+                    </div>
+                    <div>
+                        <h3 className="text-sm font-bold text-slate-900 uppercase tracking-wider">Search District</h3>
+                        <input
+                            type="text"
+                            placeholder="Optional district name..."
+                            value={districtSearch}
+                            onChange={(e) => setDistrictSearch(e.target.value)}
+                            className="mt-1.5 bg-slate-50 border border-slate-200 rounded-xl px-4 py-2 text-sm font-semibold text-slate-700 outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all min-w-[200px]"
+                        />
                     </div>
                 </div>
                 {sortedCounts.length > 0 && !fetchingCounts && (

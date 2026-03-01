@@ -18,7 +18,6 @@ import { BrokerModule } from './modules/roles/broker/broker.module';
 
 import { CentralAuthorityModule } from './modules/roles/central-authority/central-authority.module';
 import { ChatModule } from './modules/chat/chat.module';
-import { PrismaService } from './database/prisma.service';
 import { DatabaseModule } from './database/database.module';
 import { LocationsModule } from './modules/locations/locations.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -30,8 +29,6 @@ import { PostalCodesModule } from './modules/postal-codes/postal-codes.module';
 import { ReraModule } from './modules/rera/rera.module';
 import { CitiesModule } from './modules/cities/cities.module';
 import { ActivityLogsModule } from './modules/activity-logs/activity-logs.module';
-import { BullModule } from '@nestjs/bullmq';
-import { ScheduleModule } from '@nestjs/schedule';
 import { join } from 'path';
 
 @Module({
@@ -40,13 +37,6 @@ import { join } from 'path';
             isGlobal: true,
             envFilePath: '.env',
         }),
-        BullModule.forRoot({
-            connection: {
-                host: process.env.REDIS_HOST || 'localhost',
-                port: parseInt(process.env.REDIS_PORT || '6379', 10),
-            },
-        }),
-        ScheduleModule.forRoot(),
         DatabaseModule,
         CommonModule,
         MattermostModule,

@@ -2,7 +2,9 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
+import { reraService } from '@/app/services/reraService';
 import Link from 'next/link';
+import ReraImportSection from '@/app/components/dashboard/ReraImportSection';
 
 interface DashboardStats {
     projects: {
@@ -56,6 +58,8 @@ export default function CentralAuthorityDashboardPage() {
     const [loading, setLoading] = useState(true);
     const [updatingPartner, setUpdatingPartner] = useState<string | null>(null);
     const [fetchingCounts, setFetchingCounts] = useState(false);
+    const [districtSearch, setDistrictSearch] = useState('');
+    const [showReraImport, setShowReraImport] = useState(false);
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -76,25 +80,24 @@ export default function CentralAuthorityDashboardPage() {
         }
     };
 
-    const fetchDistrictCounts = async () => {
+    const fetchDistrictCounts = async (search?: string) => {
         if (!token) return;
         setFetchingCounts(true);
         try {
-            const response = await fetch(`${API_URL}/rera/district-counts`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setDistrictCounts(data);
-            }
+            const counts = await reraService.getDistrictCounts(token, undefined, search);
+            setDistrictCounts(counts);
         } catch (error) {
             console.error('Failed to fetch district counts:', error);
         } finally {
             setFetchingCounts(false);
         }
     };
+
+    useEffect(() => {
+        if (token) {
+            fetchDistrictCounts(districtSearch);
+        }
+    }, [token, districtSearch]);
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -118,7 +121,6 @@ export default function CentralAuthorityDashboardPage() {
 
         fetchStats();
         fetchPartners();
-        fetchDistrictCounts();
     }, [token, API_URL]);
 
     const handleUpdateSubscription = async (userId: string, isPremium: boolean, mode: 'PAID' | 'FREE') => {
@@ -309,18 +311,60 @@ export default function CentralAuthorityDashboardPage() {
                 <div className="flex justify-between items-center mb-6">
                     <div>
                         <h2 className="text-xl font-bold text-gray-900">RERA District-wise Projects</h2>
-                        <p className="text-sm text-gray-500 mt-1">Total registered projects per district (from RERA portals)</p>
+                        <div className="flex items-center gap-4 mt-1">
+                            <p className="text-sm text-gray-500">Total registered projects per district (from RERA portals)</p>
+                            <div className="h-4 w-[1px] bg-gray-200"></div>
+                            <div className="relative">
+                                <input
+                                    type="text"
+                                    placeholder="Filter district..."
+                                    value={districtSearch}
+                                    onChange={(e) => setDistrictSearch(e.target.value)}
+                                    className="text-xs border border-gray-200 rounded-full px-3 py-1 bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all w-40"
+                                />
+                                {districtSearch && (
+                                    <button
+                                        onClick={() => setDistrictSearch('')}
+                                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                                    >
+                                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                )}
+                            </div>
+                        </div>
                     </div>
-                    <Link
-                        href="/central-authority/dashboard/rera-counts"
-                        className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                    >
-                        View Details
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                    </Link>
+                    <div className="flex items-center gap-3">
+                        <button
+                            onClick={() => setShowReraImport(!showReraImport)}
+                            className={`text-sm font-semibold flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${showReraImport
+                                ? 'bg-orange-50 text-orange-600 border border-orange-100'
+                                : 'bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-100'
+                                }`}
+                        >
+                            <svg className={`w-4 h-4 transition-transform ${showReraImport ? 'rotate-45' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                            {showReraImport ? 'Close Importer' : 'Import RERA Data'}
+                        </button>
+                        <Link
+                            href="/central-authority/dashboard/rera-counts"
+                            className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                        >
+                            View Details
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </Link>
+                    </div>
                 </div>
+
+                {showReraImport && (
+                    <div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-100 animate-in slide-in-from-top-4 duration-300">
+                        <ReraImportSection />
+                    </div>
+                )}
 
                 <div className="overflow-x-auto min-h-[200px]">
                     {fetchingCounts ? (

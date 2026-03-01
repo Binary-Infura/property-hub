@@ -11,6 +11,8 @@ async function bootstrap() {
         new FastifyAdapter({ logger: true }),
     );
 
+    await app.register(multipart);
+
     // Enable CORS
     app.enableCors({
         origin: true, // Allow all origins in development
