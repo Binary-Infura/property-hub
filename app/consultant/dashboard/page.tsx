@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState, useMemo, useRef } from 'react';
 import AssignedClients from '@/app/components/consultant/AssignedClients';
 import ConsultationStatus from '@/app/components/consultant/ConsultationStatus';
 import ConsultantNotes from '@/app/components/consultant/ConsultantNotes';
@@ -13,6 +13,57 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { consultantService } from '@/app/services/consultantService';
 import { leadNoteService } from '@/app/services/leadNoteService';
 
+// ─── Call Modal ───────────────────────────────────────────────────────────────
+function CallModal({ lead, onClose }: { lead: any; onClose: () => void }) {
+  const [seconds, setSeconds] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  useEffect(() => {
+    intervalRef.current = setInterval(() => setSeconds(s => s + 1), 1000);
+    return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+  }, []);
+  const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+      <div className="relative bg-gradient-to-b from-slate-800 to-slate-900 rounded-3xl shadow-2xl w-80 p-8 flex flex-col items-center gap-6 text-white">
+        <div className="relative flex items-center justify-center">
+          <span className="absolute inline-flex h-28 w-28 rounded-full bg-green-500/20 animate-ping" />
+          <span className="absolute inline-flex h-22 w-22 rounded-full bg-green-500/30 animate-pulse" />
+          <div className="relative h-24 w-24 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-3xl font-bold shadow-lg">
+            {(lead.name || 'L').split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()}
+          </div>
+        </div>
+        <div className="text-center">
+          <p className="text-xs font-semibold uppercase tracking-widest text-green-400 mb-1">Call in Progress</p>
+          <h2 className="text-2xl font-bold">{lead.name || 'Lead'}</h2>
+          <p className="text-slate-400 text-sm mt-0.5">{lead.phone || 'No phone'}</p>
+        </div>
+        <div className="bg-slate-700/50 rounded-2xl px-8 py-3 text-center">
+          <p className="text-3xl font-mono font-semibold tracking-widest text-white">{fmt(seconds)}</p>
+          <p className="text-slate-400 text-xs mt-1">Your phone rings first, then connects to the lead</p>
+        </div>
+        <div className="w-full space-y-2">
+          <div className="flex justify-between text-xs text-slate-400">
+            <span>Phone</span><span className="text-white font-medium">{lead.phone || 'N/A'}</span>
+          </div>
+          <div className="flex justify-between text-xs text-slate-400">
+            <span>Location</span><span className="text-white font-medium">{lead.location || 'N/A'}</span>
+          </div>
+        </div>
+        <button
+          onClick={onClose}
+          className="mt-2 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 active:scale-95 transition-all duration-150 rounded-full px-8 py-3 font-semibold text-white shadow-lg w-full"
+        >
+          <svg className="h-5 w-5 rotate-135" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.45 2.33.7 3.58.7a1 1 0 011 1V20a1 1 0 01-1 1C10.61 21 3 13.39 3 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.25 2.45.7 3.57a1 1 0 01-.24 1.01l-2.34 2.21z" />
+          </svg>
+          End / Dismiss
+        </button>
+      </div>
+    </div>
+  );
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 export default function ConsultantDashboard() {
   const { token } = useAuth();
   const { activeContext } = useUnifiedApp();
@@ -21,6 +72,25 @@ export default function ConsultantDashboard() {
   const [activeTab, setActiveTab] = useState<'clients' | 'status' | 'notes' | 'properties' | 'visits' | 'deals'>('properties');
   const [selectedClientId, setSelectedClientId] = useState<string | null>(null);
   const [dbNotes, setDbNotes] = useState<any[]>([]);
+  const [callingId, setCallingId] = useState<string | null>(null);
+  const [activeCall, setActiveCall] = useState<any | null>(null);
+  const callInProgress = useRef(false); // prevents double-click / double-fire
+
+  const handleCallLead = async (lead: any) => {
+    if (!token || callInProgress.current) return; // block if already in flight
+    callInProgress.current = true;
+    setCallingId(lead.id);
+    try {
+      await consultantService.makeCall(token, lead.id);
+      setActiveCall(lead);
+    } catch (error: any) {
+      console.error('Error initiating call:', error);
+      alert(error.response?.data?.message || 'Failed to initiate call');
+    } finally {
+      setCallingId(null);
+      callInProgress.current = false;
+    }
+  };
 
   useEffect(() => {
     async function fetchData() {
@@ -173,6 +243,9 @@ export default function ConsultantDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
+      {/* Call Modal */}
+      {activeCall && <CallModal lead={activeCall} onClose={() => setActiveCall(null)} />}
+
       {/* Header */}
       <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -281,6 +354,8 @@ export default function ConsultantDashboard() {
                 clients={clients}
                 onSelectClient={setSelectedClientId}
                 selectedClientId={selectedClientId}
+                onCallClient={handleCallLead}
+                callingId={callingId}
               />
             )}
             {activeTab === 'status' && (

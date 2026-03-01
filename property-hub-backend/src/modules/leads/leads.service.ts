@@ -3,10 +3,14 @@ import { PrismaService } from '../../database/prisma.service';
 import { CreateLeadDto, UpdateLeadDto } from './leads.dto';
 import { Lead } from '@prisma/client';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
+import { ExotelService } from '../exotel/exotel.service';
 
 @Injectable()
 export class LeadsService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private exotelService: ExotelService,
+    ) { }
 
     async findAll(user: AuthenticatedUser): Promise<Lead[]> {
         const isCentralAuthority = user.roles.includes('central-authority');
@@ -21,6 +25,44 @@ export class LeadsService {
             orderBy: {
                 createdAt: 'desc',
             },
+        });
+    }
+
+    async getCallLogs(user: AuthenticatedUser) {
+        const isCentralAuthority = user.roles.includes('central-authority');
+
+        // 1. Fetch incomplete calls for this user
+        const incompleteCalls = await this.prisma.callLog.findMany({
+            where: {
+                ...(isCentralAuthority ? {} : { consultantId: user.userId }),
+                OR: [{ status: 'queued' }, { status: 'in-progress' }, { status: null }]
+            }
+        });
+
+        // 2. Sync them with Exotel API
+        if (incompleteCalls.length > 0) {
+            await Promise.all(incompleteCalls.map(async (call) => {
+                if (!call.sid) return;
+                const details = await this.exotelService.getCallDetails(call.sid);
+                if (details && details.Status !== call.status) {
+                    await this.prisma.callLog.update({
+                        where: { id: call.id },
+                        data: {
+                            status: details.Status,
+                            recordingUrl: details.RecordingUrl || null,
+                            duration: details.Duration ? parseInt(details.Duration) : null,
+                            endTime: details.EndTime ? new Date(details.EndTime) : null,
+                        }
+                    });
+                }
+            }));
+        }
+
+        // 3. Return the fully synced logs
+        return this.prisma.callLog.findMany({
+            where: isCentralAuthority ? {} : { consultantId: user.userId },
+            include: { lead: true },
+            orderBy: { createdAt: 'desc' },
         });
     }
 
@@ -104,5 +146,32 @@ export class LeadsService {
         return this.prisma.lead.delete({
             where: { id },
         });
+    }
+
+    async initiateCall(id: string, user: AuthenticatedUser) {
+        try {
+            const lead = await this.findOne(id, user);
+
+            if (!lead.phone) {
+                throw new Error('Lead does not have a phone number');
+            }
+
+            // Get consultant phone from user profile
+            const consultant = await this.prisma.user.findUnique({
+                where: { id: user.userId },
+                include: { userMetadata: true },
+            });
+
+            const consultantPhone = consultant?.phone || consultant?.userMetadata?.phone;
+
+            if (!consultantPhone) {
+                throw new Error('Consultant does not have a phone number configured in their profile. Please update your profile.');
+            }
+
+            return await this.exotelService.makeCall(consultantPhone, lead.phone, lead.id, user.userId);
+        } catch (error) {
+            console.error('Call initiation error:', error);
+            throw error; // Rethrow to be caught by NestJS exception filter
+        }
     }
 }

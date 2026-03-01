@@ -27,6 +27,13 @@ export class LeadsController {
         private readonly leadsService: LeadsService,
         private readonly leadNotesService: LeadNotesService
     ) { }
+    // Call Logs
+    @Get('calls/history')
+    @RequireRoles(UserRole.CONSULTANT, UserRole.CENTRAL_AUTHORITY)
+    getCallLogs(@CurrentUser() user: AuthenticatedUser) {
+        return this.leadsService.getCallLogs(user);
+    }
+
 
     @Get(':id')
     @RequireRoles('central-authority', 'marketing-manager')
@@ -104,5 +111,14 @@ export class LeadsController {
         @CurrentUser() user: AuthenticatedUser
     ) {
         return this.leadsService.remove(id, user);
+    }
+
+    @Post(':id/call')
+    @RequireRoles('consultant')
+    initiateCall(
+        @Param('id') id: string,
+        @CurrentUser() user: AuthenticatedUser,
+    ) {
+        return this.leadsService.initiateCall(id, user);
     }
 }

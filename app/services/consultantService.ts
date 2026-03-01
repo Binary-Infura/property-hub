@@ -12,6 +12,13 @@ export const consultantService = {
         return response.data;
     },
 
+    getCallLogs: async (token: string) => {
+        const response = await axios.get(`${API_URL}/leads/calls/history`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.data;
+    },
+
     getProfile: async (token: string) => {
         const response = await axios.get(`${API_URL}/consultants/profile`, {
             headers: {
@@ -25,6 +32,15 @@ export const consultantService = {
         const response = await axios.patch(`${API_URL}/leads/${leadId}`, {
             status,
         }, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    },
+
+    makeCall: async (token: string, leadId: string) => {
+        const response = await axios.post(`${API_URL}/leads/${leadId}/call`, {}, {
             headers: {
                 Authorization: `Bearer ${token}`,
             },

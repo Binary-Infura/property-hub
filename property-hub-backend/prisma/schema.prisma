@@ -84,6 +84,7 @@ model Lead {
   campaign       MarketingCampaign? @relation(fields: [campaignId], references: [id])
   project        Project?           @relation(fields: [projectId], references: [id])
   visits         Visit[]
+  callLogs       CallLog[]
 
   @@index([status])
   @@index([assignedTo])
@@ -224,6 +225,7 @@ model User {
   activityLogs             ActivityLog[]
   reels                    Reel[]                    @relation("UserReels")
   authoredNotes            LeadNote[]                @relation("AuthorNotes")
+  callLogs                 CallLog[]
   @@map("users")
 }
 
@@ -541,6 +543,28 @@ model PostalCodeSyncLog {
   completedAt     DateTime?
 
   @@map("postal_code_sync_logs")
+}
+
+model CallLog {
+  id           String   @id @default(uuid())
+  sid          String?  @unique
+  leadId       String
+  consultantId String
+  status       String?  // e.g., 'queued', 'in-progress', 'completed', 'failed'
+  duration     Int?     // in seconds
+  recordingUrl String?
+  startTime    DateTime @default(now())
+  endTime      DateTime?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  lead         Lead     @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  consultant   User     @relation(fields: [consultantId], references: [id])
+
+  @@index([leadId])
+  @@index([consultantId])
+  @@index([sid])
+  @@map("call_logs")
 }
 
 enum ProjectStatus {

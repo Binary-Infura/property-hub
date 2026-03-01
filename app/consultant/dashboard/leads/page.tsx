@@ -1,8 +1,82 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { consultantService } from '@/app/services/consultantService';
+
+// ─── Call Modal ───────────────────────────────────────────────────────────────
+interface CallModalProps {
+    lead: any;
+    onClose: () => void;
+}
+
+function CallModal({ lead, onClose }: CallModalProps) {
+    const [seconds, setSeconds] = useState(0);
+    const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        intervalRef.current = setInterval(() => setSeconds(s => s + 1), 1000);
+        return () => { if (intervalRef.current) clearInterval(intervalRef.current); };
+    }, []);
+
+    const fmt = (s: number) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`;
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <div className="relative bg-gradient-to-b from-slate-800 to-slate-900 rounded-3xl shadow-2xl w-80 p-8 flex flex-col items-center gap-6 text-white">
+                {/* Pulsing avatar */}
+                <div className="relative flex items-center justify-center">
+                    <span className="absolute inline-flex h-28 w-28 rounded-full bg-green-500/20 animate-ping" />
+                    <span className="absolute inline-flex h-22 w-22 rounded-full bg-green-500/30 animate-pulse" />
+                    <div className="relative h-24 w-24 rounded-full bg-gradient-to-br from-green-400 to-emerald-600 flex items-center justify-center text-3xl font-bold shadow-lg">
+                        {(lead.name || 'U').split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()}
+                    </div>
+                </div>
+
+                {/* Lead info */}
+                <div className="text-center">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-green-400 mb-1">Call in Progress</p>
+                    <h2 className="text-2xl font-bold">{lead.name || 'Unknown'}</h2>
+                    <p className="text-slate-400 text-sm mt-0.5">{lead.phone || 'No phone'}</p>
+                </div>
+
+                {/* Timer */}
+                <div className="bg-slate-700/50 rounded-2xl px-8 py-3 text-center">
+                    <p className="text-3xl font-mono font-semibold tracking-widest text-white">{fmt(seconds)}</p>
+                    <p className="text-slate-400 text-xs mt-1">Your phone will ring first, then connects to the lead</p>
+                </div>
+
+                {/* Call details */}
+                <div className="w-full space-y-2">
+                    <div className="flex justify-between text-xs text-slate-400">
+                        <span>Project</span>
+                        <span className="text-white font-medium">{lead.projectName || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-slate-400">
+                        <span>Campaign</span>
+                        <span className="text-white font-medium">{lead.campaignName || 'N/A'}</span>
+                    </div>
+                    <div className="flex justify-between text-xs text-slate-400">
+                        <span>Status</span>
+                        <span className="text-green-400 font-medium">{lead.status || 'NEW'}</span>
+                    </div>
+                </div>
+
+                {/* Hang up */}
+                <button
+                    onClick={onClose}
+                    className="mt-2 flex items-center justify-center gap-2 bg-red-500 hover:bg-red-600 active:scale-95 transition-all duration-150 rounded-full px-8 py-3 font-semibold text-white shadow-lg w-full"
+                >
+                    <svg className="h-5 w-5 rotate-135" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.45 2.33.7 3.58.7a1 1 0 011 1V20a1 1 0 01-1 1C10.61 21 3 13.39 3 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.25 2.45.7 3.57a1 1 0 01-.24 1.01l-2.34 2.21z" />
+                    </svg>
+                    End / Dismiss
+                </button>
+            </div>
+        </div>
+    );
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function LeadsPage() {
     const { token } = useAuth();
@@ -26,6 +100,8 @@ export default function LeadsPage() {
     const [selectedPlatform, setSelectedPlatform] = useState('All');
     const [selectedState, setSelectedState] = useState('All');
     const [searchQuery, setSearchQuery] = useState('');
+    const [callingId, setCallingId] = useState<string | null>(null);
+    const [activeCall, setActiveCall] = useState<any | null>(null); // lead object for modal
 
     useEffect(() => {
         async function fetchData() {
@@ -46,21 +122,22 @@ export default function LeadsPage() {
 
                     if (!projectMap[projectName]) projectMap[projectName] = new Set();
 
-                    project.campaigns?.forEach((campaign: any) => {
-                        if (campaign.name) {
+                    // Process leads directly assigned to project
+                    project.leads?.forEach((lead: any) => {
+                        if (lead.status) statusSet.add(lead.status);
+
+                        // Link campaign info if it exists
+                        const campaign = project.campaigns?.find((c: any) => c.id === lead.campaignId);
+                        if (campaign && campaign.name) {
                             campaignsSet.add(campaign.name);
                             projectMap[projectName].add(campaign.name);
                         }
-                        if (campaign.platform) platformsSet.add(campaign.platform);
 
-                        campaign.leads?.forEach((lead: any) => {
-                            if (lead.status) statusSet.add(lead.status);
-                            allLeads.push({
-                                ...lead,
-                                projectName: projectName,
-                                campaignName: campaign.name || 'Unknown',
-                                platform: campaign.platform || 'Other',
-                            });
+                        allLeads.push({
+                            ...lead,
+                            projectName: projectName,
+                            campaignName: campaign?.name || 'Direct',
+                            platform: campaign?.platform || 'Direct',
                         });
                     });
                 });
@@ -130,6 +207,24 @@ export default function LeadsPage() {
         }
     };
 
+    const callInProgress = useRef(false);
+
+    const handleCallLead = async (lead: any) => {
+        if (!token || callInProgress.current) return;
+        callInProgress.current = true;
+        setCallingId(lead.id);
+        try {
+            await consultantService.makeCall(token, lead.id);
+            setActiveCall(lead); // Show call modal
+        } catch (error: any) {
+            console.error('Error initiating call:', error);
+            alert(error.response?.data?.message || 'Failed to initiate call');
+        } finally {
+            setCallingId(null);
+            callInProgress.current = false;
+        }
+    };
+
     // Filter leads based on selected criteria
     const filteredLeads = leads.filter(lead => {
         const matchesProject = selectedProject === 'All' || lead.projectName === selectedProject;
@@ -168,6 +263,9 @@ export default function LeadsPage() {
 
     return (
         <div className="min-h-screen bg-gray-50 p-6">
+            {/* Call Modal */}
+            {activeCall && <CallModal lead={activeCall} onClose={() => setActiveCall(null)} />}
+
             <div className="max-w-7xl mx-auto space-y-6">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">Leads Management</h1>
@@ -312,6 +410,21 @@ export default function LeadsPage() {
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                 <button className="text-blue-600 hover:text-blue-900 mr-4 font-semibold">View</button>
+                                                <button
+                                                    onClick={() => handleCallLead(lead)}
+                                                    disabled={callingId === lead.id}
+                                                    title={lead.phone ? `Call ${lead.phone}` : 'No phone number'}
+                                                    className={`inline-flex items-center gap-1.5 ${callingId === lead.id
+                                                        ? 'text-gray-400 cursor-not-allowed'
+                                                        : 'text-green-600 hover:text-green-800'
+                                                        } font-semibold mr-4 transition-colors`}
+                                                >
+                                                    {callingId === lead.id ? (
+                                                        <><span className="inline-block h-3.5 w-3.5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" /> Calling...</>
+                                                    ) : (
+                                                        <><svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.45 2.33.7 3.58.7a1 1 0 011 1V20a1 1 0 01-1 1C10.61 21 3 13.39 3 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.25 2.45.7 3.57a1 1 0 01-.24 1.01l-2.34 2.21z" /></svg> Call</>
+                                                    )}
+                                                </button>
                                                 <button className="text-gray-500 hover:text-gray-900">Update</button>
                                             </td>
                                         </tr>
