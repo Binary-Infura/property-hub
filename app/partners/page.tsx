@@ -22,7 +22,6 @@ export default function PartnersPage() {
     const partnerTypes = [
         { id: 'broker', label: 'Real Estate Broker' },
         { id: 'property-partner', label: 'Property Partner' },
-        { id: 'service-provider', label: 'Service Provider' },
         { id: 'influencer', label: 'Influencer' },
     ];
 
@@ -151,17 +150,8 @@ export default function PartnersPage() {
                             </p>
                         </div>
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
-                            <div className="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center mb-4 text-xl font-bold">
-                                3
-                            </div>
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">Service Provider</h3>
-                            <p className="text-gray-600 text-sm leading-relaxed">
-                                Offer your legal, home interior, or financial services to our network of clients seamlessly.
-                            </p>
-                        </div>
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
                             <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center mb-4 text-xl font-bold">
-                                4
+                                3
                             </div>
                             <h3 className="text-lg font-bold text-gray-900 mb-2">Influencer</h3>
                             <p className="text-gray-600 text-sm leading-relaxed">

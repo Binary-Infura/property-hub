@@ -22,7 +22,6 @@ function OnboardingManagerLayoutContent({
         { name: 'Project', href: '/onboarding-manager/dashboard/project', icon: 'building' as const },
         { name: 'Listing Requests', href: '/onboarding-manager/dashboard/listing-requests', icon: 'clipboard' as const },
         { name: 'Property Partners', href: '/onboarding-manager/dashboard/property-partners', icon: 'handshake' as const },
-        { name: 'Service Providers', href: '/onboarding-manager/dashboard/service-providers', icon: 'wrench' as const },
     ];
 
     const isActive = (href: string) => {

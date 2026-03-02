@@ -9,6 +9,5 @@ export enum UserRole {
     ONBOARDING_MANAGER = 'onboarding-manager',
     LOAN_ADVISER = 'loan-adviser',
     VISIT_EXECUTIVE = 'visit-executive',
-    SERVICE_PROVIDER = 'service-provider',
     INFLUENCER = 'influencer',
 }

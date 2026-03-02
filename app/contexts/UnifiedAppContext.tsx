@@ -14,7 +14,6 @@ export type RoleId =
     | 'consultant'
     | 'loan-adviser'
     | 'visit-executive'
-    | 'service-provider'
     | 'buyer'
     | 'influencer';
 
@@ -96,12 +95,6 @@ const KNOWN_ROLES: UserRole[] = [
         name: 'Visit Executive',
         permissionHint: 'Property site visits and viewings',
         dashboardUrl: '/visit-executive/dashboard'
-    },
-    {
-        id: 'service-provider',
-        name: 'Service Provider',
-        permissionHint: 'Maintenance and vendor operations',
-        dashboardUrl: '/service-provider/dashboard'
     },
     {
         id: 'buyer',

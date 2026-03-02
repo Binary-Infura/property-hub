@@ -51,7 +51,6 @@ export default function SignInPage() {
                 'loan-adviser',
                 'marketing-manager',
                 'visit-executive',
-                'service-provider',
                 'property-partner'
             ];
 

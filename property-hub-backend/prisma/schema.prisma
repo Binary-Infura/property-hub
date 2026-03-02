@@ -216,7 +216,6 @@ model User {
   marketingManagerProfile  MarketingManagerProfile?
   projectsOnboarded        Project[]                 @relation("UserOnboardedProjects")
   propertyPartnerProfile   PropertyPartnerProfile?
-  serviceProviderProfile   ServiceProviderProfile?
   userMetadata             UserMetadata?
   onboardedBy              User?                     @relation("UserOnboardedUsers", fields: [onboardedById], references: [id])
   onboardedUsers           User[]                    @relation("UserOnboardedUsers")
@@ -336,22 +335,7 @@ model BuyerProfile {
   @@map("buyer_profiles")
 }
 
-model ServiceProviderProfile {
-  id                String   @id @default(uuid())
-  userId            String   @unique
-  businessName      String
-  category          String
-  location          String
-  availabilityDays  String[]
-  availabilityHours String
-  rates             String?
-  portfolio         String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  user              User     @relation(fields: [userId], references: [id])
 
-  @@map("service_provider_profiles")
-}
 
 model ChatSession {
   id                  String            @id @default(uuid())

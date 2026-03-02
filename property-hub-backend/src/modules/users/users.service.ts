@@ -185,21 +185,6 @@ export class UsersService {
         });
 
         // 6. Create relevant profile based on role
-        if (dto.roles.includes('service-provider') && dto.businessName) {
-            await this.prisma.serviceProviderProfile.create({
-                data: {
-                    userId: createdUser.id,
-                    businessName: dto.businessName,
-                    category: dto.category || 'General',
-                    location: dto.location || 'N/A',
-                    availabilityDays: dto.availabilityDays || [],
-                    availabilityHours: dto.availabilityHours || 'N/A',
-                    rates: dto.rates,
-                    portfolio: dto.portfolio,
-                }
-            });
-        }
-
         if (dto.roles.includes('property-partner')) {
             await this.prisma.propertyPartnerProfile.create({
                 data: {
@@ -273,16 +258,6 @@ export class UsersService {
             });
         }
 
-        if (role === 'service-provider') {
-            const userIds = data.map(u => u.id);
-            const profiles = await this.prisma.serviceProviderProfile.findMany({
-                where: { userId: { in: userIds } }
-            });
-            data.forEach(user => {
-                user.serviceProviderProfile = profiles.find(p => p.userId === user.id);
-            });
-        }
-
         return { data, total };
     }
 
@@ -324,32 +299,6 @@ export class UsersService {
                     create: {
                         userId: id,
                         companyName: dto.companyName || dto.agencyName || 'New Project Partner',
-                        ...profileData
-                    },
-                    update: profileData
-                });
-            }
-        }
-
-        if (existingUser.roles.includes('service-provider')) {
-            const profileData: any = {};
-            if (dto.businessName) profileData.businessName = dto.businessName;
-            if (dto.category) profileData.category = dto.category;
-            if (dto.location) profileData.location = dto.location;
-            if (dto.availabilityDays) profileData.availabilityDays = dto.availabilityDays;
-            if (dto.availabilityHours) profileData.availabilityHours = dto.availabilityHours;
-            if (dto.rates) profileData.rates = dto.rates;
-            if (dto.portfolio) profileData.portfolio = dto.portfolio;
-
-            if (Object.keys(profileData).length > 0) {
-                await this.prisma.serviceProviderProfile.upsert({
-                    where: { userId: id },
-                    create: {
-                        userId: id,
-                        businessName: dto.businessName || 'New Service Provider',
-                        category: dto.category || 'General',
-                        location: dto.location || 'N/A',
-                        availabilityHours: dto.availabilityHours || 'N/A',
                         ...profileData
                     },
                     update: profileData
@@ -409,16 +358,14 @@ export class UsersService {
                 case UserRole.BUYER:
                     profileData = await this.prisma.buyerProfile.findUnique({ where: { userId: internalId } });
                     break;
-                case UserRole.SERVICE_PROVIDER:
-                    profileData = await this.prisma.serviceProviderProfile.findUnique({ where: { userId: internalId } });
-                    break;
+
                 case UserRole.INFLUENCER:
                     profileData = await this.prisma.influencerProfile.findUnique({ where: { userId: internalId } });
                     break;
             }
 
             status[role] = {
-                hasProfile: (role === UserRole.SERVICE_PROVIDER || role === UserRole.PROPERTY_PARTNER) ? !!profileData : true,
+                hasProfile: (role === UserRole.PROPERTY_PARTNER) ? !!profileData : true,
                 profileData
             };
         }
@@ -462,28 +409,6 @@ export class UsersService {
                     create: {
                         userId: user.id,
                         companyName: dto.companyName || user.agencyName || 'New Project Partner',
-                        ...profileData
-                    },
-                    update: profileData
-                });
-            }
-        }
-
-        if (user.roles.includes('service-provider')) {
-            const profileData: any = {};
-            if (dto.businessName) profileData.businessName = dto.businessName;
-            if (dto.category) profileData.category = dto.category;
-            if (dto.location) profileData.location = dto.location;
-
-            if (Object.keys(profileData).length > 0) {
-                await this.prisma.serviceProviderProfile.upsert({
-                    where: { userId: user.id },
-                    create: {
-                        userId: user.id,
-                        businessName: dto.businessName || 'New Service Provider',
-                        category: dto.category || 'General',
-                        location: dto.location || 'N/A',
-                        availabilityHours: 'N/A',
                         ...profileData
                     },
                     update: profileData
