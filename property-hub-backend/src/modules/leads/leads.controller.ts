@@ -18,6 +18,7 @@ import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface
 import { UserRole } from '../../common/enums/role.enum';
 import { LeadNotesService } from '../lead-notes/lead-notes.service';
 import { CreateLeadNoteDto } from '../lead-notes/lead-notes.dto';
+import { Public } from '../../common/decorators/public.decorator';
 
 @Controller('api/leads')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -71,7 +72,7 @@ export class LeadsController {
     }
 
     @Get()
-    @RequireRoles('central-authority', 'marketing-manager')
+    @RequireRoles('central-authority', 'marketing-manager', 'property-partner')
     findAll(
         @CurrentUser() user: AuthenticatedUser
     ) {
@@ -81,6 +82,14 @@ export class LeadsController {
     @Post()
     @RequireRoles('central-authority', 'marketing-manager')
     create(
+        @Body() createLeadDto: CreateLeadDto
+    ) {
+        return this.leadsService.create(createLeadDto);
+    }
+
+    @Post('public/inquire')
+    @Public()
+    createPublicInquiry(
         @Body() createLeadDto: CreateLeadDto
     ) {
         return this.leadsService.create(createLeadDto);

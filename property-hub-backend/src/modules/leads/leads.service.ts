@@ -14,7 +14,12 @@ export class LeadsService {
 
     async findAll(user: AuthenticatedUser): Promise<Lead[]> {
         const isCentralAuthority = user.roles.includes('central-authority');
-        const where = {};
+        const isMarketingManager = user.roles.includes('marketing-manager');
+
+        let where: any = {};
+        if (!isCentralAuthority && !isMarketingManager) {
+            where.assignedTo = user.userId;
+        }
 
         return this.prisma.lead.findMany({
             where,

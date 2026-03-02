@@ -1,9 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import PremiumLockedOverlay from '@/app/components/property-partner/PremiumLockedOverlay';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 interface Lead {
     id: string;
@@ -19,29 +21,45 @@ export default function LeadsPage() {
     const { token, profileStatus } = useAuth();
     const isPremium = profileStatus?.['property-partner']?.profileData?.isPremium;
     const { activeContext } = useUnifiedApp();
-    const [leads, setLeads] = useState<Lead[]>([
-        {
-            id: '1',
-            name: 'Rahul Kumar',
-            phone: '+91 98765 43210',
-            email: 'rahul@example.com',
-            propertyTitle: 'Sunset Towers',
-            status: 'new',
-            createdAt: new Date().toISOString()
-        },
-        {
-            id: '2',
-            name: 'Sneha Sharma',
-            phone: '+91 98765 12345',
-            email: 'sneha@example.com',
-            propertyTitle: 'Green Valley',
-            status: 'contacted',
-            createdAt: new Date(Date.now() - 86400000).toISOString()
-        }
-    ]);
+    const [leads, setLeads] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchLeads = async () => {
+            if (!token || !isPremium) {
+                setLoading(false);
+                return;
+            }
+            try {
+                const response = await fetch(`${API_URL}/api/leads`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    setLeads(data);
+                }
+            } catch (error) {
+                console.error('Failed to fetch leads:', error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchLeads();
+    }, [token, isPremium]);
 
     if (!isPremium) {
         return <PremiumLockedOverlay title="Leads Management" description="Track and manage potential buyers, schedule visits, and close deals faster with our advanced tracking system." />;
+    }
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            </div>
+        );
     }
 
     return (
@@ -65,7 +83,13 @@ export default function LeadsPage() {
                         </tr>
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-50">
-                        {leads.map((lead) => (
+                        {leads.length === 0 ? (
+                            <tr>
+                                <td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+                                    No leads found yet.
+                                </td>
+                            </tr>
+                        ) : leads.map((lead) => (
                             <tr key={lead.id} className="hover:bg-gray-50/50 transition-colors">
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex items-center">
@@ -74,16 +98,16 @@ export default function LeadsPage() {
                                         </div>
                                         <div className="ml-4">
                                             <div className="text-sm font-bold text-gray-900">{lead.name}</div>
-                                            <div className="text-xs text-gray-500">{lead.email}</div>
+                                            <div className="text-xs text-gray-500">{lead.email || lead.phone}</div>
                                         </div>
                                     </div>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 font-medium">
-                                    {lead.propertyTitle}
+                                    {lead.project?.name || 'Unknown Property'}
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${lead.status === 'new' ? 'bg-blue-100 text-blue-700' :
-                                        lead.status === 'contacted' ? 'bg-yellow-100 text-yellow-700' :
+                                    <span className={`px-2.5 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${lead.status === 'NEW' ? 'bg-blue-100 text-blue-700' :
+                                        lead.status === 'CONTACTED' ? 'bg-yellow-100 text-yellow-700' :
                                             'bg-green-100 text-green-700'
                                         }`}>
                                         {lead.status}

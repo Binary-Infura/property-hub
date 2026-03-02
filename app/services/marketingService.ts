@@ -61,6 +61,18 @@ export const marketingService = {
         return response.json();
     },
 
+    async submitPublicInquiry(data: any) {
+        const response = await fetch(`${API_URL}/api/leads/public/inquire`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+        if (!response.ok) throw new Error('Failed to submit inquiry');
+        return response.json();
+    },
+
     async bulkUploadLeads(token: string, leads: any[]) {
         const response = await fetch(`${API_URL}/api/leads/bulk`, {
             method: 'POST',

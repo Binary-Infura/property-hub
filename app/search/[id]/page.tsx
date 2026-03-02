@@ -6,6 +6,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import { propertyService, Property } from '@/app/services/propertyService';
 import { userService, User } from '@/app/services/userService';
+import { marketingService } from '@/app/services/marketingService';
 import Link from 'next/link';
 
 export default function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -17,6 +18,39 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     const [property, setProperty] = useState<Property | null>(null);
     const [owner, setOwner] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
+
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [submitSuccess, setSubmitSuccess] = useState(false);
+    const [submitError, setSubmitError] = useState('');
+
+    const handleInquireSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setIsSubmitting(true);
+        setSubmitError('');
+        try {
+            await marketingService.submitPublicInquiry({
+                name: formData.name,
+                email: formData.email,
+                phone: formData.phone,
+                projectId: property?.id,
+                source: 'Property Page Inquiry',
+                assignedTo: owner?.id,
+                notes: formData.message || `Inquiry for ${property?.name}`,
+            });
+            setSubmitSuccess(true);
+            setTimeout(() => {
+                setIsModalOpen(false);
+                setSubmitSuccess(false);
+                setFormData({ name: '', email: '', phone: '', message: '' });
+            }, 3000);
+        } catch (error: any) {
+            setSubmitError('Failed to submit your inquiry. Please try again.');
+        } finally {
+            setIsSubmitting(false);
+        }
+    };
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -306,7 +340,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                         </div>
 
                         <div className="space-y-4">
-                            <button className="w-full py-7 bg-indigo-600 text-white rounded-[2rem] font-black text-lg tracking-tight hover:scale-[1.02] hover:bg-blue-700 active:scale-95 transition-all shadow-2xl shadow-indigo-200">
+                            <button onClick={() => setIsModalOpen(true)} className="w-full py-7 bg-indigo-600 text-white rounded-[2rem] font-black text-lg tracking-tight hover:scale-[1.02] hover:bg-blue-700 active:scale-95 transition-all shadow-2xl shadow-indigo-200">
                                 Inquire Now
                             </button>
                             <Link href={`/partner/${owner?.id}`} className="w-full py-7 bg-slate-900 text-white rounded-[2rem] font-black text-lg tracking-tight hover:scale-[1.02] hover:bg-black active:scale-95 transition-all shadow-2xl flex items-center justify-center gap-4">
@@ -325,6 +359,101 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
                 </div>
             </main>
+
+            {/* Inquire Modal */}
+            {isModalOpen && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+                    <div className="bg-white rounded-[3rem] w-full max-w-lg p-8 md:p-12 shadow-2xl border border-slate-100 relative animate-in zoom-in-95 duration-300">
+                        <button onClick={() => setIsModalOpen(false)} className="absolute top-6 right-6 w-10 h-10 bg-slate-50 text-slate-400 rounded-full flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 transition-colors">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+
+                        {submitSuccess ? (
+                            <div className="text-center py-10">
+                                <div className="w-20 h-20 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-6">
+                                    <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                </div>
+                                <h3 className="text-2xl font-black text-slate-900 mb-2">Request Sent Successfully!</h3>
+                                <p className="text-slate-500 font-bold">The partner will contact you shortly.</p>
+                            </div>
+                        ) : (
+                            <>
+                                <h3 className="text-3xl font-black text-slate-900 mb-2 tracking-tight">Express Interest</h3>
+                                <p className="text-slate-500 font-bold mb-8">Connect with the partner for more details.</p>
+
+                                {submitError && (
+                                    <div className="mb-6 p-4 bg-rose-50 text-rose-600 font-bold rounded-2xl flex items-center gap-3">
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        {submitError}
+                                    </div>
+                                )}
+
+                                <form onSubmit={handleInquireSubmit} className="space-y-5">
+                                    <div>
+                                        <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 pl-4">Full Name</label>
+                                        <input
+                                            type="text"
+                                            required
+                                            value={formData.name}
+                                            onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                            className="w-full bg-slate-50 border border-slate-100 text-slate-900 px-6 py-4 rounded-2xl font-bold focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 transition-all"
+                                            placeholder="John Doe"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 pl-4">Phone Number</label>
+                                        <input
+                                            type="tel"
+                                            required
+                                            value={formData.phone}
+                                            onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                            className="w-full bg-slate-50 border border-slate-100 text-slate-900 px-6 py-4 rounded-2xl font-bold focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 transition-all"
+                                            placeholder="+91 9876543210"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 pl-4">Email Address (Optional)</label>
+                                        <input
+                                            type="email"
+                                            value={formData.email}
+                                            onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                            className="w-full bg-slate-50 border border-slate-100 text-slate-900 px-6 py-4 rounded-2xl font-bold focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 transition-all"
+                                            placeholder="john@example.com"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 pl-4">Message (Optional)</label>
+                                        <textarea
+                                            value={formData.message}
+                                            onChange={e => setFormData({ ...formData, message: e.target.value })}
+                                            className="w-full bg-slate-50 border border-slate-100 text-slate-900 px-6 py-4 rounded-2xl font-bold focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 transition-all resize-none h-24"
+                                            placeholder="I would like to know more about this property..."
+                                        ></textarea>
+                                    </div>
+                                    <button
+                                        type="submit"
+                                        disabled={isSubmitting}
+                                        className="w-full mt-4 py-5 bg-indigo-600 text-white rounded-2xl font-black text-lg tracking-tight shadow-xl shadow-indigo-200 hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3"
+                                    >
+                                        {isSubmitting ? (
+                                            <>
+                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                Submitting...
+                                            </>
+                                        ) : 'Send Inquiry'}
+                                    </button>
+                                </form>
+                            </>
+                        )}
+                    </div>
+                </div>
+            )}
         </div>
     );
 }
