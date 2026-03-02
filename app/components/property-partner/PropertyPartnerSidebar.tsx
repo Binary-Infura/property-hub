@@ -28,6 +28,7 @@ export default function ProjectPartnerSidebar({ isOpen = false, onClose }: Proje
     { name: 'Project Allocation', href: '/property-partner/dashboard/projects/allocation', icon: 'building' as const },
     { name: 'Leads', href: '/property-partner/dashboard/leads', icon: 'clipboard' as const },
     { name: 'Reels', href: '/property-partner/dashboard/reels', icon: 'video' as const },
+    { name: 'Ads Requests', href: '/property-partner/dashboard/ads-requests', icon: 'megaphone' as const },
   ];
 
   const isActive = (href: string) => {

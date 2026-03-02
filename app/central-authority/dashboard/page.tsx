@@ -472,6 +472,26 @@ export default function CentralAuthorityDashboardPage() {
                         </svg>
                     </div>
                 </Link>
+
+                <Link href="/central-authority/dashboard/ads-requests" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-purple-300 transition-all hover:shadow-md group">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition-colors">
+                            <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">Ads Requests</h3>
+                            <p className="text-xs text-gray-500">Manage builder advertising</p>
+                        </div>
+                    </div>
+                    <div className="text-xs font-semibold text-purple-600 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        View Ads Requests
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                </Link>
             </div>
 
 

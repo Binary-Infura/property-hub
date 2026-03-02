@@ -10,6 +10,8 @@ interface AdsRequest {
     description?: string;
     status: string;
     priority: string;
+    budget?: number;
+    platform?: string;
     project?: {
         id: string;
         name: string;
@@ -26,7 +28,7 @@ interface AdsRequest {
     updatedAt: string;
 }
 
-export default function AdsRequestsPage() {
+export default function CentralAuthorityAdsRequestsPage() {
     const { token } = useAuth();
     const [requests, setRequests] = useState<AdsRequest[]>([]);
     const [statusFilter, setStatusFilter] = useState<string>('all');
@@ -188,6 +190,15 @@ export default function AdsRequestsPage() {
                                             </div>
                                         </>
                                     )}
+                                    {(request.budget || request.platform) && (
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-gray-500">Details:</span>
+                                            <span className="font-medium text-gray-900 border px-2 py-0.5 rounded text-xs bg-gray-50">
+                                                {request.platform && <span className="mr-1">{request.platform}</span>}
+                                                {request.budget && <span className={request.platform ? "ml-1 border-l pl-2 border-gray-300" : ""}>₹{request.budget}</span>}
+                                            </span>
+                                        </div>
+                                    )}
                                     <div className="flex items-center gap-2">
                                         <span className="text-gray-500">Requested by:</span>
                                         <span className="font-medium text-gray-900">
@@ -228,7 +239,7 @@ export default function AdsRequestsPage() {
                                         </button>
                                     )}
                                     <button
-                                        onClick={() => setSelectedRequest(request as any)}
+                                        onClick={() => setSelectedRequest(request)}
                                         className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition text-sm font-medium"
                                     >
                                         View Details
@@ -241,55 +252,63 @@ export default function AdsRequestsPage() {
             </div>
 
             {/* Details Modal */}
-            {
-                selectedRequest && (
-                    <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-                        <div className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl">
-                            <h2 className="text-2xl font-bold text-gray-900 mb-4">{selectedRequest.title}</h2>
-                            <div className="space-y-4 mb-6">
+            {selectedRequest && (
+                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl p-8 max-w-2xl w-full shadow-2xl">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-4">{selectedRequest.title}</h2>
+                        <div className="space-y-4 mb-6">
+                            <div>
+                                <label className="text-sm font-medium text-gray-500">Description</label>
+                                <p className="text-gray-900">{selectedRequest.description || 'No description'}</p>
+                            </div>
+                            <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-sm font-medium text-gray-500">Description</label>
-                                    <p className="text-gray-900">{selectedRequest.description || 'No description'}</p>
+                                    <label className="text-sm font-medium text-gray-500">Status</label>
+                                    <p className="text-gray-900">{selectedRequest.status}</p>
                                 </div>
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-500">Status</label>
-                                        <p className="text-gray-900">{selectedRequest.status}</p>
-                                    </div>
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-500">Priority</label>
-                                        <p className="text-gray-900">{selectedRequest.priority}</p>
-                                    </div>
-                                </div>
-                                {selectedRequest.project && (
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-500">Project</label>
-                                        <p className="text-gray-900">{selectedRequest.project.name}</p>
-                                    </div>
-                                )}
-                                {selectedRequest.project && (
-                                    <div>
-                                        <label className="text-sm font-medium text-gray-500">Location</label>
-                                        <p className="text-gray-900">{selectedRequest.project.location}</p>
-                                    </div>
-                                )}
                                 <div>
-                                    <label className="text-sm font-medium text-gray-500">Requested By</label>
-                                    <p className="text-gray-900">
-                                        {selectedRequest.requestedBy.firstName} {selectedRequest.requestedBy.lastName} ({selectedRequest.requestedBy.email})
-                                    </p>
+                                    <label className="text-sm font-medium text-gray-500">Priority</label>
+                                    <p className="text-gray-900">{selectedRequest.priority}</p>
                                 </div>
                             </div>
-                            <button
-                                onClick={() => setSelectedRequest(null)}
-                                className="w-full px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium"
-                            >
-                                Close
-                            </button>
+                            {(selectedRequest.budget || selectedRequest.platform) && (
+                                <div className="grid grid-cols-2 gap-4">
+                                    {selectedRequest.platform && (
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-500">Platform</label>
+                                            <p className="text-gray-900">{selectedRequest.platform}</p>
+                                        </div>
+                                    )}
+                                    {selectedRequest.budget && (
+                                        <div>
+                                            <label className="text-sm font-medium text-gray-500">Budget</label>
+                                            <p className="text-gray-900">₹{selectedRequest.budget}</p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                            {selectedRequest.project && (
+                                <div>
+                                    <label className="text-sm font-medium text-gray-500">Project / Location</label>
+                                    <p className="text-gray-900">{selectedRequest.project.name} - {selectedRequest.project.location}</p>
+                                </div>
+                            )}
+                            <div>
+                                <label className="text-sm font-medium text-gray-500">Requested By</label>
+                                <p className="text-gray-900">
+                                    {selectedRequest.requestedBy.firstName} {selectedRequest.requestedBy.lastName} ({selectedRequest.requestedBy.email})
+                                </p>
+                            </div>
                         </div>
+                        <button
+                            onClick={() => setSelectedRequest(null)}
+                            className="w-full px-6 py-3 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition font-medium"
+                        >
+                            Close
+                        </button>
                     </div>
-                )
-            }
-        </div >
+                </div>
+            )}
+        </div>
     );
 }

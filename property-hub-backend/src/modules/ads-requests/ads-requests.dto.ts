@@ -1,4 +1,4 @@
-import { IsString, IsOptional, IsEnum } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsNumber, Min } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateAdsRequestDto {
@@ -16,6 +16,17 @@ export class CreateAdsRequestDto {
     @IsOptional()
     @IsString()
     projectId?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    budget?: number;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    platform?: string;
 
     @ApiProperty({ required: false })
     @IsOptional()
@@ -43,4 +54,15 @@ export class UpdateAdsRequestDto {
     @IsOptional()
     @IsEnum(['LOW', 'MEDIUM', 'HIGH'])
     priority?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsNumber()
+    @Min(0)
+    budget?: number;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    platform?: string;
 }
