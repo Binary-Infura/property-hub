@@ -37,6 +37,12 @@ export default function SignInPage() {
                 return;
             }
 
+            // 0.5 If they have multiple roles without a default, let them choose
+            if (roles.length > 1) {
+                router.push('/my-dashboards');
+                return;
+            }
+
             // 1. Central Authority
             if (roles.includes('central-authority')) {
                 router.push('/central-authority/dashboard');
@@ -51,7 +57,9 @@ export default function SignInPage() {
                 'loan-adviser',
                 'marketing-manager',
                 'visit-executive',
-                'property-partner'
+                'property-partner',
+                'broker',
+                'influencer'
             ];
 
             const foundRole = staffRoles.find(role => roles.includes(role));
