@@ -92,6 +92,12 @@ export default function ConsultantDashboard() {
     }
   };
 
+  const handleVideoCallLead = async (lead: any) => {
+    const roomName = `room-${lead.id}`;
+    const leadName = encodeURIComponent(lead.name);
+    window.open(`/consultant/call/${roomName}?leadName=${leadName}`, '_blank', 'width=1400,height=900,menubar=no,toolbar=no,location=no,status=no');
+  };
+
   useEffect(() => {
     async function fetchData() {
       if (!token) return;
@@ -355,6 +361,7 @@ export default function ConsultantDashboard() {
                 onSelectClient={setSelectedClientId}
                 selectedClientId={selectedClientId}
                 onCallClient={handleCallLead}
+                onVideoCallClient={handleVideoCallLead}
                 callingId={callingId}
               />
             )}
