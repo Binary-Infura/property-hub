@@ -35,6 +35,15 @@ export class LeadsController {
         return this.leadsService.getCallLogs(user);
     }
 
+    @Get(':id/calls')
+    @RequireRoles(UserRole.CONSULTANT, UserRole.CENTRAL_AUTHORITY, UserRole.MARKETING_MANAGER)
+    getLeadCallLogs(
+        @Param('id') id: string,
+        @CurrentUser() user: AuthenticatedUser
+    ) {
+        return this.leadsService.getCallLogs(user, id);
+    }
+
 
     @Get(':id')
     @RequireRoles('central-authority', 'marketing-manager')

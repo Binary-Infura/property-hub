@@ -19,6 +19,13 @@ export const consultantService = {
         return response.data;
     },
 
+    getLeadCallLogs: async (token: string, leadId: string) => {
+        const response = await axios.get(`${API_URL}/leads/${leadId}/calls`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.data;
+    },
+
     getProfile: async (token: string) => {
         const response = await axios.get(`${API_URL}/consultants/profile`, {
             headers: {

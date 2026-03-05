@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { consultantService } from '@/app/services/consultantService';
+import VideoCallModal from '@/app/components/consultant/VideoCallModal';
+import LeadDetailsDrawer from '@/app/components/consultant/LeadDetailsDrawer';
 
 // ─── Call Modal ───────────────────────────────────────────────────────────────
 interface CallModalProps {
@@ -102,6 +104,8 @@ export default function LeadsPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [callingId, setCallingId] = useState<string | null>(null);
     const [activeCall, setActiveCall] = useState<any | null>(null); // lead object for modal
+    const [selectedLeadForDetails, setSelectedLeadForDetails] = useState<any | null>(null);
+    const [selectedLeadForVideo, setSelectedLeadForVideo] = useState<any | null>(null);
 
     useEffect(() => {
         async function fetchData() {
@@ -197,10 +201,14 @@ export default function LeadsPage() {
         if (!token) return;
         try {
             await consultantService.updateLeadStatus(token, leadId, newStatus);
-            // Update local state
+            // Update local state for the list
             setLeads(prevLeads => prevLeads.map(lead =>
                 lead.id === leadId ? { ...lead, status: newStatus } : lead
             ));
+            // Update selected lead if it's the one being modified
+            if (selectedLeadForDetails?.id === leadId) {
+                setSelectedLeadForDetails((prev: any) => prev ? { ...prev, status: newStatus } : null);
+            }
         } catch (error) {
             console.error('Error updating lead status:', error);
             alert('Failed to update status');
@@ -355,8 +363,7 @@ export default function LeadsPage() {
                                 <tr>
                                     <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Lead Info</th>
                                     <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Project</th>
-                                    <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Campaign</th>
-                                    <th scope="col" className="px-6 py-4 text-center text-xs font-semibold text-gray-500 uppercase tracking-wider">Platform</th>
+                                    <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Campaign & Platform</th>
                                     <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
                                     <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Action Date</th>
                                     <th scope="col" className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
@@ -365,7 +372,7 @@ export default function LeadsPage() {
                             <tbody className="bg-white divide-y divide-gray-200">
                                 {filteredLeads.length > 0 ? (
                                     filteredLeads.map((lead, idx) => (
-                                        <tr key={lead.id || idx} className="hover:bg-gray-50 transition-colors">
+                                        <tr key={lead.id || idx} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => setSelectedLeadForDetails(lead)}>
                                             <td className="px-6 py-4 whitespace-nowrap">
                                                 <div className="flex items-center">
                                                     <div className="h-10 w-10 flex-shrink-0 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm">
@@ -382,56 +389,59 @@ export default function LeadsPage() {
                                                 <div className="text-sm font-medium text-gray-900">{lead.projectName}</div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900">{lead.campaignName}</div>
-                                            </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-center">
-                                                <span className="bg-gray-100 text-gray-600 px-2.5 py-1 rounded text-xs font-semibold border border-gray-200">
-                                                    {lead.platform}
-                                                </span>
+                                                <div className="text-sm text-gray-900 font-medium">{lead.campaignName}</div>
+                                                <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">{lead.platform}</div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap">
-                                                <select
-                                                    className={`px-3 py-1 text-xs leading-5 font-semibold rounded-full border-none focus:ring-2 focus:ring-blue-500 cursor-pointer ${getStatusColor(lead.status)}`}
-                                                    value={lead.status || 'NEW'}
-                                                    onChange={(e) => handleUpdateStatus(lead.id, e.target.value)}
-                                                >
-                                                    <option value="NEW">NEW</option>
-                                                    <option value="CONTACTED">CONTACTED</option>
-                                                    <option value="FOLLOW_UP_STARTED">FOLLOW-UP STARTED</option>
-                                                    <option value="QUALIFIED">QUALIFIED</option>
-                                                    <option value="VISITING">VISITING</option>
-                                                    <option value="NEGOTIATING">NEGOTIATING</option>
-                                                    <option value="CONVERTED">CONVERTED</option>
-                                                    <option value="LOST">LOST</option>
-                                                </select>
+                                                <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full ${getStatusColor(lead.status)}`}>
+                                                    {lead.status || 'NEW'}
+                                                </span>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                                 {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                                <button className="text-blue-600 hover:text-blue-900 mr-4 font-semibold">View</button>
-                                                <button
-                                                    onClick={() => handleCallLead(lead)}
-                                                    disabled={callingId === lead.id}
-                                                    title={lead.phone ? `Call ${lead.phone}` : 'No phone number'}
-                                                    className={`inline-flex items-center gap-1.5 ${callingId === lead.id
-                                                        ? 'text-gray-400 cursor-not-allowed'
-                                                        : 'text-green-600 hover:text-green-800'
-                                                        } font-semibold mr-4 transition-colors`}
-                                                >
-                                                    {callingId === lead.id ? (
-                                                        <><span className="inline-block h-3.5 w-3.5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" /> Calling...</>
-                                                    ) : (
-                                                        <><svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.45 2.33.7 3.58.7a1 1 0 011 1V20a1 1 0 01-1 1C10.61 21 3 13.39 3 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.25 2.45.7 3.57a1 1 0 01-.24 1.01l-2.34 2.21z" /></svg> Call</>
-                                                    )}
-                                                </button>
-                                                <button className="text-gray-500 hover:text-gray-900">Update</button>
+                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
+                                                <div className="flex items-center justify-end gap-2">
+                                                    <button
+                                                        onClick={() => handleCallLead(lead)}
+                                                        disabled={callingId === lead.id}
+                                                        title={lead.phone ? `Call ${lead.phone}` : 'No phone number'}
+                                                        className={`p-2 rounded-lg ${callingId === lead.id
+                                                            ? 'bg-gray-100 text-gray-400'
+                                                            : 'bg-green-50 text-green-600 hover:bg-green-100'
+                                                            } transition-colors`}
+                                                    >
+                                                        {callingId === lead.id ? (
+                                                            <span className="inline-block h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                                        ) : (
+                                                            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.45 2.33.7 3.58.7a1 1 0 011 1V20a1 1 0 01-1 1C10.61 21 3 13.39 3 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.25 2.45.7 3.57a1 1 0 01-.24 1.01l-2.34 2.21z" /></svg>
+                                                        )}
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => setSelectedLeadForVideo(lead)}
+                                                        title="Video Call"
+                                                        className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                                                    >
+                                                        <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                                            <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                                        </svg>
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => setSelectedLeadForDetails(lead)}
+                                                        className="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
+                                                        title="View Details"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={7} className="px-6 py-10 text-center text-gray-500">
+                                        <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
                                             <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                                             </svg>
@@ -456,6 +466,34 @@ export default function LeadsPage() {
                     </div>
                 </div>
             </div>
+
+            {/* Backdrop for Lead Details Drawer */}
+            {selectedLeadForDetails && (
+                <div
+                    className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[40] transition-opacity duration-300"
+                    onClick={() => setSelectedLeadForDetails(null)}
+                />
+            )}
+
+            {/* Lead Details Drawer */}
+            {selectedLeadForDetails && (
+                <LeadDetailsDrawer
+                    lead={selectedLeadForDetails}
+                    token={token || ''}
+                    onClose={() => setSelectedLeadForDetails(null)}
+                    onStatusUpdate={handleUpdateStatus}
+                />
+            )}
+
+            {/* Video Call Modal */}
+            {selectedLeadForVideo && (
+                <VideoCallModal
+                    token={token || ''}
+                    roomName={`lead-${selectedLeadForVideo.id}`}
+                    leadName={selectedLeadForVideo.name || 'User'}
+                    onClose={() => setSelectedLeadForVideo(null)}
+                />
+            )}
         </div>
     );
 }

@@ -33,13 +33,14 @@ export class LeadsService {
         });
     }
 
-    async getCallLogs(user: AuthenticatedUser) {
+    async getCallLogs(user: AuthenticatedUser, leadId?: string) {
         const isCentralAuthority = user.roles.includes('central-authority');
 
-        // 1. Fetch incomplete calls for this user
+        // 1. Fetch incomplete calls for this user/lead
         const incompleteCalls = await this.prisma.callLog.findMany({
             where: {
                 ...(isCentralAuthority ? {} : { consultantId: user.userId }),
+                ...(leadId ? { leadId } : {}),
                 OR: [{ status: 'queued' }, { status: 'in-progress' }, { status: null }]
             }
         });
@@ -65,7 +66,10 @@ export class LeadsService {
 
         // 3. Return the fully synced logs
         return this.prisma.callLog.findMany({
-            where: isCentralAuthority ? {} : { consultantId: user.userId },
+            where: {
+                ...(isCentralAuthority ? {} : { consultantId: user.userId }),
+                ...(leadId ? { leadId } : {}),
+            },
             include: { lead: true },
             orderBy: { createdAt: 'desc' },
         });
