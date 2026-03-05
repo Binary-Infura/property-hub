@@ -39,16 +39,16 @@ export interface Project {
 export const projectService = {
     async getAll(token: string | null, myOnly: boolean = false, city?: string): Promise<Project[]> {
         const params = new URLSearchParams();
-        if (myOnly) params.append('myOnly', 'true');
         if (city) params.append('city', city);
         const query = params.toString() ? `?${params.toString()}` : '';
+        const endpoint = myOnly ? '/api/projects/my' : '/api/projects';
 
         const headers: any = {};
         if (token) {
             headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/projects${query}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${endpoint}${query}`, {
             headers,
         });
         if (!response.ok) {

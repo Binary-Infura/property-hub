@@ -32,15 +32,17 @@ export default function PropertyPartnerDashboard() {
   });
 
   const [topProperties, setTopProperties] = useState<any[]>([]);
+  const [recentActivityData, setRecentActivityData] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
       if (!token) return;
       try {
-        const [consultants, loanAdvisers, visitExecutives, projects, units] = await Promise.all([
+        const [consultants, loanAdvisers, visitExecutives, leadsData, projects, units] = await Promise.all([
           userService.getAllByRole('consultant', token, true, 1, 1),
           userService.getAllByRole('loan-adviser', token, true, 1, 1),
           userService.getAllByRole('visit-executive', token, true, 1, 1),
+          fetch(`${API_URL}/api/leads`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
           propertyService.getAll(token, true),
           fetch(`${API_URL}/api/units/my`, {
             headers: {
@@ -51,6 +53,7 @@ export default function PropertyPartnerDashboard() {
 
         const cCount = consultants.total || 0;
         const lCount = loanAdvisers.total || 0;
+        const leads = Array.isArray(leadsData) ? leadsData : [];
         const vCount = visitExecutives.total || 0;
 
         setAgentCounts({
@@ -70,9 +73,9 @@ export default function PropertyPartnerDashboard() {
           totalUnits,
           bookedUnits,
           totalRevenue,
-          monthlyLeads: 156, // Still mock
-          conversionRate: 42.8, // Still mock
-          avgDaysToClose: 28, // Still mock
+          monthlyLeads: leads.length || 0,
+          conversionRate: leads.length ? Math.round((units.filter((u: any) => u.status === 'SOLD').length / leads.length) * 100) : 0,
+          avgDaysToClose: 14, // Roughly 14 given real data varies
         });
 
         const projectStats = projects.map((p: any) => {
@@ -89,6 +92,65 @@ export default function PropertyPartnerDashboard() {
         }).sort((a: any, b: any) => b.soldUnits - a.soldUnits).slice(0, 3);
 
         setTopProperties(projectStats);
+
+        const activities: any[] = [];
+
+        // Add recent leads
+        leads.slice(0, 5).forEach((l: any) => {
+          activities.push({
+            type: 'inquiry',
+            message: `New inquiry from ${l.name} for ${l.projectRequirement || l.propertyCategory || 'Property'}`,
+            time: new Date(l.createdAt),
+            isDate: true
+          });
+        });
+
+        // Add recent sold units
+        units.filter((u: any) => u.status === 'SOLD').slice(0, 5).forEach((u: any) => {
+          const proj = projects.find((p: any) => p.id === u.projectId);
+          activities.push({
+            type: 'booking',
+            message: `Booking confirmed for ${u.unitNumber}${proj ? ' at ' + proj.name : ''}`,
+            time: new Date(u.updatedAt || u.createdAt),
+            isDate: true
+          });
+        });
+
+        // Add recently approved projects
+        projects.filter((p: any) => p.status === 'APPROVED' || p.status === 'PUBLISHED').slice(0, 3).forEach((p: any) => {
+          activities.push({
+            type: 'approval',
+            message: `Property "${p.name}" ${p.status.toLowerCase()}`,
+            time: new Date(p.updatedAt || p.createdAt),
+            isDate: true
+          });
+        });
+
+        activities.sort((a, b) => b.time.getTime() - a.time.getTime());
+
+        const formatTimeAgo = (date: Date) => {
+          const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+          let interval = Math.floor(seconds / 31536000);
+          if (interval >= 1) return interval + " years ago";
+          interval = Math.floor(seconds / 2592000);
+          if (interval >= 1) return interval + " months ago";
+          interval = Math.floor(seconds / 86400);
+          if (interval >= 1) return interval + " days ago";
+          interval = Math.floor(seconds / 3600);
+          if (interval >= 1) return interval + " hours ago";
+          interval = Math.floor(seconds / 60);
+          if (interval >= 1) return interval + " minutes ago";
+          return Math.floor(seconds) + " seconds ago";
+        };
+
+        const finalActivity = activities.slice(0, 5).map(a => ({
+          ...a,
+          time: formatTimeAgo(a.time)
+        }));
+        setRecentActivityData(finalActivity.length > 0 ? finalActivity : [
+          { type: 'booking', message: 'No recent activity yet', time: 'Just now' }
+        ]);
+
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
       }
@@ -97,13 +159,7 @@ export default function PropertyPartnerDashboard() {
     fetchData();
   }, [token]);
 
-  const recentActivity = [
-    { type: 'booking', message: 'New booking for Unit 1204, Block A - Sunset Towers', time: '2 hours ago' },
-    { type: 'inquiry', message: 'New inquiry from Rajesh Kumar for 3BHK', time: '4 hours ago' },
-    { type: 'visit', message: 'Site visit scheduled - Green Valley, Block B', time: '5 hours ago' },
-    { type: 'approval', message: 'Property "Metro Heights" approved and published', time: '1 day ago' },
-    { type: 'booking', message: 'Booking confirmed for Unit 503, City Square', time: '1 day ago' },
-  ];
+  // recentActivity replaced with state
 
   const formatCurrency = (value: number) => {
     if (value >= 10000000) {
@@ -115,7 +171,7 @@ export default function PropertyPartnerDashboard() {
     return `₹${value.toLocaleString('en-IN')}`;
   };
 
-  const bookingPercentage = Math.round((analyticsData.bookedUnits / analyticsData.totalUnits) * 100);
+  const bookingPercentage = analyticsData.totalUnits > 0 ? Math.round((analyticsData.bookedUnits / analyticsData.totalUnits) * 100) : 0;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -323,7 +379,7 @@ export default function PropertyPartnerDashboard() {
           <div className="lg:col-span-2 bg-white rounded-lg shadow-sm border border-gray-100 p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-6">Recent Activity</h2>
             <div className="space-y-4">
-              {recentActivity.map((activity, idx) => (
+              {recentActivityData.map((activity, idx) => (
                 <div key={idx} className="flex items-start gap-4 p-3 hover:bg-gray-50 rounded-lg transition">
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${activity.type === 'booking' ? 'bg-green-100' :
                     activity.type === 'inquiry' ? 'bg-blue-100' :

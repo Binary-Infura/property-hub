@@ -39,7 +39,7 @@ export default function SelectProjectModal({ isOpen, onClose, onSuccess }: Selec
         if (!token) return;
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/api/projects?myOnly=true`, {
+            const res = await fetch(`${API_URL}/api/projects/my`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
