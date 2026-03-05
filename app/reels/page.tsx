@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useEffect, useRef, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import Navbar from '../components/Navbar';
 import ReelCard from '../components/ReelCard';
 import { reelService, Reel } from '../services/reelService';
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 4;
 
 export default function ReelsPage() {
     const [reels, setReels] = useState<Reel[]>([]);
@@ -15,8 +15,6 @@ export default function ReelsPage() {
     const [loadingMore, setLoadingMore] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    // Sentinel element at the bottom — when it enters the viewport, load next page
-    const sentinelRef = useRef<HTMLDivElement>(null);
     const isFetchingRef = useRef(false);
 
     const fetchReels = useCallback(async (pageNum: number) => {
@@ -43,42 +41,21 @@ export default function ReelsPage() {
         fetchReels(1);
     }, [fetchReels]);
 
-    // IntersectionObserver watches the sentinel
-    useEffect(() => {
-        if (!sentinelRef.current) return;
-
-        const observer = new IntersectionObserver(
-            (entries) => {
-                const entry = entries[0];
-                if (entry.isIntersecting && hasMore && !isFetchingRef.current) {
-                    setLoadingMore(true);
-                    fetchReels(page + 1);
-                }
-            },
-            { rootMargin: '300px' } // trigger 300px before it hits the viewport edge
-        );
-
-        observer.observe(sentinelRef.current);
-        return () => observer.disconnect();
-    }, [hasMore, page, fetchReels]);
-
     return (
         <div className="min-h-screen bg-white">
             <Navbar />
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <header className="mb-12 text-center">
-                    <div className="inline-block px-4 py-1.5 bg-gradient-to-tr from-blue-50 to-indigo-50 border border-blue-100 rounded-full mb-6">
-                        <span className="text-blue-700 text-xs font-bold uppercase tracking-widest flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></div>
-                            Trending Property Hub Reels
-                        </span>
+                    <div className="inline-block px-4 py-1.5 bg-gradient-to-tr from-blue-50 to-indigo-50 border border-blue-100 rounded-full mb-6 text-blue-700 text-xs font-bold uppercase tracking-widest flex items-center gap-2 mx-auto w-fit">
+                        <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></div>
+                        Trending Reels
                     </div>
-                    <h1 className="text-5xl font-black text-gray-900 tracking-tight mb-4 drop-shadow-sm">
+                    <h1 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight mb-4">
                         Discover Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Dream Home</span>
                     </h1>
-                    <p className="max-w-2xl mx-auto text-gray-500 text-lg font-medium leading-relaxed">
-                        Watch short property showcases, neighborhood tours, and expert tips from our top property partners.
+                    <p className="max-w-2xl mx-auto text-gray-500 text-lg font-medium">
+                        Watch short property showcases and expert tips.
                     </p>
                 </header>
 
@@ -136,15 +113,40 @@ export default function ReelsPage() {
                     </div>
                 )}
 
-                {/* Invisible sentinel that triggers next page load */}
-                <div ref={sentinelRef} className="h-1 mt-8" aria-hidden="true" />
+                {/* Load More Button - Explicit user action to seeing more content */}
+                {!initialLoading && !error && hasMore && (
+                    <div className="text-center mt-12">
+                        <button
+                            onClick={() => {
+                                setLoadingMore(true);
+                                fetchReels(page + 1);
+                            }}
+                            disabled={loadingMore}
+                            className="inline-flex items-center gap-2 bg-white border-2 border-blue-600 text-blue-600 px-8 py-3 rounded-xl font-black uppercase text-sm tracking-widest hover:bg-blue-50 transition-all disabled:opacity-50 shadow-lg shadow-blue-50"
+                        >
+                            {loadingMore ? (
+                                <>
+                                    <div className="w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                    Loading...
+                                </>
+                            ) : (
+                                <>
+                                    Load More Reels
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
+                                    </svg>
+                                </>
+                            )}
+                        </button>
+                    </div>
+                )}
 
                 {/* End of feed message */}
                 {!hasMore && reels.length > 0 && (
                     <div className="text-center mt-16 mb-4">
                         <div className="inline-flex items-center gap-3 px-6 py-3 bg-gray-50 border border-gray-200 rounded-full">
                             <div className="w-2 h-2 rounded-full bg-gray-300"></div>
-                            <p className="text-gray-400 text-sm font-bold uppercase tracking-widest">You&apos;ve seen all reels</p>
+                            <p className="text-gray-400 text-sm font-bold uppercase tracking-widest">End of Feed</p>
                             <div className="w-2 h-2 rounded-full bg-gray-300"></div>
                         </div>
                     </div>

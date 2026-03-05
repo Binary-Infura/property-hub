@@ -2,6 +2,7 @@
 
 import React, { Suspense, useEffect, useRef, useState, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { reelService, Reel } from '../../services/reelService';
 
 const PAGE_SIZE = 10;
@@ -229,15 +230,20 @@ function ReelsViewer() {
                             <div className="absolute bottom-0 left-0 right-0 px-5 pb-8">
                                 {/* Partner */}
                                 <div className="flex items-center gap-3 mb-4">
-                                    <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-base border-2 border-white/30 flex-shrink-0 shadow-lg">
-                                        {reel.user?.firstName?.[0] || 'P'}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <p className="text-white font-black text-sm drop-shadow truncate">
-                                            {reel.user?.firstName} {reel.user?.lastName}
-                                        </p>
-                                        <p className="text-white/50 text-[10px] uppercase font-bold tracking-wider">Property Partner</p>
-                                    </div>
+                                    <Link
+                                        href={`/partner/${reel.user?.id}`}
+                                        className="flex items-center gap-3 flex-1 min-w-0 hover:opacity-80 transition-opacity"
+                                    >
+                                        <div className="w-11 h-11 rounded-full bg-gradient-to-tr from-blue-500 to-indigo-600 flex items-center justify-center text-white font-black text-base border-2 border-white/30 flex-shrink-0 shadow-lg">
+                                            {reel.user?.firstName?.[0] || 'P'}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-white font-black text-sm drop-shadow truncate">
+                                                {reel.user?.firstName} {reel.user?.lastName}
+                                            </p>
+                                            <p className="text-white/50 text-[10px] uppercase font-bold tracking-wider">Property Partner</p>
+                                        </div>
+                                    </Link>
                                     <button className="px-3.5 py-1.5 border border-white/50 rounded-full text-white text-xs font-black hover:bg-white/10 transition-all flex-shrink-0 backdrop-blur-sm">
                                         Follow
                                     </button>
