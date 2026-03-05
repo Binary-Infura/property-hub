@@ -49,9 +49,9 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Loan Advisers', href: '/property-partner/dashboard/loan-advisers', icon: 'bank', premium: true },
         { name: 'Visit Executives', href: '/property-partner/dashboard/visit-executives', icon: 'pin', premium: true },
         { name: 'Project Allocation', href: '/property-partner/dashboard/projects/allocation', icon: 'building', premium: true },
-        { name: 'Leads', href: '/property-partner/dashboard/leads', icon: 'clipboard', premium: true },
-        { name: 'Reels', href: '/property-partner/dashboard/reels', icon: 'video', premium: true },
-        { name: 'Ads Requests', href: '/property-partner/dashboard/ads-requests', icon: 'megaphone', premium: true },
+        { name: 'Leads', href: '/property-partner/dashboard/leads', icon: 'clipboard' },
+        { name: 'Reels', href: '/property-partner/dashboard/reels', icon: 'video' },
+        { name: 'Ads Requests', href: '/property-partner/dashboard/ads-requests', icon: 'megaphone' },
     ],
     'consultant': [
         { name: 'Dashboard', href: '/consultant/dashboard', icon: 'dashboard' },
