@@ -5,7 +5,7 @@ import { useUnifiedApp, UserRole } from '../contexts/UnifiedAppContext';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function UnifiedContextSwitcher() {
-    const { currentUser, activeContext, switchContext } = useUnifiedApp();
+    const { currentUser, activeContext, switchContext, setIsProfileOpen } = useUnifiedApp();
     const { user, roles, token, logout } = useAuth();
     const [isOpen, setIsOpen] = useState(false);
     const [settingDefault, setSettingDefault] = useState<string | null>(null);
@@ -156,6 +156,24 @@ export default function UnifiedContextSwitcher() {
                                 </div>
                             );
                         })}
+                    </div>
+
+                    {/* Profile Link */}
+                    <div className="p-2 border-b border-gray-100">
+                        <button
+                            onClick={() => { setIsProfileOpen(true); setIsOpen(false); }}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg hover:bg-gray-50 transition-colors group"
+                        >
+                            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                </svg>
+                            </div>
+                            <div className="flex flex-col items-start leading-none">
+                                <span className="text-[13px] font-bold text-gray-700">My Profile</span>
+                                <span className="text-[10px] text-gray-400 mt-1 font-medium">Manage your account</span>
+                            </div>
+                        </button>
                     </div>
 
                     {/* Logout */}

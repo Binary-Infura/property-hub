@@ -23,6 +23,32 @@ export interface User {
         isPremium: boolean;
         subscriptionMode: 'PAID' | 'FREE';
     };
+    influencerProfile?: {
+        socialMediaLinks?: any;
+        reach?: number;
+        niche?: string;
+    };
+    brokerProfile?: {
+        agencyBusinessName: string;
+        reraNumber?: string;
+        officeAddress?: string;
+    };
+    consultantProfile?: {
+        specialization: string[];
+        experienceYears?: number;
+    };
+    buyerProfile?: {
+        budgetMin?: number;
+        budgetMax?: number;
+        preferredLocations: string[];
+    };
+    marketingManagerProfile?: {
+        campaignBudgetLimit?: number;
+    };
+    centralAuthorityProfile?: {
+        department?: string;
+        accessLevel?: string;
+    };
     serviceProviderProfile?: any;
     onboardedBy?: {
         firstName: string;

@@ -309,4 +309,55 @@ export class UpdateProfileDto {
     @IsString()
     @IsOptional()
     niche?: string;
+
+    // Broker Specific
+    @IsString()
+    @IsOptional()
+    agencyBusinessName?: string;
+
+    @IsString()
+    @IsOptional()
+    reraNumber?: string;
+
+    @IsString()
+    @IsOptional()
+    officeAddress?: string;
+
+    // Consultant Specific
+    @IsArray()
+    @IsString({ each: true })
+    @IsOptional()
+    specialization?: string[];
+
+    @IsNumber()
+    @IsOptional()
+    experienceYears?: number;
+
+    // Buyer Specific
+    @IsNumber()
+    @IsOptional()
+    budgetMin?: number;
+
+    @IsNumber()
+    @IsOptional()
+    budgetMax?: number;
+
+    @IsArray()
+    @IsString({ each: true })
+    @IsOptional()
+    preferredLocations?: string[];
+
+    // Marketing Manager Specific
+    @IsNumber()
+    @IsOptional()
+    campaignBudgetLimit?: number;
+
+    // Central Authority Specific
+    @IsString()
+    @IsOptional()
+    department?: string;
+
+    @IsString()
+    @IsOptional()
+    accessLevel?: string;
 }

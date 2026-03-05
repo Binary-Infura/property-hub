@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/app/contexts/AuthContext';
 import SidebarIcon from '@/app/components/SidebarIcon';
+import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 
 interface ProjectPartnerSidebarProps {
   isOpen?: boolean;
@@ -13,12 +14,12 @@ interface ProjectPartnerSidebarProps {
 export default function ProjectPartnerSidebar({ isOpen = false, onClose }: ProjectPartnerSidebarProps) {
   const pathname = usePathname();
   const { profileStatus } = useAuth();
+  const { setIsProfileOpen } = useUnifiedApp();
 
   const mainNavigation = [
     { name: 'Dashboard', href: '/property-partner/dashboard', icon: 'dashboard' as const },
     { name: 'Projects', href: '/property-partner/dashboard/projects', icon: 'building' as const },
     { name: 'Units', href: '/property-partner/dashboard/units', icon: 'home' as const },
-    { name: 'Business Info', href: '/property-partner/dashboard/profile', icon: 'briefcase' as const },
   ];
 
   const advancedNavigation = [
@@ -71,6 +72,13 @@ export default function ProjectPartnerSidebar({ isOpen = false, onClose }: Proje
               <span>{item.name}</span>
             </Link>
           ))}
+          <button
+            onClick={() => setIsProfileOpen(true)}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-gray-700 hover:bg-gray-100 transition"
+          >
+            <SidebarIcon name="briefcase" />
+            <span>Business Info</span>
+          </button>
         </nav>
 
         <div className="mt-4">

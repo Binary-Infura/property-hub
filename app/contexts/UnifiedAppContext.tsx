@@ -44,6 +44,8 @@ export interface UnifiedAppContextType {
     };
     activeContext: UserContextData;
     switchContext: (roleId: RoleId) => void;
+    isProfileOpen: boolean;
+    setIsProfileOpen: (open: boolean) => void;
 }
 
 // --- Application Configuration (Static) ---
@@ -114,7 +116,9 @@ const DEFAULT_CONTEXT: UnifiedAppContextType = {
         activeRole: KNOWN_ROLES[KNOWN_ROLES.length - 1], // Default to buyer
         activeCity: null
     },
-    switchContext: () => { }
+    switchContext: () => { },
+    isProfileOpen: false,
+    setIsProfileOpen: () => { }
 };
 
 // --- Context ---
@@ -128,6 +132,7 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
 
     const [activeRole, setActiveRole] = useState<UserRole | null>(null);
     const [availableRoles, setAvailableRoles] = useState<UserRole[]>([]);
+    const [isProfileOpen, setIsProfileOpen] = useState(false);
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -216,7 +221,9 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
             activeRole: activeRole ?? fallbackRole,
             activeCity: null
         },
-        switchContext
+        switchContext,
+        isProfileOpen,
+        setIsProfileOpen
     };
 
     return (

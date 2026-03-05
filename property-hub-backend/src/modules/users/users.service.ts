@@ -365,7 +365,7 @@ export class UsersService {
             }
 
             status[role] = {
-                hasProfile: (role === UserRole.PROPERTY_PARTNER) ? !!profileData : true,
+                hasProfile: !!profileData,
                 profileData
             };
         }
@@ -424,6 +424,93 @@ export class UsersService {
 
             if (Object.keys(profileData).length > 0) {
                 await this.prisma.influencerProfile.upsert({
+                    where: { userId: user.id },
+                    create: {
+                        userId: user.id,
+                        ...profileData
+                    },
+                    update: profileData
+                });
+            }
+        }
+
+        if (user.roles.includes('broker')) {
+            const profileData: any = {};
+            if (dto.agencyBusinessName) profileData.agencyBusinessName = dto.agencyBusinessName;
+            if (dto.reraNumber) profileData.reraNumber = dto.reraNumber;
+            if (dto.officeAddress) profileData.officeAddress = dto.officeAddress;
+
+            if (Object.getOwnPropertyNames(profileData).length > 0) {
+                await this.prisma.brokerProfile.upsert({
+                    where: { userId: user.id },
+                    create: {
+                        userId: user.id,
+                        agencyBusinessName: dto.agencyBusinessName || user.agencyName || 'New Broker',
+                        ...profileData
+                    },
+                    update: profileData
+                });
+            }
+        }
+
+        if (user.roles.includes('consultant')) {
+            const profileData: any = {};
+            if (dto.specialization) profileData.specialization = dto.specialization;
+            if (dto.experienceYears) profileData.experienceYears = dto.experienceYears;
+
+            if (Object.keys(profileData).length > 0) {
+                await this.prisma.consultantProfile.upsert({
+                    where: { userId: user.id },
+                    create: {
+                        userId: user.id,
+                        ...profileData
+                    },
+                    update: profileData
+                });
+            }
+        }
+
+        if (user.roles.includes('buyer')) {
+            const profileData: any = {};
+            if (dto.budgetMin) profileData.budgetMin = dto.budgetMin;
+            if (dto.budgetMax) profileData.budgetMax = dto.budgetMax;
+            if (dto.preferredLocations) profileData.preferredLocations = dto.preferredLocations;
+
+            if (Object.keys(profileData).length > 0) {
+                await this.prisma.buyerProfile.upsert({
+                    where: { userId: user.id },
+                    create: {
+                        userId: user.id,
+                        ...profileData
+                    },
+                    update: profileData
+                });
+            }
+        }
+
+        if (user.roles.includes('marketing-manager')) {
+            const profileData: any = {};
+            if (dto.campaignBudgetLimit) profileData.campaignBudgetLimit = dto.campaignBudgetLimit;
+
+            if (Object.keys(profileData).length > 0) {
+                await this.prisma.marketingManagerProfile.upsert({
+                    where: { userId: user.id },
+                    create: {
+                        userId: user.id,
+                        ...profileData
+                    },
+                    update: profileData
+                });
+            }
+        }
+
+        if (user.roles.includes('central-authority')) {
+            const profileData: any = {};
+            if (dto.department) profileData.department = dto.department;
+            if (dto.accessLevel) profileData.accessLevel = dto.accessLevel;
+
+            if (Object.keys(profileData).length > 0) {
+                await this.prisma.centralAuthorityProfile.upsert({
                     where: { userId: user.id },
                     create: {
                         userId: user.id,
