@@ -21,4 +21,9 @@ export class CreateReelDto {
     @IsUrl()
     @IsOptional()
     thumbnailUrl?: string;
+
+    @ApiProperty()
+    @IsString()
+    @IsNotEmpty()
+    projectId: string;
 }

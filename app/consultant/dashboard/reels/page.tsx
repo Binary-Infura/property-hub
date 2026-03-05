@@ -3,28 +3,48 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { reelService } from '@/app/services/reelService';
+import { consultantService } from '@/app/services/consultantService';
 import ReelCard from '@/app/components/ReelCard';
 
 export default function ConsultantReelsPage() {
     const { token } = useAuth();
     const [reels, setReels] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
+    const [projects, setProjects] = useState<any[]>([]);
+    const [selectedProjectId, setSelectedProjectId] = useState('All');
 
     useEffect(() => {
-        async function fetchReels() {
+        async function fetchInitialData() {
             if (!token) return;
             try {
-                // Fetch all reels
-                const response = await reelService.getAll();
+                // Fetch projects first
+                const projectsData = await consultantService.getAssignedProjects(token);
+                setProjects(projectsData || []);
+
+                // Fetch all reels initially
+                const response = await reelService.getAll(1, 20);
                 setReels(response.data);
             } catch (error) {
-                console.error('Error fetching reels:', error);
+                console.error('Error fetching initial data:', error);
             } finally {
                 setLoading(false);
             }
         }
-        fetchReels();
+        fetchInitialData();
     }, [token]);
+
+    const handleProjectChange = async (projectId: string) => {
+        setSelectedProjectId(projectId);
+        setLoading(true);
+        try {
+            const response = await reelService.getAll(1, 20, projectId);
+            setReels(response.data);
+        } catch (error) {
+            console.error('Error filtering reels:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     if (loading) {
         return (
@@ -37,9 +57,27 @@ export default function ConsultantReelsPage() {
     return (
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto space-y-6">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Property Reels</h1>
-                    <p className="text-gray-600 mt-1">Watch and share property walkthroughs</p>
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-bold text-gray-900">Property Reels</h1>
+                        <p className="text-gray-600 mt-1">Watch and share property walkthroughs</p>
+                    </div>
+
+                    <div className="w-full md:w-64">
+                        <label className="block text-xs font-bold text-gray-400 uppercase tracking-widest mb-2 px-1">Filter by Project</label>
+                        <select
+                            value={selectedProjectId}
+                            onChange={(e) => handleProjectChange(e.target.value)}
+                            className="w-full bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-medium focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none shadow-sm transition-all"
+                        >
+                            <option value="All">All Projects</option>
+                            {projects.map((project) => (
+                                <option key={project.id} value={project.id}>
+                                    {project.name}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
                 </div>
 
                 {reels.length === 0 ? (

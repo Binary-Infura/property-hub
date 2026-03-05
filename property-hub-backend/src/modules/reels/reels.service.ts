@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateReelDto } from './reels.dto';
-import { Reel } from '@prisma/client';
+import { Prisma, Reel } from '@prisma/client';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 import { UsersService } from '../users/users.service';
 
@@ -12,11 +12,14 @@ export class ReelsService {
         private usersService: UsersService,
     ) { }
 
-    async findAll(page = 1, limit = 8): Promise<{ data: Reel[]; total: number; hasMore: boolean }> {
+    async findAll(page = 1, limit = 8, projectId?: string): Promise<{ data: Reel[]; total: number; hasMore: boolean }> {
         const skip = (page - 1) * limit;
+
+        const where: Prisma.ReelWhereInput = projectId ? { projectId } : {};
 
         const [data, total] = await this.prisma.$transaction([
             this.prisma.reel.findMany({
+                where,
                 skip,
                 take: limit,
                 include: {
@@ -29,12 +32,18 @@ export class ReelsService {
                             propertyPartnerProfile: true,
                         }
                     },
+                    project: {
+                        select: {
+                            id: true,
+                            name: true,
+                        }
+                    },
                 },
                 orderBy: {
                     createdAt: 'desc',
                 },
             }),
-            this.prisma.reel.count(),
+            this.prisma.reel.count({ where }),
         ]);
 
         return { data, total, hasMore: skip + data.length < total };
@@ -70,6 +79,7 @@ export class ReelsService {
                 videoUrl: createReelDto.videoUrl,
                 thumbnailUrl: createReelDto.thumbnailUrl,
                 userId: internalUser.id,
+                projectId: createReelDto.projectId,
             },
             include: {
                 user: {

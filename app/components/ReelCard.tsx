@@ -44,11 +44,20 @@ export default function ReelCard({ reel }: ReelCardProps) {
             </div>
 
             {/* "WATCH" pill on hover */}
-            <div className="absolute top-3 left-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 pointer-events-none">
-                <span className="bg-white/20 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border border-white/20">
+            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-all duration-300 translate-y-2 group-hover:translate-y-0 pointer-events-none z-10">
+                <span className="bg-white/20 backdrop-blur-md text-white text-[10px] font-black uppercase tracking-[0.2em] px-3 py-1.5 rounded-full border border-white/20 shadow-xl">
                     Tap to Watch
                 </span>
             </div>
+
+            {/* Project Badge — Always visible if exists */}
+            {reel.project && (
+                <div className="absolute top-3 left-3 z-10">
+                    <span className="bg-blue-600/90 backdrop-blur-sm text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg border border-white/20 shadow-lg">
+                        {reel.project.name}
+                    </span>
+                </div>
+            )}
 
             {/* Bottom info */}
             <div className="absolute inset-x-0 bottom-0 p-4 pointer-events-none">

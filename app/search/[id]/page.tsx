@@ -7,6 +7,7 @@ import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import { propertyService, Property } from '@/app/services/propertyService';
 import { userService, User } from '@/app/services/userService';
 import { marketingService } from '@/app/services/marketingService';
+import { reelService, Reel } from '@/app/services/reelService';
 import Link from 'next/link';
 
 export default function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -17,6 +18,8 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
     const [property, setProperty] = useState<Property | null>(null);
     const [owner, setOwner] = useState<User | null>(null);
+    const [reels, setReels] = useState<Reel[]>([]);
+    const [playingReelId, setPlayingReelId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -63,6 +66,10 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                     const ownerData = await userService.getById(prop.onboardedById, token || null);
                     setOwner(ownerData);
                 }
+
+                // Fetch reels for this property
+                const reelsData = await reelService.getAll(1, 20, id);
+                setReels(reelsData.data);
             } catch (error) {
                 console.error('Failed to fetch property details:', error);
             } finally {
@@ -276,6 +283,99 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                                 ))}
                             </div>
                         </div>
+
+                        {/* Property Reels Section */}
+                        {reels.length > 0 && (
+                            <div className="bg-[#0F172A] rounded-[4rem] p-12 md:p-16 text-white relative overflow-hidden shadow-2xl">
+                                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-violet-600/10 rounded-full blur-[120px] -mr-48 -mt-48 pointer-events-none" />
+                                <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-blue-600/10 rounded-full blur-[100px] -ml-32 -mb-32 pointer-events-none" />
+
+                                <div className="flex items-end justify-between mb-12 relative z-10">
+                                    <div>
+                                        <h3 className="text-3xl font-black mb-3 flex items-center gap-5">
+                                            <div className="w-16 h-16 bg-white/5 backdrop-blur-xl border border-white/10 rounded-[2rem] flex items-center justify-center shadow-2xl text-violet-400">
+                                                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                                </svg>
+                                            </div>
+                                            Property Reels
+                                        </h3>
+                                        <p className="text-slate-400 font-bold text-lg ml-20">{reels.length} walkthrough{reels.length !== 1 ? 's' : ''} by the partner</p>
+                                    </div>
+                                    <Link
+                                        href="/reels"
+                                        className="hidden sm:flex items-center gap-2 text-[11px] font-black text-violet-400 uppercase tracking-[0.4em] hover:text-white transition-colors"
+                                    >
+                                        View All Reels
+                                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                                        </svg>
+                                    </Link>
+                                </div>
+
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 relative z-10">
+                                    {reels.map((reel) => (
+                                        <div
+                                            key={reel.id}
+                                            className="relative aspect-[9/16] bg-slate-800 rounded-3xl overflow-hidden group cursor-pointer border border-white/5 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
+                                            onClick={() => setPlayingReelId(playingReelId === reel.id ? null : reel.id)}
+                                        >
+                                            {/* Video element */}
+                                            <video
+                                                src={reel.videoUrl}
+                                                poster={reel.thumbnailUrl}
+                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                                muted
+                                                playsInline
+                                                loop
+                                                autoPlay={playingReelId === reel.id}
+                                                ref={(el) => {
+                                                    if (el) {
+                                                        if (playingReelId === reel.id) {
+                                                            el.play().catch(() => { });
+                                                        } else {
+                                                            el.pause();
+                                                            el.currentTime = 0;
+                                                        }
+                                                    }
+                                                }}
+                                            />
+
+                                            {/* Gradient overlay */}
+                                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
+
+                                            {/* Play / Pause indicator */}
+                                            <div className="absolute inset-0 flex items-center justify-center">
+                                                <div className={`w-14 h-14 rounded-full flex items-center justify-center border border-white/30 backdrop-blur-sm shadow-2xl transition-all duration-300 ${playingReelId === reel.id
+                                                        ? 'bg-white/30 scale-90'
+                                                        : 'bg-white/10 opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100'
+                                                    }`}>
+                                                    {playingReelId === reel.id ? (
+                                                        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                            <path d="M6 4h4v16H6zm8 0h4v16h-4z" />
+                                                        </svg>
+                                                    ) : (
+                                                        <svg className="w-6 h-6 text-white translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
+                                                            <path d="M8 5v14l11-7z" />
+                                                        </svg>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            {/* Bottom info */}
+                                            <div className="absolute bottom-0 left-0 right-0 p-4 pointer-events-none">
+                                                {reel.title && (
+                                                    <p className="text-white font-black text-xs leading-snug line-clamp-2 drop-shadow-lg">{reel.title}</p>
+                                                )}
+                                                {reel.description && (
+                                                    <p className="text-white/50 text-[10px] font-medium mt-1 line-clamp-1">{reel.description}</p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
                     </div>
                 </div>
 

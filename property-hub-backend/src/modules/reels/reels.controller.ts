@@ -16,13 +16,16 @@ export class ReelsController {
     @ApiOperation({ summary: 'Get all reels (paginated)' })
     @ApiQuery({ name: 'page', required: false, type: Number })
     @ApiQuery({ name: 'limit', required: false, type: Number })
+    @ApiQuery({ name: 'projectId', required: false, type: String })
     findAll(
         @Query('page') page?: string,
         @Query('limit') limit?: string,
+        @Query('projectId') projectId?: string,
     ) {
         return this.reelsService.findAll(
             page ? parseInt(page, 10) : 1,
             limit ? parseInt(limit, 10) : 8,
+            projectId,
         );
     }
 

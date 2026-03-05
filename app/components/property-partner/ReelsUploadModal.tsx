@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { reelService } from '../../services/reelService';
+import { propertyService } from '../../services/propertyService';
 
 interface ReelsUploadModalProps {
     isOpen: boolean;
@@ -14,12 +15,32 @@ export default function ReelsUploadModal({ isOpen, onClose, token, onSuccess }: 
     const [file, setFile] = useState<File | null>(null);
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
+    const [selectedProjectId, setSelectedProjectId] = useState('');
+    const [projects, setProjects] = useState<any[]>([]);
     const [uploading, setUploading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (isOpen && token) {
+            const fetchProjects = async () => {
+                try {
+                    const data = await propertyService.getAll(token, true);
+                    setProjects(data);
+                } catch (err) {
+                    console.error('Failed to fetch projects:', err);
+                }
+            };
+            fetchProjects();
+        }
+    }, [isOpen, token]);
 
     const handleUpload = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!file) return;
+        if (!selectedProjectId) {
+            setError('Please select a project for this reel.');
+            return;
+        }
 
         setUploading(true);
         setError(null);
@@ -32,7 +53,8 @@ export default function ReelsUploadModal({ isOpen, onClose, token, onSuccess }: 
             await reelService.create({
                 title,
                 description,
-                videoUrl: url
+                videoUrl: url,
+                projectId: selectedProjectId || undefined
             }, token);
 
             onSuccess();
@@ -122,6 +144,28 @@ export default function ReelsUploadModal({ isOpen, onClose, token, onSuccess }: 
                         />
                     </div>
 
+                    <div className="space-y-2">
+                        <label className="text-sm font-black text-gray-700 uppercase tracking-widest block px-1">
+                            Link to Project <span className="text-red-500 ml-0.5">*</span>
+                        </label>
+                        <select
+                            value={selectedProjectId}
+                            onChange={(e) => setSelectedProjectId(e.target.value)}
+                            required
+                            className={`w-full px-5 py-4 bg-gray-50 border ${!selectedProjectId && error ? 'border-red-400 ring-2 ring-red-100' : 'border-gray-200'} rounded-2xl focus:outline-none focus:ring-4 focus:ring-blue-100 focus:border-blue-500 transition-all font-medium appearance-none cursor-pointer`}
+                        >
+                            <option value="">Select a project...</option>
+                            {projects.map(project => (
+                                <option key={project.id} value={project.id}>
+                                    {project.name}
+                                </option>
+                            ))}
+                        </select>
+                        {projects.length === 0 && (
+                            <p className="text-xs text-amber-600 font-medium px-1">No projects found. Please create a project first.</p>
+                        )}
+                    </div>
+
                     <div className="pt-4 flex gap-4">
                         <button
                             type="button"
@@ -132,7 +176,7 @@ export default function ReelsUploadModal({ isOpen, onClose, token, onSuccess }: 
                         </button>
                         <button
                             type="submit"
-                            disabled={uploading || !file}
+                            disabled={uploading || !file || !selectedProjectId}
                             className="flex-3 px-10 py-4 bg-blue-600 text-white font-black uppercase text-xs tracking-widest rounded-2xl hover:bg-blue-700 disabled:opacity-50 disabled:grayscale transition-all shadow-xl shadow-blue-200 hover:shadow-blue-300 flex items-center justify-center gap-3"
                         >
                             {uploading ? (

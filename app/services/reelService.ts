@@ -7,10 +7,15 @@ export interface Reel {
     videoUrl: string;
     thumbnailUrl?: string;
     userId: string;
+    projectId: string;
     user: {
         id: string;
         firstName: string;
         lastName?: string;
+    };
+    project?: {
+        id: string;
+        name: string;
     };
     createdAt: string;
 }
@@ -22,8 +27,12 @@ export interface ReelsResponse {
 }
 
 export const reelService = {
-    async getAll(page = 1, limit = 8): Promise<ReelsResponse> {
-        const response = await fetch(`${API_URL}/api/reels?page=${page}&limit=${limit}`);
+    async getAll(page = 1, limit = 8, projectId?: string): Promise<ReelsResponse> {
+        let url = `${API_URL}/api/reels?page=${page}&limit=${limit}`;
+        if (projectId && projectId !== 'All') {
+            url += `&projectId=${projectId}`;
+        }
+        const response = await fetch(url);
         if (!response.ok) {
             const error = await response.json().catch(() => ({ message: 'Failed to fetch reels' }));
             throw new Error(error.message || 'Failed to fetch reels');
