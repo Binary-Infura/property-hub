@@ -9,6 +9,7 @@ import { userService, User } from '@/app/services/userService';
 import { marketingService } from '@/app/services/marketingService';
 import { reelService, Reel } from '@/app/services/reelService';
 import Link from 'next/link';
+import ReelCard from '@/app/components/ReelCard';
 
 export default function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
@@ -19,7 +20,6 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     const [property, setProperty] = useState<Property | null>(null);
     const [owner, setOwner] = useState<User | null>(null);
     const [reels, setReels] = useState<Reel[]>([]);
-    const [playingReelId, setPlayingReelId] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
 
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -313,65 +313,9 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                                     </Link>
                                 </div>
 
-                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 relative z-10">
+                                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 relative z-10 w-full">
                                     {reels.map((reel) => (
-                                        <div
-                                            key={reel.id}
-                                            className="relative aspect-[9/16] bg-slate-800 rounded-3xl overflow-hidden group cursor-pointer border border-white/5 shadow-xl hover:shadow-2xl hover:-translate-y-1 transition-all duration-300"
-                                            onClick={() => setPlayingReelId(playingReelId === reel.id ? null : reel.id)}
-                                        >
-                                            {/* Video element */}
-                                            <video
-                                                src={reel.videoUrl}
-                                                poster={reel.thumbnailUrl}
-                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                                muted
-                                                playsInline
-                                                loop
-                                                autoPlay={playingReelId === reel.id}
-                                                ref={(el) => {
-                                                    if (el) {
-                                                        if (playingReelId === reel.id) {
-                                                            el.play().catch(() => { });
-                                                        } else {
-                                                            el.pause();
-                                                            el.currentTime = 0;
-                                                        }
-                                                    }
-                                                }}
-                                            />
-
-                                            {/* Gradient overlay */}
-                                            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent pointer-events-none" />
-
-                                            {/* Play / Pause indicator */}
-                                            <div className="absolute inset-0 flex items-center justify-center">
-                                                <div className={`w-14 h-14 rounded-full flex items-center justify-center border border-white/30 backdrop-blur-sm shadow-2xl transition-all duration-300 ${playingReelId === reel.id
-                                                        ? 'bg-white/30 scale-90'
-                                                        : 'bg-white/10 opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100'
-                                                    }`}>
-                                                    {playingReelId === reel.id ? (
-                                                        <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 24 24">
-                                                            <path d="M6 4h4v16H6zm8 0h4v16h-4z" />
-                                                        </svg>
-                                                    ) : (
-                                                        <svg className="w-6 h-6 text-white translate-x-0.5" fill="currentColor" viewBox="0 0 24 24">
-                                                            <path d="M8 5v14l11-7z" />
-                                                        </svg>
-                                                    )}
-                                                </div>
-                                            </div>
-
-                                            {/* Bottom info */}
-                                            <div className="absolute bottom-0 left-0 right-0 p-4 pointer-events-none">
-                                                {reel.title && (
-                                                    <p className="text-white font-black text-xs leading-snug line-clamp-2 drop-shadow-lg">{reel.title}</p>
-                                                )}
-                                                {reel.description && (
-                                                    <p className="text-white/50 text-[10px] font-medium mt-1 line-clamp-1">{reel.description}</p>
-                                                )}
-                                            </div>
-                                        </div>
+                                        <ReelCard key={reel.id} reel={reel} />
                                     ))}
                                 </div>
                             </div>
