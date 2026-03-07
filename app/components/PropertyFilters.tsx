@@ -60,7 +60,7 @@ export default function PropertyFilters({ filters, onFiltersChange, onReset }: P
           <div className="relative">
             <input
               type="text"
-              placeholder="Search Area..."
+              placeholder="Search Area or Property..."
               value={filters.location}
               onChange={(e) => onFiltersChange({ ...filters, location: e.target.value })}
               className="w-full px-6 py-4 bg-slate-50 border border-slate-100 rounded-[1.2rem] focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-none font-bold text-slate-700 transition-all placeholder:text-slate-300"

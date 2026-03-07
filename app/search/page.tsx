@@ -86,7 +86,11 @@ export default function PropertySearchPage() {
           highlights: ['Legal Verified', 'Premium Location', 'High ROI'],
           amenities: ['Parking', 'Security', 'Water Supply'],
           legalVerified: true,
-          image: undefined
+          image: undefined,
+          partner: p.onboardedBy && p.onboardedById ? {
+            id: p.onboardedById,
+            name: `${p.onboardedBy.firstName || ''} ${p.onboardedBy.lastName || ''}`.trim() || p.onboardedBy.name || 'Partner'
+          } : undefined
         }));
 
         setAllProperties(mapped);
@@ -107,7 +111,8 @@ export default function PropertySearchPage() {
 
     if (filters.location) {
       filtered = filtered.filter(p =>
-        p.location.toLowerCase().includes(filters.location.toLowerCase())
+        p.location.toLowerCase().includes(filters.location.toLowerCase()) ||
+        p.title.toLowerCase().includes(filters.location.toLowerCase())
       );
     }
 
@@ -252,7 +257,7 @@ export default function PropertySearchPage() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                   </svg>
                 </div>
-                <h3 className="text-4xl font-black text-slate-900 mb-4 tracking-tighter">No Units Matched</h3>
+                <h3 className="text-4xl font-black text-slate-900 mb-4 tracking-tighter">No Properties Matched</h3>
                 <p className="text-slate-400 font-bold mb-12 max-w-sm mx-auto text-lg leading-relaxed">
                   We couldn't find any premium properties matching your selection.
                 </p>

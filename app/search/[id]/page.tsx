@@ -8,19 +8,76 @@ import { propertyService, Property } from '@/app/services/propertyService';
 import { userService, User } from '@/app/services/userService';
 import { marketingService } from '@/app/services/marketingService';
 import { reelService, Reel } from '@/app/services/reelService';
+import { useConsultingBucket } from '@/app/contexts/ConsultingBucketContext';
 import Link from 'next/link';
 import ReelCard from '@/app/components/ReelCard';
 
 export default function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
     const { id } = use(params);
-    const { token } = useAuth();
+    const { token, user } = useAuth();
     const { activeContext } = useUnifiedApp();
 
     const [property, setProperty] = useState<Property | null>(null);
     const [owner, setOwner] = useState<User | null>(null);
     const [reels, setReels] = useState<Reel[]>([]);
     const [loading, setLoading] = useState(true);
+
+    const [isFollowing, setIsFollowing] = useState(false);
+    const [followLoading, setFollowLoading] = useState(false);
+
+    const handleFollow = async () => {
+        if (!token) {
+            router.push('/login');
+            return;
+        }
+
+        if (!owner) return;
+
+        try {
+            setFollowLoading(true);
+            if (isFollowing) {
+                await userService.unfollow(owner.id, token);
+                setIsFollowing(false);
+            } else {
+                await userService.follow(owner.id, token);
+                setIsFollowing(true);
+            }
+        } catch (error) {
+            console.error('Failed to toggle follow:', error);
+        } finally {
+            setFollowLoading(false);
+        }
+    };
+    const { addItem, removeItem, isInBucket } = useConsultingBucket();
+    const alreadyInBucket = property ? isInBucket(property.id) : false;
+    const isBuyer = activeContext.activeRole?.id === 'buyer';
+
+    const handleShare = () => {
+        if (navigator.share) {
+            navigator.share({
+                title: property?.name,
+                url: window.location.href
+            }).catch(console.error);
+        } else {
+            navigator.clipboard.writeText(window.location.href);
+            alert('Link copied to clipboard!');
+        }
+    };
+
+    const handleBucketAction = () => {
+        if (!property) return;
+        if (alreadyInBucket) {
+            removeItem(property.id);
+        } else {
+            addItem({
+                id: property.id,
+                title: property.name,
+                price: property.price ? `₹${(Number(property.price) / 100000).toFixed(1)}L` : 'Call for Price',
+                location: property.location || 'Unknown'
+            });
+        }
+    };
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [formData, setFormData] = useState({ name: '', email: '', phone: '', message: '' });
@@ -70,6 +127,12 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                 // Fetch reels for this property
                 const reelsData = await reelService.getAll(1, 20, id);
                 setReels(reelsData.data);
+
+                // Fetch follow status
+                if (token && prop.onboardedById) {
+                    const following = await userService.isFollowing(prop.onboardedById, token);
+                    setIsFollowing(following);
+                }
             } catch (error) {
                 console.error('Failed to fetch property details:', error);
             } finally {
@@ -112,7 +175,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     return (
         <div className="min-h-screen bg-[#FDFDFF]">
             {/* Cinematic Header / Navigation */}
-            <div className="bg-white/90 backdrop-blur-xl border-b border-slate-100 sticky top-0 z-50">
+            <div className="bg-white/90 backdrop-blur-xl border-b border-slate-100 sticky top-16 z-40">
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-5 flex items-center justify-between">
                     <button onClick={() => router.back()} className="group flex items-center gap-4 text-slate-900 hover:text-blue-600 transition-all font-black text-sm uppercase tracking-widest">
                         <div className="w-12 h-12 rounded-2xl bg-slate-50 flex items-center justify-center group-hover:bg-blue-50 group-hover:scale-110 transition-all duration-300">
@@ -123,12 +186,20 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                         Back to Search
                     </button>
                     <div className="flex gap-4">
-                        <button className="w-12 h-12 flex items-center justify-center bg-white border border-slate-100 text-slate-400 rounded-2xl hover:bg-rose-50 hover:text-rose-500 hover:border-rose-100 transition-all shadow-sm">
-                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                            </svg>
-                        </button>
-                        <button className="w-12 h-12 flex items-center justify-center bg-white border border-slate-100 text-slate-400 rounded-2xl hover:bg-blue-50 hover:text-blue-600 hover:border-blue-100 transition-all shadow-sm">
+                        {isBuyer && (
+                            <button
+                                onClick={handleBucketAction}
+                                className={`w-12 h-12 flex items-center justify-center bg-white border rounded-2xl transition-all shadow-sm ${alreadyInBucket ? 'text-rose-500 border-rose-200 bg-rose-50' : 'text-slate-400 border-slate-100 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-100'}`}
+                            >
+                                <svg className="w-6 h-6" fill={alreadyInBucket ? "currentColor" : "none"} viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                                </svg>
+                            </button>
+                        )}
+                        <button
+                            onClick={handleShare}
+                            className="w-12 h-12 flex items-center justify-center bg-white border border-slate-100 text-slate-400 rounded-2xl hover:bg-blue-50 hover:text-blue-600 hover:border-blue-100 transition-all shadow-sm"
+                        >
                             <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
                             </svg>
@@ -393,6 +464,37 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                 </svg>
                             </Link>
+                            {owner && (!token || (user?.userId !== owner.id && activeContext.activeRole.id === 'buyer')) && (
+                                <button
+                                    onClick={handleFollow}
+                                    disabled={followLoading}
+                                    className={`w-full py-5 rounded-[2rem] font-black text-lg tracking-tight hover:-translate-y-1 transition-all active:scale-95 flex items-center justify-center gap-3 border shadow-sm ${isFollowing
+                                        ? 'bg-blue-50 text-blue-600 border-blue-200 hover:bg-blue-100'
+                                        : 'bg-white text-slate-700 border-slate-200 hover:border-slate-300'
+                                        }`}>
+                                    {followLoading ? (
+                                        <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                                    ) : (
+                                        <>
+                                            {isFollowing ? (
+                                                <>
+                                                    <svg className="w-5 h-5 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                    Following
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <svg className="w-5 h-5 font-bold" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+                                                    </svg>
+                                                    Follow Partner
+                                                </>
+                                            )}
+                                        </>
+                                    )}
+                                </button>
+                            )}
                         </div>
 
                         <div className="mt-12 text-center">

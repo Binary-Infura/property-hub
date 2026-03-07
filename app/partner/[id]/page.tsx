@@ -118,22 +118,22 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
 
                         <div className="flex-1 pb-2">
                             <div className="flex flex-wrap items-center gap-4 mb-3">
-                                <h1 className="text-5xl font-black text-slate-900 tracking-tight leading-none">
+                                <h1 className="text-5xl font-black text-white tracking-tight leading-none">
                                     {partner.firstName} {partner.lastName}
                                 </h1>
-                                <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 text-[10px] font-black uppercase tracking-[0.2em] rounded-full border border-blue-100 shadow-sm">
-                                    <span className="w-2 h-2 bg-blue-600 rounded-full animate-pulse"></span>
+                                <div className="flex items-center gap-2 px-4 py-2 bg-blue-50/10 text-blue-300 text-[10px] font-black uppercase tracking-[0.2em] rounded-full border border-blue-500/30 shadow-sm backdrop-blur-md">
+                                    <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
                                     Verified Platinum Partner
                                 </div>
                             </div>
-                            <p className="text-2xl font-bold text-slate-400 mb-8 tracking-tight">
+                            <p className="text-2xl font-bold text-slate-300 mb-8 tracking-tight">
                                 CEO @ {partner.propertyPartnerProfile?.companyName || 'Elite Property Solutions'}
                             </p>
 
                             <div className="flex flex-wrap gap-4 sm:gap-6">
                                 {[
                                     { label: 'Client Rating', val: '4.9 / 5.0', svgIcon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>, color: 'amber' },
-                                    { label: 'Total Listings', val: `${properties.length}+ Units`, svgIcon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" /></svg>, color: 'blue' },
+                                    { label: 'Total Listings', val: `${properties.length}+ Properties`, svgIcon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" /></svg>, color: 'blue' },
                                     { label: 'Followers', val: `${followerCount}`, svgIcon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>, color: 'indigo' }
                                 ].map((stat, i) => (
                                     <div key={i} className="flex items-center gap-4 px-6 py-4 bg-slate-50 rounded-3xl border border-slate-100 hover:bg-white hover:shadow-lg transition-all cursor-default group">
@@ -260,7 +260,8 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
                                         isNew: true,
                                         isReadyToMove: property.status === 'AVAILABLE' || property.status === 'APPROVED',
                                         highlights: ['Premium Listing', 'Verified Owner'],
-                                        legalVerified: true
+                                        legalVerified: true,
+                                        partner: partner ? { id: partner.id, name: `${partner.firstName || ''} ${partner.lastName || ''}`.trim() } : undefined
                                     };
                                     return (
                                         <div key={property.id} className="hover:scale-[1.02] transition-all duration-500">

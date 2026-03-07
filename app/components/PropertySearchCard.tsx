@@ -19,6 +19,10 @@ interface PropertySearchCardData {
   recommendationTag?: 'Perfect Match' | 'Budget Friendly' | 'Best Investment';
   recommendationReason?: string;
   image?: string;
+  partner?: {
+    id: string;
+    name: string;
+  };
 }
 
 interface PropertySearchCardProps {
@@ -155,6 +159,26 @@ export default function PropertySearchCard({
             </div>
           ))}
         </div>
+
+        {property.partner && (
+          <div className="flex items-center gap-3 mb-6 p-4 rounded-2xl bg-slate-50 border border-slate-100 group-hover:bg-indigo-50/50 group-hover:border-indigo-100 transition-colors" onClick={(e) => {
+            e.stopPropagation();
+            window.location.href = `/partner/${property.partner?.id}`;
+          }}>
+            <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-black shadow-lg">
+              {property.partner.name.charAt(0).toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Listed By Partner</p>
+              <p className="text-sm font-black text-slate-900 truncate group-hover:text-indigo-600 transition-colors">{property.partner.name}</p>
+            </div>
+            <div className="text-slate-400 group-hover:text-indigo-600 transition-colors">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </div>
+        )}
 
         {/* Multi-Action Area */}
         <div className="flex items-center gap-4 border-t border-slate-50 pt-8 mt-auto">
