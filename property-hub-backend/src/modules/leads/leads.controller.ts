@@ -7,6 +7,7 @@ import {
     Param,
     Delete,
     UseGuards,
+    Query,
 } from '@nestjs/common';
 import { LeadsService } from './leads.service';
 import { CreateLeadDto, UpdateLeadDto } from './leads.dto';
@@ -31,8 +32,12 @@ export class LeadsController {
     // Call Logs
     @Get('calls/history')
     @RequireRoles(UserRole.CONSULTANT, UserRole.CENTRAL_AUTHORITY)
-    getCallLogs(@CurrentUser() user: AuthenticatedUser) {
-        return this.leadsService.getCallLogs(user);
+    getCallLogs(
+        @CurrentUser() user: AuthenticatedUser,
+        @Query('consultantId') consultantId?: string,
+        @Query('projectId') projectId?: string
+    ) {
+        return this.leadsService.getCallLogs(user, undefined, consultantId, projectId);
     }
 
     @Get(':id/calls')

@@ -33,14 +33,17 @@ export class LeadsService {
         });
     }
 
-    async getCallLogs(user: AuthenticatedUser, leadId?: string) {
+    async getCallLogs(user: AuthenticatedUser, leadId?: string, consultantId?: string, projectId?: string) {
         const isCentralAuthority = user.roles.includes('central-authority');
 
         // 1. Fetch incomplete calls for this user/lead
+        // For central authority, they can see everything unless they filter.
+        // For others, they only see their own calls.
         const incompleteCalls = await this.prisma.callLog.findMany({
             where: {
-                ...(isCentralAuthority ? {} : { consultantId: user.userId }),
+                ...(isCentralAuthority ? (consultantId ? { consultantId } : {}) : { consultantId: user.userId }),
                 ...(leadId ? { leadId } : {}),
+                ...(projectId ? { lead: { projectId } } : {}),
                 OR: [{ status: 'queued' }, { status: 'in-progress' }, { status: null }]
             }
         });
@@ -49,17 +52,22 @@ export class LeadsService {
         if (incompleteCalls.length > 0) {
             await Promise.all(incompleteCalls.map(async (call) => {
                 if (!call.sid) return;
-                const details = await this.exotelService.getCallDetails(call.sid);
-                if (details && details.Status !== call.status) {
-                    await this.prisma.callLog.update({
-                        where: { id: call.id },
-                        data: {
-                            status: details.Status,
-                            recordingUrl: details.RecordingUrl || null,
-                            duration: details.Duration ? parseInt(details.Duration) : null,
-                            endTime: details.EndTime ? new Date(details.EndTime) : null,
-                        }
-                    });
+                try {
+                    const details = await this.exotelService.getCallDetails(call.sid);
+                    if (details && details.Status !== call.status) {
+                        await this.prisma.callLog.update({
+                            where: { id: call.id },
+                            data: {
+                                status: details.Status,
+                                recordingUrl: details.RecordingUrl || null,
+                                duration: details.Duration ? parseInt(details.Duration) : null,
+                                endTime: details.EndTime ? new Date(details.EndTime) : null,
+                            }
+                        });
+                    }
+                } catch (error) {
+                    // Log error and continue with other calls
+                    console.error(`Failed to sync call log ${call.sid}:`, error);
                 }
             }));
         }
@@ -67,10 +75,26 @@ export class LeadsService {
         // 3. Return the fully synced logs
         return this.prisma.callLog.findMany({
             where: {
-                ...(isCentralAuthority ? {} : { consultantId: user.userId }),
+                ...(isCentralAuthority ? (consultantId ? { consultantId } : {}) : { consultantId: user.userId }),
                 ...(leadId ? { leadId } : {}),
+                ...(projectId ? { lead: { projectId } } : {}),
             },
-            include: { lead: true },
+            include: {
+                lead: {
+                    include: {
+                        project: true
+                    }
+                },
+                consultant: {
+                    select: {
+                        id: true,
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                        phone: true
+                    }
+                }
+            },
             orderBy: { createdAt: 'desc' },
         });
     }

@@ -432,7 +432,7 @@ export default function CentralAuthorityDashboardPage() {
 
 
             {/* Property Management Quick Access */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <Link href="/central-authority/dashboard/properties/allocation" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-blue-300 transition-all hover:shadow-md group">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
@@ -487,6 +487,26 @@ export default function CentralAuthorityDashboardPage() {
                     </div>
                     <div className="text-xs font-semibold text-purple-600 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         View Ads Requests
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                </Link>
+
+                <Link href="/central-authority/dashboard/system-call-records" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-orange-300 transition-all hover:shadow-md group">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors">
+                            <svg className="w-5 h-5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-semibold text-gray-900 group-hover:text-orange-600 transition-colors">Call Records</h3>
+                            <p className="text-xs text-gray-500">Monitor system communication</p>
+                        </div>
+                    </div>
+                    <div className="text-xs font-semibold text-orange-600 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        View System Calls
                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
