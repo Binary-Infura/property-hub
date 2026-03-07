@@ -11,6 +11,7 @@ export interface NavItem {
 export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
     'central-authority': [
         { name: 'Dashboard', href: '/central-authority/dashboard', icon: 'dashboard' },
+        { name: 'Approve Reviews', href: '/central-authority/dashboard/reviews', icon: 'star' },
         { name: 'Consultants', href: '/central-authority/dashboard/consultants', icon: 'users' },
         { name: 'Loan Advisers', href: '/central-authority/dashboard/loan-advisers', icon: 'bank' },
         { name: 'Visit Executives', href: '/central-authority/dashboard/visit-executives', icon: 'car' },
@@ -21,6 +22,7 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
     ],
     'broker': [
         { name: 'Dashboard', href: '/broker/dashboard', icon: 'dashboard' },
+        { name: 'Reviews', href: '/broker/dashboard/reviews', icon: 'star' },
         { name: 'Leads', href: '/broker/dashboard/leads', icon: 'users' },
         { name: 'Commissions', href: '/broker/dashboard/commissions', icon: 'money' },
         { name: 'Promotions', href: '/broker/dashboard/promotions', icon: 'megaphone' },
@@ -29,6 +31,7 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
     ],
     'marketing-manager': [
         { name: 'Dashboard', href: '/marketing-manager/dashboard', icon: 'dashboard' },
+        { name: 'Reviews', href: '/marketing-manager/dashboard/reviews', icon: 'star' },
         { name: 'Campaigns', href: '/marketing-manager/dashboard/campaigns', icon: 'megaphone' },
         { name: 'Campaign Leads', href: '/marketing-manager/dashboard/leads', icon: 'users' },
         { name: 'Ads Requests', href: '/marketing-manager/dashboard/ads-requests', icon: 'note' },
@@ -37,12 +40,14 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
     ],
     'onboarding-manager': [
         { name: 'Broker Partners', href: '/onboarding-manager/dashboard', icon: 'handshake' },
+        { name: 'Reviews', href: '/onboarding-manager/dashboard/reviews', icon: 'star' },
         { name: 'Project', href: '/onboarding-manager/dashboard/project', icon: 'building' },
         { name: 'Listing Requests', href: '/onboarding-manager/dashboard/listing-requests', icon: 'clipboard' },
         { name: 'Property Partners', href: '/onboarding-manager/dashboard/property-partners', icon: 'handshake' },
     ],
     'property-partner': [
         { name: 'Dashboard', href: '/property-partner/dashboard', icon: 'dashboard' },
+        { name: 'Reviews', href: '/property-partner/dashboard/reviews', icon: 'star' },
         { name: 'Projects', href: '/property-partner/dashboard/projects', icon: 'building' },
         { name: 'Units', href: '/property-partner/dashboard/units', icon: 'home' },
         { name: 'Consultants', href: '/property-partner/dashboard/consultants', icon: 'person', premium: true },
@@ -55,6 +60,7 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
     ],
     'consultant': [
         { name: 'Dashboard', href: '/consultant/dashboard', icon: 'dashboard' },
+        { name: 'Reviews', href: '/consultant/dashboard/reviews', icon: 'star' },
         { name: 'Leads', href: '/consultant/dashboard/leads', icon: 'users' },
         { name: 'Call Logs', href: '/consultant/dashboard/call-logs', icon: 'phone' },
         { name: 'Calendar', href: '/consultant/dashboard/calendar', icon: 'calendar' },
@@ -64,22 +70,26 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
     ],
     'loan-adviser': [
         { name: 'Dashboard', href: '/loan-adviser/dashboard', icon: 'dashboard' },
+        { name: 'Reviews', href: '/loan-adviser/dashboard/reviews', icon: 'star' },
         { name: 'Active Loans', href: '/loan-adviser/dashboard/loans', icon: 'money' },
         { name: 'Documents', href: '/loan-adviser/dashboard/documents', icon: 'document' },
     ],
     'visit-executive': [
         { name: 'Dashboard', href: '/visit-executive/dashboard', icon: 'dashboard' },
+        { name: 'Reviews', href: '/visit-executive/dashboard/reviews', icon: 'star' },
         { name: 'Schedule', href: '/visit-executive/dashboard/schedule', icon: 'calendar' },
         { name: 'My Visits', href: '/visit-executive/dashboard/visits', icon: 'pin' },
         { name: 'Clients', href: '/visit-executive/dashboard/clients', icon: 'users' },
     ],
     'buyer': [
         { name: 'My Dashboard', href: '/dashboard', icon: 'dashboard' },
+        { name: 'Reviews', href: '/dashboard/reviews', icon: 'star' },
         { name: 'Saved Properties', href: '/dashboard/saved', icon: 'home' },
         { name: 'Inquiries', href: '/dashboard/inquiries', icon: 'clipboard' },
     ],
     'influencer': [
         { name: 'Overview', href: '/influencer/dashboard', icon: 'dashboard' },
+        { name: 'Reviews', href: '/influencer/dashboard/reviews', icon: 'star' },
         { name: 'My Campaigns', href: '/influencer/dashboard/campaigns', icon: 'megaphone' },
         { name: 'Earnings', href: '/influencer/dashboard/earnings', icon: 'money' },
         { name: 'Resources', href: '/influencer/dashboard/resources', icon: 'book' },

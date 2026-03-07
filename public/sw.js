@@ -1,7 +1,7 @@
 const CACHE_NAME = 'property-hub-cache-v1';
 const ASSETS_TO_CACHE = [
     '/',
-    '/manifest.json',
+    '/manifest.webmanifest',
     '/icon-192.png',
     '/icon-512.png',
 ];

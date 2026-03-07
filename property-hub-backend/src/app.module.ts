@@ -34,6 +34,7 @@ import { ReelsModule } from './modules/reels/reels.module';
 import { LoansModule } from './modules/loans/loans.module';
 import { ExotelModule } from './modules/exotel/exotel.module';
 import { LivekitModule } from './modules/livekit/livekit.module';
+import { ReviewsModule } from './modules/reviews/reviews.module';
 import { join } from 'path';
 
 @Module({
@@ -74,6 +75,7 @@ import { join } from 'path';
         LoansModule,
         ExotelModule,
         LivekitModule,
+        ReviewsModule,
         ServeStaticModule.forRoot({
             rootPath: join(__dirname, '..', 'uploads'),
             serveRoot: '/uploads',

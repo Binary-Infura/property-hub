@@ -16,10 +16,13 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport = {
+  themeColor: "#0f172a",
+};
+
 export const metadata: Metadata = {
   title: "PropertyHub - Expert-Guided Home Buying",
   description: "Find your perfect home with expert consultants. Curated properties, personalized guidance, and complete support from search to possession.",
-  themeColor: "#0f172a",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
