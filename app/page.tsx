@@ -1,5 +1,5 @@
 import ConsultantProfile from "./components/ConsultantProfile";
-import RecommendedProperties from "./components/RecommendedProperties";
+
 import Navbar from "./components/Navbar";
 import LoanCalculator from "./components/LoanCalculator";
 import DynamicReviews from "./components/DynamicReviews";
@@ -268,8 +268,7 @@ export default function Home() {
       {/* Consultant Profile Section */}
       <ConsultantProfile />
 
-      {/* Recommended Properties */}
-      <RecommendedProperties />
+
 
       {/* Testimonials */}
       <DynamicReviews />
