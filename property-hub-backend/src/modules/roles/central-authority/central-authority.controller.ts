@@ -54,6 +54,11 @@ export class CentralAuthorityController {
         return this.centralAuthorityService.getAllPropertyPartners();
     }
 
+    @Get('brokers')
+    async getAllBrokers() {
+        return this.centralAuthorityService.getAllBrokers();
+    }
+
     @Patch('property-partners/:userId/subscription')
     async updatePartnerSubscription(
         @CurrentUser() currentUser: AuthenticatedUser,

@@ -12,6 +12,8 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
     'central-authority': [
         { name: 'Dashboard', href: '/central-authority/dashboard', icon: 'dashboard' },
         { name: 'Approve Reviews', href: '/central-authority/dashboard/reviews', icon: 'star' },
+        { name: 'Property Partners', href: '/central-authority/dashboard/property-partners', icon: 'building' },
+        { name: 'Brokers', href: '/central-authority/dashboard/brokers', icon: 'handshake' },
         { name: 'Consultants', href: '/central-authority/dashboard/consultants', icon: 'users' },
         { name: 'Loan Advisers', href: '/central-authority/dashboard/loan-advisers', icon: 'bank' },
         { name: 'Visit Executives', href: '/central-authority/dashboard/visit-executives', icon: 'car' },

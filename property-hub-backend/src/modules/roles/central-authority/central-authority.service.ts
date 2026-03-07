@@ -152,6 +152,22 @@ export class CentralAuthorityService {
         });
     }
 
+    async getAllBrokers() {
+        return this.prisma.user.findMany({
+            where: {
+                roles: {
+                    has: 'broker'
+                }
+            },
+            include: {
+                brokerProfile: true
+            },
+            orderBy: {
+                createdAt: 'desc'
+            }
+        });
+    }
+
     async updatePartnerSubscription(currentUser: AuthenticatedUser, targetUserId: string, isPremium: boolean, subscriptionMode: 'PAID' | 'FREE') {
         const user = await this.prisma.user.findUnique({
             where: { id: targetUserId },

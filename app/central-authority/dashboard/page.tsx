@@ -45,9 +45,25 @@ interface PropertyPartner {
     lastName: string;
     email: string;
     agencyName: string;
+    createdAt?: string;
     propertyPartnerProfile: {
         isPremium: boolean;
         subscriptionMode: 'PAID' | 'FREE';
+        companyName?: string;
+    } | null;
+}
+
+interface Broker {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    createdAt?: string;
+    brokerProfile: {
+        agencyBusinessName: string;
+        reraNumber?: string;
+        officeAddress?: string;
     } | null;
 }
 
@@ -55,6 +71,7 @@ export default function CentralAuthorityDashboardPage() {
     const { token } = useAuth();
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [partners, setPartners] = useState<PropertyPartner[]>([]);
+    const [brokers, setBrokers] = useState<Broker[]>([]);
     const [districtCounts, setDistrictCounts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [updatingPartner, setUpdatingPartner] = useState<string | null>(null);
@@ -68,9 +85,7 @@ export default function CentralAuthorityDashboardPage() {
         if (!token) return;
         try {
             const response = await fetch(`${API_URL}/api/central-authority/property-partners`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
+                headers: { 'Authorization': `Bearer ${token}` }
             });
             if (response.ok) {
                 const data = await response.json();
@@ -78,6 +93,21 @@ export default function CentralAuthorityDashboardPage() {
             }
         } catch (error) {
             console.error('Failed to fetch partners:', error);
+        }
+    };
+
+    const fetchBrokers = async () => {
+        if (!token) return;
+        try {
+            const response = await fetch(`${API_URL}/api/central-authority/brokers`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setBrokers(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch brokers:', error);
         }
     };
 
@@ -122,6 +152,7 @@ export default function CentralAuthorityDashboardPage() {
 
         fetchStats();
         fetchPartners();
+        fetchBrokers();
     }, [token, API_URL]);
 
     const handleUpdateSubscription = async (userId: string, isPremium: boolean, mode: 'PAID' | 'FREE') => {
@@ -217,92 +248,175 @@ export default function CentralAuthorityDashboardPage() {
                 </Link>
             </div>
 
-            {/* Property Partner Management Section */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <div className="flex justify-between items-center mb-6">
-                    <div>
-                        <h2 className="text-xl font-bold text-gray-900">Recent Property Partners</h2>
-                        <p className="text-sm text-gray-500 mt-1">Latest subscriptions and premium status</p>
+            {/* Onboarded People: Property Partners & Brokers */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+
+                {/* Property Partner Management Section */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 className="text-xl font-bold text-gray-900">Property Partners</h2>
+                            <p className="text-sm text-gray-500 mt-1">
+                                {partners.length} onboarded &bull; latest subscriptions
+                            </p>
+                        </div>
+                        <Link
+                            href="/central-authority/dashboard/property-partners"
+                            className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
+                        >
+                            View All
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </Link>
                     </div>
-                    <Link
-                        href="/central-authority/dashboard/property-partners"
-                        className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                    >
-                        View All
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                    </Link>
-                </div>
 
-                <div className="overflow-x-auto">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                <th className="px-4 py-3">Partner Name</th>
-                                <th className="px-4 py-3">Email</th>
-                                <th className="px-4 py-3">Agency</th>
-                                <th className="px-4 py-3">Status</th>
-                                <th className="px-4 py-3">Mode</th>
-                                <th className="px-4 py-3 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-50">
-                            {partners.slice(0, 5).map((partner) => {
-                                const isPremium = partner.propertyPartnerProfile?.isPremium || false;
-                                const mode = partner.propertyPartnerProfile?.subscriptionMode || 'PAID';
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                    <th className="px-4 py-3">Name</th>
+                                    <th className="px-4 py-3">Agency</th>
+                                    <th className="px-4 py-3">Status</th>
+                                    <th className="px-4 py-3 text-right">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {partners.slice(0, 5).map((partner) => {
+                                    const isPremium = partner.propertyPartnerProfile?.isPremium || false;
+                                    const mode = partner.propertyPartnerProfile?.subscriptionMode || 'PAID';
 
-                                return (
-                                    <tr key={partner.id} className="text-sm group hover:bg-gray-50 transition-colors">
-                                        <td className="px-4 py-4 font-bold text-gray-900">
-                                            {partner.firstName} {partner.lastName}
-                                        </td>
-                                        <td className="px-4 py-4 text-gray-600">{partner.email}</td>
-                                        <td className="px-4 py-4 text-gray-600">{partner.agencyName || '-'}</td>
-                                        <td className="px-4 py-4">
-                                            {isPremium ? (
-                                                <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-[10px] font-bold uppercase">Premium</span>
-                                            ) : (
-                                                <span className="bg-gray-100 text-gray-500 px-2 py-1 rounded-full text-[10px] font-bold uppercase">Standard</span>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-4">
-                                            <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${mode === 'FREE' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
-                                                }`}>
-                                                {mode}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-4 text-right">
-                                            {!isPremium ? (
-                                                <button
-                                                    onClick={() => handleUpdateSubscription(partner.id, true, 'FREE')}
-                                                    disabled={updatingPartner === partner.id}
-                                                    className="text-xs font-bold text-blue-600 hover:text-blue-800 disabled:opacity-50"
-                                                >
-                                                    {updatingPartner === partner.id ? 'Updating...' : 'Mark Free Premium'}
-                                                </button>
-                                            ) : (
-                                                <button
-                                                    onClick={() => handleUpdateSubscription(partner.id, false, 'PAID')}
-                                                    disabled={updatingPartner === partner.id}
-                                                    className="text-xs font-bold text-red-600 hover:text-red-800 disabled:opacity-50"
-                                                >
-                                                    {updatingPartner === partner.id ? 'Updating...' : 'Revoke Premium'}
-                                                </button>
-                                            )}
+                                    return (
+                                        <tr key={partner.id} className="text-sm group hover:bg-gray-50 transition-colors">
+                                            <td className="px-4 py-3">
+                                                <p className="font-bold text-gray-900">{partner.firstName} {partner.lastName}</p>
+                                                <p className="text-xs text-gray-400">{partner.email}</p>
+                                            </td>
+                                            <td className="px-4 py-3 text-gray-600 text-xs">
+                                                {partner.propertyPartnerProfile?.companyName || partner.agencyName || '-'}
+                                            </td>
+                                            <td className="px-4 py-3">
+                                                <div className="flex flex-col gap-1">
+                                                    {isPremium ? (
+                                                        <span className="bg-green-100 text-green-700 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase w-fit">Premium</span>
+                                                    ) : (
+                                                        <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase w-fit">Standard</span>
+                                                    )}
+                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase w-fit ${mode === 'FREE' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}`}>
+                                                        {mode}
+                                                    </span>
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-3 text-right">
+                                                {!isPremium ? (
+                                                    <button
+                                                        onClick={() => handleUpdateSubscription(partner.id, true, 'FREE')}
+                                                        disabled={updatingPartner === partner.id}
+                                                        className="text-xs font-bold text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                                                    >
+                                                        {updatingPartner === partner.id ? 'Updating...' : 'Gift Premium'}
+                                                    </button>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => handleUpdateSubscription(partner.id, false, 'PAID')}
+                                                        disabled={updatingPartner === partner.id}
+                                                        className="text-xs font-bold text-red-600 hover:text-red-800 disabled:opacity-50"
+                                                    >
+                                                        {updatingPartner === partner.id ? 'Updating...' : 'Revoke'}
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    );
+                                })}
+                                {partners.length === 0 && (
+                                    <tr>
+                                        <td colSpan={4} className="px-4 py-8 text-center text-gray-400 italic text-sm">
+                                            No property partners onboarded yet.
                                         </td>
                                     </tr>
-                                );
-                            })}
-                            {partners.length === 0 && (
-                                <tr>
-                                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500 italic">
-                                        No property partners found.
-                                    </td>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                    {partners.length > 5 && (
+                        <div className="mt-4 pt-4 border-t border-gray-50 text-center">
+                            <Link href="/central-authority/dashboard/property-partners" className="text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-wider">
+                                +{partners.length - 5} more partners
+                            </Link>
+                        </div>
+                    )}
+                </div>
+
+                {/* Brokers Section */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <h2 className="text-xl font-bold text-gray-900">Brokers</h2>
+                            <p className="text-sm text-gray-500 mt-1">
+                                {brokers.length} onboarded &bull; agency & RERA info
+                            </p>
+                        </div>
+                        <Link
+                            href="/central-authority/dashboard/brokers"
+                            className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
+                        >
+                            View All
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </Link>
+                    </div>
+
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                    <th className="px-4 py-3">Name</th>
+                                    <th className="px-4 py-3">Agency</th>
+                                    <th className="px-4 py-3">RERA No.</th>
+                                    <th className="px-4 py-3">Office</th>
                                 </tr>
-                            )}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-gray-50">
+                                {brokers.slice(0, 5).map((broker) => (
+                                    <tr key={broker.id} className="text-sm group hover:bg-gray-50 transition-colors">
+                                        <td className="px-4 py-3">
+                                            <p className="font-bold text-gray-900">{broker.firstName} {broker.lastName}</p>
+                                            <p className="text-xs text-gray-400">{broker.email}</p>
+                                        </td>
+                                        <td className="px-4 py-3 text-gray-700 text-xs font-medium">
+                                            {broker.brokerProfile?.agencyBusinessName || '-'}
+                                        </td>
+                                        <td className="px-4 py-3">
+                                            {broker.brokerProfile?.reraNumber ? (
+                                                <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-bold font-mono">
+                                                    {broker.brokerProfile.reraNumber}
+                                                </span>
+                                            ) : (
+                                                <span className="text-gray-400 text-xs italic">Not set</span>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-3 text-gray-500 text-xs truncate max-w-[120px]">
+                                            {broker.brokerProfile?.officeAddress || '-'}
+                                        </td>
+                                    </tr>
+                                ))}
+                                {brokers.length === 0 && (
+                                    <tr>
+                                        <td colSpan={4} className="px-4 py-8 text-center text-gray-400 italic text-sm">
+                                            No brokers onboarded yet.
+                                        </td>
+                                    </tr>
+                                )}
+                            </tbody>
+                        </table>
+                    </div>
+                    {brokers.length > 5 && (
+                        <div className="mt-4 pt-4 border-t border-gray-50 text-center">
+                            <span className="text-xs text-gray-400 font-medium">+{brokers.length - 5} more brokers</span>
+                        </div>
+                    )}
                 </div>
             </div>
 
@@ -430,7 +544,6 @@ export default function CentralAuthorityDashboardPage() {
                 <BankManagerSection />
             </div>
 
-
             {/* Property Management Quick Access */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <Link href="/central-authority/dashboard/properties/allocation" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-blue-300 transition-all hover:shadow-md group">
@@ -513,8 +626,6 @@ export default function CentralAuthorityDashboardPage() {
                     </div>
                 </Link>
             </div>
-
-
 
             {/* Recent Activity Feed */}
             <div className="max-w-2xl">
