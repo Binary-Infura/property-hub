@@ -110,4 +110,39 @@ export class UsersController {
     async toggleStatus(@Param('id') id: string) {
         return this.usersService.toggleStatus(id);
     }
+    @Post(':id/follow')
+    @UseGuards(RolesGuard)
+    @RequireRoles('buyer')
+    async follow(
+        @Param('id') id: string,
+        @CurrentUser() user: AuthenticatedUser
+    ) {
+        return this.usersService.follow(user.userId, id);
+    }
+
+    @Post(':id/unfollow')
+    @UseGuards(RolesGuard)
+    @RequireRoles('buyer')
+    async unfollow(
+        @Param('id') id: string,
+        @CurrentUser() user: AuthenticatedUser
+    ) {
+        return this.usersService.unfollow(user.userId, id);
+    }
+
+    @Get(':id/is-following')
+    @UseGuards(RolesGuard)
+    @RequireRoles('buyer')
+    async isFollowing(
+        @Param('id') id: string,
+        @CurrentUser() user: AuthenticatedUser
+    ) {
+        return { isFollowing: await this.usersService.isFollowing(user.userId, id) };
+    }
+
+    @Get(':id/follower-count')
+    @Public()
+    async getFollowerCount(@Param('id') id: string) {
+        return { count: await this.usersService.getFollowerCount(id) };
+    }
 }

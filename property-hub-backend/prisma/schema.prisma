@@ -227,6 +227,8 @@ model User {
   authoredNotes            LeadNote[]                @relation("AuthorNotes")
   callLogs                 CallLog[]
   reviews                  Review[]                  @relation("UserReviews")
+  following                Follow[]                  @relation("UserFollowers")
+  followers                Follow[]                  @relation("UserFollowing")
   @@map("users")
 }
 
@@ -675,4 +677,17 @@ enum LeadNoteCategory {
   BUDGET
   LEGAL
   FOLLOW_UP
+}
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+
+  follower    User     @relation("UserFollowers", fields: [followerId], references: [id])
+  following   User     @relation("UserFollowing", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId])
+  @@map("follows")
 }

@@ -523,4 +523,74 @@ export class UsersService {
 
         return this.findOne(user.id);
     }
+    async follow(followerId: string, followingId: string) {
+        if (!(this.prisma as any).follow) {
+            console.error('CRITICAL: prisma.follow is undefined. Prisma client may need regeneration or restart.');
+            throw new InternalServerErrorException('Prisma client not initialized with Follow model');
+        }
+
+        if (followerId === followingId) {
+            throw new BadRequestException('You cannot follow yourself');
+        }
+
+        try {
+            return await (this.prisma as any).follow.upsert({
+                where: {
+                    followerId_followingId: {
+                        followerId,
+                        followingId,
+                    },
+                },
+                create: {
+                    followerId,
+                    followingId,
+                },
+                update: {},
+            });
+        } catch (error: any) {
+            console.error(`Prisma Error in follow (follower: ${followerId}, following: ${followingId}):`, error);
+            throw new InternalServerErrorException(`Failed to follow user: ${error.message}`);
+        }
+    }
+
+    async unfollow(followerId: string, followingId: string) {
+        try {
+            await (this.prisma as any).follow.delete({
+                where: {
+                    followerId_followingId: {
+                        followerId,
+                        followingId,
+                    },
+                },
+            });
+            return { success: true };
+        } catch (error) {
+            // If already not following, prisma might throw
+            return { success: true };
+        }
+    }
+
+    async isFollowing(followerId: string, followingId: string): Promise<boolean> {
+        const follow = await (this.prisma as any).follow.findUnique({
+            where: {
+                followerId_followingId: {
+                    followerId,
+                    followingId,
+                },
+            },
+        });
+        return !!follow;
+    }
+
+    async getFollowerCount(userId: string): Promise<number> {
+        return (this.prisma as any).follow.count({
+            where: { followingId: userId }
+        });
+    }
+
+    async getFollowingCount(userId: string): Promise<number> {
+        return (this.prisma as any).follow.count({
+            where: { followerId: userId }
+        });
+    }
 }

@@ -155,4 +155,48 @@ export const userService = {
         if (!response.ok) throw new Error('Failed to fetch user');
         return response.json();
     },
+
+    async follow(id: string, token: string): Promise<any> {
+        const response = await fetch(`${API_URL}/api/users/${id}/follow`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('Follow API Error:', response.status, errorData);
+            throw new Error(errorData.message || 'Failed to follow user');
+        }
+        return response.json();
+    },
+
+    async unfollow(id: string, token: string): Promise<any> {
+        const response = await fetch(`${API_URL}/api/users/${id}/unfollow`, {
+            method: 'POST',
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        if (!response.ok) throw new Error('Failed to unfollow user');
+        return response.json();
+    },
+
+    async isFollowing(id: string, token: string): Promise<boolean> {
+        const response = await fetch(`${API_URL}/api/users/${id}/is-following`, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        if (!response.ok) return false;
+        const data = await response.json();
+        return data.isFollowing;
+    },
+
+    async getFollowerCount(id: string): Promise<number> {
+        const response = await fetch(`${API_URL}/api/users/${id}/follower-count`);
+        if (!response.ok) return 0;
+        const data = await response.json();
+        return data.count;
+    },
 };

@@ -1,6 +1,7 @@
 'use client';
 
 import { useConsultingBucket } from '../contexts/ConsultingBucketContext';
+import { useUnifiedApp } from '../contexts/UnifiedAppContext';
 
 interface PropertySearchCardData {
   id: string;
@@ -37,13 +38,32 @@ export default function PropertySearchCard({
   onViewDetails,
   onToggleCompare,
 }: PropertySearchCardProps) {
-  const { addItem, isInBucket } = useConsultingBucket();
+  const { addItem, removeItem, isInBucket } = useConsultingBucket();
+  const { activeContext } = useUnifiedApp();
   const alreadyInBucket = isInBucket(property.id);
+  const isBuyer = activeContext.activeRole.id === 'buyer';
+
+  const handleBucketAction = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (alreadyInBucket) {
+      removeItem(property.id);
+    } else {
+      addItem({
+        id: property.id,
+        title: property.title,
+        price: property.price,
+        location: property.location
+      });
+    }
+  };
+
   return (
-    <div className={`group bg-white rounded-[2.5rem] overflow-hidden transition-all duration-500 border-2 active:scale-[0.98] ${isSelectedForCompare ? 'border-blue-500 shadow-2xl ring-4 ring-blue-50' : 'border-slate-100 hover:border-blue-200 shadow-xl shadow-slate-200/50'
-      }`}>
+    <div
+      onClick={() => onViewDetails(property.id)}
+      className={`group bg-white rounded-[2.5rem] overflow-hidden transition-all duration-500 border-2 active:scale-[0.98] cursor-pointer ${isSelectedForCompare ? 'border-blue-500 shadow-2xl ring-4 ring-blue-50' : 'border-slate-100 hover:border-blue-200 shadow-xl shadow-slate-200/50'
+        }`}>
       {/* Image Section */}
-      <div className="relative h-64 bg-slate-100 overflow-hidden cursor-pointer" onClick={() => onViewDetails(property.id)}>
+      <div className="relative h-64 bg-slate-100 overflow-hidden">
         {property.image ? (
           <img src={property.image} alt={property.title} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
         ) : (
@@ -139,28 +159,25 @@ export default function PropertySearchCard({
         {/* Multi-Action Area */}
         <div className="flex items-center gap-4 border-t border-slate-50 pt-8 mt-auto">
           <button
-            onClick={() => onViewDetails(property.id)}
+            onClick={(e) => {
+              e.stopPropagation();
+              onViewDetails(property.id);
+            }}
             className="flex-1 py-4 bg-slate-900 border-2 border-slate-900 text-white rounded-[1.5rem] font-black text-sm tracking-widest uppercase hover:bg-white hover:text-slate-900 hover:-translate-y-1 transition-all active:scale-95 shadow-2xl"
           >
             Explore
           </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              addItem({
-                id: property.id,
-                title: property.title,
-                price: property.price,
-                location: property.location
-              });
-            }}
-            className={`flex-1 py-4 border-2 rounded-[1.5rem] font-black text-sm tracking-widest uppercase transition-all active:scale-95 shadow-2xl hover:-translate-y-1 ${alreadyInBucket
-              ? 'bg-blue-50 border-blue-100 text-blue-600 cursor-default'
-              : 'bg-blue-600 border-blue-600 text-white hover:bg-blue-700 hover:border-blue-700'
-              }`}
-          >
-            {alreadyInBucket ? 'In Bucket' : 'Consult Free'}
-          </button>
+          {isBuyer && (
+            <button
+              onClick={handleBucketAction}
+              className={`flex-1 py-4 border-2 rounded-[1.5rem] font-black text-sm tracking-widest uppercase transition-all active:scale-95 shadow-2xl hover:-translate-y-1 ${alreadyInBucket
+                ? 'bg-rose-50 border-rose-100 text-rose-600 hover:bg-rose-100 hover:border-rose-200'
+                : 'bg-blue-600 border-blue-600 text-white hover:bg-blue-700 hover:border-blue-700'
+                }`}
+            >
+              {alreadyInBucket ? 'Remove' : 'Save Property'}
+            </button>
+          )}
         </div>
       </div>
     </div>
