@@ -198,11 +198,11 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
                 onClose();
             } else {
                 const error = await response.json();
-                alert(error.message || 'Failed to assign regions');
+                alert(error.message || 'Failed to assign cities');
             }
         } catch (err) {
-            console.error('Failed to assign regions:', err);
-            alert('An error occurred while assigning regions');
+            console.error('Failed to assign cities:', err);
+            alert('An error occurred while assigning cities');
         } finally {
             setSubmitting(false);
         }

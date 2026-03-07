@@ -188,7 +188,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                 if (description.includes('Amenities:')) {
                     const parts = description.split('Amenities:');
                     descPart = parts[0].trim();
-                    amenities = parts[1].split(',').map((a:any) => a.trim());
+                    amenities = parts[1].split(',').map((a: any) => a.trim());
                 }
 
                 setFormData({
@@ -493,7 +493,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                                         </div>
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Region / Locality *</label>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Locality *</label>
                                         <input type="text" name="location" value={addressData.location} onChange={handleAddressChange} placeholder="e.g., Bandra West, Powai" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" />
                                     </div>
                                     <div>

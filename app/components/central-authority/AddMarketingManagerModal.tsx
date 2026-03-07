@@ -137,7 +137,7 @@ export default function AddMarketingManagerModal({ isOpen, onClose, onSuccess }:
                                 <ul className="list-disc list-inside space-y-0.5 opacity-90">
                                     <li>Full control over marketing campaigns and budget</li>
                                     <li>Manage Ads Executives and Creative Executives</li>
-                                    <li>Read-only access to regions and projects</li>
+                                    <li>Read-only access to cities and projects</li>
                                 </ul>
                             </div>
                         </div>

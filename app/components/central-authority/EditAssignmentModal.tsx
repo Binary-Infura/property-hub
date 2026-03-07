@@ -116,7 +116,7 @@ export default function EditAssignmentModal({ isOpen, user, onClose, onSuccess, 
             <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden transform transition-all animate-in zoom-in-95 duration-200 flex flex-col">
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900 leading-tight">{isCityContext ? 'Edit City Assignment' : 'Edit Region Assignment'}</h2>
+                        <h2 className="text-xl font-bold text-gray-900 leading-tight">Edit City Assignment</h2>
                         <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-1">Scope Calibration</p>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors">

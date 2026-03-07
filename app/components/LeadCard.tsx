@@ -45,9 +45,8 @@ export default function LeadCard({
   return (
     <div
       onClick={() => onSelect?.(lead.id)}
-      className={`bg-white rounded-lg border transition cursor-pointer ${
-        isSelected ? 'border-blue-500 shadow-lg' : 'border-gray-200 hover:shadow-md'
-      }`}
+      className={`bg-white rounded-lg border transition cursor-pointer ${isSelected ? 'border-blue-500 shadow-lg' : 'border-gray-200 hover:shadow-md'
+        }`}
     >
       <div className="p-4">
         {/* Header Row */}
@@ -93,11 +92,6 @@ export default function LeadCard({
         {/* Tags Section */}
         {(lead.region || lead.city || lead.source) && (
           <div className="flex flex-wrap gap-2 mb-4">
-            {lead.region && (
-              <span className="px-2 py-1 bg-blue-50 text-blue-700 rounded text-xs font-medium">
-                Region: {lead.region}
-              </span>
-            )}
             {lead.city && (
               <span className="px-2 py-1 bg-purple-50 text-purple-700 rounded text-xs font-medium">
                 City: {lead.city}

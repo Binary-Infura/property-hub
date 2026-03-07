@@ -50,7 +50,7 @@ export default function MyPropertyPartnersPage() {
 
     useEffect(() => {
         fetchPartners();
-        setCurrentPage(1); // Reset pagination on tab/region change
+        setCurrentPage(1); // Reset pagination on tab change
     }, [token, activeTab]);
 
     useEffect(() => {

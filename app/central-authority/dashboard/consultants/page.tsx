@@ -147,7 +147,7 @@ export default function ConsultantsPage() {
               <thead>
                 <tr className="border-b border-gray-200">
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Name</th>
-                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Region(s)</th>
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700">Cities</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Contact</th>
                   <th className="text-left py-3 px-4 font-semibold text-gray-700">Status</th>
                   <th className="text-right py-3 px-4 font-semibold text-gray-700">Actions</th>
