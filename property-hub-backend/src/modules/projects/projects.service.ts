@@ -41,7 +41,11 @@ export class ProjectsService {
         const results = await this.prisma.project.findMany({
             where,
             include: {
-                onboardedBy: true,
+                onboardedBy: {
+                    include: {
+                        propertyPartnerProfile: true,
+                    },
+                },
                 assignedTo: true,
                 city: true,
             },
@@ -59,7 +63,11 @@ export class ProjectsService {
             include: {
                 commissions: true,
                 assignedTo: true,
-                onboardedBy: true,
+                onboardedBy: {
+                    include: {
+                        propertyPartnerProfile: true,
+                    },
+                },
                 city: true,
             },
         });
@@ -104,8 +112,11 @@ export class ProjectsService {
         const project = await this.prisma.project.create({
             data,
             include: {
-
-                onboardedBy: true,
+                onboardedBy: {
+                    include: {
+                        propertyPartnerProfile: true,
+                    },
+                },
             },
         });
 
@@ -137,8 +148,11 @@ export class ProjectsService {
             where: { id },
             data,
             include: {
-
-                onboardedBy: true,
+                onboardedBy: {
+                    include: {
+                        propertyPartnerProfile: true,
+                    },
+                },
             },
         });
 
@@ -207,7 +221,11 @@ export class ProjectsService {
             },
             include: {
                 assignedTo: true,
-                onboardedBy: true,
+                onboardedBy: {
+                    include: {
+                        propertyPartnerProfile: true,
+                    },
+                },
             }
         });
 

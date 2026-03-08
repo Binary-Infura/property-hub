@@ -19,6 +19,14 @@ export default function ListingRequestsPage() {
     const itemsPerPage = 6; // Cards are larger so fewer per page
     const [processingId, setProcessingId] = useState<string | null>(null);
 
+    const getPartnerName = (onboardedBy: any) => {
+        if (!onboardedBy) return 'Unknown Partner';
+        return onboardedBy.propertyPartnerProfile?.companyName ||
+            onboardedBy.agencyName ||
+            `${onboardedBy.firstName || ''} ${onboardedBy.lastName || ''}`.trim() ||
+            'Unknown Partner';
+    };
+
     const fetchRequests = async () => {
         if (!token) return;
         setLoading(true);
@@ -87,7 +95,8 @@ export default function ListingRequestsPage() {
         });
 
     const filteredRequests = filteredRequestsByCity.filter(r => {
-        const searchStr = `${r.name} ${r.location} ${r.onboardedBy?.name || ''}`.toLowerCase();
+        const partnerName = getPartnerName(r.onboardedBy);
+        const searchStr = `${r.name} ${r.location} ${partnerName}`.toLowerCase();
         return searchStr.includes(searchQuery.toLowerCase());
     });
 
@@ -138,7 +147,8 @@ export default function ListingRequestsPage() {
             ) : (() => {
                 const filtered = requests.filter(r => {
                     const matchesCity = selectedCity === 'all' || r.location.toLowerCase().includes(selectedCity.toLowerCase());
-                    const searchStr = `${r.name} ${r.location} ${r.onboardedBy?.name || ''}`.toLowerCase();
+                    const partnerName = getPartnerName(r.onboardedBy);
+                    const searchStr = `${r.name} ${r.location} ${partnerName}`.toLowerCase();
                     const matchesSearch = searchStr.includes(searchQuery.toLowerCase());
                     return matchesCity && matchesSearch;
                 });
@@ -204,10 +214,10 @@ export default function ListingRequestsPage() {
                                             <p className="text-[10px] font-bold text-blue-400 uppercase tracking-widest mb-2">Submitted By</p>
                                             <div className="flex items-center gap-3">
                                                 <div className="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold shadow-md shadow-blue-200">
-                                                    {request.onboardedBy?.name?.charAt(0) || 'P'}
+                                                    {getPartnerName(request.onboardedBy).charAt(0)}
                                                 </div>
                                                 <div className="min-w-0">
-                                                    <p className="font-bold text-gray-900 truncate">{request.onboardedBy?.name || 'Unknown Partner'}</p>
+                                                    <p className="font-bold text-gray-900 truncate">{getPartnerName(request.onboardedBy)}</p>
                                                     <p className="text-[10px] text-gray-500 font-medium">Verified Partner</p>
                                                 </div>
                                             </div>
