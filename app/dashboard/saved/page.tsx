@@ -18,7 +18,14 @@ const savedProperties = [
         budgetRange: "₹80L - ₹1Cr",
         reason: "High demand property in a prime location. Recently reduced price makes it a steal.",
         highlights: ["Sea view", "Prime location", "Modern amenities", "Ready to move"],
-        consultantNote: "Excellent investment opportunity. Bandra properties rarely see price drops like this."
+        consultantNote: "Excellent investment opportunity. Bandra properties rarely see price drops like this.",
+        consultant: {
+            name: "Anjali Mehta",
+            initials: "AM",
+            rating: 4.9,
+            deals: 42,
+            role: "Luxury Specialist"
+        }
     },
     {
         id: 3,
@@ -33,7 +40,14 @@ const savedProperties = [
         budgetRange: "₹35L - ₹45L",
         reason: "Spacious layout within budget. Emerging neighborhood with excellent metro connectivity.",
         highlights: ["Best value for space", "Upcoming metro", "Growth locality", "Modern amenities"],
-        consultantNote: "Great value for money. This area is seeing rapid development."
+        consultantNote: "Great value for money. This area is seeing rapid development.",
+        consultant: {
+            name: "Vikram Singh",
+            initials: "VS",
+            rating: 4.7,
+            deals: 28,
+            role: "Area Expert"
+        }
     }
 ];
 

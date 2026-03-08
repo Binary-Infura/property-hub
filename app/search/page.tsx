@@ -38,7 +38,7 @@ interface Property {
   image?: string;
 }
 
-export default function PropertySearchPage() {
+export default function PropertySearchPage({ hideHeader = false }: { hideHeader?: boolean }) {
   const router = useRouter();
   const { token } = useAuth();
   const { activeContext } = useUnifiedApp();
@@ -87,6 +87,14 @@ export default function PropertySearchPage() {
           amenities: ['Parking', 'Security', 'Water Supply'],
           legalVerified: true,
           image: undefined,
+          consultantNote: "This property offers exceptional value in a high-growth corridor. Ideal for long-term appreciation.",
+          consultant: {
+            name: "Rajesh Sharma",
+            initials: "RS",
+            rating: 4.8,
+            deals: 35,
+            role: "Senior Consultant"
+          },
           partner: p.onboardedBy && p.onboardedById ? {
             id: p.onboardedById,
             name: `${p.onboardedBy.firstName || ''} ${p.onboardedBy.lastName || ''}`.trim() || p.onboardedBy.name || 'Partner'
@@ -179,52 +187,54 @@ export default function PropertySearchPage() {
   const propertiesForComparison = allProperties.filter(p => compareIds.includes(p.id));
 
   return (
-    <div className="min-h-screen bg-[#FDFDFF]">
+    <div className={`bg-[#FDFDFF] ${hideHeader ? '' : 'min-h-screen'}`}>
       {/* Premium Search Header */}
-      <div className="bg-white/80 backdrop-blur-xl border-b border-slate-100 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-            <div>
-              <div className="flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
-                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                  </svg>
+      {!hideHeader && (
+        <div className="bg-white/80 backdrop-blur-xl border-b border-slate-100 sticky top-0 z-40">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+              <div>
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="w-10 h-10 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                  </div>
+                  <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Discovery</h1>
                 </div>
-                <h1 className="text-4xl font-black text-slate-900 tracking-tighter">Discovery</h1>
+                <p className="text-sm font-bold text-slate-400 ml-1">
+                  Showing <span className="text-blue-600">{filteredProperties.length}</span> curated {filteredProperties.length === 1 ? 'residence' : 'residences'}
+                  {filters.location && (
+                    <> in <span className="text-slate-900">{filters.location}</span></>
+                  )}
+                </p>
               </div>
-              <p className="text-sm font-bold text-slate-400 ml-1">
-                Showing <span className="text-blue-600">{filteredProperties.length}</span> curated {filteredProperties.length === 1 ? 'residence' : 'residences'}
-                {filters.location && (
-                  <> in <span className="text-slate-900">{filters.location}</span></>
-                )}
-              </p>
-            </div>
 
-            <div className="flex items-center gap-4 w-full md:w-auto">
-              {compareIds.length > 0 && (
+              <div className="flex items-center gap-4 w-full md:w-auto">
+                {compareIds.length > 0 && (
+                  <button
+                    onClick={() => setShowComparison(true)}
+                    className="px-6 py-4 bg-blue-50 text-blue-600 rounded-2xl font-black text-xs uppercase tracking-widest border border-blue-100 hover:bg-blue-600 hover:text-white transition-all shadow-xl shadow-blue-100 flex items-center gap-3 active:scale-95"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                    </svg>
+                    Compare Portfolio ({compareIds.length})
+                  </button>
+                )}
                 <button
-                  onClick={() => setShowComparison(true)}
-                  className="px-6 py-4 bg-blue-50 text-blue-600 rounded-2xl font-black text-xs uppercase tracking-widest border border-blue-100 hover:bg-blue-600 hover:text-white transition-all shadow-xl shadow-blue-100 flex items-center gap-3 active:scale-95"
+                  onClick={() => setShowFilters(!showFilters)}
+                  className="md:hidden w-full px-6 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-xl"
                 >
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
-                  </svg>
-                  Compare Portfolio ({compareIds.length})
+                  Toggle Filters
                 </button>
-              )}
-              <button
-                onClick={() => setShowFilters(!showFilters)}
-                className="md:hidden w-full px-6 py-4 bg-slate-900 text-white rounded-2xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-xl"
-              >
-                Toggle Filters
-              </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      )}
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <main className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 ${hideHeader ? 'py-0' : 'py-12'}`}>
         <div className="grid lg:grid-cols-12 gap-12">
           {/* Filters Sidebar */}
           <aside className={`lg:col-span-4 ${showFilters ? 'block' : 'hidden lg:block'}`}>
