@@ -1,163 +1,32 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ChatMessage, chatService, ChatSessionResponse } from '../../services/chatService';
+import React, { useState } from 'react';
 
 interface MessageListProps {
-    channelId: string;
-    mattermostToken: string;
-    mattermostUrl: string;
     currentUserId: string;
     participants: { id: string; name: string; role: string }[];
 }
 
-interface DisplayMessage {
-    id: string;
-    message: string;
-    userId: string;
-    userName: string;
-    createAt: number;
-    isOwn: boolean;
-}
-
 export default function MessageList({
-    channelId,
-    mattermostToken,
-    mattermostUrl,
     currentUserId,
     participants,
 }: MessageListProps) {
-    const [messages, setMessages] = useState<DisplayMessage[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const messagesEndRef = useRef<HTMLDivElement>(null);
-    const wsRef = useRef<WebSocket | null>(null);
-
-    const getUserName = useCallback((userId: string) => {
-        const participant = participants.find(p => p.id === userId);
-        return participant?.name || 'Unknown User';
-    }, [participants]);
-
-    // Load initial messages
-    useEffect(() => {
-        const loadMessages = async () => {
-            try {
-                setLoading(true);
-                const response = await chatService.getChannelMessages(
-                    channelId,
-                    mattermostToken,
-                    mattermostUrl
-                );
-
-                const messageList = response.order
-                    .map((id) => response.posts[id])
-                    .filter((post) => post.message && post.message.trim() !== '')
-                    .map((post) => ({
-                        id: post.id,
-                        message: post.message,
-                        userId: post.userId,
-                        userName: getUserName(post.userId),
-                        createAt: post.createAt,
-                        isOwn: post.userId === currentUserId,
-                    }))
-                    .reverse();
-
-                setMessages(messageList);
-                setError(null);
-            } catch (err) {
-                setError('Failed to load messages');
-                console.error('Error loading messages:', err);
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        if (channelId && mattermostToken) {
-            loadMessages();
-        }
-    }, [channelId, mattermostToken, mattermostUrl, currentUserId, getUserName]);
-
-    // Set up WebSocket for real-time updates
-    useEffect(() => {
-        if (!mattermostToken) return;
-
-        const wsUrl = mattermostUrl.replace('http://', 'ws://').replace('https://', 'wss://') + '/api/v4/websocket';
-        const ws = new WebSocket(wsUrl);
-
-        ws.onopen = () => {
-            // Authenticate
-            ws.send(JSON.stringify({
-                seq: 1,
-                action: 'authentication_challenge',
-                data: { token: mattermostToken },
-            }));
-        };
-
-        ws.onmessage = (event) => {
-            try {
-                const data = JSON.parse(event.data);
-
-                if (data.event === 'posted') {
-                    const post = JSON.parse(data.data.post);
-
-                    if (post.channel_id === channelId) {
-                        const newMessage: DisplayMessage = {
-                            id: post.id,
-                            message: post.message,
-                            userId: post.user_id,
-                            userName: getUserName(post.user_id),
-                            createAt: post.create_at,
-                            isOwn: post.user_id === currentUserId,
-                        };
-
-                        setMessages((prev) => {
-                            // Avoid duplicates
-                            if (prev.some(m => m.id === newMessage.id)) {
-                                return prev;
-                            }
-                            return [...prev, newMessage];
-                        });
-                    }
-                }
-            } catch (err) {
-                console.error('WebSocket message parse error:', err);
-            }
-        };
-
-        ws.onerror = (err) => {
-            console.error('WebSocket error:', err);
-        };
-
-        wsRef.current = ws;
-
-        return () => {
-            ws.close();
-        };
-    }, [channelId, mattermostToken, mattermostUrl, currentUserId, getUserName]);
-
-    // Auto-scroll to bottom when new messages arrive
-    useEffect(() => {
-        messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, [messages]);
-
-    const formatTime = (timestamp: number) => {
-        const date = new Date(timestamp);
-        return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    };
-
-    const formatDate = (timestamp: number) => {
-        const date = new Date(timestamp);
-        const today = new Date();
-        const yesterday = new Date(today);
-        yesterday.setDate(yesterday.getDate() - 1);
-
-        if (date.toDateString() === today.toDateString()) {
-            return 'Today';
-        } else if (date.toDateString() === yesterday.toDateString()) {
-            return 'Yesterday';
-        }
-        return date.toLocaleDateString();
-    };
+    return (
+        <div className="flex-1 overflow-y-auto p-4 bg-white">
+            <div className="text-center text-gray-500">
+                <p className="mb-2">Chat messaging feature is currently unavailable.</p>
+                <p className="text-sm">Participants in this chat:</p>
+                <ul className="mt-3 space-y-1">
+                    {participants.map((p) => (
+                        <li key={p.id} className="text-sm">
+                            {p.name} ({p.role})
+                        </li>
+                    ))}
+                </ul>
+            </div>
+        </div>
+    );
+}
 
     if (loading) {
         return (

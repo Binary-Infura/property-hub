@@ -37,8 +37,6 @@ export default function ChatContainer({
     const [error, setError] = useState<string | null>(null);
     const [viewMode, setViewMode] = useState<ViewMode>('list');
 
-    const mattermostUrl = process.env.NEXT_PUBLIC_MATTERMOST_URL || 'http://localhost:8065';
-
     // Load chat sessions
     const loadChatSessions = useCallback(async () => {
         try {
@@ -160,16 +158,10 @@ export default function ChatContainer({
                     onClose={handleClose}
                 />
                 <MessageList
-                    channelId={activeChat.mattermostChannelId}
-                    mattermostToken={activeChat.mattermostToken}
-                    mattermostUrl={mattermostUrl}
                     currentUserId={currentUserId}
                     participants={activeChat.participants}
                 />
                 <MessageInput
-                    channelId={activeChat.mattermostChannelId}
-                    mattermostToken={activeChat.mattermostToken}
-                    mattermostUrl={mattermostUrl}
                 />
             </div>
         );
@@ -208,16 +200,10 @@ export default function ChatContainer({
                             onBack={handleBack}
                         />
                         <MessageList
-                            channelId={activeChat.mattermostChannelId}
-                            mattermostToken={activeChat.mattermostToken}
-                            mattermostUrl={mattermostUrl}
                             currentUserId={currentUserId}
                             participants={activeChat.participants}
                         />
                         <MessageInput
-                            channelId={activeChat.mattermostChannelId}
-                            mattermostToken={activeChat.mattermostToken}
-                            mattermostUrl={mattermostUrl}
                         />
                     </>
                 ) : (

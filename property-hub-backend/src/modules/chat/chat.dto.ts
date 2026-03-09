@@ -27,9 +27,6 @@ export class ChatParticipantDto {
 
 export class ChatSessionResponseDto {
     id: string;
-    mattermostChannelId: string;
-    mattermostWebSocketUrl: string;
-    mattermostToken: string;
     channelType: string;
     contextType?: string;
     contextId?: string;

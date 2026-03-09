@@ -9,9 +9,6 @@ export interface ChatParticipant {
 
 export interface ChatSessionResponse {
     id: string;
-    mattermostChannelId: string;
-    mattermostWebSocketUrl: string;
-    mattermostToken: string;
     channelType: string;
     contextType?: string;
     contextId?: string;
@@ -100,82 +97,6 @@ export const chatService = {
         if (!response.ok) {
             const error = await response.json();
             throw new Error(error.message || 'Failed to get chat sessions');
-        }
-
-        return response.json();
-    },
-
-    /**
-     * Create a WebSocket connection to Mattermost
-     */
-    createWebSocketConnection(wsUrl: string, token: string): WebSocket {
-        const ws = new WebSocket(wsUrl);
-
-        ws.onopen = () => {
-            // Authenticate with token
-            ws.send(JSON.stringify({
-                seq: 1,
-                action: 'authentication_challenge',
-                data: { token },
-            }));
-        };
-
-        return ws;
-    },
-
-    /**
-     * Send a message through the Mattermost API
-     */
-    async sendMessage(
-        channelId: string,
-        message: string,
-        mattermostToken: string,
-        mattermostUrl: string = 'http://localhost:8065'
-    ): Promise<ChatMessage> {
-        const response = await fetch(`${mattermostUrl}/api/v4/posts`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${mattermostToken}`,
-            },
-            body: JSON.stringify({
-                channel_id: channelId,
-                message,
-            }),
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Failed to send message');
-        }
-
-        return response.json();
-    },
-
-    /**
-     * Get channel messages from Mattermost
-     */
-    async getChannelMessages(
-        channelId: string,
-        mattermostToken: string,
-        mattermostUrl: string = 'http://localhost:8065',
-        options?: { page?: number; perPage?: number }
-    ): Promise<{ order: string[]; posts: Record<string, ChatMessage> }> {
-        const page = options?.page || 0;
-        const perPage = options?.perPage || 30;
-
-        const response = await fetch(
-            `${mattermostUrl}/api/v4/channels/${channelId}/posts?page=${page}&per_page=${perPage}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${mattermostToken}`,
-                },
-            }
-        );
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Failed to get messages');
         }
 
         return response.json();

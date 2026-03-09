@@ -13,7 +13,7 @@ postgresql:
     initdb:
       scripts:
         create_databases.sql: |
-          CREATE DATABASE mattermost;
+          -- Database creation scripts
 
 # Property Hub Backend
 backend:
@@ -32,22 +32,6 @@ backend:
     POSTGRES_DB: property_hub
     # Host is the release name + -postgresql defined by the dependency
     POSTGRES_HOST: "property-hub-stack-postgresql" 
-
-
-# Mattermost
-mattermost:
-  enabled: true
-  image:
-    repository: mattermost/mattermost-team-edition
-    tag: 7.7.0
-  service:
-    type: ClusterIP
-    port: 8065
-  env:
-    MM_SQLSETTINGS_DRIVERNAME: postgres
-    # Connection string format
-    MM_SQLSETTINGS_DATASOURCE: "postgres://postgres:changeme@property-hub-stack-postgresql:5432/mattermost?sslmode=disable"
-    MM_SERVICESETTINGS_ENABLELOCALMODE: "true"
 
 # Jitsi Meet
 jitsi:

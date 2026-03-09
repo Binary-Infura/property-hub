@@ -8,8 +8,6 @@ import { LeadsModule } from './modules/leads/leads.module';
 import { CommissionsModule } from './modules/commissions/commissions.module';
 import { UsersModule } from './modules/users/users.module';
 
-import { MattermostModule } from './common/services/mattermost/mattermost.module';
-
 import { MarketingManagersModule } from './modules/roles/marketing-managers/marketing-managers.module';
 import { BuyersModule } from './modules/roles/buyers/buyers.module';
 import { ConsultantsModule } from './modules/roles/consultants/consultants.module';
@@ -46,7 +44,6 @@ import { join } from 'path';
         }),
         DatabaseModule,
         CommonModule,
-        MattermostModule,
         AuthModule,
         ProjectsModule,
         UnitsModule,

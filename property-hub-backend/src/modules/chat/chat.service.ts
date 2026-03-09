@@ -1,6 +1,5 @@
 import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { MattermostService } from '../../common/services/mattermost/mattermost.service';
 import { ChatPermissionsService } from './chat.permissions';
 import { StartChatDto, ChatSessionResponseDto, ChatParticipantDto, MyChatSessionDto } from './chat.dto';
 
@@ -10,7 +9,6 @@ export class ChatService {
 
     constructor(
         private prisma: PrismaService,
-        private mattermostService: MattermostService,
         private chatPermissions: ChatPermissionsService,
     ) { }
 
@@ -50,22 +48,9 @@ export class ChatService {
             return this.buildChatSessionResponse(existingSession.id, currentUser.id);
         }
 
-        // Ensure both users exist in Mattermost
-        const [currentUserMattermost, targetUserMattermost] = await Promise.all([
-            this.ensureMattermostUser(currentUser.id),
-            this.ensureMattermostUser(targetUser.id),
-        ]);
-
-        // Create direct message channel in Mattermost
-        const mattermostChannel = await this.mattermostService.createOrGetDirectChannel(
-            currentUserMattermost.mattermostUserId,
-            targetUserMattermost.mattermostUserId
-        );
-
         // Create chat session in database
         const chatSession = await this.prisma.chatSession.create({
             data: {
-                mattermostChannelId: mattermostChannel.id,
                 channelType: 'DIRECT',
                 contextType: contextType,
                 contextId: contextId,
@@ -157,7 +142,7 @@ export class ChatService {
                     roles: p.roles,
                 })),
                 lastMessageAt: session.updatedAt,
-                unreadCount: 0, // TODO: Implement unread count from Mattermost
+                unreadCount: 0,
             });
         }
 
@@ -200,50 +185,6 @@ export class ChatService {
     }
 
     /**
-     * Ensure user exists in Mattermost and has mapping
-     */
-    private async ensureMattermostUser(propertyHubUserId: string) {
-        // Check if mapping already exists
-        let mapping = await this.prisma.mattermostUserMapping.findUnique({
-            where: { propertyHubUserId },
-        });
-
-        if (mapping) {
-            return mapping;
-        }
-
-        // Get Project Hub user details
-        const user = await this.prisma.user.findUnique({
-            where: { id: propertyHubUserId },
-        });
-
-        if (!user) {
-            throw new NotFoundException('User not found');
-        }
-
-        // Create or get user in Mattermost
-        const mattermostUser = await this.mattermostService.createOrGetUser(
-            user.email,
-            user.email.split('@')[0], // username from email
-            user.firstName,
-            user.lastName || 'User'
-        );
-
-        // Create mapping
-        mapping = await this.prisma.mattermostUserMapping.create({
-            data: {
-                propertyHubUserId: user.id,
-                mattermostUserId: mattermostUser.id,
-                mattermostUsername: mattermostUser.username,
-            },
-        });
-
-        this.logger.log(`Created Mattermost user mapping for ${user.email}`);
-
-        return mapping;
-    }
-
-    /**
      * Build chat session response DTO
      */
     private async buildChatSessionResponse(
@@ -267,23 +208,8 @@ export class ChatService {
             where: { id: { in: participantUserIds } },
         });
 
-        // Get current user's Mattermost mapping
-        const currentUserMapping = await this.prisma.mattermostUserMapping.findUnique({
-            where: { propertyHubUserId: currentUserId },
-        });
-
-        if (!currentUserMapping) {
-            throw new NotFoundException('Mattermost user mapping not found');
-        }
-
-        // Create user token for WebSocket connection
-        const userToken = await this.mattermostService.createUserToken(currentUserMapping.mattermostUserId);
-
         return {
             id: chatSession.id,
-            mattermostChannelId: chatSession.mattermostChannelId,
-            mattermostWebSocketUrl: this.mattermostService.getWebSocketUrl(),
-            mattermostToken: userToken,
             channelType: chatSession.channelType,
             contextType: chatSession.contextType || undefined,
             contextId: chatSession.contextId || undefined,
@@ -297,3 +223,5 @@ export class ChatService {
         };
     }
 }
+return {
+            id: chatSession.id

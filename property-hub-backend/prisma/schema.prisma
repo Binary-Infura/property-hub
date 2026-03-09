@@ -364,15 +364,14 @@ model BuyerProfile {
 }
 
 model ChatSession {
-  id                  String            @id @default(uuid())
-  mattermostChannelId String            @unique
-  channelType         String            @default("DIRECT")
-  contextType         String?
-  contextId           String?
-  status              String            @default("active")
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-  participants        ChatParticipant[]
+  id            String            @id @default(uuid())
+  channelType   String            @default("DIRECT")
+  contextType   String?
+  contextId     String?
+  status        String            @default("active")
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  participants  ChatParticipant[]
 
   @@index([contextType, contextId])
   @@map("chat_sessions")
@@ -390,18 +389,6 @@ model ChatParticipant {
   @@unique([chatSessionId, userId])
   @@index([userId])
   @@map("chat_participants")
-}
-
-model MattermostUserMapping {
-  id                 String   @id @default(uuid())
-  propertyHubUserId  String   @unique
-  mattermostUserId   String   @unique
-  mattermostUsername String
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-
-  @@index([mattermostUserId])
-  @@map("mattermost_user_mappings")
 }
 
 model MarketingCampaign {

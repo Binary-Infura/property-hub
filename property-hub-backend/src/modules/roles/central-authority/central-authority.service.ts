@@ -111,7 +111,7 @@ export class CentralAuthorityService {
 
         // Simplified recent activity (replace with actual audit logs if available later)
         const recentActivity = [
-            { id: '1', type: 'info', action: 'System Sync', target: 'Keycloak & Mattermost', timestamp: new Date() }
+            { id: '1', type: 'info', action: 'System Sync', target: 'Keycloak', timestamp: new Date() }
         ];
 
         return {
