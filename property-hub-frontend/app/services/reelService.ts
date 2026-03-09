@@ -8,6 +8,11 @@ export interface Reel {
     thumbnailUrl?: string;
     userId: string;
     projectId: string;
+    publishToOfficialInstagram?: boolean;
+    publishToPartnerInstagram?: boolean;
+    instagramStatus?: string;
+    instagramCaption?: string;
+    instagramPostUrl?: string;
     user: {
         id: string;
         firstName: string;
@@ -89,6 +94,44 @@ export const reelService = {
         if (!response.ok) {
             const error = await response.json().catch(() => ({ message: 'Failed to upload video' }));
             throw new Error(error.message || 'Failed to upload video');
+        }
+        return response.json();
+    },
+
+    async updateInstagramSettings(id: string, settings: Partial<Reel>, token: string): Promise<Reel> {
+        const response = await fetch(`${API_URL}/api/reels/${id}/instagram`, {
+            method: 'PUT',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify(settings)
+        });
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ message: 'Failed to update reel' }));
+            throw new Error(error.message || 'Failed to update reel');
+        }
+        return response.json();
+    },
+
+    async getPendingForModeration(page = 1, limit = 10, token: string): Promise<ReelsResponse> {
+        const response = await fetch(`${API_URL}/api/reels/moderation/pending?page=${page}&limit=${limit}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ message: 'Failed to fetch pending reels' }));
+            throw new Error(error.message || 'Failed to fetch pending reels');
+        }
+        return response.json();
+    },
+
+    async getReelForModeration(id: string, token: string): Promise<Reel> {
+        const response = await fetch(`${API_URL}/api/reels/${id}/moderation`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ message: 'Failed to fetch reel' }));
+            throw new Error(error.message || 'Failed to fetch reel');
         }
         return response.json();
     }

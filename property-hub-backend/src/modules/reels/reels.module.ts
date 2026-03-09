@@ -4,8 +4,10 @@ import { ReelsController } from './reels.controller';
 import { PrismaService } from '../../database/prisma.service';
 import { UsersService } from '../users/users.service';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
+import { InstagramModule } from '../instagram/instagram.module';
 
 @Module({
+    imports: [InstagramModule],
     controllers: [ReelsController],
     providers: [ReelsService, PrismaService, UsersService, ActivityLogsService],
     exports: [ReelsService],
