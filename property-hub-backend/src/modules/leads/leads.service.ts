@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateLeadDto, UpdateLeadDto } from './leads.dto';
 import { Lead } from '@prisma/client';
@@ -127,6 +127,15 @@ export class LeadsService {
             throw new NotFoundException(`Lead with ID ${id} not found`);
         }
 
+        // Authorization check: only central-authority, marketing-manager, and the assigned consultant can access the lead
+        const isCentralAuthority = user.roles.includes('central-authority');
+        const isMarketingManager = user.roles.includes('marketing-manager');
+        const isAssignedConsultant = lead.assignedTo === user.userId;
+
+        if (!isCentralAuthority && !isMarketingManager && !isAssignedConsultant) {
+            throw new NotFoundException(`Lead with ID ${id} not found`);
+        }
+
         return lead;
     }
 
@@ -188,10 +197,40 @@ export class LeadsService {
 
     async initiateCall(id: string, user: AuthenticatedUser) {
         try {
-            const lead = await this.findOne(id, user);
+            // Get the lead without authorization check (check separately for calls)
+            const lead = await this.prisma.lead.findUnique({
+                where: { id },
+                include: {
+                    project: true,
+                    visits: true,
+                },
+            });
+
+            if (!lead) {
+                console.warn(`Lead not found: ${id}`);
+                throw new NotFoundException(`Lead with ID ${id} not found`);
+            }
+
+            // Authorization check specific to calls: consultants can call leads assigned to them or unassigned leads
+            const isCentralAuthority = user.roles?.includes('central-authority');
+            const isMarketingManager = user.roles?.includes('marketing-manager');
+            const isConsultant = user.roles?.includes('consultant');
+            const isAssignedConsultant = lead.assignedTo === user.userId;
+            const isUnassignedLead = !lead.assignedTo;
+
+            console.log(`Call authorization check - userId: ${user.userId}, roles: ${user.roles}, lead.assignedTo: ${lead.assignedTo}`);
+
+            // Only allow:
+            // 1. Central authority or marketing managers (any lead)
+            // 2. Assigned consultant (their assigned lead)
+            // 3. Any consultant calling an unassigned lead
+            if (!isCentralAuthority && !isMarketingManager && !(isConsultant && (isAssignedConsultant || isUnassignedLead))) {
+                console.warn(`Authorization failed for user ${user.userId} calling lead ${id}`);
+                throw new NotFoundException(`Lead with ID ${id} not found`);
+            }
 
             if (!lead.phone) {
-                throw new Error('Lead does not have a phone number');
+                throw new BadRequestException('Lead does not have a phone number');
             }
 
             // Get consultant phone from user profile
@@ -200,16 +239,28 @@ export class LeadsService {
                 include: { userMetadata: true },
             });
 
-            const consultantPhone = consultant?.phone || consultant?.userMetadata?.phone;
-
-            if (!consultantPhone) {
-                throw new Error('Consultant does not have a phone number configured in their profile. Please update your profile.');
+            if (!consultant) {
+                console.error(`Consultant profile not found for user ${user.userId}`);
+                throw new InternalServerErrorException('Consultant profile not found');
             }
 
+            const consultantPhone = consultant.phone || consultant.userMetadata?.phone;
+
+            if (!consultantPhone) {
+                console.warn(`No phone number found for consultant ${user.userId}`);
+                throw new BadRequestException('Consultant does not have a phone number configured in their profile. Please update your profile.');
+            }
+
+            console.log(`Initiating call for lead ${id} from consultant ${user.userId}`);
             return await this.exotelService.makeCall(consultantPhone, lead.phone, lead.id, user.userId);
         } catch (error) {
             console.error('Call initiation error:', error);
-            throw error;
+            // Re-throw if it's already an HTTP exception
+            if (error.status) {
+                throw error;
+            }
+            // Otherwise wrap in InternalServerErrorException
+            throw new InternalServerErrorException(`Failed to initiate call: ${error.message || 'Unknown error'}`);
         }
     }
 }

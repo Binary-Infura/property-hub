@@ -81,11 +81,16 @@ export default function ConsultantDashboard() {
     callInProgress.current = true;
     setCallingId(lead.id);
     try {
-      await consultantService.makeCall(token, lead.id);
+      const result = await consultantService.makeCall(token, lead.id);
+      console.log('Call initiated:', result);
       setActiveCall(lead);
     } catch (error: any) {
       console.error('Error initiating call:', error);
-      alert(error.response?.data?.message || 'Failed to initiate call');
+      const errorMessage = error.response?.data?.message || 
+                           error.response?.data?.error || 
+                           error.message || 
+                           'Failed to initiate call. Please check your profile settings and try again.';
+      alert(`Call Failed: ${errorMessage}`);
     } finally {
       setCallingId(null);
       callInProgress.current = false;

@@ -25,6 +25,21 @@ export class ExotelService {
 
     async makeCall(from: string, to: string, leadId: string, consultantId: string) {
         try {
+            // Validate credentials before making the call
+            if (!this.apiKey || !this.apiToken || !this.accountSid || !this.callerId) {
+                const missingCredentials = [];
+                if (!this.apiKey) missingCredentials.push('EXOTEL_API_KEY');
+                if (!this.apiToken) missingCredentials.push('EXOTEL_API_TOKEN');
+                if (!this.accountSid) missingCredentials.push('EXOTEL_ACCOUNT_SID');
+                if (!this.callerId) missingCredentials.push('EXOTEL_CALLER_ID');
+                throw new Error(`Exotel credentials not configured: ${missingCredentials.join(', ')}. Please set these in your .env file.`);
+            }
+
+            // Validate phone numbers are present
+            if (!from || !to) {
+                throw new Error(`Invalid phone numbers: from="${from}", to="${to}"`);
+            }
+
             // Basic Auth Header
             const auth = Buffer.from(`${this.apiKey}:${this.apiToken}`).toString('base64');
 
@@ -50,9 +65,14 @@ export class ExotelService {
                     Authorization: `Basic ${auth}`,
                     'Content-Type': 'application/x-www-form-urlencoded',
                 },
+                timeout: 10000, // 10 second timeout
             });
 
             const sid = response.data?.Call?.Sid;
+            
+            if (!sid) {
+                throw new Error(`No call SID received from Exotel. Response: ${JSON.stringify(response.data)}`);
+            }
 
             // Create initial call log
             await this.prisma.callLog.create({
@@ -68,14 +88,12 @@ export class ExotelService {
         } catch (error) {
             const errorData = error.response?.data;
             const errorMessage = typeof errorData === 'string' ? errorData : JSON.stringify(errorData || error.message);
-            this.logger.error(`Exotel call failed (status ${error.response?.status}): ${errorMessage}`);
+            const statusCode = error.response?.status;
+            
+            this.logger.error(`Exotel call failed ${statusCode ? `(status ${statusCode})` : ''}: ${errorMessage}`);
 
-            // Check for missing credentials
-            if (!this.apiKey || !this.apiToken || !this.accountSid || !this.callerId) {
-                throw new Error('Exotel credentials are not configured. Please set EXOTEL_API_KEY, EXOTEL_API_TOKEN, EXOTEL_ACCOUNT_SID, and EXOTEL_CALLER_ID in .env');
-            }
-
-            throw new Error(`Exotel API Error (${error.response?.status}): ${errorMessage}`);
+            // Re-throw with more context
+            throw new Error(`Exotel API Error: ${errorMessage}`);
         }
     }
 
