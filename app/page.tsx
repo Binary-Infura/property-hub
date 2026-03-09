@@ -1,5 +1,3 @@
-import ConsultantProfile from "./components/ConsultantProfile";
-
 import Navbar from "./components/Navbar";
 import LoanCalculator from "./components/LoanCalculator";
 import DynamicReviews from "./components/DynamicReviews";
@@ -209,66 +207,6 @@ export default function Home() {
 
       {/* Loan Calculator Section */}
       <LoanCalculator />
-
-      {/* Featured Properties */}
-      <section id="properties" className="py-20 md:py-32 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Recently Matched Properties
-            </h2>
-            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-              These are recent matches for our clients. See how curated our selection is.
-            </p>
-          </div>
-
-          <div className="grid md:grid-cols-3 gap-8">
-            {[1, 2, 3].map((item) => (
-              <div key={item} className="bg-white rounded-xl overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition">
-                <div className="h-56 bg-gradient-to-br from-gray-300 to-gray-400 flex items-center justify-center">
-                  <svg className="w-24 h-24 text-gray-500" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"></path>
-                  </svg>
-                </div>
-                <div className="p-6">
-                  <div className="flex justify-between items-start mb-2">
-                    <div>
-                      <p className="text-2xl font-bold text-gray-900">$45L</p>
-                      <p className="text-gray-500">3 BHK, Andheri</p>
-                    </div>
-                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">Great Deal</span>
-                  </div>
-                  <div className="flex gap-4 text-sm text-gray-600 mb-4">
-                    <span>1500 sqft</span>
-                    <span>•</span>
-                    <span>5-yr old</span>
-                  </div>
-                  <p className="text-gray-600 text-sm mb-4">
-                    &quot;Perfect for growing families. Strong community, great schools nearby.&quot; - Your Consultant
-                  </p>
-                  <button className="w-full border border-blue-600 text-blue-600 py-2 rounded-lg hover:bg-blue-50 font-medium">
-                    Learn More
-                  </button>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="text-center mt-12">
-            <p className="text-gray-600 mb-4">
-              Want to see properties matched specifically for your needs?
-            </p>
-            <a href="/consultation" className="inline-block bg-blue-600 text-white px-8 py-3 rounded-lg hover:bg-blue-700 font-semibold">
-              Get Your Personalized List
-            </a>
-          </div>
-        </div>
-      </section>
-
-      {/* Consultant Profile Section */}
-      <ConsultantProfile />
-
-
 
       {/* Testimonials */}
       <DynamicReviews />
