@@ -424,7 +424,11 @@ export default function LeadsPage() {
                                                     </button>
 
                                                     <button
-                                                        onClick={() => setSelectedLeadForVideo(lead)}
+                                                        onClick={() => {
+                                                            const roomName = `room-${lead.id}`;
+                                                            const leadName = encodeURIComponent(lead.name || 'User');
+                                                            window.open(`/consultant/call/${roomName}?leadName=${leadName}`, '_blank', 'width=1400,height=900,menubar=no,toolbar=no,location=no,status=no');
+                                                        }}
                                                         title="Video Call"
                                                         className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
                                                     >
