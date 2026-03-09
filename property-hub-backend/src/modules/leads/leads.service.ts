@@ -315,46 +315,18 @@ export class LeadsService {
             const videoRoomName = dto.videoRoomName || `room-${lead.id}-${Date.now()}`;
             const videoCallLink = `${process.env.APP_URL || 'http://localhost:3001'}/consultant/call/${videoRoomName}?leadName=${encodeURIComponent(lead.name || 'Guest')}`;
 
-            // Prepare payload for n8n workflow
-            const workflowPayload = {
-                leadId: lead.id,
-                leadName: lead.name,
-                leadEmail: lead.email,
-                leadPhone: lead.phone,
-                consultantName: `${consultant.firstName} ${consultant.lastName}`.trim(),
-                consultantPhone: consultant.phone || consultant.userMetadata?.phone,
-                consultantEmail: consultant.email,
-                projectName: lead.project?.name,
-                videoCallLink: videoCallLink,
-                channel: dto.channel,
-                timestamp: new Date().toISOString(),
-            };
-
-            // Trigger n8n workflow
-            const n8nWebhookUrl = this.configService.get<string>('N8N_SEND_VIDEO_CALL_LINK_WEBHOOK_URL') || 'http://localhost:5678/webhook/send-video-call-link';
-            const n8nApiKey = this.configService.get<string>('N8N_WEBHOOK_API_KEY');
-
-            const response = await axios.post(n8nWebhookUrl, workflowPayload, {
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-API-Key': n8nApiKey,
-                },
-                timeout: 10000,
-            });
-
             // Log the communication
             await this.prisma.lead.update({
                 where: { id },
                 data: {
-                    notes: (lead.notes || '') + `\n[${new Date().toISOString()}] Video call link sent via ${dto.channel}`,
+                    notes: (lead.notes || '') + `\n[${new Date().toISOString()}] Video call link generated for ${dto.channel}: ${videoCallLink}`,
                 },
             });
 
             return {
                 success: true,
-                message: `Video call link sent successfully via ${dto.channel}`,
+                message: `Video call link generated successfully for ${dto.channel}`,
                 videoCallLink: videoCallLink,
-                workflowExecutionId: response.data?.executionId,
             };
         } catch (error) {
             console.error('Send video call link error:', error);

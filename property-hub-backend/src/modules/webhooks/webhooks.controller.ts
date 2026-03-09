@@ -4,7 +4,6 @@ import {
     Patch,
     Body,
     Param,
-    UseGuards,
     Headers,
     HttpCode,
     HttpStatus,
@@ -16,10 +15,8 @@ import {
     NotificationDto,
     UpdateCampaignMetricsDto,
 } from './webhooks.dto';
-import { ApiKeyGuard } from '@/auth/guards/api-key.guard';
 
 @Controller('webhooks')
-@UseGuards(ApiKeyGuard)
 export class WebhooksController {
     constructor(private readonly webhooksService: WebhooksService) { }
 

@@ -200,7 +200,7 @@ export class WebhooksService {
     }
 
     /**
-     * Handle notifications from n8n workflows
+     * Handle notifications from external systems
      */
     async handleNotification(
         dto: NotificationDto,
