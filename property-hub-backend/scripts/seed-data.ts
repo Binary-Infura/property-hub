@@ -36,13 +36,13 @@ async function main() {
     const superUser = await prisma.user.upsert({
         where: { email: 'superuser@propertyhub.com' },
         update: {
-            roles: { set: ['central-authority', 'property-partner', 'consultant', 'marketing-manager', 'buyer', 'loan-adviser'] }
+            roles: { set: ['central-authority', 'broker', 'marketing-manager', 'consultant', 'buyer', 'property-partner', 'onboarding-manager', 'loan-adviser', 'visit-executive', 'influencer'] }
         },
         create: {
             email: 'superuser@propertyhub.com',
             firstName: 'Super',
             lastName: 'User',
-            roles: ['central-authority', 'property-partner', 'consultant', 'marketing-manager', 'buyer', 'loan-adviser'],
+            roles: ['central-authority', 'broker', 'marketing-manager', 'consultant', 'buyer', 'property-partner', 'onboarding-manager', 'loan-adviser', 'visit-executive', 'influencer'],
             status: 'active',
             passwordHash,
             agencyName: 'Prestige Builders',
