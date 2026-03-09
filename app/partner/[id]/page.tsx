@@ -267,11 +267,9 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
                                         <div key={property.id} className="hover:scale-[1.02] transition-all duration-500">
                                             <PropertySearchCard
                                                 property={mapped}
-                                                isShortlisted={false}
                                                 isSelectedForCompare={false}
-                                                onShortlist={() => { }}
                                                 onToggleCompare={() => { }}
-                                                onViewDetails={(pid: string) => router.push(`/search/${pid}`)}
+                                                onViewDetails={(pid: string) => router.push(`/dashboard/search/${pid}`)}
                                             />
                                         </div>
                                     );

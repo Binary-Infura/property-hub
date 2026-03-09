@@ -1,6 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { userService } from '@/app/services/userService';
+import { uploadService } from '@/app/services/uploadService';
 
 interface Document {
     id: string;
@@ -9,17 +12,68 @@ interface Document {
     status: 'required' | 'uploaded' | 'verified';
     uploadedDate?: string;
     file?: File;
+    fileUrl?: string;
 }
 
 export default function DocumentManagementPage() {
+    const { token, user, initialized, authenticated } = useAuth();
+    const [profile, setProfile] = useState<any>(null);
     const [documents, setDocuments] = useState<Document[]>([
-        { id: '1', name: 'Aadhaar Card', category: 'identity', status: 'verified', uploadedDate: '2024-01-15' },
-        { id: '2', name: 'PAN Card', category: 'identity', status: 'verified', uploadedDate: '2024-01-15' },
-        { id: '3', name: 'Salary Slips (Last 3 months)', category: 'income', status: 'uploaded', uploadedDate: '2024-01-20' },
-        { id: '4', name: 'Bank Statements (Last 6 months)', category: 'income', status: 'uploaded', uploadedDate: '2024-01-20' },
+        { id: '1', name: 'Aadhaar Card', category: 'identity', status: 'required' },
+        { id: '2', name: 'PAN Card', category: 'identity', status: 'required' },
+        { id: '3', name: 'Salary Slips (Last 3 months)', category: 'income', status: 'required' },
+        { id: '4', name: 'Bank Statements (Last 6 months)', category: 'income', status: 'required' },
         { id: '5', name: 'Property Documents', category: 'property', status: 'required' },
         { id: '6', name: 'Legal Verification Report', category: 'legal', status: 'required' },
     ]);
+
+    useEffect(() => {
+        const syncDocuments = async () => {
+            if (!token) return;
+
+            try {
+                const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+                console.log('[DocumentSync] Fetching from /api/users/me/documents ...');
+
+                const res = await fetch(`${API_URL}/api/users/me/documents`, {
+                    headers: { Authorization: `Bearer ${token}` }
+                });
+
+                if (!res.ok) {
+                    console.error('[DocumentSync] API error:', res.status);
+                    return;
+                }
+
+                const savedDocs: any[] = await res.json();
+                console.log(`[DocumentSync] Got ${savedDocs.length} documents from backend:`, savedDocs.map(d => d.name));
+
+                if (savedDocs.length > 0) {
+                    setDocuments(prev => prev.map(doc => {
+                        const savedDoc = savedDocs.find(d =>
+                            d.category?.toString().trim().toLowerCase() === doc.category.trim().toLowerCase() &&
+                            d.name?.toString().trim().toLowerCase() === doc.name.trim().toLowerCase()
+                        );
+                        if (savedDoc) {
+                            console.log(`[DocumentSync] Matched: ${doc.name} → status: ${savedDoc.status}`);
+                            return {
+                                ...doc,
+                                status: savedDoc.status as any,
+                                uploadedDate: savedDoc.createdAt ? savedDoc.createdAt.toString().split('T')[0] : undefined,
+                                fileUrl: savedDoc.url
+                            };
+                        }
+                        return doc;
+                    }));
+                }
+            } catch (e) {
+                console.error('[DocumentSync] Error:', e);
+            }
+        };
+
+        if (initialized) {
+            syncDocuments();
+        }
+    }, [token, initialized, authenticated]);
 
     const [activeTab, setActiveTab] = useState<'all' | 'identity' | 'income' | 'property' | 'legal'>('all');
 
@@ -27,24 +81,39 @@ export default function DocumentManagementPage() {
         ? documents
         : documents.filter(d => d.category === activeTab);
 
-    const handleFileUpload = (id: string, file: File) => {
-        setDocuments(prevDocs => prevDocs.map(doc =>
-            doc.id === id
-                ? { ...doc, status: 'uploaded', uploadedDate: new Date().toISOString().split('T')[0], file }
-                : doc
-        ));
-        // In a real app, you'd upload the file to a server here.
-        alert(`File "${file.name}" uploaded successfully for ${documents.find(d => d.id === id)?.name}`);
+    const handleFileUpload = async (id: string, file: File) => {
+        if (!token) return;
+
+        try {
+            setDocuments(prevDocs => prevDocs.map(doc =>
+                doc.id === id ? { ...doc, status: 'uploaded' } : doc
+            ));
+
+            const targetDoc = documents.find(d => d.id === id);
+            if (!targetDoc) return;
+
+            const fileUrl = await uploadService.uploadFile(file, token, targetDoc.category, targetDoc.name);
+
+            setDocuments(prevDocs => prevDocs.map(doc =>
+                doc.id === id
+                    ? { ...doc, status: 'uploaded', uploadedDate: new Date().toISOString().split('T')[0], fileUrl }
+                    : doc
+            ));
+            alert(`File "${file.name}" uploaded successfully!`);
+        } catch (error: any) {
+            console.error("Upload failed:", error);
+            alert(error.message || "Upload failed. Please try again.");
+            setDocuments(prevDocs => prevDocs.map(doc =>
+                doc.id === id ? { ...doc, status: 'required' } : doc
+            ));
+        }
     };
 
     const getStatusBadge = (status: Document['status']) => {
-        switch (status) {
-            case 'verified':
-                return <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold border border-green-200 flex items-center gap-1.5"><div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>Verified</span>;
-            case 'uploaded':
-                return <span className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-bold border border-blue-200 flex items-center gap-1.5"><div className="w-1.5 h-1.5 bg-blue-500 rounded-full"></div>Under Review</span>;
-            case 'required':
-                return <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold border border-amber-200 flex items-center gap-1.5"><div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>Required</span>;
+        if (status === 'required') {
+            return <span className="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-bold border border-amber-200 flex items-center gap-1.5"><div className="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></div>Required</span>;
+        } else {
+            return <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold border border-green-200 flex items-center gap-1.5"><div className="w-1.5 h-1.5 bg-green-500 rounded-full"></div>Uploaded</span>;
         }
     };
 
@@ -73,7 +142,7 @@ export default function DocumentManagementPage() {
                     <div key={doc.id} className="group bg-white rounded-[2.5rem] p-8 border border-slate-100 shadow-2xl shadow-slate-100/50 hover:scale-[1.01] transition-all duration-500 hover:border-blue-200">
                         <div className="flex flex-col md:flex-row items-center justify-between gap-8">
                             <div className="flex items-center gap-6 w-full md:w-auto">
-                                <div className={`w-20 h-20 rounded-[1.75rem] flex items-center justify-center shrink-0 ${doc.status === 'verified' ? 'bg-green-50 text-green-600' : doc.status === 'uploaded' ? 'bg-blue-50 text-blue-600' : 'bg-slate-50 text-slate-300'}`}>
+                                <div className={`w-20 h-20 rounded-[1.75rem] flex items-center justify-center shrink-0 ${doc.status === 'required' ? 'bg-slate-50 text-slate-300' : 'bg-green-50 text-green-600'}`}>
                                     <svg className="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                                     </svg>
@@ -98,10 +167,18 @@ export default function DocumentManagementPage() {
                             <div className="flex items-center gap-4 w-full md:w-auto">
                                 {doc.status !== 'required' ? (
                                     <>
-                                        <button className="flex-1 md:flex-none px-8 py-4 bg-slate-50 text-slate-600 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition hover:bg-slate-900 hover:text-white group-hover:shadow-xl active:scale-95">
+                                        <button
+                                            onClick={() => doc.fileUrl && window.open(doc.fileUrl, '_blank')}
+                                            className="flex-1 md:flex-none px-8 py-4 bg-slate-50 text-slate-600 rounded-2xl font-black text-xs uppercase tracking-[0.2em] transition hover:bg-slate-900 hover:text-white group-hover:shadow-xl active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            disabled={!doc.fileUrl}
+                                        >
                                             View Securely
                                         </button>
-                                        <button className="flex-1 md:flex-none p-4 bg-slate-50 text-slate-400 rounded-2xl transition hover:bg-blue-50 hover:text-blue-600 active:scale-95">
+                                        <button
+                                            onClick={() => doc.fileUrl && window.open(doc.fileUrl, '_blank')}
+                                            className="flex-1 md:flex-none p-4 bg-slate-50 text-slate-400 rounded-2xl transition hover:bg-blue-50 hover:text-blue-600 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
+                                            disabled={!doc.fileUrl}
+                                        >
                                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
                                         </button>
                                     </>
@@ -130,10 +207,10 @@ export default function DocumentManagementPage() {
                 </div>
                 <h2 className="text-3xl font-black text-slate-900 mb-4 tracking-tighter">Bank-Grade Encryption</h2>
                 <p className="text-slate-400 font-bold max-w-sm mx-auto mb-10 text-lg leading-relaxed">Your documents are secured with AES-256 bit encryption and only visible to authorized financial consultants.</p>
-                <div className="flex flex-wrap justify-center gap-12 opacity-40 grayscale contrast-150">
-                    <img src="https://img.icons8.com/color/48/pci-dss.png" alt="PCI" />
-                    <img src="https://img.icons8.com/color/48/iso.png" alt="ISO" />
-                    <img src="https://img.icons8.com/color/48/amazon-web-services.png" alt="AWS" />
+                <div className="flex flex-wrap justify-center gap-12 text-slate-300 font-black text-[10px] uppercase tracking-widest opacity-60">
+                    <span className="px-4 py-2 border border-slate-200 rounded-lg">PCI DSS Compliant</span>
+                    <span className="px-4 py-2 border border-slate-200 rounded-lg">ISO 27001 Certified</span>
+                    <span className="px-4 py-2 border border-slate-200 rounded-lg">AES-256 Encrypted</span>
                 </div>
             </div>
         </div>

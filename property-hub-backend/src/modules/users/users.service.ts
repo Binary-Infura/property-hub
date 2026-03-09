@@ -264,7 +264,9 @@ export class UsersService {
     async findOne(id: string): Promise<User> {
         const user = await this.prisma.user.findUnique({
             where: { id },
-
+            include: {
+                documents: true,
+            }
         });
         if (!user) throw new NotFoundException('User not found');
         return user;
@@ -582,15 +584,44 @@ export class UsersService {
         return !!follow;
     }
 
-    async getFollowerCount(userId: string): Promise<number> {
+    async getFollowingCount(userId: string): Promise<number> {
         return (this.prisma as any).follow.count({
             where: { followingId: userId }
         });
     }
 
-    async getFollowingCount(userId: string): Promise<number> {
-        return (this.prisma as any).follow.count({
-            where: { followerId: userId }
+    async saveUserDocument(userId: string, category: string, name: string, url: string) {
+        console.log(`[UsersService] saveUserDocument called: userId=${userId}, category=${category}, name=${name}`);
+        // Fix: Match by userId, category, AND name to support multiple documents per category
+        const existing = await this.prisma.userDocument.findFirst({
+            where: { userId, category, name }
+        });
+
+        if (existing) {
+            return this.prisma.userDocument.update({
+                where: { id: existing.id },
+                data: {
+                    url,
+                    status: 'uploaded',
+                    updatedAt: new Date(),
+                }
+            });
+        }
+
+        return this.prisma.userDocument.create({
+            data: {
+                userId,
+                category,
+                name,
+                url,
+                status: 'uploaded',
+            },
+        });
+    }
+
+    async getUserDocuments(userId: string) {
+        return this.prisma.userDocument.findMany({
+            where: { userId }
         });
     }
 }

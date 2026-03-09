@@ -76,10 +76,12 @@ import { join } from 'path';
         ExotelModule,
         LivekitModule,
         ReviewsModule,
+        /*
         ServeStaticModule.forRoot({
             rootPath: join(__dirname, '..', 'uploads'),
             serveRoot: '/uploads',
         }),
+        */
     ],
 })
 export class AppModule { }

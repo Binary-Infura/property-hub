@@ -24,6 +24,11 @@ export class UsersController {
         return this.usersService.getProfileStatus(user.userId, user.roles);
     }
 
+    @Get('me/documents')
+    getMyDocuments(@CurrentUser() user: AuthenticatedUser) {
+        return this.usersService.getUserDocuments(user.userId);
+    }
+
     @Patch('me')
     updateMyMetadata(
         @CurrentUser() user: AuthenticatedUser,
@@ -143,6 +148,6 @@ export class UsersController {
     @Get(':id/follower-count')
     @Public()
     async getFollowerCount(@Param('id') id: string) {
-        return { count: await this.usersService.getFollowerCount(id) };
+        return { count: await this.usersService.getFollowingCount(id) };
     }
 }

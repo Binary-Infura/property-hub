@@ -52,7 +52,6 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Projects', href: '/property-partner/dashboard/projects', icon: 'building' },
         { name: 'Units', href: '/property-partner/dashboard/units', icon: 'home' },
         { name: 'Consultants', href: '/property-partner/dashboard/consultants', icon: 'person', premium: true },
-        { name: 'Loan Advisers', href: '/property-partner/dashboard/loan-advisers', icon: 'bank', premium: true },
         { name: 'Visit Executives', href: '/property-partner/dashboard/visit-executives', icon: 'pin', premium: true },
         { name: 'Project Allocation', href: '/property-partner/dashboard/projects/allocation', icon: 'building', premium: true },
         { name: 'Leads', href: '/property-partner/dashboard/leads', icon: 'clipboard' },

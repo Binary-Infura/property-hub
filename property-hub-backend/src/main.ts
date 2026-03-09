@@ -11,7 +11,11 @@ async function bootstrap() {
         new FastifyAdapter({ logger: true }),
     );
 
-    await app.register(multipart);
+    await app.register(multipart, {
+        limits: {
+            fileSize: 50 * 1024 * 1024, // 50MB
+        }
+    });
 
     // Enable CORS
     app.enableCors({

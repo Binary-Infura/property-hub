@@ -23,7 +23,6 @@ import { Public } from '../../common/decorators/public.decorator';
 
 @Controller('api/leads')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RequireRoles('central-authority', 'marketing-manager', 'onboarding-manager', 'property-partner', 'channel-partner', 'consultant')
 export class LeadsController {
     constructor(
         private readonly leadsService: LeadsService,
@@ -86,7 +85,7 @@ export class LeadsController {
     }
 
     @Get()
-    @RequireRoles('central-authority', 'marketing-manager', 'property-partner')
+    @RequireRoles('central-authority', 'marketing-manager', 'property-partner', 'consultant', 'buyer')
     findAll(
         @CurrentUser() user: AuthenticatedUser
     ) {

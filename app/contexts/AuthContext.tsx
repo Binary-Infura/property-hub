@@ -48,7 +48,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         try {
             const base64Url = t.split('.')[1];
             const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            return JSON.parse(window.atob(base64));
+            const payload = JSON.parse(window.atob(base64));
+
+            // Normalize the payload to have a consistent structure including userId
+            const normalized = {
+                ...payload,
+                userId: payload.sub || payload.id || payload.userId,
+                firstName: payload.firstName || payload.given_name,
+                lastName: payload.lastName || payload.family_name,
+                roles: payload.realm_access?.roles || payload.roles || [],
+            };
+
+            return normalized;
         } catch (e) {
             console.error('Failed to decode token:', e);
             return null;

@@ -14,6 +14,7 @@ export interface JwtPayload {
 
     // Keycloak groups/paths
     groups?: string[];
+    phone?: string;
 }
 
 export interface AuthenticatedUser {
@@ -24,4 +25,5 @@ export interface AuthenticatedUser {
     lastName?: string;
     roles: string[]; // Realm roles
     groups: string[]; // Region groups
+    phone?: string;
 }

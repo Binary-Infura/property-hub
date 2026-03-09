@@ -1,23 +1,23 @@
-import { PrismaClient, ProjectStatus, ProjectType } from '@prisma/client';
-
+import { PrismaClient, ProjectStatus, ProjectType, LeadStatus } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log('🌱 Starting database seed...');
+    console.log('🌱 Starting database seed (Single Source of Truth)...');
+
     const passwordHash = await bcrypt.hash('password123', 10);
 
     // 1. Cities
     console.log('Creating Cities...');
-    const cities = [
+    const citiesData = [
         { name: 'Mumbai', state: 'Maharashtra' },
         { name: 'Pune', state: 'Maharashtra' },
         { name: 'Bangalore', state: 'Karnataka' },
         { name: 'Delhi', state: 'Delhi' },
     ];
 
-    for (const city of cities) {
+    for (const city of citiesData) {
         await prisma.city.upsert({
             where: { name: city.name },
             update: {},
@@ -25,11 +25,12 @@ async function main() {
         });
     }
 
-    // 2. Regions (REMOVED)
-    console.log('Skipping Regions...');
+    const mumbai = await prisma.city.findFirst({ where: { name: 'Mumbai' } });
+    const pune = await prisma.city.findFirst({ where: { name: 'Pune' } });
 
-    // 3. Central Authority
-    console.log('Creating Central Authority...');
+    // 2. Users & Profiles
+    console.log('Creating Users and Profiles...');
+
     const caUser = await prisma.user.upsert({
         where: { email: 'central@propertyhub.com' },
         update: {},
@@ -38,7 +39,6 @@ async function main() {
             firstName: 'Central',
             lastName: 'Authority',
             roles: ['central-authority'],
-
             status: 'active',
             passwordHash,
         },
@@ -54,22 +54,14 @@ async function main() {
         }
     });
 
-
-    // 4. Regional Managers (REMOVED)
-    console.log('Skipping Regional Managers...');
-
-    // 5. Property Partner
-    console.log('Creating Property Partner...');
-    const ppEmail = 'property@propertyhub.com';
     const ppUser = await prisma.user.upsert({
-        where: { email: ppEmail },
-        update: { roles: ['property-partner'] },
+        where: { email: 'property@propertyhub.com' },
+        update: { roles: { set: ['property-partner'] } },
         create: {
-            email: ppEmail,
+            email: 'property@propertyhub.com',
             firstName: 'Property',
             lastName: 'Partner',
             roles: ['property-partner'],
-
             status: 'active',
             agencyName: 'Prestige Builders',
             passwordHash,
@@ -87,37 +79,14 @@ async function main() {
         }
     });
 
-    // 5b. Onboarding Manager
-    console.log('Creating Onboarding Manager...');
-    const obEmail = 'onboard@propertyhub.com';
-    await prisma.user.upsert({
-        where: { email: obEmail },
-        update: {
-            roles: ['onboarding-manager'],
-        },
-        create: {
-            email: obEmail,
-            firstName: 'Onboarding',
-            lastName: 'Manager',
-            roles: ['onboarding-manager'],
-
-            status: 'active',
-            passwordHash,
-        }
-    });
-
-    // 5c. Consultant
-    console.log('Creating Consultant...');
-    const consEmail = 'testconsultant@gmail.com';
     const consUser = await prisma.user.upsert({
-        where: { email: consEmail },
-        update: { roles: ['consultant'] },
+        where: { email: 'testconsultant@gmail.com' },
+        update: { roles: { set: ['consultant'] } },
         create: {
-            email: consEmail,
+            email: 'testconsultant@gmail.com',
             firstName: 'Test',
             lastName: 'Consultant',
             roles: ['consultant'],
-
             status: 'active',
             passwordHash,
         }
@@ -133,43 +102,7 @@ async function main() {
         }
     });
 
-    // 6. Properties
-    console.log('Creating Properties...');
-    await prisma.project.create({
-        data: {
-            name: 'Luxury Sea View Apartment',
-            description: 'Beautiful 3BHK facing the sea',
-            location: 'Worli, Mumbai',
-            address: 'Worli Sea Face',
-            price: 45000000,
-            area: 1800,
-            projectType: 'APARTMENT',
-            status: 'PUBLISHED',
-            onboardedById: ppUser.id,
-            bedrooms: 3,
-            bathrooms: 3,
-            category: 'flat'
-        }
-    });
-
-    await prisma.project.create({
-        data: {
-            name: 'Green Valley Plot',
-            description: 'Lush green plot for villa',
-            location: 'Lonavala, Pune',
-            price: 8000000,
-            area: 5000,
-            projectType: 'PLOT',
-            status: 'AVAILABLE',
-            onboardedById: ppUser.id,
-            category: 'plot'
-        }
-    });
-
-    // 7. Commission Managers — removed (handled by central-authority)
-
-    // 8. Marketing Managers
-    console.log('Creating Marketing Managers...');
+    const marketingManagers = [];
     for (let i = 1; i <= 2; i++) {
         const user = await prisma.user.upsert({
             where: { email: `marketing${i}@propertyhub.com` },
@@ -179,7 +112,6 @@ async function main() {
                 firstName: 'Marketing',
                 lastName: `Head ${i}`,
                 roles: ['marketing-manager'],
-
                 status: 'active',
                 passwordHash,
             }
@@ -187,103 +119,109 @@ async function main() {
 
         await prisma.marketingManagerProfile.upsert({
             where: { userId: user.id },
-            update: {},
+            update: {
+                campaignBudgetLimit: 1000000
+            },
             create: {
                 userId: user.id,
                 campaignBudgetLimit: 1000000
             }
         });
+        marketingManagers.push(user);
     }
 
-    // 9. Buyer
-    console.log('Creating Buyer...');
-    const buyerEmail = 'buyer@test.com';
-    await prisma.user.upsert({
-        where: { email: buyerEmail },
+    const buyerUser = await prisma.user.upsert({
+        where: { email: 'buyer@test.com' },
         update: {},
         create: {
-            email: buyerEmail,
+            email: 'buyer@test.com',
             firstName: 'Test',
             lastName: 'Buyer',
             roles: ['buyer'],
-
             status: 'active',
             passwordHash,
         }
     });
 
-    // 10. Loan Adviser
-    console.log('Creating Loan Adviser...');
-    const loanEmail = 'loan@propertyhub.com';
-    await prisma.user.upsert({
-        where: { email: loanEmail },
+    await prisma.buyerProfile.upsert({
+        where: { userId: buyerUser.id },
         update: {},
         create: {
-            email: loanEmail,
-            firstName: 'Expert',
-            lastName: 'Loaner',
+            userId: buyerUser.id,
+            budgetMin: 5000000,
+            budgetMax: 20000000,
+            preferredLocations: ['Mumbai', 'Pune']
+        }
+    });
+
+    const loanAdviserUser = await prisma.user.upsert({
+        where: { email: 'loanadviser@propertyhub.com' },
+        update: { roles: { set: ['loan-adviser'] } },
+        create: {
+            email: 'loanadviser@propertyhub.com',
+            firstName: 'Finance',
+            lastName: 'Expert',
             roles: ['loan-adviser'],
-
             status: 'active',
             passwordHash,
+            phone: '+919876543222',
         }
     });
 
-    // 11. Visit Executive
-    console.log('Creating Visit Executive...');
-    const visitEmail = 'visit@propertyhub.com';
-    await prisma.user.upsert({
-        where: { email: visitEmail },
-        update: {},
-        create: {
-            email: visitEmail,
-            firstName: 'Visit',
-            lastName: 'Executive',
-            roles: ['visit-executive'],
+    // We can also create a profile for loan adviser if it exists, or just assign city allocations if needed.
+    // Assuming no specific profile table is strictly required or we just use user table roles.
 
-            status: 'active',
-            passwordHash,
+    // 3. Properties
+    console.log('Creating Properties...');
+    const projectsData = [
+        {
+            name: 'Luxury Sea View Apartment',
+            description: 'Beautiful 3BHK facing the sea',
+            location: 'Worli, Mumbai',
+            address: 'Worli Sea Face',
+            price: 45000000,
+            area: 1800,
+            projectType: ProjectType.APARTMENT,
+            status: ProjectStatus.PUBLISHED,
+            bedrooms: 3,
+            bathrooms: 3,
+            category: 'flat',
+            cityId: mumbai?.id,
+            onboardedById: ppUser.id
+        },
+        {
+            name: 'Green Valley Plot',
+            description: 'Lush green plot for villa',
+            location: 'Lonavala, Pune',
+            price: 8000000,
+            area: 5000,
+            projectType: ProjectType.PLOT,
+            status: ProjectStatus.AVAILABLE,
+            category: 'plot',
+            cityId: pune?.id,
+            onboardedById: ppUser.id
         }
-    });
+    ];
 
-    // 12. Broker
-    console.log('Creating Broker...');
-    const cpEmail = 'cp@test.com';
-    const cpUser = await prisma.user.upsert({
-        where: { email: cpEmail },
-        update: {},
-        create: {
-            email: cpEmail,
-            firstName: 'Broker',
-            lastName: 'Partner',
-            roles: ['broker'],
-            status: 'active',
-            passwordHash,
+    for (const p of projectsData) {
+        const existing = await prisma.project.findFirst({ where: { name: p.name } });
+        if (!existing) {
+            await prisma.project.create({ data: p });
         }
-    });
+    }
 
-    await (prisma as any).brokerProfile.upsert({
-        where: { userId: cpUser.id },
-        update: {},
-        create: {
-            userId: cpUser.id,
-            agencyBusinessName: 'Top Brokerage',
-            reraNumber: 'RERA12345',
-            officeAddress: '456 Business Blvd, Mumbai'
-        }
-    });
+    const seaViewProj = await prisma.project.findFirst({ where: { name: 'Luxury Sea View Apartment' } });
+    const valleyPlotProj = await prisma.project.findFirst({ where: { name: 'Green Valley Plot' } });
 
-    // 13. Banks
+    // 4. Banks
     console.log('Creating Banks...');
-    const banks = [
+    const banksData = [
         { name: 'HDFC Bank', percentage: 8.4 },
         { name: 'SBI Bank', percentage: 8.5 },
         { name: 'ICICI Bank', percentage: 8.75 },
-        { name: 'Axis Bank', percentage: 8.65 },
-        { name: 'Kotak Bank', percentage: 8.8 },
     ];
 
-    for (const bank of banks) {
+    for (const bank of banksData) {
         await prisma.bank.upsert({
             where: { name: bank.name },
             update: {},
@@ -291,57 +229,142 @@ async function main() {
         });
     }
 
-    // 14. Default Reels
-    console.log('Creating Default Reels...');
+    // 5. Reels
+    console.log('Creating Reels...');
 
-    // Delete any existing seed reels to avoid duplicates
-    await prisma.reel.deleteMany({
-        where: { userId: ppUser.id }
-    });
-
-    const defaultReels = [
-        {
-            title: 'Luxury Sea View Apartment - Worli, Mumbai',
-            description: 'Step inside this stunning 3BHK sea-facing apartment in one of Mumbai\'s most iconic locations. Panoramic views, premium finishes, and world-class amenities await.',
-            videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-            thumbnailUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&q=80',
-        },
-        {
-            title: 'Green Valley Villa Plots - Lonavala, Pune',
-            description: 'Build your dream home amidst nature. These lush green plots in Lonavala offer the perfect escape from city life with clear titles and RERA approved layout.',
-            videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-            thumbnailUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80',
-        },
-        {
-            title: 'Premium 2BHK Ready-to-Move - Bandra, Mumbai',
-            description: 'No more waiting! This ready-to-move 2BHK in Bandra West is fully furnished with modular kitchen, wooden flooring, and a private balcony with stunning city views.',
-            videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4',
-            thumbnailUrl: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=400&q=80',
-        },
-        {
-            title: 'Exclusive Penthouse - Powai, Mumbai',
-            description: 'The pinnacle of luxury living. This exclusive 4BHK penthouse overlooking Powai Lake features a private terrace, home theatre, and butler service in a gated community.',
-            videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
-            thumbnailUrl: 'https://images.unsplash.com/photo-1613977257363-707ba9348227?w=400&q=80',
-        },
-    ];
-
-    for (const reel of defaultReels) {
-        await prisma.reel.create({
-            data: {
-                ...reel,
-                userId: ppUser.id,
+    if (seaViewProj && valleyPlotProj) {
+        const reelItems = [
+            {
+                title: 'Luxury Sea View Apartment - Worli, Mumbai',
+                description: 'Step inside this stunning 3BHK sea-facing apartment.',
+                videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
+                thumbnailUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&q=80',
+                projectId: seaViewProj.id
             },
-        });
+            {
+                title: 'Green Valley Villa Plots - Lonavala, Pune',
+                description: 'Build your dream home amidst nature.',
+                videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+                thumbnailUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80',
+                projectId: valleyPlotProj.id
+            },
+        ];
+
+        for (const item of reelItems) {
+            const existing = await prisma.reel.findFirst({ where: { title: item.title } });
+            if (!existing) {
+                const { projectId, ...rest } = item;
+                await prisma.reel.create({
+                    data: {
+                        ...rest,
+                        user: { connect: { id: ppUser.id } },
+                        project: { connect: { id: projectId } }
+                    },
+                });
+            }
+        }
     }
 
-    console.log(`Seeded ${defaultReels.length} default reels.`);
-    console.log('Seeding completed successfully.');
+    // 6. Marketing Campaigns
+    console.log('Creating Marketing Campaigns...');
+    const curCampaignData = {
+        name: 'Mumbai Premium Properties Q1',
+        description: 'Upscale properties in South Mumbai',
+        status: 'active',
+        platform: 'Google Ads',
+        budget: 150000,
+        spent: 98500,
+        startDate: new Date('2024-01-01'),
+        endDate: new Date('2024-03-31'),
+        impressions: 125000,
+        clicks: 8500,
+        leadsCount: 420,
+        conversions: 78,
+    };
+
+    const campaign = await prisma.marketingCampaign.findFirst({ where: { name: curCampaignData.name } });
+    let activeCampaign;
+    if (!campaign) {
+        activeCampaign = await prisma.marketingCampaign.create({
+            data: {
+                ...curCampaignData,
+                assignedTo: { connect: marketingManagers.map(m => ({ id: m.id })) }
+            }
+        });
+    } else {
+        activeCampaign = campaign;
+    }
+
+    // 7. Leads
+    console.log('Creating Leads...');
+    const leadsData = [
+        {
+            name: 'John Doe',
+            email: 'john.doe@example.com',
+            phone: '+919876543210',
+            status: LeadStatus.NEW,
+            source: 'Google Ads',
+            notes: 'Interested in sea view apartments in Worli',
+            projectId: seaViewProj?.id,
+            campaignId: activeCampaign?.id,
+            assignedTo: consUser.id
+        },
+        {
+            name: 'Sarah Smith',
+            email: 'sarah.smith@example.com',
+            phone: '+919876543211',
+            status: LeadStatus.FOLLOW_UP_STARTED,
+            source: 'Facebook',
+            notes: 'Needs info about plot registration in Pune',
+            projectId: valleyPlotProj?.id,
+            assignedTo: consUser.id
+        },
+        {
+            name: 'Michael Brown',
+            phone: '+919876543212',
+            status: LeadStatus.VISITING,
+            source: 'Referral',
+            notes: 'Wants to schedule a site visit next Sunday',
+            projectId: seaViewProj?.id,
+            assignedTo: consUser.id
+        }
+    ];
+
+    for (const l of leadsData) {
+        const existing = await prisma.lead.findFirst({ where: { phone: l.phone, name: l.name } });
+        if (!existing) {
+            await prisma.lead.create({ data: l });
+        }
+    }
+
+    // 8. User Documents (New Persistent Data)
+    console.log('Creating User Documents...');
+    const dummyUrl = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
+    const docsToSeed = [
+        { name: 'Aadhaar Card', category: 'identity', url: dummyUrl, status: 'verified' },
+        { name: 'PAN Card', category: 'identity', url: dummyUrl, status: 'verified' }
+    ];
+
+    for (const d of docsToSeed) {
+        const existing = await prisma.userDocument.findFirst({
+            where: { userId: buyerUser.id, name: d.name }
+        });
+        if (!existing) {
+            await prisma.userDocument.create({
+                data: {
+                    ...d,
+                    user: { connect: { id: buyerUser.id } }
+                }
+            });
+        }
+    }
+
+    console.log('✅ Seeding completed successfully.');
 }
 
 main()
     .catch((e) => {
-        console.error(e);
+        console.error('❌ Seeding failed:', e);
         process.exit(1);
     })
     .finally(async () => {

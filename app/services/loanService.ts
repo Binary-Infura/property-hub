@@ -1,10 +1,17 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export const loanService = {
     async submitLoan(token: string, data: any) {
         const response = await axios.post(`${API_URL}/api/loans`, data, {
+            headers: { Authorization: `Bearer ${token}` },
+        });
+        return response.data;
+    },
+
+    async applyLoan(token: string, data: any) {
+        const response = await axios.post(`${API_URL}/api/loans/apply`, data, {
             headers: { Authorization: `Bearer ${token}` },
         });
         return response.data;

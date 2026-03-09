@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useConsultingBucket } from '../contexts/ConsultingBucketContext';
 import { useUnifiedApp } from '../contexts/UnifiedAppContext';
+import { useAuth } from '../contexts/AuthContext';
 
 interface PropertySearchCardData {
   id: string;
@@ -33,29 +34,25 @@ interface PropertySearchCardData {
     name: string;
   };
 }
-
 interface PropertySearchCardProps {
   property: PropertySearchCardData;
-  isShortlisted: boolean;
   isSelectedForCompare: boolean;
-  onShortlist: (id: string) => void;
   onViewDetails: (id: string) => void;
   onToggleCompare: (id: string) => void;
 }
 
 export default function PropertySearchCard({
   property,
-  isShortlisted,
   isSelectedForCompare,
-  onShortlist,
   onViewDetails,
   onToggleCompare,
 }: PropertySearchCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const { addItem, removeItem, isInBucket } = useConsultingBucket();
   const { activeContext } = useUnifiedApp();
+  const { authenticated } = useAuth();
   const alreadyInBucket = isInBucket(property.id);
-  const isBuyer = activeContext.activeRole.id === 'buyer';
+  const isBuyer = (activeContext.activeRole.id === 'buyer') && authenticated;
 
   const handleBucketAction = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -95,7 +92,7 @@ export default function PropertySearchCard({
         <div className="absolute top-6 left-6 flex flex-col gap-2">
           {property.recommendationTag && (
             <span className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg backdrop-blur-md border border-white/20 ${property.recommendationTag === 'Perfect Match' ? 'bg-emerald-500 text-white' :
-                property.recommendationTag === 'Budget Friendly' ? 'bg-amber-500 text-white' : 'bg-blue-600 text-white'
+              property.recommendationTag === 'Budget Friendly' ? 'bg-amber-500 text-white' : 'bg-blue-600 text-white'
               }`}>
               {property.recommendationTag}
             </span>
@@ -119,17 +116,6 @@ export default function PropertySearchCard({
           >
             <svg className="w-6 h-6" fill={isSelectedForCompare ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onShortlist(property.id);
-            }}
-            className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all bg-white shadow-xl hover:scale-110 active:scale-95 ${isShortlisted ? 'text-rose-500' : 'text-slate-400 hover:text-rose-500'}`}
-          >
-            <svg className="w-6 h-6" fill={isShortlisted ? "currentColor" : "none"} stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
             </svg>
           </button>
         </div>
@@ -169,39 +155,6 @@ export default function PropertySearchCard({
         {/* Expandable Section */}
         {isExpanded && (
           <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-500 mb-8 pt-4 border-t border-slate-50">
-            {/* Journey Stepper */}
-            <div className="p-8 bg-slate-900 rounded-[2.5rem] text-white">
-              <h4 className="text-[10px] font-black uppercase tracking-[0.3em] text-blue-400 mb-8 text-center">Your Property Journey</h4>
-              <div className="flex justify-between items-start relative px-4">
-                <div className="absolute top-5 left-0 right-0 h-0.5 bg-slate-800 z-0 mx-12"></div>
-                {[
-                  { label: 'Search', status: 'completed' },
-                  { label: 'Shortlist', status: 'completed' },
-                  { label: 'Loan', status: 'current', href: `/dashboard/loan?propertyId=${property.id}` },
-                  { label: 'Docs', status: 'upcoming' },
-                  { label: 'Legal', status: 'upcoming' },
-                ].map((step, idx) => (
-                  <div key={idx} className="flex flex-col items-center gap-3 relative z-10 basis-0 grow">
-                    {step.href ? (
-                      <a
-                        href={step.href}
-                        onClick={(e) => e.stopPropagation()}
-                        className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500 hover:scale-125 ${step.status === 'completed' ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20' : step.status === 'current' ? 'bg-white text-blue-600 shadow-xl' : 'bg-slate-800 text-slate-500 opacity-50'}`}
-                      >
-                        <span className="text-[10px] font-black">{step.status === 'completed' ? '✓' : idx + 1}</span>
-                      </a>
-                    ) : (
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all duration-500 ${step.status === 'completed' ? 'bg-blue-600 text-white shadow-xl shadow-blue-500/20' : step.status === 'current' ? 'bg-white text-blue-600 shadow-xl scale-110' : 'bg-slate-800 text-slate-500 opacity-50'}`}>
-                        <span className="text-[10px] font-black">{step.status === 'completed' ? '✓' : idx + 1}</span>
-                      </div>
-                    )}
-                    <span className={`text-[10px] font-black uppercase tracking-widest ${step.status === 'completed' ? 'text-blue-400' : step.status === 'current' ? 'text-white' : 'text-slate-600'}`}>
-                      {step.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
 
             {/* Consultant & Insight */}
             <div className="grid md:grid-cols-2 gap-6">
@@ -255,7 +208,7 @@ export default function PropertySearchCard({
 
         {/* Footer Hint */}
         <p className="text-[10px] font-black text-slate-400 text-center uppercase tracking-[0.2em] mt-6">
-          {isExpanded ? 'Click to collapse insights' : 'Click card for consultant & journey details'}
+          {isExpanded ? 'Click to collapse insights' : 'Click card for consultant insights'}
         </p>
       </div>
     </div>

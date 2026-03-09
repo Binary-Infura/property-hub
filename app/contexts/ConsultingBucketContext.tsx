@@ -44,6 +44,14 @@ export function ConsultingBucketProvider({ children }: { children: React.ReactNo
         localStorage.setItem('consulting_bucket', JSON.stringify(items));
     }, [items]);
 
+    // Clear bucket on logout
+    useEffect(() => {
+        if (!authenticated && items.length > 0) {
+            setItems([]);
+            localStorage.removeItem('consulting_bucket');
+        }
+    }, [authenticated]);
+
     const addItem = (item: BucketItem) => {
         if (!authenticated) {
             // Store target in local storage temporarily to recover after auth

@@ -31,3 +31,33 @@ export class UpdateLoanStatusDto {
     @IsEnum(LoanStatus)
     status: LoanStatus;
 }
+
+export class ApplyLoanDto {
+    @IsUUID()
+    @IsOptional()
+    advisorId?: string;
+
+    @IsUUID()
+    projectId: string;
+
+    @IsUUID()
+    bankId: string;
+
+    @IsNumber()
+    @Min(0)
+    amount: number;
+
+    @IsNumber()
+    @Min(1)
+    tenureYears: number;
+
+    @IsNumber()
+    interestRate: number;
+
+    @IsString()
+    @IsOptional()
+    notes?: string;
+
+    @IsOptional()
+    documents?: any[];
+}

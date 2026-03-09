@@ -4,7 +4,7 @@ import { useState } from 'react';
 import PropertyCard from './PropertyCard';
 
 export default function RecommendedProperties() {
-  const [selectedProperty, setSelectedProperty] = useState<number | null>(null);
+  const [selectedProperty, setSelectedProperty] = useState<number | string | null>(null);
 
   const recommendedProperties = [
     {

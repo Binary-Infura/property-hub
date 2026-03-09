@@ -55,6 +55,14 @@ export interface User {
         lastName: string;
         roles: string[];
     };
+    documents?: {
+        id: string;
+        name: string;
+        category: string;
+        url: string;
+        status: string;
+        createdAt: string;
+    }[];
     createdAt: string;
 }
 
@@ -153,6 +161,14 @@ export const userService = {
             headers,
         });
         if (!response.ok) throw new Error('Failed to fetch user');
+        return response.json();
+    },
+
+    async getMyDocuments(token: string): Promise<any[]> {
+        const response = await fetch(`${API_URL}/api/users/me/documents`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!response.ok) return [];
         return response.json();
     },
 

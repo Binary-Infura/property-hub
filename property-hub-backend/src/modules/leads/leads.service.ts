@@ -15,17 +15,32 @@ export class LeadsService {
     async findAll(user: AuthenticatedUser): Promise<Lead[]> {
         const isCentralAuthority = user.roles.includes('central-authority');
         const isMarketingManager = user.roles.includes('marketing-manager');
+        const isBuyer = user.roles.includes('buyer');
 
         let where: any = {};
-        if (!isCentralAuthority && !isMarketingManager) {
+        if (isBuyer) {
+            where.OR = [
+                { email: user.email || undefined },
+                { phone: user.phone || undefined }
+            ];
+            // Remove undefined values from OR array
+            where.OR = where.OR.filter((item: any) => Object.values(item)[0] !== undefined);
+            if (where.OR.length === 0) return [];
+        } else if (!isCentralAuthority && !isMarketingManager) {
             where.assignedTo = user.userId;
         }
 
         return this.prisma.lead.findMany({
             where,
             include: {
-
                 project: true,
+                assignedToUser: {
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        phone: true
+                    }
+                }
             },
             orderBy: {
                 createdAt: 'desc',
@@ -103,7 +118,6 @@ export class LeadsService {
         const lead = await this.prisma.lead.findUnique({
             where: { id },
             include: {
-
                 project: true,
                 visits: true,
             },
@@ -112,15 +126,6 @@ export class LeadsService {
         if (!lead) {
             throw new NotFoundException(`Lead with ID ${id} not found`);
         }
-
-        // No regional check for now, can add city-based check if needed later
-        /*
-        const userRegions = user.groups.map(g => g.split('/').pop());
-
-        if (!isCentralAuthority && !userRegions.includes(lead.regionId)) {
-            throw new NotFoundException(`Lead with ID ${id} not found`);
-        }
-        */
 
         return lead;
     }
@@ -204,7 +209,7 @@ export class LeadsService {
             return await this.exotelService.makeCall(consultantPhone, lead.phone, lead.id, user.userId);
         } catch (error) {
             console.error('Call initiation error:', error);
-            throw error; // Rethrow to be caught by NestJS exception filter
+            throw error;
         }
     }
 }

@@ -1,58 +1,78 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import PropertyCard from '@/app/components/PropertyCard';
-
-// Sample data - in a real app, this would come from an API
-const savedProperties = [
-    {
-        id: 1,
-        price: "₹85L",
-        config: "3 BHK",
-        location: "Bandra, Mumbai",
-        area: "1800 sqft",
-        age: "2-year old",
-        badge: "Price Dropped",
-        badgeColor: "bg-red-100 text-red-700",
-        bestFor: "Premium living with sea view",
-        budgetRange: "₹80L - ₹1Cr",
-        reason: "High demand property in a prime location. Recently reduced price makes it a steal.",
-        highlights: ["Sea view", "Prime location", "Modern amenities", "Ready to move"],
-        consultantNote: "Excellent investment opportunity. Bandra properties rarely see price drops like this.",
-        consultant: {
-            name: "Anjali Mehta",
-            initials: "AM",
-            rating: 4.9,
-            deals: 42,
-            role: "Luxury Specialist"
-        }
-    },
-    {
-        id: 3,
-        price: "₹38L",
-        config: "3 BHK",
-        location: "Powai, Mumbai",
-        area: "1400 sqft",
-        age: "7-year old",
-        badge: "Value Deal",
-        badgeColor: "bg-amber-100 text-amber-700",
-        bestFor: "Budget-conscious buyers wanting space",
-        budgetRange: "₹35L - ₹45L",
-        reason: "Spacious layout within budget. Emerging neighborhood with excellent metro connectivity.",
-        highlights: ["Best value for space", "Upcoming metro", "Growth locality", "Modern amenities"],
-        consultantNote: "Great value for money. This area is seeing rapid development.",
-        consultant: {
-            name: "Vikram Singh",
-            initials: "VS",
-            rating: 4.7,
-            deals: 28,
-            role: "Area Expert"
-        }
-    }
-];
+import { useConsultingBucket } from '@/app/contexts/ConsultingBucketContext';
+import { propertyService } from '@/app/services/propertyService';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 export default function SavedPropertiesPage() {
-    const [expandedProperty, setExpandedProperty] = useState<number | null>(null);
+    const { items, removeItem } = useConsultingBucket();
+    const { token } = useAuth();
+    const [expandedProperty, setExpandedProperty] = useState<string | number | null>(null);
+    const [savedProperties, setSavedProperties] = useState<any[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+        const fetchDetails = async () => {
+            if (items.length === 0) {
+                setSavedProperties([]);
+                setLoading(false);
+                return;
+            }
+
+            try {
+                setLoading(true);
+                // In a real app we'd have a bulk get, but for now we fetch individual
+                const details = await Promise.all(
+                    items.map(async (item) => {
+                        try {
+                            const p = await propertyService.getOne(item.id, token || null);
+                            return {
+                                id: p.id,
+                                price: `₹${(Number(p.price) / 100000).toFixed(1)}L`,
+                                config: `${p.bedrooms || 2} BHK`,
+                                location: p.location,
+                                area: `${p.area || 1200} sqft`,
+                                age: "New",
+                                badge: p.status === 'APPROVED' ? "Verified" : "New Launch",
+                                badgeColor: p.status === 'APPROVED' ? "bg-green-100 text-green-700" : "bg-blue-100 text-blue-700",
+                                bestFor: p.projectType === 'COMMERCIAL' ? "Investors" : "Families",
+                                budgetRange: `₹${(Number(p.price) / 110000).toFixed(0)}L - ₹${(Number(p.price) / 90000).toFixed(0)}L`,
+                                reason: "Matches your profile expectations in this high-growth corridor.",
+                                highlights: ["Legal Verified", "Modern Amenities", "Prime Location"],
+                                consultantNote: "A premium opportunity with excellent connectivity and infrastructure development.",
+                                consultant: {
+                                    name: "Rajesh Sharma",
+                                    initials: "RS",
+                                    rating: 4.8,
+                                    deals: 35,
+                                    role: "Senior Consultant"
+                                }
+                            };
+                        } catch (e) {
+                            return null;
+                        }
+                    })
+                );
+                setSavedProperties(details.filter(d => d !== null));
+            } catch (error) {
+                console.error("Failed to fetch saved property details:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchDetails();
+    }, [items, token]);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+        );
+    }
 
     return (
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -75,19 +95,32 @@ export default function SavedPropertiesPage() {
                     </div>
                     <h2 className="text-xl font-bold text-gray-900 mb-2">No saved properties</h2>
                     <p className="text-gray-500 mb-6">Explore our curated recommendations to find your dream home.</p>
-                    <a href="/dashboard" className="inline-block bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200">
-                        Back to Dashboard
+                    <a href="/dashboard/search" className="inline-block bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-200">
+                        Explore properties
                     </a>
                 </div>
             ) : (
                 <div className="grid gap-6">
                     {savedProperties.map((property) => (
-                        <PropertyCard
-                            key={property.id}
-                            property={property}
-                            isExpanded={expandedProperty === property.id}
-                            onToggleExpand={(id) => setExpandedProperty(id === expandedProperty ? null : id)}
-                        />
+                        <div key={property.id} className="relative group">
+                            <PropertyCard
+                                property={property}
+                                isExpanded={expandedProperty === property.id}
+                                onToggleExpand={(id) => setExpandedProperty(id === expandedProperty ? null : id)}
+                            />
+                            <button
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    removeItem(property.id);
+                                }}
+                                className="absolute top-4 right-4 z-10 p-2 bg-white/90 backdrop-blur rounded-full text-rose-500 opacity-0 group-hover:opacity-100 transition-opacity shadow-md hover:bg-rose-50"
+                                title="Remove from wishlist"
+                            >
+                                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M19 13H5v-2h14v2z" />
+                                </svg>
+                            </button>
+                        </div>
                     ))}
                 </div>
             )}

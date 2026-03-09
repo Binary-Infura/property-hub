@@ -7,7 +7,8 @@ import PropertySearchCard from '@/app/components/PropertySearchCard';
 import PropertyComparison from '@/app/components/PropertyComparison';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
-import { propertyService, Property as BackendProperty } from '@/app/services/propertyService';
+import { propertyService } from '@/app/services/propertyService';
+import { userService } from '@/app/services/userService';
 
 interface FilterState {
   location: string;
@@ -36,11 +37,23 @@ interface Property {
   recommendationTag?: 'Perfect Match' | 'Budget Friendly' | 'Best Investment';
   recommendationReason?: string;
   image?: string;
+  consultantNote?: string;
+  consultant?: {
+    name: string;
+    initials: string;
+    rating: number;
+    deals: number;
+    role: string;
+  };
+  partner?: {
+    id: string;
+    name: string;
+  };
 }
 
 export default function PropertySearchPage({ hideHeader = false }: { hideHeader?: boolean }) {
   const router = useRouter();
-  const { token } = useAuth();
+  const { token, user } = useAuth();
   const { activeContext } = useUnifiedApp();
   const [loading, setLoading] = useState(true);
   const [allProperties, setAllProperties] = useState<Property[]>([]);
@@ -55,20 +68,16 @@ export default function PropertySearchPage({ hideHeader = false }: { hideHeader?
     constructionStatus: 'Both',
   });
 
-  const [shortlistedIds, setShortlistedIds] = useState<string[]>([]);
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [showComparison, setShowComparison] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
+  // Fetch real properties
   useEffect(() => {
     const fetchRealProperties = async () => {
-      // Don't block because of token; allow public access
       try {
         setLoading(true);
-        const data = await propertyService.getAll(
-          token || null,
-          false
-        );
+        const data = await propertyService.getAll(token || null, false);
 
         const mapped: Property[] = data.map(p => ({
           id: p.id,
@@ -85,7 +94,7 @@ export default function PropertySearchPage({ hideHeader = false }: { hideHeader?
           isReadyToMove: p.status === 'AVAILABLE' || p.status === 'APPROVED',
           highlights: ['Legal Verified', 'Premium Location', 'High ROI'],
           amenities: ['Parking', 'Security', 'Water Supply'],
-          legalVerified: true,
+          legalVerified: p.status === 'APPROVED',
           image: undefined,
           consultantNote: "This property offers exceptional value in a high-growth corridor. Ideal for long-term appreciation.",
           consultant: {
@@ -111,6 +120,30 @@ export default function PropertySearchPage({ hideHeader = false }: { hideHeader?
 
     fetchRealProperties();
   }, [token]);
+
+  // Fetch buyer profile for initial filters
+  useEffect(() => {
+    const fetchBuyerProfile = async () => {
+      if (token && user?.userId && activeContext.activeRole.id === 'buyer') {
+        try {
+          const profileStatus = await userService.getById(user.userId, token);
+          if (profileStatus && profileStatus.buyerProfile) {
+            const bp = profileStatus.buyerProfile;
+            setFilters(prev => ({
+              ...prev,
+              location: bp.preferredLocations && bp.preferredLocations.length > 0 ? bp.preferredLocations[0] : prev.location,
+              budgetMin: bp.budgetMin ? Number(bp.budgetMin) / 100000 : prev.budgetMin,
+              budgetMax: bp.budgetMax ? Number(bp.budgetMax) / 100000 : prev.budgetMax,
+            }));
+          }
+        } catch (error) {
+          console.error('Failed to fetch buyer profile:', error);
+        }
+      }
+    };
+
+    fetchBuyerProfile();
+  }, [token, user?.userId, activeContext.activeRole.id]);
 
   const [filteredProperties, setFilteredProperties] = useState<Property[]>([]);
 
@@ -155,12 +188,6 @@ export default function PropertySearchPage({ hideHeader = false }: { hideHeader?
 
     setFilteredProperties(filtered);
   }, [filters, allProperties]);
-
-  const handleShortlist = (id: string) => {
-    setShortlistedIds(prev =>
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    );
-  };
 
   const handleToggleCompare = (id: string) => {
     setCompareIds(prev =>
@@ -284,9 +311,7 @@ export default function PropertySearchPage({ hideHeader = false }: { hideHeader?
                   <div key={property.id} className="hover:scale-[1.01] transition-transform duration-500">
                     <PropertySearchCard
                       property={property}
-                      isShortlisted={shortlistedIds.includes(property.id)}
                       isSelectedForCompare={compareIds.includes(property.id)}
-                      onShortlist={handleShortlist}
                       onViewDetails={handleViewDetails}
                       onToggleCompare={handleToggleCompare}
                     />

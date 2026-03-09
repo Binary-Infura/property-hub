@@ -15,7 +15,7 @@ export default function Navbar() {
     const [isBucketOpen, setIsBucketOpen] = useState(false);
     const bucketRef = useRef<HTMLDivElement>(null);
 
-    const isBuyer = activeContext?.activeRole?.id === 'buyer';
+    const isBuyer = (activeContext?.activeRole?.id === 'buyer') && authenticated;
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
