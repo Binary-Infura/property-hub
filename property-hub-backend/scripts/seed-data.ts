@@ -31,145 +31,85 @@ async function main() {
     // 2. Users & Profiles
     console.log('Creating Users and Profiles...');
 
-    const caUser = await prisma.user.upsert({
-        where: { email: 'central@propertyhub.com' },
-        update: {},
+    // Super User with all roles
+    console.log('Creating Super User with all roles...');
+    const superUser = await prisma.user.upsert({
+        where: { email: 'superuser@propertyhub.com' },
+        update: {
+            roles: { set: ['central-authority', 'property-partner', 'consultant', 'marketing-manager', 'buyer', 'loan-adviser'] }
+        },
         create: {
-            email: 'central@propertyhub.com',
-            firstName: 'Central',
-            lastName: 'Authority',
-            roles: ['central-authority'],
+            email: 'superuser@propertyhub.com',
+            firstName: 'Super',
+            lastName: 'User',
+            roles: ['central-authority', 'property-partner', 'consultant', 'marketing-manager', 'buyer', 'loan-adviser'],
             status: 'active',
             passwordHash,
+            agencyName: 'Prestige Builders',
+            phone: '+919876543222',
         },
     });
 
+    // Create all profiles for the super user
     await prisma.centralAuthorityProfile.upsert({
-        where: { userId: caUser.id },
+        where: { userId: superUser.id },
         update: {},
         create: {
-            userId: caUser.id,
+            userId: superUser.id,
             department: 'Operations',
             accessLevel: 'Admin'
         }
     });
 
-    const ppUser = await prisma.user.upsert({
-        where: { email: 'property@propertyhub.com' },
-        update: { roles: { set: ['property-partner'] } },
-        create: {
-            email: 'property@propertyhub.com',
-            firstName: 'Property',
-            lastName: 'Partner',
-            roles: ['property-partner'],
-            status: 'active',
-            agencyName: 'Prestige Builders',
-            passwordHash,
-        }
-    });
-
     await prisma.propertyPartnerProfile.upsert({
-        where: { userId: ppUser.id },
+        where: { userId: superUser.id },
         update: {},
         create: {
-            userId: ppUser.id,
+            userId: superUser.id,
             companyName: 'Prestige Builders',
             companyAddress: '123 Builder Lane, Mumbai',
             isPremium: true
         }
     });
 
-    const consUser = await prisma.user.upsert({
-        where: { email: 'testconsultant@gmail.com' },
-        update: { roles: { set: ['consultant'] } },
-        create: {
-            email: 'testconsultant@gmail.com',
-            firstName: 'Test',
-            lastName: 'Consultant',
-            roles: ['consultant'],
-            status: 'active',
-            passwordHash,
-        }
-    });
-
     await prisma.consultantProfile.upsert({
-        where: { userId: consUser.id },
+        where: { userId: superUser.id },
         update: {},
         create: {
-            userId: consUser.id,
-            specialization: ['Residential'],
-            experienceYears: 5
+            userId: superUser.id,
+            specialization: ['Residential', 'Commercial', 'Investment'],
+            experienceYears: 10
         }
     });
 
-    const marketingManagers = [];
-    for (let i = 1; i <= 2; i++) {
-        const user = await prisma.user.upsert({
-            where: { email: `marketing${i}@propertyhub.com` },
-            update: {},
-            create: {
-                email: `marketing${i}@propertyhub.com`,
-                firstName: 'Marketing',
-                lastName: `Head ${i}`,
-                roles: ['marketing-manager'],
-                status: 'active',
-                passwordHash,
-            }
-        });
-
-        await prisma.marketingManagerProfile.upsert({
-            where: { userId: user.id },
-            update: {
-                campaignBudgetLimit: 1000000
-            },
-            create: {
-                userId: user.id,
-                campaignBudgetLimit: 1000000
-            }
-        });
-        marketingManagers.push(user);
-    }
-
-    const buyerUser = await prisma.user.upsert({
-        where: { email: 'buyer@test.com' },
+    await prisma.marketingManagerProfile.upsert({
+        where: { userId: superUser.id },
         update: {},
         create: {
-            email: 'buyer@test.com',
-            firstName: 'Test',
-            lastName: 'Buyer',
-            roles: ['buyer'],
-            status: 'active',
-            passwordHash,
+            userId: superUser.id,
+            campaignBudgetLimit: 5000000
         }
     });
 
     await prisma.buyerProfile.upsert({
-        where: { userId: buyerUser.id },
+        where: { userId: superUser.id },
         update: {},
         create: {
-            userId: buyerUser.id,
+            userId: superUser.id,
             budgetMin: 5000000,
-            budgetMax: 20000000,
-            preferredLocations: ['Mumbai', 'Pune']
+            budgetMax: 100000000,
+            preferredLocations: ['Mumbai', 'Pune', 'Bangalore', 'Delhi']
         }
     });
 
-    const loanAdviserUser = await prisma.user.upsert({
-        where: { email: 'loanadviser@propertyhub.com' },
-        update: { roles: { set: ['loan-adviser'] } },
-        create: {
-            email: 'loanadviser@propertyhub.com',
-            firstName: 'Finance',
-            lastName: 'Expert',
-            roles: ['loan-adviser'],
-            status: 'active',
-            passwordHash,
-            phone: '+919876543222',
-        }
-    });
+    // Use superUser for all role assignments
+    const caUser = superUser;
+    const ppUser = superUser;
+    const consUser = superUser;
+    const buyerUser = superUser;
+    const loanAdviserUser = superUser;
 
-    // We can also create a profile for loan adviser if it exists, or just assign city allocations if needed.
-    // Assuming no specific profile table is strictly required or we just use user table roles.
+    const marketingManagers = [superUser];
 
     // 3. Properties
     console.log('Creating Properties...');
