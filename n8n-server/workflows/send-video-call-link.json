@@ -1,0 +1,200 @@
+{
+  "name": "Send Video Call Link via Email or WhatsApp",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "send-video-call-link",
+        "httpMethod": "POST",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "name": "Webhook - Video Call Link",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [250, 300],
+      "webhookId": "send-video-call-link-webhook"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{$json.channel}}",
+              "operation": "equal",
+              "value2": "email"
+            }
+          ]
+        }
+      },
+      "name": "Check Channel",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [450, 300]
+    },
+    {
+      "parameters": {
+        "fromEmail": "notifications@propertyhub.com",
+        "toEmail": "={{$json.leadEmail}}",
+        "subject": "Video Call Link - {{$json.projectName}} Property",
+        "emailType": "html",
+        "message": "<div style=\"font-family: Arial, sans-serif; line-height: 1.6; color: #333;\">\n  <div style=\"background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;\">\n    <h2 style=\"color: #2c3e50; margin-top: 0;\">Your Video Call is Ready!</h2>\n    <p>Hi <strong>{{$json.leadName}}</strong>,</p>\n    <p>{{$json.consultantName}} has sent you a video call link to discuss the <strong>{{$json.projectName}}</strong> property.</p>\n  </div>\n  \n  <div style=\"background-color: #e8f4f8; padding: 20px; border-radius: 8px; text-align: center; margin-bottom: 20px;\">\n    <a href=\"{{$json.videoCallLink}}\" style=\"background-color: #0099ff; color: white; padding: 12px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; display: inline-block;\">Join Video Call</a>\n  </div>\n  \n  <div style=\"background-color: #f8f9fa; padding: 20px; border-radius: 8px; font-size: 14px;\">\n    <p><strong>Call Details:</strong></p>\n    <ul style=\"margin: 10px 0; padding-left: 20px;\">\n      <li><strong>With:</strong> {{$json.consultantName}}</li>\n      <li><strong>Contact:</strong> {{$json.consultantPhone}}</li>\n      <li><strong>Property:</strong> {{$json.projectName}}</li>\n      <li><strong>Time:</strong> {{$json.timestamp}}</li>\n    </ul>\n  </div>\n  \n  <p style=\"color: #7f8c8d; font-size: 12px; margin-top: 20px;\">\n    If you have any questions, please contact {{$json.consultantName}} at {{$json.consultantEmail}} or {{$json.consultantPhone}}.\n  </p>\n  \n  <p style=\"color: #7f8c8d; font-size: 12px;\">\n    PropertyHub Support Team\n  </p>\n</div>"
+      },
+      "name": "Send Email",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2,
+      "position": [650, 150]
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "messageCreate",
+        "phoneNumberId": "={{$env.WHATSAPP_PHONE_NUMBER_ID}}",
+        "to": "={{$json.leadPhone.replace(/^\\+/, '')}}",
+        "messageType": "template",
+        "templateMessageName": "video_call_link",
+        "templateLanguageCode": "en",
+        "templateMessageComponents": [
+          {
+            "type": "header",
+            "parameters": [
+              {
+                "type": "text",
+                "text": "{{$json.consultantName}}"
+              }
+            ]
+          },
+          {
+            "type": "body",
+            "parameters": [
+              {
+                "type": "text",
+                "text": "{{$json.leadName}}"
+              },
+              {
+                "type": "text",
+                "text": "{{$json.projectName}}"
+              },
+              {
+                "type": "text",
+                "text": "{{$json.videoCallLink}}"
+              }
+            ]
+          },
+          {
+            "type": "button",
+            "sub_type": "url",
+            "index": "0",
+            "parameters": [
+              {
+                "type": "text",
+                "text": "{{$json.videoCallLink}}"
+              }
+            ]
+          }
+        ]
+      },
+      "name": "Send WhatsApp Message",
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 2,
+      "position": [650, 450]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Log the successful send\nconst channel = $input.item.json.channel;\nconst leadName = $input.item.json.leadName;\nconst leadEmail = $input.item.json.leadEmail;\nconst leadPhone = $input.item.json.leadPhone;\n\nreturn {\n  json: {\n    success: true,\n    message: `Video call link sent successfully via ${channel}`,\n    channel: channel,\n    leadIdentifier: channel === 'email' ? leadEmail : leadPhone,\n    timestamp: new Date().toISOString()\n  }\n};"
+      },
+      "name": "Success Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [850, 300]
+    },
+    {
+      "parameters": {
+        "errorSimple": {
+          "message": "Failed to send video call link"
+        }
+      },
+      "name": "Error Handling",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [850, 600]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Log error\nreturn {\n  json: {\n    success: false,\n    message: 'Failed to send video call link',\n    error: $input.item.json.error\n  }\n};"
+      },
+      "name": "Error Response",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1050, 600]
+    }
+  ],
+  "connections": {
+    "Webhook - Video Call Link": {
+      "main": [
+        [
+          {
+            "node": "Check Channel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Channel": {
+      "main": [
+        [
+          {
+            "node": "Send Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send WhatsApp Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Email": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send WhatsApp Message": {
+      "main": [
+        [
+          {
+            "node": "Success Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Success Response": {
+      "main": [
+        [
+          {
+            "node": "Error Handling",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "pinData": {}
+}

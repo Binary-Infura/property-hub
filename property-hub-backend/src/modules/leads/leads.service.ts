@@ -1,15 +1,18 @@
 import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { CreateLeadDto, UpdateLeadDto } from './leads.dto';
+import { CreateLeadDto, UpdateLeadDto, SendVideoCallLinkDto } from './leads.dto';
 import { Lead } from '@prisma/client';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 import { ExotelService } from '../exotel/exotel.service';
+import { ConfigService } from '@nestjs/config';
+import axios from 'axios';
 
 @Injectable()
 export class LeadsService {
     constructor(
         private prisma: PrismaService,
         private exotelService: ExotelService,
+        private configService: ConfigService,
     ) { }
 
     async findAll(user: AuthenticatedUser): Promise<Lead[]> {
@@ -261,6 +264,106 @@ export class LeadsService {
             }
             // Otherwise wrap in InternalServerErrorException
             throw new InternalServerErrorException(`Failed to initiate call: ${error.message || 'Unknown error'}`);
+        }
+    }
+
+    async sendVideoCallLink(id: string, dto: SendVideoCallLinkDto, user: AuthenticatedUser) {
+        try {
+            // Get the lead
+            const lead = await this.prisma.lead.findUnique({
+                where: { id },
+                include: {
+                    project: true,
+                    assignedToUser: true,
+                },
+            });
+
+            if (!lead) {
+                throw new NotFoundException(`Lead with ID ${id} not found`);
+            }
+
+            // Authorization check
+            const isCentralAuthority = user.roles?.includes('central-authority');
+            const isMarketingManager = user.roles?.includes('marketing-manager');
+            const isConsultant = user.roles?.includes('consultant');
+            const isAssignedConsultant = lead.assignedTo === user.userId;
+            const isUnassignedLead = !lead.assignedTo;
+
+            if (!isCentralAuthority && !isMarketingManager && !(isConsultant && (isAssignedConsultant || isUnassignedLead))) {
+                throw new NotFoundException(`Lead with ID ${id} not found`);
+            }
+
+            // Validate contact info
+            if (dto.channel === 'email' && !lead.email) {
+                throw new BadRequestException('Lead does not have an email address');
+            }
+            if (dto.channel === 'whatsapp' && !lead.phone) {
+                throw new BadRequestException('Lead does not have a phone number');
+            }
+
+            // Get consultant info
+            const consultant = await this.prisma.user.findUnique({
+                where: { id: user.userId },
+                include: { userMetadata: true },
+            });
+
+            if (!consultant) {
+                throw new InternalServerErrorException('Consultant profile not found');
+            }
+
+            // Generate video room link
+            const videoRoomName = dto.videoRoomName || `room-${lead.id}-${Date.now()}`;
+            const videoCallLink = `${process.env.APP_URL || 'http://localhost:3001'}/consultant/call/${videoRoomName}?leadName=${encodeURIComponent(lead.name || 'Guest')}`;
+
+            // Prepare payload for n8n workflow
+            const workflowPayload = {
+                leadId: lead.id,
+                leadName: lead.name,
+                leadEmail: lead.email,
+                leadPhone: lead.phone,
+                consultantName: `${consultant.firstName} ${consultant.lastName}`.trim(),
+                consultantPhone: consultant.phone || consultant.userMetadata?.phone,
+                consultantEmail: consultant.email,
+                projectName: lead.project?.name,
+                videoCallLink: videoCallLink,
+                channel: dto.channel,
+                timestamp: new Date().toISOString(),
+            };
+
+            // Trigger n8n workflow
+            const n8nWebhookUrl = this.configService.get<string>('N8N_SEND_VIDEO_CALL_LINK_WEBHOOK_URL') || 'http://localhost:5678/webhook/send-video-call-link';
+            const n8nApiKey = this.configService.get<string>('N8N_WEBHOOK_API_KEY');
+
+            const response = await axios.post(n8nWebhookUrl, workflowPayload, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-API-Key': n8nApiKey,
+                },
+                timeout: 10000,
+            });
+
+            // Log the communication
+            await this.prisma.lead.update({
+                where: { id },
+                data: {
+                    notes: (lead.notes || '') + `\n[${new Date().toISOString()}] Video call link sent via ${dto.channel}`,
+                },
+            });
+
+            return {
+                success: true,
+                message: `Video call link sent successfully via ${dto.channel}`,
+                videoCallLink: videoCallLink,
+                workflowExecutionId: response.data?.executionId,
+            };
+        } catch (error) {
+            console.error('Send video call link error:', error);
+            if (error.status) {
+                throw error;
+            }
+            throw new InternalServerErrorException(
+                `Failed to send video call link: ${error.message || 'Unknown error'}`
+            );
         }
     }
 }

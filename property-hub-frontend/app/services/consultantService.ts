@@ -54,4 +54,15 @@ export const consultantService = {
         });
         return response.data;
     },
+
+    sendVideoCallLink: async (token: string, leadId: string, channel: 'email' | 'whatsapp') => {
+        const response = await axios.post(`${API_URL}/leads/${leadId}/send-video-link`, {
+            channel,
+        }, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    },
 };

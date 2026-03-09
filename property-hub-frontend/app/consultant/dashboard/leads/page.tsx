@@ -106,6 +106,8 @@ export default function LeadsPage() {
     const [activeCall, setActiveCall] = useState<any | null>(null); // lead object for modal
     const [selectedLeadForDetails, setSelectedLeadForDetails] = useState<any | null>(null);
     const [selectedLeadForVideo, setSelectedLeadForVideo] = useState<any | null>(null);
+    const [sendingLinkId, setSendingLinkId] = useState<string | null>(null);
+    const [sendingChannel, setSendingChannel] = useState<'email' | 'whatsapp' | null>(null);
 
     useEffect(() => {
         async function fetchData() {
@@ -235,6 +237,27 @@ export default function LeadsPage() {
         } finally {
             setCallingId(null);
             callInProgress.current = false;
+        }
+    };
+
+    const handleSendVideoLink = async (lead: any, channel: 'email' | 'whatsapp') => {
+        if (!token) return;
+        setSendingLinkId(lead.id);
+        setSendingChannel(channel);
+        try {
+            const result = await consultantService.sendVideoCallLink(token, lead.id, channel);
+            console.log('Video link sent:', result);
+            alert(`Video call link sent successfully via ${channel}!`);
+        } catch (error: any) {
+            console.error('Error sending video link:', error);
+            const errorMessage = error.response?.data?.message || 
+                                 error.response?.data?.error || 
+                                 error.message || 
+                                 `Failed to send video link via ${channel}`;
+            alert(`Error: ${errorMessage}`);
+        } finally {
+            setSendingLinkId(null);
+            setSendingChannel(null);
         }
     };
 
@@ -435,6 +458,38 @@ export default function LeadsPage() {
                                                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                                             <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                                                         </svg>
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => handleSendVideoLink(lead, 'email')}
+                                                        disabled={sendingLinkId === lead.id && sendingChannel === 'email'}
+                                                        title={lead.email ? `Send via email` : 'No email address'}
+                                                        className={`p-2 rounded-lg ${sendingLinkId === lead.id && sendingChannel === 'email'
+                                                            ? 'bg-gray-100 text-gray-400'
+                                                            : lead.email ? 'bg-orange-50 text-orange-600 hover:bg-orange-100' : 'bg-gray-50 text-gray-400'
+                                                            } transition-colors`}
+                                                    >
+                                                        {sendingLinkId === lead.id && sendingChannel === 'email' ? (
+                                                            <span className="inline-block h-4 w-4 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
+                                                        ) : (
+                                                            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" /></svg>
+                                                        )}
+                                                    </button>
+
+                                                    <button
+                                                        onClick={() => handleSendVideoLink(lead, 'whatsapp')}
+                                                        disabled={sendingLinkId === lead.id && sendingChannel === 'whatsapp'}
+                                                        title={lead.phone ? `Send via WhatsApp` : 'No phone number'}
+                                                        className={`p-2 rounded-lg ${sendingLinkId === lead.id && sendingChannel === 'whatsapp'
+                                                            ? 'bg-gray-100 text-gray-400'
+                                                            : lead.phone ? 'bg-green-50 text-green-600 hover:bg-green-100' : 'bg-gray-50 text-gray-400'
+                                                            } transition-colors`}
+                                                    >
+                                                        {sendingLinkId === lead.id && sendingChannel === 'whatsapp' ? (
+                                                            <span className="inline-block h-4 w-4 border-2 border-green-400 border-t-transparent rounded-full animate-spin" />
+                                                        ) : (
+                                                            <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.6 6.32c-1.63-1.6-3.8-2.48-6.1-2.48-4.76 0-8.63 3.87-8.63 8.63 0 1.52.39 3 1.15 4.31L2.7 19.87l4.72-1.24c1.27.68 2.69 1.04 4.14 1.04h.01c4.76 0 8.63-3.87 8.63-8.63 0-2.3-.9-4.47-2.51-6.1zm-6.1 13.69c-1.29 0-2.56-.33-3.68-.97l-.26-.16-2.71.71.72-2.63-.17-.27c-.71-1.13-1.09-2.43-1.09-3.76 0-3.96 3.22-7.18 7.18-7.18 1.91 0 3.71.77 5.06 2.11 1.35 1.35 2.11 3.15 2.11 5.06 0 3.96-3.22 7.18-7.18 7.18zm3.94-5.39c-.22-.11-1.29-.64-1.49-.71-.2-.07-.34-.11-.49.11-.14.22-.57.71-.7.86-.13.15-.26.17-.48.05-.22-.11-.92-.34-1.75-1.08-.65-.58-1.09-1.29-1.22-1.51-.13-.22-.01-.34.1-.45.1-.1.22-.26.33-.39.11-.13.14-.22.22-.37.07-.15.04-.28-.02-.39-.07-.11-.49-1.18-.67-1.61-.18-.41-.36-.36-.49-.36-.13 0-.28-.02-.42-.02-.15 0-.39.06-.59.28-.2.22-.76.74-.76 1.81 0 1.07.78 2.1.89 2.25.11.15 1.54 2.35 3.73 3.3 2.2.95 2.2.63 2.6.59.4-.04 1.29-.53 1.47-1.04.18-.51.18-.95.12-1.04-.05-.09-.2-.14-.42-.25z" /></svg>
+                                                        )}
                                                     </button>
 
                                                     <button

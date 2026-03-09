@@ -10,7 +10,7 @@ import {
     Query,
 } from '@nestjs/common';
 import { LeadsService } from './leads.service';
-import { CreateLeadDto, UpdateLeadDto } from './leads.dto';
+import { CreateLeadDto, UpdateLeadDto, SendVideoCallLinkDto } from './leads.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { RequireRoles } from '../../common/decorators/require-roles.decorator';
@@ -142,5 +142,15 @@ export class LeadsController {
         @CurrentUser() user: AuthenticatedUser,
     ) {
         return this.leadsService.initiateCall(id, user);
+    }
+
+    @Post(':id/send-video-link')
+    @RequireRoles('consultant')
+    sendVideoCallLink(
+        @Param('id') id: string,
+        @Body() dto: SendVideoCallLinkDto,
+        @CurrentUser() user: AuthenticatedUser,
+    ) {
+        return this.leadsService.sendVideoCallLink(id, dto, user);
     }
 }
