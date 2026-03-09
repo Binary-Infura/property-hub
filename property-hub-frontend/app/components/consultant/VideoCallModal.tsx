@@ -7,8 +7,8 @@ import {
     useLocalParticipant,
     useTracks,
     VideoTrack,
-} from '@livekit/components-react';
-import { Track } from 'livekit-client';
+} from '@/node_modules/@livekit/components-react/dist';
+import { Track } from '@/node_modules/livekit-client/dist/src';
 import '@livekit/components-styles';
 import { livekitService } from '@/app/services/livekitService';
 
