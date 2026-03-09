@@ -223,5 +223,3 @@ export class ChatService {
         };
     }
 }
-return {
-            id: chatSession.id
