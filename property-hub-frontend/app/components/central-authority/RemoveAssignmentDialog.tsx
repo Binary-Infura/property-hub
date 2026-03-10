@@ -13,12 +13,14 @@ export default function RemoveAssignmentDialog({ isOpen, user, onClose, onConfir
 
     const getRoleName = (role: string) => {
         switch (role) {
-            case 'city-manager':
+            case 'CITY_MANAGER':
                 return 'City Manager';
-            case 'marketing-manager':
+            case 'MARKETING_MANAGER':
                 return 'Marketing Manager';
+            case 'ONBOARDING_MANAGER':
+                return 'Onboarding Manager';
             default:
-                return role;
+                return role.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
         }
     };
 

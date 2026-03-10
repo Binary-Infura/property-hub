@@ -15,6 +15,9 @@ export class CreateMarketingManagerDto {
     @IsString()
     @IsOptional()
     phone?: string;
+
+    @IsOptional()
+    campaignBudgetLimit?: number;
 }
 
 export class MarketingManagerDto {

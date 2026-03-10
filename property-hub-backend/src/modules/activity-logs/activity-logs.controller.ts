@@ -3,6 +3,7 @@ import { ActivityLogsService } from './activity-logs.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { RequireRoles } from '../../common/decorators/require-roles.decorator';
+import { UserRole } from '../../common/enums/role.enum';
 
 @Controller('api/activity-logs')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -10,7 +11,7 @@ export class ActivityLogsController {
     constructor(private readonly activityLogsService: ActivityLogsService) { }
 
     @Get()
-    @RequireRoles('central-authority')
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     async getRecent(
         @Query('page') page: string = '1',
         @Query('limit') limit: string = '20'

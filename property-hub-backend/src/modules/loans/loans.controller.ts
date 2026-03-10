@@ -12,6 +12,7 @@ import { CreateLoanDto, UpdateLoanStatusDto, ApplyLoanDto } from './loans.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { RequireRoles } from '../../common/decorators/require-roles.decorator';
+import { UserRole } from '../../common/enums/role.enum';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 
@@ -21,37 +22,37 @@ export class LoansController {
     constructor(private readonly loansService: LoansService) { }
 
     @Post()
-    @RequireRoles('consultant', 'central-authority')
+    @RequireRoles(UserRole.CONSULTANT, UserRole.CENTRAL_AUTHORITY)
     create(@Body() dto: CreateLoanDto) {
         return this.loansService.create(dto);
     }
 
     @Post('apply')
-    @RequireRoles('buyer')
+    @RequireRoles(UserRole.BUYER)
     apply(@Body() dto: ApplyLoanDto, @CurrentUser() user: AuthenticatedUser) {
         return this.loansService.applyForLoan(dto, user);
     }
 
     @Get()
-    @RequireRoles('consultant', 'central-authority', 'loan-adviser', 'buyer')
+    @RequireRoles(UserRole.CONSULTANT, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_ADVISOR, UserRole.BUYER)
     findAll(@CurrentUser() user: AuthenticatedUser) {
-        if (user.roles.includes('central-authority') || user.roles.includes('loan-adviser')) {
+        if (user.roles.includes(UserRole.CENTRAL_AUTHORITY) || user.roles.includes(UserRole.LOAN_ADVISOR)) {
             return this.loansService.getALl();
         }
-        if (user.roles.includes('buyer')) {
+        if (user.roles.includes(UserRole.BUYER)) {
             return this.loansService.findByUser(user.email, user.phone);
         }
         return this.loansService.findByConsultant(user.userId);
     }
 
     @Get(':id')
-    @RequireRoles('consultant', 'central-authority', 'loan-adviser', 'buyer')
+    @RequireRoles(UserRole.CONSULTANT, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_ADVISOR, UserRole.BUYER)
     findOne(@Param('id') id: string) {
         return this.loansService.findOne(id);
     }
 
     @Patch(':id/status')
-    @RequireRoles('loan-adviser', 'central-authority')
+    @RequireRoles(UserRole.LOAN_ADVISOR, UserRole.CENTRAL_AUTHORITY)
     updateStatus(
         @Param('id') id: string,
         @Body() dto: UpdateLoanStatusDto

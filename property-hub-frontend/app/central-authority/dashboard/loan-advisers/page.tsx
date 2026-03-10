@@ -28,7 +28,7 @@ export default function LoanAdvisersPage() {
         try {
             setLoading(true);
             const result = await userService.getAllByRole(
-                'loan-adviser',
+                'LOAN_ADVISOR',
                 token
             );
             setAdvisers(result.data);
@@ -73,7 +73,7 @@ export default function LoanAdvisersPage() {
             } else {
                 const created = await userService.create({
                     ...formData,
-                    role: 'loan-adviser',
+                    role: 'LOAN_ADVISOR',
                 }, token);
                 setAdvisers([created, ...advisers]);
                 setShowAddModal(false);

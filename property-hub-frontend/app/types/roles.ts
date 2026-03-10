@@ -1,14 +1,14 @@
 export type UserRole =
-    | 'central-authority'
-    | 'dsa'
-    | 'property-partner'
-    | 'consultant'
-    | 'marketing-manager'
-    | 'influencer'
-    | 'loan-adviser'
-    | 'visit-executive'
-    | 'onboarding-manager'
-    | 'buyer';
+    | 'CENTRAL_AUTHORITY'
+    | 'DSA'
+    | 'PROPERTY_PARTNER'
+    | 'CONSULTANT'
+    | 'MARKETING_MANAGER'
+    | 'INFLUENCER'
+    | 'LOAN_ADVISOR'
+    | 'VISIT_EXECUTIVE'
+    | 'ONBOARDING_MANAGER'
+    | 'BUYER';
 
 
 export interface Permission {
@@ -25,18 +25,18 @@ export interface RoleDefinition {
 }
 
 export const ROLES: Record<UserRole, RoleDefinition> = {
-    'central-authority': {
-        role: 'central-authority',
+    'CENTRAL_AUTHORITY': {
+        role: 'CENTRAL_AUTHORITY',
         label: 'Central Authority',
         description: 'Platform-wide administrator with full access',
         permissions: [
             { resource: '*', actions: ['create', 'read', 'update', 'delete', 'approve', 'override'] }
         ],
-        canCreateRoles: ['marketing-manager', 'influencer']
+        canCreateRoles: ['MARKETING_MANAGER', 'INFLUENCER']
     },
 
-    'dsa': {
-        role: 'dsa',
+    'DSA': {
+        role: 'DSA',
         label: 'DSA',
         description: 'Direct Selling Agent',
         permissions: [
@@ -44,44 +44,44 @@ export const ROLES: Record<UserRole, RoleDefinition> = {
             { resource: 'leads', actions: ['read', 'update'] }
         ]
     },
-    'property-partner': {
-        role: 'property-partner',
+    'PROPERTY_PARTNER': {
+        role: 'PROPERTY_PARTNER',
         label: 'Property Partner',
         description: 'Property developer and partner',
         permissions: []
     },
-    'consultant': {
-        role: 'consultant',
+    'CONSULTANT': {
+        role: 'CONSULTANT',
         label: 'Consultant',
         description: 'Property consultant',
         permissions: []
     },
-    'loan-adviser': {
-        role: 'loan-adviser',
-        label: 'Loan Adviser',
-        description: 'Adviser for loans',
+    'LOAN_ADVISOR': {
+        role: 'LOAN_ADVISOR',
+        label: 'Loan Advisor',
+        description: 'Advisor for loans',
         permissions: []
     },
-    'visit-executive': {
-        role: 'visit-executive',
+    'VISIT_EXECUTIVE': {
+        role: 'VISIT_EXECUTIVE',
         label: 'Visit Executive',
         description: 'Executive for site visits',
         permissions: []
     },
-    'onboarding-manager': {
-        role: 'onboarding-manager',
+    'ONBOARDING_MANAGER': {
+        role: 'ONBOARDING_MANAGER',
         label: 'Onboarding Manager',
         description: 'Manages user onboarding',
         permissions: []
     },
-    'buyer': {
-        role: 'buyer',
+    'BUYER': {
+        role: 'BUYER',
         label: 'Buyer',
         description: 'End user looking for properties',
         permissions: []
     },
-    'marketing-manager': {
-        role: 'marketing-manager',
+    'MARKETING_MANAGER': {
+        role: 'MARKETING_MANAGER',
         label: 'Marketing Manager',
         description: 'Head of marketing department with full team and campaign management',
         permissions: [
@@ -94,8 +94,8 @@ export const ROLES: Record<UserRole, RoleDefinition> = {
             { resource: 'projects', actions: ['read'] }
         ]
     },
-    'influencer': {
-        role: 'influencer',
+    'INFLUENCER': {
+        role: 'INFLUENCER',
         label: 'Influencer',
         description: 'Marketing influencer responsible for platform promotion',
         permissions: [

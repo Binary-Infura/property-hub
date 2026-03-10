@@ -3,6 +3,7 @@ import { PrismaService } from '../../database/prisma.service';
 import { CreateLeadDto, UpdateLeadDto, SendVideoCallLinkDto } from './leads.dto';
 import { Lead } from '@prisma/client';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
+import { UserRole } from '../../common/enums/role.enum';
 import { ExotelService } from '../exotel/exotel.service';
 import { ConfigService } from '@nestjs/config';
 import axios from 'axios';
@@ -16,9 +17,9 @@ export class LeadsService {
     ) { }
 
     async findAll(user: AuthenticatedUser): Promise<Lead[]> {
-        const isCentralAuthority = user.roles.includes('central-authority');
-        const isMarketingManager = user.roles.includes('marketing-manager');
-        const isBuyer = user.roles.includes('buyer');
+        const isCentralAuthority = user.roles.includes(UserRole.CENTRAL_AUTHORITY);
+        const isMarketingManager = user.roles.includes(UserRole.MARKETING_MANAGER);
+        const isBuyer = user.roles.includes(UserRole.BUYER);
 
         let where: any = {};
         if (isBuyer) {
@@ -52,7 +53,7 @@ export class LeadsService {
     }
 
     async getCallLogs(user: AuthenticatedUser, leadId?: string, consultantId?: string, projectId?: string) {
-        const isCentralAuthority = user.roles.includes('central-authority');
+        const isCentralAuthority = user.roles.includes(UserRole.CENTRAL_AUTHORITY);
 
         // 1. Fetch incomplete calls for this user/lead
         // For central authority, they can see everything unless they filter.
@@ -131,8 +132,8 @@ export class LeadsService {
         }
 
         // Authorization check: only central-authority, marketing-manager, and the assigned consultant can access the lead
-        const isCentralAuthority = user.roles.includes('central-authority');
-        const isMarketingManager = user.roles.includes('marketing-manager');
+        const isCentralAuthority = user.roles.includes(UserRole.CENTRAL_AUTHORITY);
+        const isMarketingManager = user.roles.includes(UserRole.MARKETING_MANAGER);
         const isAssignedConsultant = lead.assignedTo === user.userId;
 
         if (!isCentralAuthority && !isMarketingManager && !isAssignedConsultant) {
@@ -215,9 +216,9 @@ export class LeadsService {
             }
 
             // Authorization check specific to calls: consultants can call leads assigned to them or unassigned leads
-            const isCentralAuthority = user.roles?.includes('central-authority');
-            const isMarketingManager = user.roles?.includes('marketing-manager');
-            const isConsultant = user.roles?.includes('consultant');
+            const isCentralAuthority = user.roles?.includes(UserRole.CENTRAL_AUTHORITY);
+            const isMarketingManager = user.roles?.includes(UserRole.MARKETING_MANAGER);
+            const isConsultant = user.roles?.includes(UserRole.CONSULTANT);
             const isAssignedConsultant = lead.assignedTo === user.userId;
             const isUnassignedLead = !lead.assignedTo;
 
@@ -239,7 +240,6 @@ export class LeadsService {
             // Get consultant phone from user profile
             const consultant = await this.prisma.user.findUnique({
                 where: { id: user.userId },
-                include: { userMetadata: true },
             });
 
             if (!consultant) {
@@ -247,7 +247,7 @@ export class LeadsService {
                 throw new InternalServerErrorException('Consultant profile not found');
             }
 
-            const consultantPhone = consultant.phone || consultant.userMetadata?.phone;
+            const consultantPhone = consultant.phone;
 
             if (!consultantPhone) {
                 console.warn(`No phone number found for consultant ${user.userId}`);
@@ -283,9 +283,9 @@ export class LeadsService {
             }
 
             // Authorization check
-            const isCentralAuthority = user.roles?.includes('central-authority');
-            const isMarketingManager = user.roles?.includes('marketing-manager');
-            const isConsultant = user.roles?.includes('consultant');
+            const isCentralAuthority = user.roles?.includes(UserRole.CENTRAL_AUTHORITY);
+            const isMarketingManager = user.roles?.includes(UserRole.MARKETING_MANAGER);
+            const isConsultant = user.roles?.includes(UserRole.CONSULTANT);
             const isAssignedConsultant = lead.assignedTo === user.userId;
             const isUnassignedLead = !lead.assignedTo;
 
@@ -304,7 +304,6 @@ export class LeadsService {
             // Get consultant info
             const consultant = await this.prisma.user.findUnique({
                 where: { id: user.userId },
-                include: { userMetadata: true },
             });
 
             if (!consultant) {

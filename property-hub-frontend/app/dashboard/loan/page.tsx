@@ -32,7 +32,7 @@ export default function LoanAdvisorSelectionPage() {
             try {
                 setLoading(true);
                 const [usersData, citiesData, loansData] = await Promise.all([
-                    userService.getAllByRole('loan-adviser', token, false, 1, 100),
+                    userService.getAllByRole('LOAN_ADVISOR', token, false, 1, 100),
                     cityService.getAll(token).catch(() => []),
                     loanService.getLoans(token).catch(() => []) // Active applications
                 ]);

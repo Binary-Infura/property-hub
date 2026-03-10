@@ -4,6 +4,7 @@ import { CreateUnitDto, UpdateUnitDto, MarkUnitAsSoldDto, BulkCreateUnitsDto } f
 import { PropertyUnit, Prisma } from '@prisma/client';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 import { UsersService } from '../users/users.service';
+import { UserRole } from '../../common/enums/role.enum';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 
 @Injectable()
@@ -24,7 +25,7 @@ export class UnitsService {
 
         if (!project) throw new NotFoundException('Project not found');
 
-        const isPropertyPartner = user.roles.includes('property-partner');
+        const isPropertyPartner = user.roles.includes(UserRole.PROPERTY_PARTNER);
         if (isPropertyPartner && project.onboardedById !== internalUser.id) {
             throw new BadRequestException('You can only add units to projects you have onboarded.');
         }
@@ -140,7 +141,7 @@ export class UnitsService {
         }
 
         const internalUser = await this.usersService.ensureUserSynced(user);
-        const isPropertyPartner = user.roles.includes('property-partner');
+        const isPropertyPartner = user.roles.includes(UserRole.PROPERTY_PARTNER);
 
         if (isPropertyPartner && project.onboardedById !== internalUser.id) {
             throw new BadRequestException('You do not have permission to create units for this project');
@@ -159,7 +160,7 @@ export class UnitsService {
 
     async findMyUnits(user: AuthenticatedUser): Promise<any[]> {
         const internalUser = await this.usersService.ensureUserSynced(user);
-        const isPropertyPartner = user.roles.includes('property-partner');
+        const isPropertyPartner = user.roles.includes(UserRole.PROPERTY_PARTNER);
 
         const filter = isPropertyPartner
             ? { project: { onboardedById: internalUser.id } }

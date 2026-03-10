@@ -5,7 +5,7 @@ import UnifiedDashboardLayout from '@/app/components/dashboard/UnifiedDashboardL
 
 export default function BrokerDashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <UnifiedDashboardLayout requiredRole="broker" title="Broker Dashboard">
+    <UnifiedDashboardLayout requiredRole="BROKER" title="Broker Dashboard">
       {children}
     </UnifiedDashboardLayout>
   );

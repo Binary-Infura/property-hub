@@ -3,13 +3,14 @@ import { ConsultantsService } from './consultants.service';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/guards/roles.guard';
 import { RequireRoles } from '../../../common/decorators/require-roles.decorator';
+import { UserRole } from '../../../common/enums/role.enum';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../../common/interfaces/jwt-payload.interface';
 import { UpdateConsultantProfileDto } from './consultants.dto';
 
 @Controller('api/consultants')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RequireRoles('consultant')
+@RequireRoles(UserRole.CONSULTANT)
 export class ConsultantsController {
     constructor(private readonly consultantsService: ConsultantsService) { }
 

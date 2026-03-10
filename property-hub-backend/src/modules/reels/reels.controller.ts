@@ -3,6 +3,7 @@ import { ReelsService } from './reels.service';
 import { CreateReelDto, UpdateReelInstagramDto } from './reels.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RequireRoles } from '../../common/decorators/require-roles.decorator';
+import { UserRole } from '../../common/enums/role.enum';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
@@ -39,7 +40,7 @@ export class ReelsController {
 
     @Get('moderation/pending')
     @UseGuards(JwtAuthGuard)
-    @RequireRoles('admin', 'central-authority')
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Get pending reels for moderation' })
     @ApiQuery({ name: 'page', required: false, type: Number })
@@ -56,7 +57,7 @@ export class ReelsController {
 
     @Get(':id/moderation')
     @UseGuards(JwtAuthGuard)
-    @RequireRoles('admin', 'central-authority')
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Get reel details for moderation' })
     getReelForModeration(@Param('id') id: string) {
@@ -65,7 +66,7 @@ export class ReelsController {
 
     @Post()
     @UseGuards(JwtAuthGuard)
-    @RequireRoles('property-partner', 'admin')
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY)
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Create a new reel' })
     create(@Body() createReelDto: CreateReelDto, @CurrentUser() user: AuthenticatedUser) {

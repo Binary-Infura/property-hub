@@ -11,7 +11,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 export default function PropertyPartnerDashboard() {
   const { profileStatus, token } = useAuth();
-  const isPremium = profileStatus?.['property-partner']?.profileData?.isPremium;
+  const isPremium = profileStatus?.['PROPERTY_PARTNER']?.profileData?.isPremium;
 
   const [agentCounts, setAgentCounts] = useState({
     consultants: 0,
@@ -38,8 +38,8 @@ export default function PropertyPartnerDashboard() {
       if (!token) return;
       try {
         const [consultants, visitExecutives, leadsData, projects, units] = await Promise.all([
-          userService.getAllByRole('consultant', token, true, 1, 1),
-          userService.getAllByRole('visit-executive', token, true, 1, 1),
+          userService.getAllByRole('CONSULTANT', token, true, 1, 1),
+          userService.getAllByRole('VISIT_EXECUTIVE', token, true, 1, 1),
           fetch(`${API_URL}/api/leads`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
           propertyService.getAll(token, true),
           fetch(`${API_URL}/api/units/my`, {

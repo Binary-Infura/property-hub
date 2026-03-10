@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '../contexts/AuthContext';
+import { getDashboardRoute } from '../lib/routing';
 
 export default function SignInPage() {
     const { loginWithCredentials, authenticated, user, roles } = useAuth();
@@ -27,50 +28,22 @@ export default function SignInPage() {
                 return;
             }
 
-            // 0. Use defaultRole if available
-            if (user.defaultRole && roles.includes(user.defaultRole)) {
-                if (user.defaultRole === 'buyer') {
-                    router.push('/dashboard');
-                } else {
-                    router.push(`/${user.defaultRole}/dashboard`);
-                }
+            // 0. Use primaryRole if available
+            const primaryRole = user.primaryRole;
+            if (primaryRole && roles.includes(primaryRole)) {
+                router.push(getDashboardRoute(primaryRole));
                 return;
             }
 
-            // 0.5 If they have multiple roles without a default, let them choose
+            // 1. If single role, go there
+            if (roles.length === 1) {
+                router.push(getDashboardRoute(roles[0]));
+                return;
+            }
+
+            // 2. If multiple roles without a primaryRole, let them choose
             if (roles.length > 1) {
                 router.push('/my-dashboards');
-                return;
-            }
-
-            // 1. Central Authority
-            if (roles.includes('central-authority')) {
-                router.push('/central-authority/dashboard');
-                return;
-            }
-
-            // 2. Staff Roles
-            const staffRoles = [
-                'dsa',
-                'consultant',
-                'onboarding-manager',
-                'loan-adviser',
-                'marketing-manager',
-                'visit-executive',
-                'property-partner',
-                'broker',
-                'influencer'
-            ];
-
-            const foundRole = staffRoles.find(role => roles.includes(role));
-            if (foundRole) {
-                router.push(`/${foundRole}/dashboard`);
-                return;
-            }
-
-            // 3. Consumer/Other Roles
-            if (roles.includes('buyer')) {
-                router.push('/dashboard');
                 return;
             }
 

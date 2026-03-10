@@ -4,7 +4,6 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { useUnifiedApp } from '../contexts/UnifiedAppContext';
 import { userService } from '../services/userService';
-import { UserRole } from '../lib/routing';
 
 export default function UserProfileDrawer() {
     const { profileStatus, refreshProfileStatus, user, token } = useAuth();
@@ -16,7 +15,7 @@ export default function UserProfileDrawer() {
         firstName: '',
         lastName: '',
         phone: '',
-        defaultRole: '',
+        primaryRole: '',
         // Property Partner
         companyName: '',
         companyAddress: '',
@@ -47,19 +46,19 @@ export default function UserProfileDrawer() {
     useEffect(() => {
         if (!user || !profileStatus) return;
 
-        const pp = profileStatus['property-partner']?.profileData || {};
-        const br = profileStatus['broker']?.profileData || {};
-        const co = profileStatus['consultant']?.profileData || {};
-        const bu = profileStatus['buyer']?.profileData || {};
-        const inf = profileStatus['influencer']?.profileData || {};
-        const mm = profileStatus['marketing-manager']?.profileData || {};
-        const ca = profileStatus['central-authority']?.profileData || {};
+        const pp = profileStatus['PROPERTY_PARTNER']?.profileData || {};
+        const br = profileStatus['BROKER']?.profileData || {};
+        const co = profileStatus['CONSULTANT']?.profileData || {};
+        const bu = profileStatus['BUYER']?.profileData || {};
+        const inf = profileStatus['INFLUENCER']?.profileData || {};
+        const mm = profileStatus['MARKETING_MANAGER']?.profileData || {};
+        const ca = profileStatus['CENTRAL_AUTHORITY']?.profileData || {};
 
         setFormData({
-            firstName: user.firstName || user.given_name || '',
-            lastName: user.lastName || user.family_name || '',
+            firstName: user.firstName || '',
+            lastName: user.lastName || '',
             phone: user.phone || '',
-            defaultRole: user.defaultRole || '',
+            primaryRole: user.primaryRole || '',
             // Property Partner
             companyName: pp.companyName || user.agencyName || '',
             companyAddress: pp.companyAddress || '',
@@ -96,7 +95,7 @@ export default function UserProfileDrawer() {
             setLoading(true);
             setMessage(null);
 
-            // Prepare clean data for API (convert strings back to arrays if needed)
+            // Prepare clean data for API
             const submissionData = { ...formData };
 
             await userService.updateProfile(submissionData, token);
@@ -215,7 +214,7 @@ export default function UserProfileDrawer() {
                             </div>
 
                             {/* Section: Property Partner */}
-                            {userRoles.includes('property-partner') && (
+                            {userRoles.includes('PROPERTY_PARTNER') && (
                                 <div className="space-y-6 pt-6 border-t border-gray-100">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
@@ -273,7 +272,7 @@ export default function UserProfileDrawer() {
                             )}
 
                             {/* Section: Broker */}
-                            {userRoles.includes('broker') && (
+                            {userRoles.includes('BROKER') && (
                                 <div className="space-y-6 pt-6 border-t border-gray-100">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
@@ -319,7 +318,7 @@ export default function UserProfileDrawer() {
                             )}
 
                             {/* Section: Consultant */}
-                            {userRoles.includes('consultant') && (
+                            {userRoles.includes('CONSULTANT') && (
                                 <div className="space-y-6 pt-6 border-t border-gray-100">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="w-8 h-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center">
@@ -354,7 +353,7 @@ export default function UserProfileDrawer() {
                             )}
 
                             {/* Section: Buyer */}
-                            {userRoles.includes('buyer') && (
+                            {userRoles.includes('BUYER') && (
                                 <div className="space-y-6 pt-6 border-t border-gray-100">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center">
@@ -400,7 +399,7 @@ export default function UserProfileDrawer() {
                             )}
 
                             {/* Section: Influencer */}
-                            {userRoles.includes('influencer') && (
+                            {userRoles.includes('INFLUENCER') && (
                                 <div className="space-y-6 pt-6 border-t border-gray-100">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="w-8 h-8 rounded-lg bg-pink-50 text-pink-600 flex items-center justify-center">
@@ -436,7 +435,7 @@ export default function UserProfileDrawer() {
                             )}
 
                             {/* Section: Marketing Manager */}
-                            {userRoles.includes('marketing-manager') && (
+                            {userRoles.includes('MARKETING_MANAGER') && (
                                 <div className="space-y-6 pt-6 border-t border-gray-100">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="w-8 h-8 rounded-lg bg-cyan-50 text-cyan-600 flex items-center justify-center">
@@ -461,7 +460,7 @@ export default function UserProfileDrawer() {
                             )}
 
                             {/* Section: Central Authority */}
-                            {userRoles.includes('central-authority') && (
+                            {userRoles.includes('CENTRAL_AUTHORITY') && (
                                 <div className="space-y-6 pt-6 border-t border-gray-100">
                                     <div className="flex items-center gap-2 mb-2">
                                         <div className="w-8 h-8 rounded-lg bg-gray-50 text-gray-600 flex items-center justify-center">

@@ -37,13 +37,8 @@ export class AuthService {
             email: user.email,
             firstName: user.firstName,
             lastName: user.lastName,
-            name: `${user.firstName} ${user.lastName || ''}`.trim(),
-            given_name: user.firstName,
-            family_name: user.lastName,
-            preferred_username: user.email,
             roles: user.roles,
-            defaultRole: user.defaultRole,
-            groups: [],
+            primaryRole: user.primaryRole,
         };
 
         return {
@@ -54,7 +49,7 @@ export class AuthService {
                 firstName: user.firstName,
                 lastName: user.lastName,
                 roles: user.roles,
-                defaultRole: user.defaultRole,
+                primaryRole: user.primaryRole,
             },
         };
     }

@@ -39,17 +39,17 @@ export default function ProjectPartnerBulkAllocationPage() {
                 // Fetch only "my" properties and agents
                 const [props, consultantsData, loanAdvisersData, visitExecutivesData, statesData] = await Promise.all([
                     propertyService.getAll(token, true),
-                    userService.getAllByRole('consultant', token, true, 1, 100),
-                    userService.getAllByRole('loan-adviser', token, true, 1, 100),
-                    userService.getAllByRole('visit-executive', token, true, 1, 100),
+                    userService.getAllByRole('CONSULTANT', token, true, 1, 100),
+                    userService.getAllByRole('LOAN_ADVISOR', token, true, 1, 100),
+                    userService.getAllByRole('VISIT_EXECUTIVE', token, true, 1, 100),
                     cityService.getStates(token)
                 ]);
 
                 // Combine all eligible roles into one agents list
                 const combined = [
-                    ...consultantsData.data.map((u: User) => ({ ...u, role: u.role || 'consultant' })),
-                    ...loanAdvisersData.data.map((u: User) => ({ ...u, role: u.role || 'loan-adviser' })),
-                    ...visitExecutivesData.data.map((u: User) => ({ ...u, role: u.role || 'visit-executive' }))
+                    ...consultantsData.data.map((u: User) => ({ ...u, role: u.role || 'CONSULTANT' })),
+                    ...loanAdvisersData.data.map((u: User) => ({ ...u, role: u.role || 'LOAN_ADVISOR' })),
+                    ...visitExecutivesData.data.map((u: User) => ({ ...u, role: u.role || 'VISIT_EXECUTIVE' }))
                 ];
 
                 // De-duplicate by ID
@@ -391,11 +391,11 @@ export default function ProjectPartnerBulkAllocationPage() {
                                             <span className="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-[8px] font-black rounded-md uppercase tracking-tighter">
                                                 {a.role?.replace('-', ' ') || 'agent'}
                                             </span>
-                                            {a.onboardedBy?.roles?.includes('central-authority') ? (
+                                            {a.onboardedBy?.roles?.includes('CENTRAL_AUTHORITY') ? (
                                                 <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[8px] font-black rounded-md uppercase tracking-tighter ring-1 ring-blue-200">
                                                     Internal
                                                 </span>
-                                            ) : a.onboardedBy?.roles?.includes('property-partner') ? (
+                                            ) : a.onboardedBy?.roles?.includes('PROPERTY_PARTNER') ? (
                                                 <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[8px] font-black rounded-md uppercase tracking-tighter ring-1 ring-emerald-200">
                                                     Partner Agent
                                                 </span>

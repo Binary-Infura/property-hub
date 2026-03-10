@@ -20,9 +20,9 @@ export default function PartnersPage() {
     const [isSuccess, setIsSuccess] = useState(false);
 
     const partnerTypes = [
-        { id: 'broker', label: 'Real Estate Broker' },
-        { id: 'property-partner', label: 'Property Partner' },
-        { id: 'influencer', label: 'Influencer' },
+        { id: 'BROKER', label: 'Real Estate Broker' },
+        { id: 'PROPERTY_PARTNER', label: 'Property Partner' },
+        { id: 'INFLUENCER', label: 'Influencer' },
     ];
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {

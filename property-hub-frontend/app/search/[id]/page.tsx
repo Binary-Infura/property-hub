@@ -51,7 +51,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     };
     const { addItem, removeItem, isInBucket } = useConsultingBucket();
     const alreadyInBucket = property ? isInBucket(property.id) : false;
-    const isBuyer = activeContext.activeRole?.id === 'buyer';
+    const isBuyer = activeContext.activeRole?.id === 'BUYER';
 
     const handleShare = () => {
         if (navigator.share) {
@@ -464,7 +464,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M14 5l7 7m0 0l-7 7m7-7H3" />
                                 </svg>
                             </Link>
-                            {owner && (!token || (user?.userId !== owner.id && activeContext.activeRole.id === 'buyer')) && (
+                            {owner && (!token || (user?.userId !== owner.id && activeContext.activeRole.id === 'BUYER')) && (
                                 <button
                                     onClick={handleFollow}
                                     disabled={followLoading}

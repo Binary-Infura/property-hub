@@ -5,7 +5,7 @@ import UnifiedDashboardLayout from '@/app/components/dashboard/UnifiedDashboardL
 
 export default function MarketingManagerDashboardLayout({ children }: { children: React.ReactNode }) {
     return (
-        <UnifiedDashboardLayout requiredRole="marketing-manager" title="Marketing Manager Dashboard">
+        <UnifiedDashboardLayout requiredRole="MARKETING_MANAGER" title="Marketing Manager Dashboard">
             {children}
         </UnifiedDashboardLayout>
     );

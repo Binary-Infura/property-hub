@@ -5,7 +5,7 @@ import UnifiedDashboardLayout from '@/app/components/dashboard/UnifiedDashboardL
 
 export default function InfluencerDashboardLayout({ children }: { children: React.ReactNode }) {
     return (
-        <UnifiedDashboardLayout requiredRole="influencer" title="Influencer Dashboard">
+        <UnifiedDashboardLayout requiredRole="INFLUENCER" title="Influencer Dashboard">
             {children}
         </UnifiedDashboardLayout>
     );

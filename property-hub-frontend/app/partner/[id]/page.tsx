@@ -149,16 +149,25 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
                     </div>
 
                     <div className="pb-4 w-full md:w-auto">
-                        {token && user?.userId !== id && activeContext.activeRole.id === 'buyer' && (
+                        {token && (
                             <button
                                 onClick={handleFollow}
-                                disabled={followLoading}
-                                className={`w-full md:w-auto px-10 py-5 rounded-[2rem] font-black tracking-tight shadow-2xl hover:-translate-y-1 transition-all active:scale-95 flex items-center justify-center gap-3 ${isFollowing
-                                    ? 'bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50'
-                                    : 'bg-slate-900 text-white hover:bg-blue-600'
+                                disabled={followLoading || user?.userId === id}
+                                className={`w-full md:w-auto px-10 py-5 rounded-[2rem] font-black tracking-tight shadow-2xl transition-all flex items-center justify-center gap-3 ${user?.userId === id
+                                        ? 'bg-slate-100 text-slate-400 cursor-not-allowed border-2 border-slate-200 shadow-none'
+                                        : isFollowing
+                                            ? 'bg-white text-blue-600 border-2 border-blue-600 hover:bg-blue-50 hover:-translate-y-1 active:scale-95'
+                                            : 'bg-slate-900 text-white hover:bg-blue-600 hover:-translate-y-1 active:scale-95'
                                     }`}>
                                 {followLoading ? (
                                     <div className="w-5 h-5 border-2 border-current border-t-transparent rounded-full animate-spin"></div>
+                                ) : user?.userId === id ? (
+                                    <>
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                                            <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                                        </svg>
+                                        Your Profile
+                                    </>
                                 ) : (
                                     <>
                                         {isFollowing ? (
@@ -180,6 +189,7 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
                                 )}
                             </button>
                         )}
+
                     </div>
                 </div>
             </div>

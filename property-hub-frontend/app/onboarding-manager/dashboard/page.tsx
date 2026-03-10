@@ -29,7 +29,7 @@ export default function BrokerPartnersPage() {
         try {
             setLoading(true);
             const result = await userService.getAllByRole(
-                'broker',
+                'BROKER',
                 token
             );
             setBrokers(result.data);
@@ -73,7 +73,7 @@ export default function BrokerPartnersPage() {
             } else {
                 const created = await userService.create({
                     ...formData,
-                    role: 'broker',
+                    role: 'BROKER',
                 }, token);
                 setBrokers([created, ...brokers]);
                 setShowAddModal(false);

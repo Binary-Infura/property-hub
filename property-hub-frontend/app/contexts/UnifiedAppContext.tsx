@@ -6,16 +6,16 @@ import { useAuth } from './AuthContext';
 
 // --- Types ---
 export type RoleId =
-    | 'central-authority'
-    | 'broker'
-    | 'marketing-manager'
-    | 'onboarding-manager'
-    | 'property-partner'
-    | 'consultant'
-    | 'loan-adviser'
-    | 'visit-executive'
-    | 'buyer'
-    | 'influencer';
+    | 'CENTRAL_AUTHORITY'
+    | 'BROKER'
+    | 'MARKETING_MANAGER'
+    | 'ONBOARDING_MANAGER'
+    | 'PROPERTY_PARTNER'
+    | 'CONSULTANT'
+    | 'LOAN_ADVISOR'
+    | 'VISIT_EXECUTIVE'
+    | 'BUYER'
+    | 'INFLUENCER';
 
 export interface UserRole {
     id: RoleId;
@@ -27,7 +27,6 @@ export interface UserRole {
 export interface CityAllocation {
     id: string;
     cityName: string;
-    stateCode: string;
     assignedAt: string;
 }
 
@@ -43,7 +42,7 @@ export interface UnifiedAppContextType {
         availableRoles: UserRole[];
     };
     activeContext: UserContextData;
-    switchContext: (roleId: RoleId) => void;
+    switchContext: (roleId: RoleId, shouldRedirect?: boolean) => void;
     isProfileOpen: boolean;
     setIsProfileOpen: (open: boolean) => void;
 }
@@ -51,58 +50,64 @@ export interface UnifiedAppContextType {
 // --- Application Configuration (Static) ---
 const KNOWN_ROLES: UserRole[] = [
     {
-        id: 'central-authority',
+        id: 'CENTRAL_AUTHORITY',
         name: 'Central Authority',
         permissionHint: 'Platform-wide administrator',
         dashboardUrl: '/central-authority/dashboard'
     },
     {
-        id: 'marketing-manager',
+        id: 'MARKETING_MANAGER',
         name: 'Marketing Manager',
         permissionHint: 'Manage campaigns & leads platform-wide',
         dashboardUrl: '/marketing-manager/dashboard'
     },
     {
-        id: 'onboarding-manager',
+        id: 'ONBOARDING_MANAGER',
         name: 'Onboarding Manager',
         permissionHint: 'Property intake and verification',
         dashboardUrl: '/onboarding-manager/dashboard'
     },
     {
-        id: 'property-partner',
+        id: 'PROPERTY_PARTNER',
         name: 'Property Partner',
         permissionHint: 'Manage properties and inventory',
         dashboardUrl: '/property-partner/dashboard'
     },
     {
-        id: 'broker',
+        id: 'BROKER',
         name: 'Real Estate Broker',
         permissionHint: 'Referral, lead management and property creation',
         dashboardUrl: '/broker/dashboard'
     },
     {
-        id: 'consultant',
+        id: 'CONSULTANT',
         name: 'Sales Consultant',
         permissionHint: 'Direct sales and client guidance',
         dashboardUrl: '/consultant/dashboard'
     },
     {
-        id: 'loan-adviser',
-        name: 'Loan Adviser',
+        id: 'LOAN_ADVISOR',
+        name: 'Loan Advisor',
         permissionHint: 'Financial and loan facilitation',
         dashboardUrl: '/loan-adviser/dashboard'
     },
     {
-        id: 'visit-executive',
+        id: 'VISIT_EXECUTIVE',
         name: 'Visit Executive',
         permissionHint: 'Property site visits and viewings',
         dashboardUrl: '/visit-executive/dashboard'
     },
     {
-        id: 'buyer',
+        id: 'BUYER',
         name: 'Buyer',
         permissionHint: 'Property search and purchase',
         dashboardUrl: '/dashboard'
+    },
+    {
+        id: 'INFLUENCER',
+        name: 'Influencer',
+        permissionHint: 'Marketing influencer',
+        dashboardUrl: '/influencer/dashboard'
     }
 ];
 
@@ -113,7 +118,7 @@ const DEFAULT_CONTEXT: UnifiedAppContextType = {
         availableRoles: []
     },
     activeContext: {
-        activeRole: KNOWN_ROLES[KNOWN_ROLES.length - 1], // Default to buyer
+        activeRole: KNOWN_ROLES[8], // Default to buyer
         activeCity: null
     },
     switchContext: () => { },
@@ -134,8 +139,6 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
     const [availableRoles, setAvailableRoles] = useState<UserRole[]>([]);
     const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
-
     // Sync context with Auth state
     useEffect(() => {
         if (!initialized) return;
@@ -150,40 +153,38 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
                 );
             } else {
                 // Guests are treated as buyers for discovery purposes
-                roleList = [KNOWN_ROLES[KNOWN_ROLES.length - 1]];
+                roleList = [KNOWN_ROLES.find(r => r.id === 'BUYER')!];
             }
 
             if (roleList.length > 0) {
                 setAvailableRoles(roleList);
 
                 // 2. Determine Active Role intelligently
-                // - Highest Priority: The actual URL path we are on (prevents mismatch)
-                // - Second Priority: The locally stored selection for this device
-                // - Third Priority: The user's global default role
-                // - Fallback: First available role
-
                 let pathMatchedRole: UserRole | undefined;
 
                 // Check if current URL matches a specific role dashboard pattern
                 for (const r of roleList) {
-                    if (pathname && pathname.startsWith(`/${r.id}`)) {
+                    // Check both standardized role path and buyer dashboard
+                    if (pathname && (
+                        pathname.startsWith(r.dashboardUrl) ||
+                        (r.id === 'BUYER' && (pathname === '/dashboard' || pathname.startsWith('/dashboard/')))
+                    )) {
                         pathMatchedRole = r;
                         break;
                     }
                 }
 
                 const savedRoleId = localStorage.getItem('activeRoleId') as RoleId | null;
-                const defaultRoleId = user?.defaultRole as RoleId | undefined;
+                const primaryRoleId = user?.primaryRole as RoleId | undefined;
 
                 const resolvedRole =
                     pathMatchedRole ||
                     (savedRoleId && roleList.find(r => r.id === savedRoleId)) ||
-                    (defaultRoleId && roleList.find(r => r.id === defaultRoleId)) ||
+                    (primaryRoleId && roleList.find(r => r.id === primaryRoleId)) ||
                     roleList[0];
 
                 setActiveRole(resolvedRole);
 
-                // Sync to localStorage so it persists across reloads on non-dashboard pages
                 if (resolvedRole) {
                     localStorage.setItem('activeRoleId', resolvedRole.id);
                 }
@@ -193,7 +194,7 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
         syncAppData();
     }, [initialized, authenticated, user, roles, activeRole?.id, pathname]);
 
-    const switchContext = (roleId: RoleId) => {
+    const switchContext = (roleId: RoleId, shouldRedirect: boolean = true) => {
         const role = availableRoles.find(r => r.id === roleId);
         if (!role) return;
 
@@ -201,15 +202,15 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('activeRoleId', roleId);
 
         console.log(`Switching context to role: ${role.name}`);
-        router.push(role.dashboardUrl);
+        if (shouldRedirect) {
+            router.push(role.dashboardUrl);
+        }
     };
 
-
-
-    const displayName = user ? (user.name || `${user.given_name || ''} ${user.family_name || ''}`.trim() || user.preferred_username || 'User') : 'Guest';
+    const displayName = user ? (user.firstName || user.name || 'User') : 'Guest';
     const avatarUrl = user ? `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0D8ABC&color=fff` : DEFAULT_CONTEXT.currentUser.avatar;
 
-    const fallbackRole = KNOWN_ROLES[KNOWN_ROLES.length - 1]; // buyer as last-resort default
+    const fallbackRole = KNOWN_ROLES.find(r => r.id === 'BUYER')!;
 
     const value = {
         currentUser: {

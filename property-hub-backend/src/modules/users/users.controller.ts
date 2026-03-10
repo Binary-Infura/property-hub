@@ -1,11 +1,12 @@
 import { Controller, Get, Post, Patch, Body, Param, UseGuards, Query } from '@nestjs/common';
 import { UsersService } from './users.service';
-import { UpdateUserMetadataDto, CreateUserDto, UpdateUserDto, InviteUserDto, InviteCentralAuthorityDto, InvitationResponse, UpdateProfileDto } from './users.dto';
+import { UpdateUserPreferencesDto, CreateUserDto, UpdateUserDto, InviteUserDto, InviteCentralAuthorityDto, InvitationResponse, UpdateProfileDto } from './users.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { RequireRoles } from '../../common/decorators/require-roles.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
+import { UserRole } from '../../common/enums/role.enum';
 
 import { Public } from '../../common/decorators/public.decorator';
 
@@ -15,8 +16,8 @@ export class UsersController {
     constructor(private readonly usersService: UsersService) { }
 
     @Get('me')
-    getMyMetadata(@CurrentUser() user: AuthenticatedUser) {
-        return this.usersService.getUserMetadata(user.userId);
+    getMyPreferences(@CurrentUser() user: AuthenticatedUser) {
+        return this.usersService.getUserPreferences(user.userId);
     }
 
     @Get('me/profile-status')
@@ -30,11 +31,11 @@ export class UsersController {
     }
 
     @Patch('me')
-    updateMyMetadata(
+    updateMyPreferences(
         @CurrentUser() user: AuthenticatedUser,
-        @Body() updateUserMetadataDto: UpdateUserMetadataDto,
+        @Body() dto: UpdateUserPreferencesDto,
     ) {
-        return this.usersService.updateUserMetadata(user.userId, updateUserMetadataDto);
+        return this.usersService.updateUserPreferences(user.userId, dto);
     }
 
     @Patch('profile')
@@ -52,7 +53,7 @@ export class UsersController {
      */
     @Post('invite')
     @UseGuards(RolesGuard)
-    @RequireRoles('central-authority')
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     async inviteUser(
         @Body() dto: InviteUserDto,
     ): Promise<InvitationResponse> {
@@ -63,7 +64,7 @@ export class UsersController {
      * Invite a central authority user
      * Only accessible by existing central authority users
      */
-    @RequireRoles('central-authority')
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     @UseGuards(RolesGuard)
     @Post('invite-central')
     async inviteCentralAuthority(
@@ -117,7 +118,7 @@ export class UsersController {
     }
     @Post(':id/follow')
     @UseGuards(RolesGuard)
-    @RequireRoles('buyer')
+    @RequireRoles(UserRole.BUYER, UserRole.BROKER, UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER, UserRole.INFLUENCER, UserRole.CENTRAL_AUTHORITY, UserRole.MARKETING_MANAGER, UserRole.ONBOARDING_MANAGER, UserRole.LOAN_ADVISOR, UserRole.VISIT_EXECUTIVE)
     async follow(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
@@ -127,7 +128,7 @@ export class UsersController {
 
     @Post(':id/unfollow')
     @UseGuards(RolesGuard)
-    @RequireRoles('buyer')
+    @RequireRoles(UserRole.BUYER, UserRole.BROKER, UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER, UserRole.INFLUENCER, UserRole.CENTRAL_AUTHORITY, UserRole.MARKETING_MANAGER, UserRole.ONBOARDING_MANAGER, UserRole.LOAN_ADVISOR, UserRole.VISIT_EXECUTIVE)
     async unfollow(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
@@ -137,7 +138,7 @@ export class UsersController {
 
     @Get(':id/is-following')
     @UseGuards(RolesGuard)
-    @RequireRoles('buyer')
+    @RequireRoles(UserRole.BUYER, UserRole.BROKER, UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER, UserRole.INFLUENCER, UserRole.CENTRAL_AUTHORITY, UserRole.MARKETING_MANAGER, UserRole.ONBOARDING_MANAGER, UserRole.LOAN_ADVISOR, UserRole.VISIT_EXECUTIVE)
     async isFollowing(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
@@ -148,6 +149,6 @@ export class UsersController {
     @Get(':id/follower-count')
     @Public()
     async getFollowerCount(@Param('id') id: string) {
-        return { count: await this.usersService.getFollowingCount(id) };
+        return { count: await this.usersService.getFollowerCount(id) };
     }
 }

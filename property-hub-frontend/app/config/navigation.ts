@@ -9,19 +9,19 @@ export interface NavItem {
 }
 
 export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
-    'central-authority': [
+    'CENTRAL_AUTHORITY': [
         { name: 'Dashboard', href: '/central-authority/dashboard', icon: 'dashboard' },
         { name: 'Property Partners', href: '/central-authority/dashboard/property-partners', icon: 'building' },
         { name: 'Brokers', href: '/central-authority/dashboard/brokers', icon: 'handshake' },
         { name: 'Consultants', href: '/central-authority/dashboard/consultants', icon: 'users' },
-        { name: 'Loan Advisers', href: '/central-authority/dashboard/loan-advisers', icon: 'bank' },
+        { name: 'Loan Advisors', href: '/central-authority/dashboard/loan-advisers', icon: 'bank' },
         { name: 'Visit Executives', href: '/central-authority/dashboard/visit-executives', icon: 'car' },
         { name: 'Marketing Managers', href: '/central-authority/dashboard/marketing-managers', icon: 'megaphone' },
         { name: 'Onboarding Managers', href: '/central-authority/dashboard/onboarding-managers', icon: 'briefcase' },
         { name: 'Influencers', href: '/central-authority/dashboard/influencers', icon: 'phone' },
         { name: 'Global Users', href: '/central-authority/dashboard/global-users', icon: 'globe' },
     ],
-    'broker': [
+    'BROKER': [
         { name: 'Dashboard', href: '/broker/dashboard', icon: 'dashboard' },
         { name: 'Reviews', href: '/broker/dashboard/reviews', icon: 'star' },
         { name: 'Leads', href: '/broker/dashboard/leads', icon: 'users' },
@@ -30,7 +30,7 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Ads & Campaigns', href: '/broker/dashboard/campaigns-leads', icon: 'chart' },
         { name: 'Ad Requests', href: '/broker/dashboard/advertisement-requests', icon: 'note' },
     ],
-    'marketing-manager': [
+    'MARKETING_MANAGER': [
         { name: 'Dashboard', href: '/marketing-manager/dashboard', icon: 'dashboard' },
         { name: 'Reviews', href: '/marketing-manager/dashboard/reviews', icon: 'star' },
         { name: 'Campaigns', href: '/marketing-manager/dashboard/campaigns', icon: 'megaphone' },
@@ -39,14 +39,14 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Budget & Performance', href: '/marketing-manager/dashboard/budget', icon: 'money' },
         { name: 'Reports', href: '/marketing-manager/dashboard/reports', icon: 'chart' },
     ],
-    'onboarding-manager': [
+    'ONBOARDING_MANAGER': [
         { name: 'Broker Partners', href: '/onboarding-manager/dashboard', icon: 'handshake' },
         { name: 'Reviews', href: '/onboarding-manager/dashboard/reviews', icon: 'star' },
         { name: 'Project', href: '/onboarding-manager/dashboard/project', icon: 'building' },
         { name: 'Listing Requests', href: '/onboarding-manager/dashboard/listing-requests', icon: 'clipboard' },
         { name: 'Property Partners', href: '/onboarding-manager/dashboard/property-partners', icon: 'handshake' },
     ],
-    'property-partner': [
+    'PROPERTY_PARTNER': [
         { name: 'Dashboard', href: '/property-partner/dashboard', icon: 'dashboard' },
         { name: 'Reviews', href: '/property-partner/dashboard/reviews', icon: 'star' },
         { name: 'Projects', href: '/property-partner/dashboard/projects', icon: 'building' },
@@ -58,7 +58,7 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Reels', href: '/property-partner/dashboard/reels', icon: 'video' },
         { name: 'Ads Requests', href: '/property-partner/dashboard/ads-requests', icon: 'megaphone' },
     ],
-    'consultant': [
+    'CONSULTANT': [
         { name: 'Dashboard', href: '/consultant/dashboard', icon: 'dashboard' },
         { name: 'Reviews', href: '/consultant/dashboard/reviews', icon: 'star' },
         { name: 'Leads', href: '/consultant/dashboard/leads', icon: 'users' },
@@ -68,20 +68,20 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Units', href: '/consultant/dashboard/units', icon: 'pin' },
         { name: 'Reels', href: '/consultant/dashboard/reels', icon: 'video' },
     ],
-    'loan-adviser': [
+    'LOAN_ADVISOR': [
         { name: 'Dashboard', href: '/loan-adviser/dashboard', icon: 'dashboard' },
         { name: 'Reviews', href: '/loan-adviser/dashboard/reviews', icon: 'star' },
         { name: 'Active Loans', href: '/loan-adviser/dashboard/loans', icon: 'money' },
         { name: 'Documents', href: '/loan-adviser/dashboard/documents', icon: 'document' },
     ],
-    'visit-executive': [
+    'VISIT_EXECUTIVE': [
         { name: 'Dashboard', href: '/visit-executive/dashboard', icon: 'dashboard' },
         { name: 'Reviews', href: '/visit-executive/dashboard/reviews', icon: 'star' },
         { name: 'Schedule', href: '/visit-executive/dashboard/schedule', icon: 'calendar' },
         { name: 'My Visits', href: '/visit-executive/dashboard/visits', icon: 'pin' },
         { name: 'Clients', href: '/visit-executive/dashboard/clients', icon: 'users' },
     ],
-    'buyer': [
+    'BUYER': [
         { name: 'My Dashboard', href: '/dashboard', icon: 'dashboard' },
         { name: 'Search Properties', href: '/dashboard/search', icon: 'search' },
         { name: 'Loan Status', href: '/dashboard/loan', icon: 'bank' },
@@ -90,7 +90,7 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Reviews', href: '/dashboard/reviews', icon: 'star' },
         { name: 'Inquiries', href: '/dashboard/inquiries', icon: 'clipboard' },
     ],
-    'influencer': [
+    'INFLUENCER': [
         { name: 'Overview', href: '/influencer/dashboard', icon: 'dashboard' },
         { name: 'Reviews', href: '/influencer/dashboard/reviews', icon: 'star' },
         { name: 'My Campaigns', href: '/influencer/dashboard/campaigns', icon: 'megaphone' },

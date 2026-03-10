@@ -1,4 +1,4 @@
-import { PrismaClient, ProjectStatus, ProjectType, LeadStatus } from '@prisma/client';
+import { PrismaClient, ProjectStatus, ProjectType, LeadStatus, UserRole, UserStatus, OrganizationType } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
@@ -28,90 +28,86 @@ async function main() {
     const mumbai = await prisma.city.findFirst({ where: { name: 'Mumbai' } });
     const pune = await prisma.city.findFirst({ where: { name: 'Pune' } });
 
-    // 2. Users & Profiles
-    console.log('Creating Users and Profiles...');
+    // 2. Organization
+    console.log('Creating Seed Organization...');
+    let prestigeOrg = await prisma.organization.findFirst({
+        where: { name: 'Prestige Builders' }
+    });
 
-    // Super User with all roles
-    console.log('Creating Super User with all roles...');
+    if (!prestigeOrg) {
+        prestigeOrg = await prisma.organization.create({
+            data: {
+                name: 'Prestige Builders',
+                email: 'contact@prestige.com',
+                phone: '+919876543000',
+                address: '123 Builder Lane, Mumbai',
+                type: OrganizationType.BUILDER,
+                taxId: 'TAX123456',
+            }
+        });
+    }
+
+    // 3. User & JSON Profile
+    console.log('Creating Super User with JSON profile...');
+
+    // Define the consolidated profile data
+    const superUserProfileData: any = {
+        // Central Authority fields
+        department: 'Operations',
+        accessLevel: 'Admin',
+        // Property Partner fields
+        isPremium: true,
+        // Consultant fields
+        specialization: ['Residential', 'Commercial', 'Investment'],
+        experienceYears: 10,
+        // Marketing Manager fields
+        campaignBudgetLimit: 5000000,
+        // Buyer fields
+        budgetMin: 5000000,
+        budgetMax: 100000000,
+        preferredLocations: ['Mumbai', 'Pune', 'Bangalore', 'Delhi'],
+        // Broker fields
+        agencyName: 'Prestige Builders',
+        reraNumber: 'RERA12345',
+        officeAddress: '123 Builder Lane, Mumbai',
+    };
+
+    const roles: UserRole[] = [
+        UserRole.CENTRAL_AUTHORITY,
+        UserRole.BROKER,
+        UserRole.MARKETING_MANAGER,
+        UserRole.CONSULTANT,
+        UserRole.BUYER,
+        UserRole.PROPERTY_PARTNER,
+        UserRole.ONBOARDING_MANAGER,
+        UserRole.LOAN_ADVISOR,
+        UserRole.VISIT_EXECUTIVE,
+        UserRole.INFLUENCER,
+    ];
+
     const superUser = await prisma.user.upsert({
         where: { email: 'superuser@propertyhub.com' },
         update: {
-            roles: { set: ['central-authority', 'broker', 'marketing-manager', 'consultant', 'buyer', 'property-partner', 'onboarding-manager', 'loan-adviser', 'visit-executive', 'influencer'] }
+            roles: roles,
+            primaryRole: UserRole.CENTRAL_AUTHORITY,
+            profileData: superUserProfileData,
+            organizationId: prestigeOrg.id,
         },
         create: {
             email: 'superuser@propertyhub.com',
             firstName: 'Super',
             lastName: 'User',
-            roles: ['central-authority', 'broker', 'marketing-manager', 'consultant', 'buyer', 'property-partner', 'onboarding-manager', 'loan-adviser', 'visit-executive', 'influencer'],
-            status: 'active',
+            roles: roles,
+            primaryRole: UserRole.CENTRAL_AUTHORITY,
+            status: UserStatus.ACTIVE,
             passwordHash,
-            agencyName: 'Prestige Builders',
             phone: '+919876543222',
+            profileData: superUserProfileData,
+            organizationId: prestigeOrg.id,
         },
     });
 
-    // Create all profiles for the super user
-    await prisma.centralAuthorityProfile.upsert({
-        where: { userId: superUser.id },
-        update: {},
-        create: {
-            userId: superUser.id,
-            department: 'Operations',
-            accessLevel: 'Admin'
-        }
-    });
-
-    await prisma.propertyPartnerProfile.upsert({
-        where: { userId: superUser.id },
-        update: {},
-        create: {
-            userId: superUser.id,
-            companyName: 'Prestige Builders',
-            companyAddress: '123 Builder Lane, Mumbai',
-            isPremium: true
-        }
-    });
-
-    await prisma.consultantProfile.upsert({
-        where: { userId: superUser.id },
-        update: {},
-        create: {
-            userId: superUser.id,
-            specialization: ['Residential', 'Commercial', 'Investment'],
-            experienceYears: 10
-        }
-    });
-
-    await prisma.marketingManagerProfile.upsert({
-        where: { userId: superUser.id },
-        update: {},
-        create: {
-            userId: superUser.id,
-            campaignBudgetLimit: 5000000
-        }
-    });
-
-    await prisma.buyerProfile.upsert({
-        where: { userId: superUser.id },
-        update: {},
-        create: {
-            userId: superUser.id,
-            budgetMin: 5000000,
-            budgetMax: 100000000,
-            preferredLocations: ['Mumbai', 'Pune', 'Bangalore', 'Delhi']
-        }
-    });
-
-    // Use superUser for all role assignments
-    const caUser = superUser;
-    const ppUser = superUser;
-    const consUser = superUser;
-    const buyerUser = superUser;
-    const loanAdviserUser = superUser;
-
-    const marketingManagers = [superUser];
-
-    // 3. Properties
+    // 4. Properties
     console.log('Creating Properties...');
     const projectsData = [
         {
@@ -127,7 +123,7 @@ async function main() {
             bathrooms: 3,
             category: 'flat',
             cityId: mumbai?.id,
-            onboardedById: ppUser.id
+            onboardedById: superUser.id
         },
         {
             name: 'Green Valley Plot',
@@ -139,7 +135,7 @@ async function main() {
             status: ProjectStatus.AVAILABLE,
             category: 'plot',
             cityId: pune?.id,
-            onboardedById: ppUser.id
+            onboardedById: superUser.id
         }
     ];
 
@@ -153,7 +149,7 @@ async function main() {
     const seaViewProj = await prisma.project.findFirst({ where: { name: 'Luxury Sea View Apartment' } });
     const valleyPlotProj = await prisma.project.findFirst({ where: { name: 'Green Valley Plot' } });
 
-    // 4. Banks
+    // 5. Banks
     console.log('Creating Banks...');
     const banksData = [
         { name: 'HDFC Bank', percentage: 8.4 },
@@ -169,7 +165,7 @@ async function main() {
         });
     }
 
-    // 5. Reels
+    // 6. Reels
     console.log('Creating Reels...');
 
     if (seaViewProj && valleyPlotProj) {
@@ -197,7 +193,7 @@ async function main() {
                 await prisma.reel.create({
                     data: {
                         ...rest,
-                        user: { connect: { id: ppUser.id } },
+                        user: { connect: { id: superUser.id } },
                         project: { connect: { id: projectId } }
                     },
                 });
@@ -205,7 +201,7 @@ async function main() {
         }
     }
 
-    // 6. Marketing Campaigns
+    // 7. Marketing Campaigns
     console.log('Creating Marketing Campaigns...');
     const curCampaignData = {
         name: 'Mumbai Premium Properties Q1',
@@ -228,14 +224,14 @@ async function main() {
         activeCampaign = await prisma.marketingCampaign.create({
             data: {
                 ...curCampaignData,
-                assignedTo: { connect: marketingManagers.map(m => ({ id: m.id })) }
+                assignedTo: { connect: [{ id: superUser.id }] }
             }
         });
     } else {
         activeCampaign = campaign;
     }
 
-    // 7. Leads
+    // 8. Leads
     console.log('Creating Leads...');
     const leadsData = [
         {
@@ -247,7 +243,7 @@ async function main() {
             notes: 'Interested in sea view apartments in Worli',
             projectId: seaViewProj?.id,
             campaignId: activeCampaign?.id,
-            assignedTo: consUser.id
+            assignedTo: superUser.id
         },
         {
             name: 'Sarah Smith',
@@ -257,7 +253,7 @@ async function main() {
             source: 'Facebook',
             notes: 'Needs info about plot registration in Pune',
             projectId: valleyPlotProj?.id,
-            assignedTo: consUser.id
+            assignedTo: superUser.id
         },
         {
             name: 'Michael Brown',
@@ -266,7 +262,7 @@ async function main() {
             source: 'Referral',
             notes: 'Wants to schedule a site visit next Sunday',
             projectId: seaViewProj?.id,
-            assignedTo: consUser.id
+            assignedTo: superUser.id
         }
     ];
 
@@ -277,7 +273,7 @@ async function main() {
         }
     }
 
-    // 8. User Documents (New Persistent Data)
+    // 9. User Documents
     console.log('Creating User Documents...');
     const dummyUrl = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
     const docsToSeed = [
@@ -287,13 +283,13 @@ async function main() {
 
     for (const d of docsToSeed) {
         const existing = await prisma.userDocument.findFirst({
-            where: { userId: buyerUser.id, name: d.name }
+            where: { userId: superUser.id, name: d.name }
         });
         if (!existing) {
             await prisma.userDocument.create({
                 data: {
                     ...d,
-                    user: { connect: { id: buyerUser.id } }
+                    user: { connect: { id: superUser.id } }
                 }
             });
         }

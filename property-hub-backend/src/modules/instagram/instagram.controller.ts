@@ -2,6 +2,7 @@ import { Controller, Get, Post, Query, UseGuards, Body, Param } from '@nestjs/co
 import { InstagramService } from './instagram.service';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RequireRoles } from '../../common/decorators/require-roles.decorator';
+import { UserRole } from '../../common/enums/role.enum';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
@@ -13,7 +14,7 @@ export class InstagramController {
     constructor(
         private instagramService: InstagramService,
         private usersService: UsersService,
-    ) {}
+    ) { }
 
     @Get('oauth-url')
     @UseGuards(JwtAuthGuard)
@@ -35,7 +36,7 @@ export class InstagramController {
         }
 
         // Exchange code for token
-        const { accessToken, userId: instagramUserId } = 
+        const { accessToken, userId: instagramUserId } =
             await this.instagramService.exchangeCodeForToken(code);
 
         // Get Instagram user info
@@ -49,8 +50,8 @@ export class InstagramController {
             username
         );
 
-        return { 
-            success: true, 
+        return {
+            success: true,
             message: 'Instagram account connected successfully',
             username,
         };
@@ -96,7 +97,7 @@ export class InstagramController {
         @Body() body: { videoUrl: string; caption: string },
     ) {
         const internalUser = await this.usersService.ensureUserSynced(user);
-        
+
         try {
             const result = await this.instagramService.publishReelToPartnerAccount(
                 reelId,
@@ -104,7 +105,7 @@ export class InstagramController {
                 body.caption,
                 internalUser.id,
             );
-            
+
             return {
                 success: true,
                 message: 'Reel published to Instagram',
@@ -133,7 +134,7 @@ export class InstagramController {
 
     @Post('reels/:reelId/approve-official')
     @UseGuards(JwtAuthGuard)
-    @RequireRoles('admin', 'central-authority')
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Approve and publish reel to PropertyHub official Instagram' })
     async approveOfficialPublishing(
@@ -146,7 +147,7 @@ export class InstagramController {
                 body.videoUrl,
                 body.caption,
             );
-            
+
             return {
                 success: true,
                 message: 'Reel approved and published to PropertyHub official Instagram',
@@ -163,7 +164,7 @@ export class InstagramController {
 
     @Post('reels/:reelId/reject-official')
     @UseGuards(JwtAuthGuard)
-    @RequireRoles('admin', 'central-authority')
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     @ApiBearerAuth()
     @ApiOperation({ summary: 'Reject reel from PropertyHub official Instagram' })
     async rejectOfficialPublishing(

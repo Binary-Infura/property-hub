@@ -7,7 +7,7 @@ export class InstagramService {
     private instagramGraphUrl = 'https://graph.instagram.com';
     private instagramApiVersion = 'v18.0';
 
-    constructor(private prisma: PrismaService) {}
+    constructor(private prisma: PrismaService) { }
 
     /**
      * Get Instagram OAuth redirect URL
@@ -16,7 +16,7 @@ export class InstagramService {
         const clientId = process.env.INSTAGRAM_APP_ID;
         const redirectUri = process.env.INSTAGRAM_REDIRECT_URI;
         const scope = 'instagram_business_basic,instagram_business_content_publish,pages_read_engagement';
-        
+
         return `https://api.instagram.com/oauth/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}&response_type=code&state=${userId}`;
     }
 
@@ -76,50 +76,102 @@ export class InstagramService {
         instagramUserId: string,
         username: string
     ): Promise<void> {
-        await this.prisma.propertyPartnerProfile.update({
-            where: { userId },
-            data: {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { organizationId: true, roles: true, profileData: true }
+        });
+
+        if (user?.organizationId) {
+            await this.prisma.organization.update({
+                where: { id: user.organizationId },
+                data: {
+                    instagramAccessToken: accessToken,
+                    instagramUserId: instagramUserId,
+                    instagramUsername: username,
+                    instagramConnectedAt: new Date(),
+                },
+            });
+        } else if (user) {
+            // Store in profileData for independent users (e.g. Influencers)
+            const existing = (user.profileData as Record<string, any>) || {};
+            const merged = {
+                ...existing,
                 instagramAccessToken: accessToken,
                 instagramUserId: instagramUserId,
                 instagramUsername: username,
                 instagramConnectedAt: new Date(),
-            },
-        });
+            };
+            await this.prisma.user.update({
+                where: { id: userId },
+                data: { profileData: merged }
+            });
+        }
     }
 
     /**
      * Get Instagram credentials for a user
      */
     async getInstagramCredentials(userId: string) {
-        const profile = await this.prisma.propertyPartnerProfile.findUnique({
-            where: { userId },
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
             select: {
-                instagramAccessToken: true,
-                instagramUserId: true,
-                instagramUsername: true,
+                organization: {
+                    select: {
+                        instagramAccessToken: true,
+                        instagramUserId: true,
+                        instagramUsername: true,
+                    }
+                },
+                profileData: true
             },
         });
 
-        if (!profile?.instagramAccessToken) {
-            throw new BadRequestException('Instagram account not connected');
+        const orgCreds = user?.organization;
+        if (orgCreds?.instagramAccessToken) return orgCreds;
+
+        const profileCreds = user?.profileData as any;
+        if (profileCreds?.instagramAccessToken) {
+            return {
+                instagramAccessToken: profileCreds.instagramAccessToken,
+                instagramUserId: profileCreds.instagramUserId,
+                instagramUsername: profileCreds.instagramUsername,
+            };
         }
 
-        return profile;
+        throw new BadRequestException('Instagram account not connected');
     }
 
     /**
      * Disconnect Instagram account
      */
     async disconnectInstagramAccount(userId: string): Promise<void> {
-        await this.prisma.propertyPartnerProfile.update({
-            where: { userId },
-            data: {
-                instagramAccessToken: null,
-                instagramUserId: null,
-                instagramUsername: null,
-                instagramConnectedAt: null,
-            },
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { organizationId: true, profileData: true }
         });
+
+        if (user?.organizationId) {
+            await this.prisma.organization.update({
+                where: { id: user.organizationId },
+                data: {
+                    instagramAccessToken: null,
+                    instagramUserId: null,
+                    instagramUsername: null,
+                    instagramConnectedAt: null,
+                },
+            });
+        } else if (user) {
+            const profileData = (user.profileData as Record<string, any>) || {};
+            delete profileData.instagramAccessToken;
+            delete profileData.instagramUserId;
+            delete profileData.instagramUsername;
+            delete profileData.instagramConnectedAt;
+
+            await this.prisma.user.update({
+                where: { id: userId },
+                data: { profileData }
+            });
+        }
     }
 
     /**
@@ -187,7 +239,7 @@ export class InstagramService {
             };
         } catch (error: any) {
             console.error(`Failed to publish reel to Instagram:`, error.message);
-            
+
             // Mark as failed in database
             await this.prisma.reel.update({
                 where: { id: reelId },
@@ -285,7 +337,7 @@ export class InstagramService {
             };
         } catch (error: any) {
             console.error(`Failed to publish to official Instagram:`, error.message);
-            
+
             // Mark as failed
             await this.prisma.reel.update({
                 where: { id: reelId },

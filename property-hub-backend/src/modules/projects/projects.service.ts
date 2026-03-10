@@ -5,6 +5,7 @@ import { Project } from '@prisma/client';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 import { UsersService } from '../users/users.service';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
+import { UserRole } from '../../common/enums/role.enum';
 
 @Injectable()
 export class ProjectsService {
@@ -15,11 +16,10 @@ export class ProjectsService {
     ) { }
 
     async findAll(user: AuthenticatedUser | undefined, myOnly?: boolean, city?: string): Promise<Project[]> {
-        const isCentralAuthority = user?.roles?.includes('central-authority') || false;
-        const isPropertyPartner = user?.roles?.includes('property-partner') || false;
-        const isGlobalRole = user?.roles?.some(role =>
-            ['central-authority', 'property-partner', 'buyer', 'consultant', 'loan-adviser', 'marketing-manager', 'onboarding-manager', 'channel-partner', 'visit-executive'].includes(role)
-        ) || false;
+        const isCentralAuthority = user?.roles?.includes(UserRole.CENTRAL_AUTHORITY) || false;
+        const isPropertyPartner = user?.roles?.includes(UserRole.PROPERTY_PARTNER) || false;
+        const allRoles = Object.values(UserRole);
+        const isGlobalRole = user?.roles?.some(role => allRoles.includes(role as UserRole)) || false;
 
 
 
@@ -43,7 +43,7 @@ export class ProjectsService {
             include: {
                 onboardedBy: {
                     include: {
-                        propertyPartnerProfile: true,
+                        organization: true,
                     },
                 },
                 assignedTo: true,
@@ -65,7 +65,7 @@ export class ProjectsService {
                 assignedTo: true,
                 onboardedBy: {
                     include: {
-                        propertyPartnerProfile: true,
+                        organization: true,
                     },
                 },
                 city: true,
@@ -77,14 +77,11 @@ export class ProjectsService {
         }
 
         if (user) {
-            const isCentralAuthority = user.roles.includes('central-authority');
-            const userRegions = (user.groups || []).map(g => g.split('/').pop());
+            const isCentralAuthority = user.roles.includes(UserRole.CENTRAL_AUTHORITY as string);
 
             // Check ownership
             const internalUser = await this.usersService.ensureUserSynced(user);
             const isOwner = project.onboardedById === internalUser.id;
-
-
         }
 
         return project;
@@ -114,7 +111,7 @@ export class ProjectsService {
             include: {
                 onboardedBy: {
                     include: {
-                        propertyPartnerProfile: true,
+                        organization: true,
                     },
                 },
             },
@@ -150,7 +147,7 @@ export class ProjectsService {
             include: {
                 onboardedBy: {
                     include: {
-                        propertyPartnerProfile: true,
+                        organization: true,
                     },
                 },
             },
@@ -182,8 +179,8 @@ export class ProjectsService {
     }
 
     async assignConsultants(id: string, consultantIds: string[], user: AuthenticatedUser): Promise<Project> {
-        const isPropertyPartner = user.roles.includes('property-partner');
-        const isCentralAuthority = user.roles.includes('central-authority');
+        const isPropertyPartner = user.roles.includes(UserRole.PROPERTY_PARTNER);
+        const isCentralAuthority = user.roles.includes(UserRole.CENTRAL_AUTHORITY);
 
         if (isPropertyPartner) {
             // Verify project ownership
@@ -223,7 +220,7 @@ export class ProjectsService {
                 assignedTo: true,
                 onboardedBy: {
                     include: {
-                        propertyPartnerProfile: true,
+                        organization: true,
                     },
                 },
             }
@@ -243,8 +240,8 @@ export class ProjectsService {
     }
 
     async bulkAssignConsultants(projectIds: string[], consultantIds: string[], user: AuthenticatedUser) {
-        const isPropertyPartner = user.roles.includes('property-partner');
-        const isCentralAuthority = user.roles.includes('central-authority');
+        const isPropertyPartner = user.roles.includes(UserRole.PROPERTY_PARTNER);
+        const isCentralAuthority = user.roles.includes(UserRole.CENTRAL_AUTHORITY);
 
         if (isPropertyPartner) {
             const internalUser = await this.usersService.ensureUserSynced(user);

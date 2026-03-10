@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateReelDto, UpdateReelInstagramDto } from './reels.dto';
+import { UserRole } from '../../common/enums/role.enum';
 import { Prisma, Reel, InstagramStatus } from '@prisma/client';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 import { UsersService } from '../users/users.service';
@@ -31,7 +32,6 @@ export class ReelsService {
                             firstName: true,
                             lastName: true,
                             email: true,
-                            propertyPartnerProfile: true,
                         }
                     },
                     project: {
@@ -61,7 +61,6 @@ export class ReelsService {
                         firstName: true,
                         lastName: true,
                         email: true,
-                        propertyPartnerProfile: true,
                     }
                 },
             },
@@ -165,7 +164,7 @@ export class ReelsService {
             throw new NotFoundException(`Reel with ID ${id} not found`);
         }
 
-        if (reel.userId !== internalUser.id && !user.roles.includes('admin')) {
+        if (reel.userId !== internalUser.id && !user.roles.includes(UserRole.CENTRAL_AUTHORITY)) {
             throw new ForbiddenException('You do not have permission to delete this reel');
         }
 
@@ -184,7 +183,7 @@ export class ReelsService {
             throw new NotFoundException(`Reel with ID ${id} not found`);
         }
 
-        if (reel.userId !== internalUser.id && !user.roles.includes('admin')) {
+        if (reel.userId !== internalUser.id && !user.roles.includes(UserRole.CENTRAL_AUTHORITY)) {
             throw new ForbiddenException('You do not have permission to update this reel');
         }
 
@@ -208,7 +207,6 @@ export class ReelsService {
                         firstName: true,
                         lastName: true,
                         email: true,
-                        propertyPartnerProfile: true,
                     }
                 },
                 project: true,
@@ -240,7 +238,6 @@ export class ReelsService {
                             firstName: true,
                             lastName: true,
                             email: true,
-                            propertyPartnerProfile: true,
                         }
                     },
                     project: true,

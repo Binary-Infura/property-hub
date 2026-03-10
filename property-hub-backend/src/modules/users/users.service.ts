@@ -1,8 +1,14 @@
-import { Injectable, BadRequestException, NotFoundException, InternalServerErrorException, HttpException, Inject, forwardRef } from '@nestjs/common';
+import {
+    Injectable, BadRequestException, NotFoundException,
+    InternalServerErrorException, HttpException,
+} from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
-import { UpdateUserMetadataDto, CreateUserDto, UpdateUserDto, InviteUserDto, InviteCentralAuthorityDto, InvitationResponse, UpdateProfileDto } from './users.dto';
-import { UserMetadata, User } from '@prisma/client';
+import {
+    UpdateUserPreferencesDto, CreateUserDto, UpdateUserDto,
+    InviteUserDto, InviteCentralAuthorityDto, InvitationResponse, UpdateProfileDto
+} from './users.dto';
+import { User } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 import { UserRole } from '../../common/enums/role.enum';
@@ -20,24 +26,44 @@ export class UsersService {
         return bcrypt.hash(password, 10);
     }
 
-    /**
-     * Invite a user with region-specific roles
-     */
+    // ─────────────────────────────────────────────────────────────
+    // USER PREFERENCES (inline on User — replaces UserMetadata)
+    // ─────────────────────────────────────────────────────────────
+
+    async updateUserPreferences(userId: string, dto: UpdateUserPreferencesDto): Promise<User> {
+        return this.prisma.user.update({
+            where: { id: userId },
+            data: {
+                theme: dto.theme,
+                notifications: dto.notifications as any,
+                onboardingStatus: dto.onboardingStatus,
+                language: dto.language,
+                regionPreference: dto.regionPreference,
+            },
+        });
+    }
+
+    async getUserPreferences(userId: string) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { language: true, theme: true, notifications: true, onboardingStatus: true, regionPreference: true },
+        });
+        if (!user) throw new NotFoundException('User not found');
+        return user;
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // INVITE
+    // ─────────────────────────────────────────────────────────────
+
     async inviteUser(dto: InviteUserDto): Promise<InvitationResponse> {
         try {
-            const tempPassword = "password"; // Or generate random
+            const tempPassword = 'password';
             const passwordHash = await this.hashPassword(tempPassword);
 
-            // Check if user already exists
-            const existingUser = await this.prisma.user.findUnique({
-                where: { email: dto.email }
-            });
+            const existingUser = await this.prisma.user.findUnique({ where: { email: dto.email } });
+            if (existingUser) throw new BadRequestException('User with this email already exists');
 
-            if (existingUser) {
-                throw new BadRequestException('User with this email already exists');
-            }
-
-            // Create user in internal DB
             const user = await this.prisma.user.create({
                 data: {
                     email: dto.email,
@@ -45,128 +71,80 @@ export class UsersService {
                     lastName: dto.lastName,
                     passwordHash,
                     roles: dto.roles || [],
-                    status: 'active',
+                    primaryRole: dto.roles?.[0] ?? undefined,
                 }
             });
 
-            return {
-                userId: user.id,
-                email: dto.email,
-                temporaryPassword: tempPassword,
-            };
+            return { userId: user.id, email: dto.email, temporaryPassword: tempPassword };
         } catch (error: any) {
-            console.error('Error inviting user:', error);
-            if (error instanceof HttpException) {
-                throw error;
-            }
+            if (error instanceof HttpException) throw error;
             throw new InternalServerErrorException(error.message || 'Failed to invite user');
         }
     }
 
     async inviteCentralAuthorityUser(dto: InviteCentralAuthorityDto): Promise<InvitationResponse> {
-        return this.inviteUser({
-            ...dto,
-            roles: ['central-authority'],
-        });
+        return this.inviteUser({ ...dto, roles: [UserRole.CENTRAL_AUTHORITY] });
     }
 
-    // --- User Metadata Methods (Current User) ---
+    // ─────────────────────────────────────────────────────────────
+    // AUTH SUPPORT
+    // ─────────────────────────────────────────────────────────────
 
-    async findOrCreateUserMetadata(userId: string): Promise<UserMetadata> {
-        return this.prisma.userMetadata.upsert({
-            where: { userId },
-            create: { userId },
-            update: {},
-        });
-    }
-
-    async updateUserMetadata(userId: string, dto: UpdateUserMetadataDto): Promise<UserMetadata> {
-        return this.prisma.userMetadata.upsert({
-            where: { userId },
-            create: { userId },
-            update: {
-                theme: dto.theme,
-                notifications: dto.notifications as any,
-                onboardingStatus: dto.onboardingStatus,
-                language: dto.language,
-            },
-        });
-    }
-
-    async getUserMetadata(userId: string): Promise<UserMetadata> {
-        return this.prisma.userMetadata.findUnique({
-            where: { userId },
-        });
-    }
-
-    /**
-     * Ensures an authenticated user exists in the local User table.
-     * This is used for managers and authorities who might not be onboarded
-     * but need to be referenced in ownership tracking.
-     */
     async ensureUserSynced(authenticatedUser: AuthenticatedUser): Promise<User> {
-        // Look up by JWT sub (which is user.id in our native auth)
-        let user = await this.prisma.user.findUnique({
-            where: { id: authenticatedUser.userId },
-        });
+        let user = await this.prisma.user.findUnique({ where: { id: authenticatedUser.userId } });
 
         if (!user && authenticatedUser.email) {
-            user = await this.prisma.user.findUnique({
-                where: { email: authenticatedUser.email },
-            });
+            user = await this.prisma.user.findUnique({ where: { email: authenticatedUser.email } });
         }
 
-        if (user) {
-            return user;
-        }
+        if (user) return user;
 
-        const roles = authenticatedUser.roles.includes('central-authority')
-            ? ['central-authority']
-            : authenticatedUser.roles.includes('onboarding-manager')
-                ? ['onboarding-manager']
-                : authenticatedUser.roles.includes('broker')
-                    ? ['broker']
-                    : ['unknown'];
+        const rawRoles = authenticatedUser.roles || [];
+        const normalizedRoles = rawRoles
+            .filter(r => Object.values(UserRole).includes(r as any)) as UserRole[];
 
-        user = await this.prisma.user.create({
+        const fallbackRoles = normalizedRoles.length > 0 ? normalizedRoles : [UserRole.ONBOARDING_MANAGER];
+
+        return this.prisma.user.create({
             data: {
                 id: authenticatedUser.userId,
                 email: authenticatedUser.email || 'unknown',
                 firstName: authenticatedUser.firstName || authenticatedUser.username || 'System',
                 lastName: authenticatedUser.lastName || 'User',
-                roles,
-                status: 'active',
+                roles: fallbackRoles,
+                primaryRole: fallbackRoles[0],
             },
         });
-
-        return user;
     }
 
-    // --- User Management Methods (Admin/Manager) ---
+    // ─────────────────────────────────────────────────────────────
+    // USER MANAGEMENT
+    // ─────────────────────────────────────────────────────────────
 
-    async createUser(dto: CreateUserDto, user?: AuthenticatedUser): Promise<User> {
+    async createUser(dto: CreateUserDto, currentUser?: AuthenticatedUser): Promise<User> {
+        if (!dto.firstName) throw new BadRequestException('firstName must be provided');
 
-        // 2. Prepare for Keycloak
-        const firstName = dto.firstName;
-        const lastName = dto.lastName || 'User';
-
-        if (!firstName) {
-            throw new BadRequestException('firstName must be provided');
-        }
-
-
-        // 3. Hash password and prepare user
         const passwordHash = await this.hashPassword(dto.password || 'password');
 
-        // 4. Find internal onboarder ID
-        let onboardedById = null;
-        if (user) {
-            const internalUser = await this.prisma.user.findUnique({
-                where: { id: user.userId },
+        let onboardedById: string | null = null;
+        if (currentUser) {
+            const internalUser = await this.prisma.user.findUnique({ where: { id: currentUser.userId } });
+            if (internalUser) onboardedById = internalUser.id;
+        }
+
+        // If PROPERTY_PARTNER and org info provided, create/find org first
+        let organizationId = dto.organizationId ?? null;
+        if (dto.roles.includes(UserRole.PROPERTY_PARTNER) && dto.companyName && !organizationId) {
+            const org = await this.prisma.organization.create({
+                data: {
+                    name: dto.companyName,
+                    type: 'BUILDER',
+                    address: dto.companyAddress,
+                    taxId: dto.taxId,
+                    licenseNumber: dto.licenseNumber,
+                },
             });
-            if (internalUser) {
-                onboardedById = internalUser.id;
-            }
+            organizationId = org.id;
         }
 
         const createdUser = await this.prisma.user.create({
@@ -177,31 +155,19 @@ export class UsersService {
                 email: dto.email,
                 phone: dto.phone,
                 roles: dto.roles,
-                agencyName: dto.agencyName,
+                primaryRole: dto.primaryRole ?? dto.roles[0] ?? undefined,
                 reraId: dto.reraId,
-                rating: dto.rating,
+                organizationId,
                 onboardedById,
+                profileData: {},
             },
         });
-
-        // 6. Create relevant profile based on role
-        if (dto.roles.includes('property-partner')) {
-            await this.prisma.propertyPartnerProfile.create({
-                data: {
-                    userId: createdUser.id,
-                    companyName: dto.companyName || dto.agencyName || 'New Project Partner',
-                    companyAddress: dto.companyAddress || '',
-                    taxId: dto.taxId || '',
-                    licenseNumber: dto.licenseNumber || '',
-                }
-            });
-        }
 
         await this.activityLogsService.log({
             userId: onboardedById || createdUser.id,
             type: 'info',
             action: 'User Registered',
-            target: createdUser.firstName + ' ' + (createdUser.lastName || ''),
+            target: `${createdUser.firstName} ${createdUser.lastName || ''}`,
             details: { roles: createdUser.roles }
         });
 
@@ -216,30 +182,20 @@ export class UsersService {
         limit: number = 10
     ): Promise<{ data: User[], total: number }> {
         const skip = (page - 1) * limit;
-        const where: any = { roles: { has: role } };
-
+        const normalizedRole = role as UserRole;
+        const where: any = { roles: { has: normalizedRole } };
 
         if (myOnly && user) {
-            const internalUser = await this.prisma.user.findUnique({
-                where: { id: user.userId },
-            });
-            if (internalUser) {
-                where.onboardedById = internalUser.id;
-            }
+            const internalUser = await this.prisma.user.findUnique({ where: { id: user.userId } });
+            if (internalUser) where.onboardedById = internalUser.id;
         }
 
         const [data, total] = await Promise.all([
             this.prisma.user.findMany({
                 where,
                 include: {
-
-                    onboardedBy: {
-                        select: {
-                            firstName: true,
-                            lastName: true,
-                            roles: true
-                        }
-                    }
+                    organization: { select: { id: true, name: true, type: true, isPremium: true, subscriptionMode: true } },
+                    onboardedBy: { select: { firstName: true, lastName: true, primaryRole: true } },
                 },
                 orderBy: { createdAt: 'desc' },
                 skip,
@@ -248,380 +204,177 @@ export class UsersService {
             this.prisma.user.count({ where }),
         ]);
 
-        if (role === 'property-partner') {
-            const userIds = data.map(u => u.id);
-            const profiles = await this.prisma.propertyPartnerProfile.findMany({
-                where: { userId: { in: userIds } }
-            });
-            data.forEach(user => {
-                user.propertyPartnerProfile = profiles.find(p => p.userId === user.id);
-            });
-        }
-
         return { data, total };
     }
 
     async findOne(id: string): Promise<User> {
         const user = await this.prisma.user.findUnique({
             where: { id },
-            include: {
-                documents: true,
-            }
+            include: { documents: true, organization: true }
         });
         if (!user) throw new NotFoundException('User not found');
         return user;
     }
 
     async updateUser(id: string, dto: UpdateUserDto): Promise<User> {
-        const existingUser = await this.findOne(id);
-
-        const data: any = {
-            firstName: dto.firstName,
-            lastName: dto.lastName,
-            phone: dto.phone,
-            status: dto.status,
-            roles: dto.roles,
-            defaultRole: dto.defaultRole,
-            agencyName: dto.agencyName,
-            reraId: dto.reraId,
-            rating: dto.rating
-        };
-
-
-        if (existingUser.roles.includes('property-partner')) {
-            const profileData: any = {};
-            if (dto.companyName) profileData.companyName = dto.companyName;
-            if (dto.companyAddress) profileData.companyAddress = dto.companyAddress;
-            if (dto.taxId) profileData.taxId = dto.taxId;
-            if (dto.licenseNumber) profileData.licenseNumber = dto.licenseNumber;
-
-            if (Object.keys(profileData).length > 0) {
-                await this.prisma.propertyPartnerProfile.upsert({
-                    where: { userId: id },
-                    create: {
-                        userId: id,
-                        companyName: dto.companyName || dto.agencyName || 'New Project Partner',
-                        ...profileData
-                    },
-                    update: profileData
-                });
-            }
-        }
-
+        await this.findOne(id);
         return this.prisma.user.update({
             where: { id },
-            data,
-
+            data: {
+                firstName: dto.firstName,
+                lastName: dto.lastName,
+                phone: dto.phone,
+                avatarUrl: dto.avatarUrl,
+                status: dto.status as any,
+                roles: dto.roles,
+                primaryRole: dto.primaryRole ?? (dto.roles ? dto.roles[0] : undefined),
+                reraId: dto.reraId,
+                organizationId: dto.organizationId,
+            },
         });
     }
 
     async toggleStatus(id: string): Promise<User> {
         const user = await this.findOne(id);
-        const newStatus = user.status === 'active' ? 'inactive' : 'active';
+        const newStatus = user.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE';
         return this.prisma.user.update({
             where: { id },
-            data: { status: newStatus },
-
+            data: { status: newStatus as any },
         });
     }
 
+    // ─────────────────────────────────────────────────────────────
+    // PROFILE (JSON-based — single source of truth per user)
+    // ─────────────────────────────────────────────────────────────
+
+    /**
+     * Returns the profileData JSON merged with any org data for the user.
+     * No separate profile table queries needed.
+     */
     async getProfileStatus(userId: string, roles: string[]) {
         const user = await this.prisma.user.findUnique({
-            where: { id: userId }
+            where: { id: userId },
+            include: { organization: true },
         });
-
         if (!user) return {};
 
-        const internalId = user.id;
-        const status: any = {};
-        const businessRoles: string[] = Object.values(UserRole);
-
-        for (const role of roles) {
-            if (!businessRoles.includes(role)) continue;
-
-            let profileData = null;
-
-            switch (role) {
-                case UserRole.CENTRAL_AUTHORITY:
-                    profileData = await this.prisma.centralAuthorityProfile.findUnique({ where: { userId: internalId } });
-                    break;
-                case UserRole.PROPERTY_PARTNER:
-                    profileData = await this.prisma.propertyPartnerProfile.findUnique({ where: { userId: internalId } });
-                    break;
-                case UserRole.BROKER:
-                    profileData = await this.prisma.brokerProfile.findUnique({ where: { userId: internalId } });
-                    break;
-                case UserRole.MARKETING_MANAGER:
-                    profileData = await this.prisma.marketingManagerProfile.findUnique({ where: { userId: internalId } });
-                    break;
-                case UserRole.CONSULTANT:
-                    profileData = await this.prisma.consultantProfile.findUnique({ where: { userId: internalId } });
-                    break;
-                case UserRole.BUYER:
-                    profileData = await this.prisma.buyerProfile.findUnique({ where: { userId: internalId } });
-                    break;
-
-                case UserRole.INFLUENCER:
-                    profileData = await this.prisma.influencerProfile.findUnique({ where: { userId: internalId } });
-                    break;
-            }
-
-            status[role] = {
-                hasProfile: !!profileData,
-                profileData
-            };
-        }
-
-        return status;
+        return {
+            roles: user.roles,
+            primaryRole: user.primaryRole,
+            profileData: user.profileData,           // role-specific JSON blob
+            organization: user.organization,          // org data for PROPERTY_PARTNER etc.
+        };
     }
 
+    /**
+     * Updates profileData JSON field for any role.
+     * Deep-merges the incoming dto.profileData into the existing JSON.
+     */
     async updateMyProfile(userId: string, roles: string[], dto: UpdateProfileDto) {
-        const user = await this.prisma.user.findUnique({
-            where: { id: userId },
-        });
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new NotFoundException('User not found');
 
-        if (!user) {
-            throw new NotFoundException('User not found');
-        }
+        const normalizedRoles = roles as UserRole[];
 
-        // Update basic info
+        // Merge new fields into the existing profileData JSON
+        const existing = (user.profileData as Record<string, any>) || {};
+        const incoming = dto.profileData || {};
+        const mergedProfile = { ...existing, ...incoming };
+
+        // Update core user fields
         await this.prisma.user.update({
             where: { id: user.id },
             data: {
-                firstName: dto.firstName,
-                lastName: dto.lastName,
-                phone: dto.phone,
-                defaultRole: dto.defaultRole,
-                // Also update agencyName if companyName is provided and user has property-partner role
-                agencyName: (user.roles.includes('property-partner') && dto.companyName) ? dto.companyName : undefined
+                firstName: dto.firstName ?? user.firstName,
+                lastName: dto.lastName ?? user.lastName,
+                phone: dto.phone ?? user.phone,
+                primaryRole: dto.primaryRole ?? user.primaryRole,
+                profileData: mergedProfile,
             }
         });
 
-        // Update role-specific profile
-        if (user.roles.includes('property-partner')) {
-            const profileData: any = {};
-            if (dto.companyName) profileData.companyName = dto.companyName;
-            if (dto.companyAddress) profileData.companyAddress = dto.companyAddress;
-            if (dto.taxId) profileData.taxId = dto.taxId;
-            if (dto.licenseNumber) profileData.licenseNumber = dto.licenseNumber;
+        // Property Partner — sync key fields to Organization as well
+        if (normalizedRoles.includes(UserRole.PROPERTY_PARTNER)) {
+            const orgData: any = {};
+            if (incoming.companyName) orgData.name = incoming.companyName;
+            if (incoming.companyAddress) orgData.address = incoming.companyAddress;
+            if (incoming.taxId) orgData.taxId = incoming.taxId;
+            if (incoming.licenseNumber) orgData.licenseNumber = incoming.licenseNumber;
 
-            if (Object.keys(profileData).length > 0) {
-                await this.prisma.propertyPartnerProfile.upsert({
-                    where: { userId: user.id },
-                    create: {
-                        userId: user.id,
-                        companyName: dto.companyName || user.agencyName || 'New Project Partner',
-                        ...profileData
-                    },
-                    update: profileData
-                });
-            }
-        }
-
-        if (user.roles.includes('influencer')) {
-            const profileData: any = {};
-            if (dto.socialMediaLinks) profileData.socialMediaLinks = dto.socialMediaLinks;
-            if (dto.reach) profileData.reach = dto.reach;
-            if (dto.niche) profileData.niche = dto.niche;
-
-            if (Object.keys(profileData).length > 0) {
-                await this.prisma.influencerProfile.upsert({
-                    where: { userId: user.id },
-                    create: {
-                        userId: user.id,
-                        ...profileData
-                    },
-                    update: profileData
-                });
-            }
-        }
-
-        if (user.roles.includes('broker')) {
-            const profileData: any = {};
-            if (dto.agencyBusinessName) profileData.agencyBusinessName = dto.agencyBusinessName;
-            if (dto.reraNumber) profileData.reraNumber = dto.reraNumber;
-            if (dto.officeAddress) profileData.officeAddress = dto.officeAddress;
-
-            if (Object.getOwnPropertyNames(profileData).length > 0) {
-                await this.prisma.brokerProfile.upsert({
-                    where: { userId: user.id },
-                    create: {
-                        userId: user.id,
-                        agencyBusinessName: dto.agencyBusinessName || user.agencyName || 'New Broker',
-                        ...profileData
-                    },
-                    update: profileData
-                });
-            }
-        }
-
-        if (user.roles.includes('consultant')) {
-            const profileData: any = {};
-            if (dto.specialization) profileData.specialization = dto.specialization;
-            if (dto.experienceYears) profileData.experienceYears = dto.experienceYears;
-
-            if (Object.keys(profileData).length > 0) {
-                await this.prisma.consultantProfile.upsert({
-                    where: { userId: user.id },
-                    create: {
-                        userId: user.id,
-                        ...profileData
-                    },
-                    update: profileData
-                });
-            }
-        }
-
-        if (user.roles.includes('buyer')) {
-            const profileData: any = {};
-            if (dto.budgetMin) profileData.budgetMin = dto.budgetMin;
-            if (dto.budgetMax) profileData.budgetMax = dto.budgetMax;
-            if (dto.preferredLocations) profileData.preferredLocations = dto.preferredLocations;
-
-            if (Object.keys(profileData).length > 0) {
-                await this.prisma.buyerProfile.upsert({
-                    where: { userId: user.id },
-                    create: {
-                        userId: user.id,
-                        ...profileData
-                    },
-                    update: profileData
-                });
-            }
-        }
-
-        if (user.roles.includes('marketing-manager')) {
-            const profileData: any = {};
-            if (dto.campaignBudgetLimit) profileData.campaignBudgetLimit = dto.campaignBudgetLimit;
-
-            if (Object.keys(profileData).length > 0) {
-                await this.prisma.marketingManagerProfile.upsert({
-                    where: { userId: user.id },
-                    create: {
-                        userId: user.id,
-                        ...profileData
-                    },
-                    update: profileData
-                });
-            }
-        }
-
-        if (user.roles.includes('central-authority')) {
-            const profileData: any = {};
-            if (dto.department) profileData.department = dto.department;
-            if (dto.accessLevel) profileData.accessLevel = dto.accessLevel;
-
-            if (Object.keys(profileData).length > 0) {
-                await this.prisma.centralAuthorityProfile.upsert({
-                    where: { userId: user.id },
-                    create: {
-                        userId: user.id,
-                        ...profileData
-                    },
-                    update: profileData
-                });
+            if (Object.keys(orgData).length > 0) {
+                if (user.organizationId) {
+                    await this.prisma.organization.update({ where: { id: user.organizationId }, data: orgData });
+                } else {
+                    const org = await this.prisma.organization.create({
+                        data: { name: incoming.companyName || 'New Company', type: 'BUILDER', ...orgData },
+                    });
+                    await this.prisma.user.update({ where: { id: user.id }, data: { organizationId: org.id } });
+                }
             }
         }
 
         return this.findOne(user.id);
     }
+
+    // ─────────────────────────────────────────────────────────────
+    // FOLLOW
+    // ─────────────────────────────────────────────────────────────
+
     async follow(followerId: string, followingId: string) {
-        if (!(this.prisma as any).follow) {
-            console.error('CRITICAL: prisma.follow is undefined. Prisma client may need regeneration or restart.');
-            throw new InternalServerErrorException('Prisma client not initialized with Follow model');
-        }
-
-        if (followerId === followingId) {
-            throw new BadRequestException('You cannot follow yourself');
-        }
-
+        if (followerId === followingId) throw new BadRequestException('You cannot follow yourself');
         try {
-            return await (this.prisma as any).follow.upsert({
-                where: {
-                    followerId_followingId: {
-                        followerId,
-                        followingId,
-                    },
-                },
-                create: {
-                    followerId,
-                    followingId,
-                },
+            return await this.prisma.follow.upsert({
+                where: { followerId_followingId: { followerId, followingId } },
+                create: { followerId, followingId },
                 update: {},
             });
         } catch (error: any) {
-            console.error(`Prisma Error in follow (follower: ${followerId}, following: ${followingId}):`, error);
             throw new InternalServerErrorException(`Failed to follow user: ${error.message}`);
         }
     }
 
     async unfollow(followerId: string, followingId: string) {
         try {
-            await (this.prisma as any).follow.delete({
-                where: {
-                    followerId_followingId: {
-                        followerId,
-                        followingId,
-                    },
-                },
-            });
-            return { success: true };
-        } catch (error) {
-            // If already not following, prisma might throw
-            return { success: true };
-        }
+            await this.prisma.follow.delete({ where: { followerId_followingId: { followerId, followingId } } });
+        } catch { /* already unfollowed */ }
+        return { success: true };
     }
 
     async isFollowing(followerId: string, followingId: string): Promise<boolean> {
-        const follow = await (this.prisma as any).follow.findUnique({
-            where: {
-                followerId_followingId: {
-                    followerId,
-                    followingId,
-                },
-            },
+        const follow = await this.prisma.follow.findUnique({
+            where: { followerId_followingId: { followerId, followingId } },
         });
         return !!follow;
     }
 
-    async getFollowingCount(userId: string): Promise<number> {
-        return (this.prisma as any).follow.count({
-            where: { followingId: userId }
-        });
+    async getFollowerCount(userId: string): Promise<number> {
+        return this.prisma.follow.count({ where: { followingId: userId } });
     }
 
+    async getFollowingCount(userId: string): Promise<number> {
+        return this.prisma.follow.count({ where: { followerId: userId } });
+    }
+
+    // ─────────────────────────────────────────────────────────────
+    // DOCUMENTS
+    // ─────────────────────────────────────────────────────────────
+
     async saveUserDocument(userId: string, category: string, name: string, url: string) {
-        console.log(`[UsersService] saveUserDocument called: userId=${userId}, category=${category}, name=${name}`);
-        // Fix: Match by userId, category, AND name to support multiple documents per category
-        const existing = await this.prisma.userDocument.findFirst({
-            where: { userId, category, name }
-        });
+        const existing = await this.prisma.userDocument.findFirst({ where: { userId, category, name } });
 
         if (existing) {
             return this.prisma.userDocument.update({
                 where: { id: existing.id },
-                data: {
-                    url,
-                    status: 'uploaded',
-                    updatedAt: new Date(),
-                }
+                data: { url, status: 'uploaded', updatedAt: new Date() }
             });
         }
 
         return this.prisma.userDocument.create({
-            data: {
-                userId,
-                category,
-                name,
-                url,
-                status: 'uploaded',
-            },
+            data: { userId, category, name, url, status: 'uploaded' },
         });
     }
 
     async getUserDocuments(userId: string) {
-        return this.prisma.userDocument.findMany({
-            where: { userId }
-        });
+        return this.prisma.userDocument.findMany({ where: { userId } });
     }
 }

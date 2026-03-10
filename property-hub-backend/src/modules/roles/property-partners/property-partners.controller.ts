@@ -3,13 +3,14 @@ import { PropertyPartnersService } from './property-partners.service';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/guards/roles.guard';
 import { RequireRoles } from '../../../common/decorators/require-roles.decorator';
+import { UserRole } from '../../../common/enums/role.enum';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../../common/interfaces/jwt-payload.interface';
 import { UpdatePropertyPartnerProfileDto } from './property-partners.dto';
 
 @Controller('api/property-partners')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RequireRoles('property-partner')
+@RequireRoles(UserRole.PROPERTY_PARTNER)
 export class PropertyPartnersController {
     constructor(private readonly propertyPartnersService: PropertyPartnersService) { }
 

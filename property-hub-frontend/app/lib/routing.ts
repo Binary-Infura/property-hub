@@ -10,64 +10,76 @@
  * - One role = one dashboard route (no shared dashboards)
  */
 
-export type UserRole = 'buyer' | 'consultant' | 'property-partner' | 'broker' | 'loan-adviser' | 'visit-executive' | 'onboarding-manager' | 'central-authority' | 'marketing-manager' | 'influencer';
+export type UserRole =
+  | 'BUYER'
+  | 'CONSULTANT'
+  | 'PROPERTY_PARTNER'
+  | 'BROKER'
+  | 'LOAN_ADVISOR'
+  | 'VISIT_EXECUTIVE'
+  | 'ONBOARDING_MANAGER'
+  | 'CENTRAL_AUTHORITY'
+  | 'MARKETING_MANAGER'
+  | 'INFLUENCER';
 
 /**
- * Canonical dashboard routes for each role
+ * Canary dashboard routes for each role
+ * Maps standardized backend roles to their frontend dashboard routes
  */
-export const DASHBOARD_ROUTES = {
-  buyer: '/dashboard',
-  consultant: '/consultant/dashboard',
-  'property-partner': '/property-partner/dashboard',
-  'broker': '/broker/dashboard',
-  'loan-adviser': '/loan-adviser/dashboard',
-  'visit-executive': '/visit-executive/dashboard',
-  'onboarding-manager': '/onboarding-manager/dashboard',
-  'central-authority': '/central-authority/dashboard',
-  'marketing-manager': '/marketing-manager/dashboard',
-  'influencer': '/influencer/dashboard',
-} as const;
+export const DASHBOARD_ROUTES: Record<string, string> = {
+  BUYER: '/dashboard',
+  CONSULTANT: '/consultant/dashboard',
+  PROPERTY_PARTNER: '/property-partner/dashboard',
+  BROKER: '/broker/dashboard',
+  LOAN_ADVISOR: '/loan-adviser/dashboard',
+  VISIT_EXECUTIVE: '/visit-executive/dashboard',
+  ONBOARDING_MANAGER: '/onboarding-manager/dashboard',
+  CENTRAL_AUTHORITY: '/central-authority/dashboard',
+  MARKETING_MANAGER: '/marketing-manager/dashboard',
+  INFLUENCER: '/influencer/dashboard',
+};
 
 /**
  * Get the canonical dashboard route for a given role
  */
-export function getDashboardRoute(role: UserRole): string {
-  // @ts-ignore
-  return DASHBOARD_ROUTES[role];
+export function getDashboardRoute(role: string): string {
+  return DASHBOARD_ROUTES[role] || '/dashboard';
 }
 
 /**
  * Get the role from a dashboard route path
- * Returns null if the path is not a dashboard route
+ * Returns standardized role name
  */
 export function getRoleFromPath(pathname: string): UserRole | null {
   if (pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
-    return 'buyer';
+    return 'BUYER';
   }
   if (pathname.startsWith('/consultant/dashboard')) {
-    return 'consultant';
+    return 'CONSULTANT';
   }
   if (pathname.startsWith('/property-partner/dashboard')) {
-    return 'property-partner';
+    return 'PROPERTY_PARTNER';
   }
   if (pathname.startsWith('/broker/dashboard')) {
-    return 'broker';
+    return 'BROKER';
   }
   if (pathname.startsWith('/loan-adviser/dashboard')) {
-    return 'loan-adviser';
-  }
-
-  if (pathname.startsWith('/visit-executive/dashboard')) {
-    return 'visit-executive';
+    return 'LOAN_ADVISOR';
   }
   if (pathname.startsWith('/visit-executive/dashboard')) {
-    return 'visit-executive';
+    return 'VISIT_EXECUTIVE';
   }
   if (pathname.startsWith('/onboarding-manager/dashboard')) {
-    return 'onboarding-manager';
+    return 'ONBOARDING_MANAGER';
+  }
+  if (pathname.startsWith('/central-authority/dashboard')) {
+    return 'CENTRAL_AUTHORITY';
+  }
+  if (pathname.startsWith('/marketing-manager/dashboard')) {
+    return 'MARKETING_MANAGER';
   }
   if (pathname.startsWith('/influencer/dashboard')) {
-    return 'influencer';
+    return 'INFLUENCER';
   }
 
   return null;
@@ -79,7 +91,7 @@ export function getRoleFromPath(pathname: string): UserRole | null {
  */
 export function getRedirectTarget(
   currentPath: string,
-  userRole: UserRole
+  userRole: string
 ): string | null {
   const routeForRole = getDashboardRoute(userRole);
   const roleFromPath = getRoleFromPath(currentPath);
@@ -95,7 +107,7 @@ export function getRedirectTarget(
   }
 
   // If user is on /dashboard but is not a buyer, redirect
-  if (currentPath === '/dashboard' && userRole !== 'buyer') {
+  if (currentPath === '/dashboard' && userRole !== 'BUYER') {
     return routeForRole;
   }
 

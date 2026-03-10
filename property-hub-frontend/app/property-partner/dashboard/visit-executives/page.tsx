@@ -8,7 +8,7 @@ import { userService, User } from '@/app/services/userService';
 
 export default function VisitExecutivesPage() {
     const { token, profileStatus } = useAuth();
-    const isPremium = profileStatus?.['property-partner']?.profileData?.isPremium;
+    const isPremium = profileStatus?.['PROPERTY_PARTNER']?.profileData?.isPremium;
     const { activeContext } = useUnifiedApp();
     const [executives, setExecutives] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
@@ -20,7 +20,7 @@ export default function VisitExecutivesPage() {
         try {
             setLoading(true);
             const result = await userService.getAllByRole(
-                'visit-executive',
+                'VISIT_EXECUTIVE',
                 token,
                 true // Always personal view
             );
@@ -215,7 +215,7 @@ export default function VisitExecutivesPage() {
                                                 lastName,
                                                 email,
                                                 phone,
-                                                role: 'visit-executive',
+                                                role: 'VISIT_EXECUTIVE',
                                             };
 
                                             await userService.create(payload, token);

@@ -27,7 +27,7 @@ export default function VisitExecutivesPage() {
         try {
             setLoading(true);
             const result = await userService.getAllByRole(
-                'visit-executive',
+                'VISIT_EXECUTIVE',
                 token
             );
             setExecutives(result.data);
@@ -71,7 +71,7 @@ export default function VisitExecutivesPage() {
             } else {
                 const created = await userService.create({
                     ...formData,
-                    role: 'visit-executive',
+                    role: 'VISIT_EXECUTIVE',
                 }, token);
                 setExecutives([created, ...executives]);
                 setShowAddModal(false);

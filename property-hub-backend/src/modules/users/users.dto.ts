@@ -1,11 +1,6 @@
-import { IsString, IsOptional, IsEmail, IsArray, IsNumber, IsNotEmpty, IsObject, ValidateNested, MinLength } from 'class-validator';
+import { IsString, IsOptional, IsEmail, IsArray, IsEnum, IsNumber, IsNotEmpty, IsObject, IsBoolean, ValidateNested, MinLength } from 'class-validator';
 import { Type } from 'class-transformer';
-
-export class RegionRoleDto {
-    @IsString({ each: true })
-    @IsNotEmpty({ each: true })
-    roles: string[];
-}
+import { UserRole } from '../../common/enums/role.enum';
 
 export class InviteUserDto {
     @IsEmail()
@@ -19,11 +14,10 @@ export class InviteUserDto {
     @IsNotEmpty()
     lastName: string;
 
-
     @IsArray()
-    @IsString({ each: true })
+    @IsEnum(UserRole, { each: true })
     @IsOptional()
-    roles?: string[];
+    roles?: UserRole[];
 }
 
 export class InviteCentralAuthorityDto {
@@ -45,23 +39,7 @@ export interface InvitationResponse {
     temporaryPassword: string;
 }
 
-export class UpdateUserMetadataDto {
-    @IsString()
-    @IsOptional()
-    firstName?: string;
-
-    @IsString()
-    @IsOptional()
-    lastName?: string;
-
-    @IsString()
-    @IsOptional()
-    phone?: string;
-
-    @IsString()
-    @IsOptional()
-    regionPreference?: string;
-
+export class UpdateUserPreferencesDto {
     @IsString()
     @IsOptional()
     theme?: string;
@@ -77,6 +55,10 @@ export class UpdateUserMetadataDto {
     @IsString()
     @IsOptional()
     language?: string;
+
+    @IsString()
+    @IsOptional()
+    regionPreference?: string;
 }
 
 export class CreateUserDto {
@@ -96,57 +78,28 @@ export class CreateUserDto {
     phone?: string;
 
     @IsArray()
-    @IsString({ each: true })
-    roles: string[];
+    @IsEnum(UserRole, { each: true })
+    roles: UserRole[];
 
-    @IsString()
+    @IsEnum(UserRole)
     @IsOptional()
-    agencyName?: string;
-
-    @IsString()
-    @IsOptional()
-    reraId?: string;
-
-    @IsNumber()
-    @IsOptional()
-    rating?: number;
-
+    primaryRole?: UserRole;
 
     @IsString()
     @IsOptional()
     @MinLength(6)
     password?: string;
 
-    // Service Provider Profile Fields
     @IsString()
     @IsOptional()
-    businessName?: string;
+    reraId?: string;
 
+    // Organization FK — supply when creating PROPERTY_PARTNER, BROKER in org, etc.
     @IsString()
     @IsOptional()
-    category?: string;
+    organizationId?: string;
 
-    @IsString()
-    @IsOptional()
-    location?: string;
-
-    @IsArray()
-    @IsOptional()
-    availabilityDays?: string[];
-
-    @IsString()
-    @IsOptional()
-    availabilityHours?: string;
-
-    @IsString()
-    @IsOptional()
-    rates?: string;
-
-    @IsString()
-    @IsOptional()
-    portfolio?: string;
-
-    // Project Partner Profile Fields
+    // Property Partner / Builder Profile Fields (now go to Organization)
     @IsString()
     @IsOptional()
     companyName?: string;
@@ -179,60 +132,30 @@ export class UpdateUserDto {
 
     @IsString()
     @IsOptional()
+    avatarUrl?: string;
+
+    @IsString()
+    @IsOptional()
     status?: string;
 
     @IsArray()
-    @IsString({ each: true })
+    @IsEnum(UserRole, { each: true })
     @IsOptional()
-    roles?: string[];
+    roles?: UserRole[];
 
-    @IsString()
+    @IsEnum(UserRole)
     @IsOptional()
-    defaultRole?: string;
-
-    @IsString()
-    @IsOptional()
-    agencyName?: string;
+    primaryRole?: UserRole;
 
     @IsString()
     @IsOptional()
     reraId?: string;
 
-    @IsNumber()
-    @IsOptional()
-    rating?: number;
-
-
-    // Service Provider Profile Fields
     @IsString()
     @IsOptional()
-    businessName?: string;
+    organizationId?: string;
 
-    @IsString()
-    @IsOptional()
-    category?: string;
-
-    @IsString()
-    @IsOptional()
-    location?: string;
-
-    @IsArray()
-    @IsOptional()
-    availabilityDays?: string[];
-
-    @IsString()
-    @IsOptional()
-    availabilityHours?: string;
-
-    @IsString()
-    @IsOptional()
-    rates?: string;
-
-    @IsString()
-    @IsOptional()
-    portfolio?: string;
-
-    // Project Partner Profile Fields
+    // Organization-level fields (if managing org inline)
     @IsString()
     @IsOptional()
     companyName?: string;
@@ -263,101 +186,21 @@ export class UpdateProfileDto {
     @IsOptional()
     phone?: string;
 
-    @IsString()
+    @IsEnum(UserRole)
     @IsOptional()
-    defaultRole?: string;
+    primaryRole?: UserRole;
 
-    // Project Partner Specific
-    @IsString()
-    @IsOptional()
-    companyName?: string;
-
-    @IsString()
-    @IsOptional()
-    companyAddress?: string;
-
-    @IsString()
-    @IsOptional()
-    taxId?: string;
-
-    @IsString()
-    @IsOptional()
-    licenseNumber?: string;
-
-    // Service Provider Specific
-    @IsString()
-    @IsOptional()
-    businessName?: string;
-
-    @IsString()
-    @IsOptional()
-    category?: string;
-
-    @IsString()
-    @IsOptional()
-    location?: string;
-
-    // Influencer Specific
+    /**
+     * Role-specific profile data stored as a JSON blob on the User row.
+     * The shape varies by role — examples:
+     *
+     * BUYER:           { budgetMin, budgetMax, preferredLocations, propertyTypes }
+     * CONSULTANT:      { consultantType, specialization, experienceYears, rating }
+     * INFLUENCER:      { socialMediaLinks, reach, niche }
+     * BROKER:          { agencyName, reraNumber, officeAddress }
+     * PROPERTY_PARTNER: { companyName, companyAddress, taxId, licenseNumber }
+     */
     @IsObject()
     @IsOptional()
-    socialMediaLinks?: any;
-
-    @IsNumber()
-    @IsOptional()
-    reach?: number;
-
-    @IsString()
-    @IsOptional()
-    niche?: string;
-
-    // Broker Specific
-    @IsString()
-    @IsOptional()
-    agencyBusinessName?: string;
-
-    @IsString()
-    @IsOptional()
-    reraNumber?: string;
-
-    @IsString()
-    @IsOptional()
-    officeAddress?: string;
-
-    // Consultant Specific
-    @IsArray()
-    @IsString({ each: true })
-    @IsOptional()
-    specialization?: string[];
-
-    @IsNumber()
-    @IsOptional()
-    experienceYears?: number;
-
-    // Buyer Specific
-    @IsNumber()
-    @IsOptional()
-    budgetMin?: number;
-
-    @IsNumber()
-    @IsOptional()
-    budgetMax?: number;
-
-    @IsArray()
-    @IsString({ each: true })
-    @IsOptional()
-    preferredLocations?: string[];
-
-    // Marketing Manager Specific
-    @IsNumber()
-    @IsOptional()
-    campaignBudgetLimit?: number;
-
-    // Central Authority Specific
-    @IsString()
-    @IsOptional()
-    department?: string;
-
-    @IsString()
-    @IsOptional()
-    accessLevel?: string;
+    profileData?: Record<string, any>;
 }

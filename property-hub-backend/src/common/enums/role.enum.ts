@@ -1,13 +1,13 @@
+// Canonical role enum — matches Prisma UserRole enum exactly
 export enum UserRole {
-    CENTRAL_AUTHORITY = 'central-authority',
-
-    BROKER = 'broker',
-    MARKETING_MANAGER = 'marketing-manager',
-    CONSULTANT = 'consultant',
-    BUYER = 'buyer',
-    PROPERTY_PARTNER = 'property-partner',
-    ONBOARDING_MANAGER = 'onboarding-manager',
-    LOAN_ADVISER = 'loan-adviser',
-    VISIT_EXECUTIVE = 'visit-executive',
-    INFLUENCER = 'influencer',
+    CENTRAL_AUTHORITY = 'CENTRAL_AUTHORITY',
+    PROPERTY_PARTNER = 'PROPERTY_PARTNER',
+    BROKER = 'BROKER',
+    BUYER = 'BUYER',
+    CONSULTANT = 'CONSULTANT',
+    INFLUENCER = 'INFLUENCER',
+    MARKETING_MANAGER = 'MARKETING_MANAGER',
+    LOAN_ADVISOR = 'LOAN_ADVISOR',
+    ONBOARDING_MANAGER = 'ONBOARDING_MANAGER',
+    VISIT_EXECUTIVE = 'VISIT_EXECUTIVE',
 }

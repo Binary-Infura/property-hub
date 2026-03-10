@@ -41,7 +41,7 @@ export default function AddInfluencerModal({ isOpen, onClose, onSuccess }: AddIn
                     lastName: formData.lastName,
                     email: formData.email,
                     phone: formData.phone,
-                    role: 'influencer',
+                    role: 'INFLUENCER',
                     niche: formData.niche,
                     reach: parseInt(formData.reach) || 0,
                 }),

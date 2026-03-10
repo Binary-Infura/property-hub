@@ -25,11 +25,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
         return {
             userId: userId,
             email: payload.email,
-            username: payload.preferred_username || payload.email,
-            firstName: payload.firstName || payload.given_name,
-            lastName: payload.lastName || payload.family_name,
-            roles: payload.realm_access?.roles || payload.roles || [],
-            groups: payload.groups || [],
+            username: payload.email,
+            firstName: payload.firstName,
+            lastName: payload.lastName,
+            roles: payload.roles || [],
             phone: payload.phone,
         };
     }

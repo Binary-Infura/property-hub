@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { useConsultingBucket } from '../contexts/ConsultingBucketContext';
 import { useUnifiedApp } from '../contexts/UnifiedAppContext';
@@ -15,7 +16,7 @@ export default function Navbar() {
     const [isBucketOpen, setIsBucketOpen] = useState(false);
     const bucketRef = useRef<HTMLDivElement>(null);
 
-    const isBuyer = (activeContext?.activeRole?.id === 'buyer') && authenticated;
+    const isBuyer = (activeContext?.activeRole?.id === 'BUYER') && authenticated;
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -27,28 +28,6 @@ export default function Navbar() {
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
 
-    const getDashboardUrl = () => {
-        // 1. If they have a default role set, definitely use that first
-        if (user?.defaultRole && roles.includes(user.defaultRole)) {
-            return DASHBOARD_ROUTES[user.defaultRole as keyof typeof DASHBOARD_ROUTES] || '/dashboard';
-        }
-
-        // 2. Fallback preference order
-        const priorityRoles: (keyof typeof DASHBOARD_ROUTES)[] = [
-            'central-authority',
-            'broker',
-            'consultant',
-            'property-partner',
-            'marketing-manager',
-            'onboarding-manager',
-            'loan-adviser',
-            'visit-executive',
-            'buyer'
-        ];
-
-        const foundRole = priorityRoles.find(role => roles.includes(role));
-        return foundRole ? DASHBOARD_ROUTES[foundRole] : '/dashboard';
-    };
 
     return (
         <nav className="sticky top-0 z-[100] bg-white border-b border-gray-100 shadow-sm">
@@ -150,6 +129,7 @@ export default function Navbar() {
                                     roles={roles}
                                     token={token}
                                     logout={logout}
+                                    activeRole={activeContext.activeRole}
                                 />
                             ) : (
                                 <>
@@ -195,19 +175,19 @@ export default function Navbar() {
     );
 }
 
-function AuthUserMenu({ user, roles, token, logout }: {
+function AuthUserMenu({ user, roles, token, logout, activeRole }: {
     user: any;
     roles: string[];
     token: string | undefined;
     logout: () => void;
+    activeRole: any;
 }) {
+    const { switchContext } = useUnifiedApp();
+    const pathname = usePathname();
     const [open, setOpen] = React.useState(false);
     const ref = React.useRef<HTMLDivElement>(null);
-    const firstName = user?.given_name || user?.firstName || user?.name?.split(' ')[0] || 'User';
-    const primaryRole = user?.defaultRole || roles[0];
-    const roleLabel = primaryRole
-        ? primaryRole.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')
-        : 'User';
+    const firstName = user?.firstName || user?.name?.split(' ')[0] || 'User';
+    const roleLabel = activeRole?.name || 'User';
 
     React.useEffect(() => {
         function onOutside(e: MouseEvent) {
@@ -219,12 +199,26 @@ function AuthUserMenu({ user, roles, token, logout }: {
 
     const handleRoleSwitch = async (newRole: string) => {
         try {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/users/me/profile`, {
+            await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/users/profile`, {
                 method: 'PATCH',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ defaultRole: newRole })
+                body: JSON.stringify({ primaryRole: newRole })
             });
-            window.location.href = newRole === 'buyer' ? '/dashboard' : `/${newRole}/dashboard`;
+            // Use unified context switcher logic instead of hard reload
+            const rolePrefixes = [
+                '/central-authority',
+                '/marketing-manager',
+                '/onboarding-manager',
+                '/property-partner',
+                '/broker',
+                '/consultant',
+                '/loan-adviser',
+                '/visit-executive',
+                '/dashboard',
+                '/influencer'
+            ];
+            const isOnDashboard = rolePrefixes.some(prefix => pathname?.startsWith(prefix));
+            switchContext(newRole as any, isOnDashboard);
         } catch { /* silent */ }
     };
 
@@ -252,7 +246,7 @@ function AuthUserMenu({ user, roles, token, logout }: {
                     {/* Dashboard Link */}
                     <div className="py-1 border-b border-gray-100">
                         <Link
-                            href={roles.length > 1 ? '/my-dashboards' : (primaryRole === 'buyer' ? '/dashboard' : `/${primaryRole}/dashboard`)}
+                            href={roles.length > 1 ? '/my-dashboards' : (DASHBOARD_ROUTES[activeRole?.id] || '/dashboard')}
                             onClick={() => setOpen(false)}
                             className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
                         >
@@ -271,9 +265,9 @@ function AuthUserMenu({ user, roles, token, logout }: {
                                 <button
                                     key={role}
                                     onClick={() => { setOpen(false); handleRoleSwitch(role); }}
-                                    className={`w-full text-left px-4 py-2 text-sm transition-colors ${role === primaryRole ? 'text-blue-600 font-bold bg-blue-50/50' : 'text-gray-600 hover:bg-gray-50'}`}
+                                    className={`w-full text-left px-4 py-2 text-sm transition-colors ${role === activeRole?.id ? 'text-blue-600 font-bold bg-blue-50/50' : 'text-gray-600 hover:bg-gray-50'}`}
                                 >
-                                    {role.split('-').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1)).join(' ')}
+                                    {role.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')}
                                 </button>
                             ))}
                         </div>

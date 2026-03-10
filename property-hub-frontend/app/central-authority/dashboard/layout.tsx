@@ -5,7 +5,7 @@ import UnifiedDashboardLayout from '@/app/components/dashboard/UnifiedDashboardL
 
 export default function CentralAuthorityDashboardLayout({ children }: { children: React.ReactNode }) {
     return (
-        <UnifiedDashboardLayout requiredRole="central-authority" title="Central Authority Dashboard">
+        <UnifiedDashboardLayout requiredRole="CENTRAL_AUTHORITY" title="Central Authority Dashboard">
             {children}
         </UnifiedDashboardLayout>
     );

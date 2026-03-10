@@ -8,7 +8,7 @@ import { userService, User } from '@/app/services/userService';
 
 export default function ConsultantsPage() {
     const { token, profileStatus } = useAuth();
-    const isPremium = profileStatus?.['property-partner']?.profileData?.isPremium;
+    const isPremium = profileStatus?.['PROPERTY_PARTNER']?.profileData?.isPremium;
     const { activeContext } = useUnifiedApp();
     const [consultants, setConsultants] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
@@ -20,7 +20,7 @@ export default function ConsultantsPage() {
         try {
             setLoading(true);
             const result = await userService.getAllByRole(
-                'consultant',
+                'CONSULTANT',
                 token,
                 true // Always personal view
             );
@@ -215,7 +215,7 @@ export default function ConsultantsPage() {
                                                 lastName,
                                                 email,
                                                 phone,
-                                                role: 'consultant',
+                                                role: 'CONSULTANT',
                                             };
 
                                             await userService.create(payload, token);

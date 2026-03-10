@@ -14,18 +14,18 @@ interface ChatHeaderProps {
 
 const getRoleBadgeColor = (role: string) => {
     const colors: Record<string, string> = {
-        buyer: 'bg-green-100 text-green-800',
-        consultant: 'bg-blue-100 text-blue-800',
-        'property-partner': 'bg-orange-100 text-orange-800',
-        'channel-partner': 'bg-yellow-100 text-yellow-800',
+        BUYER: 'bg-green-100 text-green-800',
+        CONSULTANT: 'bg-blue-100 text-blue-800',
+        PROPERTY_PARTNER: 'bg-orange-100 text-orange-800',
+        BROKER: 'bg-yellow-100 text-yellow-800',
     };
-    return colors[role] || 'bg-gray-100 text-gray-800';
+    return colors[role.toUpperCase()] || 'bg-gray-100 text-gray-800';
 };
 
 const formatRole = (role: string) => {
     return role
-        .split('-')
-        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .split('_')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
         .join(' ');
 };
 

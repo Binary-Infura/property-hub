@@ -58,11 +58,11 @@ export class ChatService {
                     create: [
                         {
                             userId: currentUser.id,
-                            role: currentUser.defaultRole || currentUser.roles[0],
+                            role: currentUser.primaryRole || currentUser.roles[0],
                         },
                         {
                             userId: targetUser.id,
-                            role: targetUser.defaultRole || targetUser.roles[0],
+                            role: targetUser.primaryRole || targetUser.roles[0],
                         },
                     ],
                 },

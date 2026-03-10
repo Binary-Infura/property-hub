@@ -53,10 +53,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             // Normalize the payload to have a consistent structure including userId
             const normalized = {
                 ...payload,
-                userId: payload.sub || payload.id || payload.userId,
-                firstName: payload.firstName || payload.given_name,
-                lastName: payload.lastName || payload.family_name,
-                roles: payload.realm_access?.roles || payload.roles || [],
+                userId: payload.sub || payload.userId,
+                firstName: payload.firstName,
+                lastName: payload.lastName,
+                roles: payload.roles || [],
+                primaryRole: payload.primaryRole,
             };
 
             return normalized;

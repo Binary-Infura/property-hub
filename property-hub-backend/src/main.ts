@@ -37,7 +37,7 @@ async function bootstrap() {
     // Swagger API documentation
     const config = new DocumentBuilder()
         .setTitle('Property Hub API')
-        .setDescription('Property Hub Backend API with Keycloak Authentication')
+        .setDescription('Property Hub Backend API')
         .setVersion('1.0')
         .addBearerAuth()
         .build();

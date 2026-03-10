@@ -124,7 +124,7 @@ export default function PropertySearchPage({ hideHeader = false }: { hideHeader?
   // Fetch buyer profile for initial filters
   useEffect(() => {
     const fetchBuyerProfile = async () => {
-      if (token && user?.userId && activeContext.activeRole.id === 'buyer') {
+      if (token && user?.userId && activeContext.activeRole.id === 'BUYER') {
         try {
           const profileStatus = await userService.getById(user.userId, token);
           if (profileStatus && profileStatus.buyerProfile) {

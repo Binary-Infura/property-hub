@@ -9,7 +9,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <UnifiedDashboardLayout requiredRole="buyer" title="Buyer Dashboard">
+    <UnifiedDashboardLayout requiredRole="BUYER" title="Buyer Dashboard">
       {children}
     </UnifiedDashboardLayout>
   );

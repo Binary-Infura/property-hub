@@ -35,7 +35,7 @@ export default function MyPropertyPartnersPage() {
         try {
             setLoading(true);
             const result = await userService.getAllByRole(
-                'property-partner',
+                'PROPERTY_PARTNER',
                 token,
                 activeTab === 'my'
             );
@@ -107,7 +107,7 @@ export default function MyPropertyPartnersPage() {
                 companyAddress: formData.companyAddress,
                 taxId: formData.taxId,
                 licenseNumber: formData.licenseNumber,
-                role: 'property-partner',
+                role: 'PROPERTY_PARTNER',
             };
 
             if (isEdit && selectedPartner) {

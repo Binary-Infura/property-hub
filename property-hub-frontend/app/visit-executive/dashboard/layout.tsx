@@ -5,7 +5,7 @@ import UnifiedDashboardLayout from '@/app/components/dashboard/UnifiedDashboardL
 
 export default function VisitExecutiveDashboardLayout({ children }: { children: React.ReactNode }) {
     return (
-        <UnifiedDashboardLayout requiredRole="visit-executive" title="Visit Executive Dashboard">
+        <UnifiedDashboardLayout requiredRole="VISIT_EXECUTIVE" title="Visit Executive Dashboard">
             {children}
         </UnifiedDashboardLayout>
     );

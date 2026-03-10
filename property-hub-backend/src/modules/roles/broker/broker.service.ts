@@ -6,30 +6,37 @@ import { UpdateBrokerProfileDto } from './broker.dto';
 export class BrokerService {
     constructor(private prisma: PrismaService) { }
 
+    /**
+     * BROKER has no separate profile table.
+     * Profile data (agencyName, reraNumber, officeAddress) is stored in User.profileData JSON.
+     */
     async getProfile(userId: string) {
-        const profile = await this.prisma.brokerProfile.findUnique({
-            where: { userId },
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { profileData: true },
         });
-        if (!profile) {
-            throw new NotFoundException('Broker profile not found');
+        if (!user) {
+            throw new NotFoundException('Broker user not found');
         }
-        return profile;
+        return user.profileData;
     }
 
     async upsertProfile(userId: string, dto: UpdateBrokerProfileDto) {
-        return this.prisma.brokerProfile.upsert({
-            where: { userId },
-            update: {
-                agencyBusinessName: dto.agencyBusinessName,
-                reraNumber: dto.reraNumber,
-                officeAddress: dto.officeAddress,
-            },
-            create: {
-                userId,
-                agencyBusinessName: dto.agencyBusinessName || 'Unknown Agency',
-                reraNumber: dto.reraNumber,
-                officeAddress: dto.officeAddress,
-            },
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new NotFoundException('User not found');
+
+        const existing = (user.profileData as Record<string, any>) || {};
+        const merged = {
+            ...existing,
+            ...(dto.agencyBusinessName ? { agencyName: dto.agencyBusinessName } : {}),
+            ...(dto.reraNumber ? { reraNumber: dto.reraNumber } : {}),
+            ...(dto.officeAddress ? { officeAddress: dto.officeAddress } : {}),
+        };
+
+        return this.prisma.user.update({
+            where: { id: userId },
+            data: { profileData: merged },
+            select: { id: true, profileData: true },
         });
     }
 }

@@ -1,5 +1,6 @@
 import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { UserRole } from '../../common/enums/role.enum';
 import { CreateAdsRequestDto, UpdateAdsRequestDto } from './ads-requests.dto';
 
 @Injectable()
@@ -11,7 +12,7 @@ export class AdsRequestsService {
 
         // Marketing managers can see all requests
         // Project partners can only see their own
-        if (roles.includes('property-partner') && !roles.includes('marketing-manager') && !roles.includes('central-authority')) {
+        if (roles.includes(UserRole.PROPERTY_PARTNER) && !roles.includes(UserRole.MARKETING_MANAGER) && !roles.includes(UserRole.CENTRAL_AUTHORITY)) {
             where.requestedById = userId;
         }
 
@@ -58,7 +59,7 @@ export class AdsRequestsService {
             throw new NotFoundException(`Ads request with ID ${id} not found`);
         }
 
-        const isManager = roles.includes('marketing-manager') || roles.includes('central-authority');
+        const isManager = roles.includes(UserRole.MARKETING_MANAGER) || roles.includes(UserRole.CENTRAL_AUTHORITY);
 
         // Check permissions
         if (!isManager) {
@@ -95,7 +96,7 @@ export class AdsRequestsService {
     async update(id: string, dto: UpdateAdsRequestDto, roles: string[] = [], userId?: string) {
         const request = await this.findOne(id, roles, userId);
 
-        const isManager = roles.includes('marketing-manager') || roles.includes('central-authority');
+        const isManager = roles.includes(UserRole.MARKETING_MANAGER) || roles.includes(UserRole.CENTRAL_AUTHORITY);
 
         // Only marketing managers can update status
         if (dto.status && !isManager) {
@@ -132,7 +133,7 @@ export class AdsRequestsService {
     async remove(id: string, roles: string[] = [], userId?: string) {
         const request = await this.findOne(id, roles, userId);
 
-        const isManager = roles.includes('marketing-manager') || roles.includes('central-authority');
+        const isManager = roles.includes(UserRole.MARKETING_MANAGER) || roles.includes(UserRole.CENTRAL_AUTHORITY);
 
         // Only the requester or marketing manager can delete
         if (!isManager) {

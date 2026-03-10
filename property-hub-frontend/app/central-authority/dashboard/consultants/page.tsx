@@ -27,7 +27,7 @@ export default function ConsultantsPage() {
     try {
       setLoading(true);
       const result = await userService.getAllByRole(
-        'consultant',
+        'CONSULTANT',
         token
       );
       setConsultants(result.data);
@@ -71,7 +71,7 @@ export default function ConsultantsPage() {
       } else {
         const created = await userService.create({
           ...formData,
-          role: 'consultant',
+          role: 'CONSULTANT',
         }, token);
         setConsultants([created, ...consultants]);
         setShowAddModal(false);

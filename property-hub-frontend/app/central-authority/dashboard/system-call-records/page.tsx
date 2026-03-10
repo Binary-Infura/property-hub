@@ -22,7 +22,7 @@ export default function SystemCallRecordsPage() {
             if (!token) return;
             try {
                 // Fetch consultants and projects for filters
-                const consultantsData = await userService.getAllByRole('consultant', token, false, 1, 100);
+                const consultantsData = await userService.getAllByRole('CONSULTANT', token, false, 1, 100);
                 setConsultants(consultantsData.data);
 
                 const projectsData = await propertyService.getAll(token);
@@ -159,7 +159,7 @@ export default function SystemCallRecordsPage() {
                                         </td>
                                         <td className="px-6 py-4">
                                             <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${log.status === 'completed' ? 'bg-green-100 text-green-700' :
-                                                    log.status === 'failed' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500'
+                                                log.status === 'failed' ? 'bg-red-100 text-red-700' : 'bg-gray-100 text-gray-500'
                                                 }`}>
                                                 {log.status || 'Unknown'}
                                             </span>

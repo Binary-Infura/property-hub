@@ -4,6 +4,7 @@ import { CreateMarketingManagerDto, UpdateMarketingManagerProfileDto } from './m
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/guards/roles.guard';
 import { RequireRoles } from '../../../common/decorators/require-roles.decorator';
+import { UserRole } from '../../../common/enums/role.enum';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../../common/interfaces/jwt-payload.interface';
 
@@ -13,13 +14,13 @@ export class MarketingManagersController {
     constructor(private readonly marketingManagersService: MarketingManagersService) { }
 
     @Post()
-    @RequireRoles('central-authority')
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     create(@Body() dto: CreateMarketingManagerDto) {
         return this.marketingManagersService.create(dto);
     }
 
     @Get()
-    @RequireRoles('central-authority')
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     findAll(
         @Query('page') page: string = '1',
         @Query('limit') limit: string = '10'
@@ -28,13 +29,13 @@ export class MarketingManagersController {
     }
 
     @Get('me/profile')
-    @RequireRoles('marketing-manager')
+    @RequireRoles(UserRole.MARKETING_MANAGER)
     async getMyProfile(@CurrentUser() user: AuthenticatedUser) {
         return this.marketingManagersService.getProfile(user.userId);
     }
 
     @Post('me/profile')
-    @RequireRoles('marketing-manager')
+    @RequireRoles(UserRole.MARKETING_MANAGER)
     async upsertMyProfile(
         @CurrentUser() user: AuthenticatedUser,
         @Body() dto: UpdateMarketingManagerProfileDto,

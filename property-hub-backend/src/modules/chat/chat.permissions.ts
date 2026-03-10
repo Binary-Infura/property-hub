@@ -1,14 +1,15 @@
 import { ForbiddenException, Injectable, Logger } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
+import { UserRole } from '../../common/enums/role.enum';
 
 /**
  * Permission rules for chat access
  * 
  * Rules:
- * - Buyers can chat with: consultants, property-partners, channel-partners
+ * - Buyers can chat with: consultants, property-partners, brokers
  * - Consultants can chat with: buyers
  * - Project Partners can chat with: buyers
- * - Channel Partners can chat with: buyers
+ * - Brokers can chat with: buyers
  */
 
 interface ChatPermissionRule {
@@ -17,27 +18,26 @@ interface ChatPermissionRule {
 }
 
 const CHAT_PERMISSION_RULES: Record<string, ChatPermissionRule> = {
-    'buyer': {
-        canChatWith: ['consultant', 'property-partner', 'channel-partner'],
+    [UserRole.BUYER]: {
+        canChatWith: [UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER, UserRole.BROKER],
         canViewChatsOf: 'self'
     },
-    'consultant': {
-        canChatWith: ['buyer'],
+    [UserRole.CONSULTANT]: {
+        canChatWith: [UserRole.BUYER],
         canViewChatsOf: 'self'
     },
-    'property-partner': {
-        canChatWith: ['buyer'],
+    [UserRole.PROPERTY_PARTNER]: {
+        canChatWith: [UserRole.BUYER],
         canViewChatsOf: 'self'
     },
-    'channel-partner': {
-        canChatWith: ['buyer'],
+    [UserRole.BROKER]: {
+        canChatWith: [UserRole.BUYER],
         canViewChatsOf: 'self'
     },
-    'marketing-manager': {
+    [UserRole.MARKETING_MANAGER]: {
         canChatWith: [],
         canViewChatsOf: 'self'
     },
-
 };
 
 @Injectable()

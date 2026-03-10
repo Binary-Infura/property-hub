@@ -6,28 +6,39 @@ import { UpdateConsultantProfileDto } from './consultants.dto';
 export class ConsultantsService {
     constructor(private prisma: PrismaService) { }
 
+    /**
+     * CONSULTANT has no separate profile table.
+     * Profile data (consultantType, specialization, experienceYears, rating, visitsConducted)
+     * is stored in User.profileData JSON.
+     */
     async getProfile(userId: string) {
-        const profile = await this.prisma.consultantProfile.findUnique({
-            where: { userId },
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { profileData: true },
         });
-        if (!profile) {
-            throw new NotFoundException('Consultant profile not found');
+        if (!user) {
+            throw new NotFoundException('Consultant user not found');
         }
-        return profile;
+        return user.profileData;
     }
 
     async upsertProfile(userId: string, dto: UpdateConsultantProfileDto) {
-        return this.prisma.consultantProfile.upsert({
-            where: { userId },
-            update: {
-                specialization: dto.specialization,
-                experienceYears: dto.experienceYears,
-            },
-            create: {
-                userId,
-                specialization: dto.specialization,
-                experienceYears: dto.experienceYears,
-            },
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new NotFoundException('User not found');
+
+        const existing = (user.profileData as Record<string, any>) || {};
+        const merged = {
+            ...existing,
+            ...(dto.specialization ? { specialization: dto.specialization } : {}),
+            ...(dto.experienceYears !== undefined ? { experienceYears: dto.experienceYears } : {}),
+            // consultantType is usually set at creation or via a separate admin action,
+            // but we can include it here if the DTO allows.
+        };
+
+        return this.prisma.user.update({
+            where: { id: userId },
+            data: { profileData: merged },
+            select: { id: true, profileData: true },
         });
     }
 

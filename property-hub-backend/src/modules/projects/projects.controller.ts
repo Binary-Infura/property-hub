@@ -14,13 +14,14 @@ import { CreateProjectDto, UpdateProjectDto } from './projects.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { RequireRoles } from '../../common/decorators/require-roles.decorator';
+import { UserRole } from '../../common/enums/role.enum';
 import { Public } from '../../common/decorators/public.decorator';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 
 @Controller('api/projects')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RequireRoles('central-authority', 'marketing-manager', 'onboarding-manager', 'property-partner', 'broker', 'consultant', 'buyer', 'loan-adviser', 'visit-executive')
+@RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.MARKETING_MANAGER, UserRole.ONBOARDING_MANAGER, UserRole.PROPERTY_PARTNER, UserRole.BROKER, UserRole.CONSULTANT, UserRole.BUYER, UserRole.LOAN_ADVISOR, UserRole.VISIT_EXECUTIVE)
 export class ProjectsController {
     constructor(private readonly projectsService: ProjectsService) { }
 
@@ -51,7 +52,7 @@ export class ProjectsController {
     }
 
     @Post()
-    @RequireRoles('onboarding-manager', 'property-partner', 'broker')
+    @RequireRoles(UserRole.ONBOARDING_MANAGER, UserRole.PROPERTY_PARTNER, UserRole.BROKER)
     create(
         @Body() createProjectDto: CreateProjectDto,
         @CurrentUser() user: AuthenticatedUser
@@ -60,7 +61,7 @@ export class ProjectsController {
     }
 
     @Patch(':id')
-    @RequireRoles('onboarding-manager', 'property-partner', 'broker')
+    @RequireRoles(UserRole.ONBOARDING_MANAGER, UserRole.PROPERTY_PARTNER, UserRole.BROKER)
     update(
         @Param('id') id: string,
         @Body() updateProjectDto: UpdateProjectDto,
@@ -70,7 +71,7 @@ export class ProjectsController {
     }
 
     @Delete(':id')
-    @RequireRoles('property-partner')
+    @RequireRoles(UserRole.PROPERTY_PARTNER)
     remove(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
@@ -79,7 +80,7 @@ export class ProjectsController {
     }
 
     @Post(':id/assign-consultants')
-    @RequireRoles('central-authority', 'property-partner')
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.PROPERTY_PARTNER)
     assignConsultants(
         @Param('id') id: string,
         @Body('consultantIds') consultantIds: string[],
@@ -89,7 +90,7 @@ export class ProjectsController {
     }
 
     @Post('bulk-assign-consultants')
-    @RequireRoles('central-authority', 'property-partner')
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.PROPERTY_PARTNER)
     bulkAssignConsultants(
         @Body('projectIds') projectIds: string[],
         @Body('consultantIds') consultantIds: string[],

@@ -1,19 +1,11 @@
-// No longer using region-specific roles in JWT interface
+import { UserRole } from '../enums/role.enum';
 
 export interface JwtPayload {
-    sub?: string; // Subject (user ID)
-    email?: string;
-    preferred_username?: string;
-    given_name?: string;
-    family_name?: string;
-
-    // Realm roles
-    realm_access?: {
-        roles: string[];
-    };
-
-    // Keycloak groups/paths
-    groups?: string[];
+    sub: string;
+    email: string;
+    firstName?: string;
+    lastName?: string;
+    roles: string[];
     phone?: string;
 }
 
@@ -23,7 +15,6 @@ export interface AuthenticatedUser {
     username?: string;
     firstName?: string;
     lastName?: string;
-    roles: string[]; // Realm roles
-    groups: string[]; // Region groups
+    roles: string[];   // Raw from JWT — may still be kebab-case; normalize via normalizeRole()
     phone?: string;
 }

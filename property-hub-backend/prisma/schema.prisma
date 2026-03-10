@@ -7,615 +7,40 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Project {
-  id            String         @id @default(uuid())
-  name          String
-  description   String?
-  location      String
-  address       String?
-  status        ProjectStatus  @default(AVAILABLE)
-  price         Decimal        @db.Decimal(15, 2)
-  area          Decimal?       @db.Decimal(10, 2)
-  bedrooms      Int?
-  bathrooms     Int?
-  projectType   ProjectType
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  onboardedById String?
-  category      String?
-  cityId        String?
-  videoUrl      String?
-  postalCodeId  String?
-  adsRequests   AdsRequest[]
-  commissions   Commission[]
-  leads         Lead[]
-  loans         Loan[]
-  city          City?          @relation(fields: [cityId], references: [id])
-  onboardedBy   User?          @relation("UserOnboardedProjects", fields: [onboardedById], references: [id])
-  postalCode    PostalCode?    @relation("ProjectPostalCode", fields: [postalCodeId], references: [id])
-  units         PropertyUnit[]
-  reels         Reel[]
-  assignedTo    User[]         @relation("ProjectAssignment")
+// ============================================================
+// ENUMS
+// ============================================================
 
-  @@index([postalCodeId])
-  @@index([status])
-  @@index([onboardedById])
-  @@map("projects")
+enum UserRole {
+  CENTRAL_AUTHORITY   // Platform admin / central operations
+  PROPERTY_PARTNER    // Builder / developer companies
+  BROKER              // Real estate broker
+  BUYER               // Property buyer
+  CONSULTANT          // Platform or partner consultant
+  INFLUENCER          // Social media influencer
+  MARKETING_MANAGER   // Internal marketing team
+  LOAN_ADVISOR        // Bank / loan officer
+  ONBOARDING_MANAGER  // User onboarding specialist
+  VISIT_EXECUTIVE     // Site visit coordinator
 }
 
-model PropertyUnit {
-  id         String     @id @default(uuid())
-  projectId  String
-  unitNumber String
-  floor      Int?
-  type       String?
-  area       Decimal?   @db.Decimal(10, 2)
-  price      Decimal    @db.Decimal(15, 2)
-  status     UnitStatus @default(AVAILABLE)
-  createdAt  DateTime   @default(now())
-  updatedAt  DateTime   @updatedAt
-  buyerName  String?
-  buyerPhone String?
-  salePrice  Decimal?   @db.Decimal(15, 2)
-  soldAt     DateTime?
-  project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
-
-  @@unique([projectId, unitNumber])
-  @@index([projectId])
-  @@index([status])
-  @@map("property_units")
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  PENDING_VERIFICATION
 }
 
-model Lead {
-  id             String             @id @default(uuid())
-  name           String
-  email          String?
-  phone          String
-  projectId      String?
-  status         LeadStatus         @default(NEW)
-  source         String?
-  assignedTo     String?
-  notes          String?
-  createdAt      DateTime           @default(now())
-  updatedAt      DateTime           @updatedAt
-  campaignId     String?
-  callLogs       CallLog[]
-  leadNotes      LeadNote[]
-  assignedToUser User?              @relation("LeadAssignee", fields: [assignedTo], references: [id])
-  campaign       MarketingCampaign? @relation(fields: [campaignId], references: [id])
-  project        Project?           @relation(fields: [projectId], references: [id])
-  loans          Loan[]
-  visits         Visit[]
-
-  @@index([status])
-  @@index([assignedTo])
-  @@map("leads")
+enum ConsultantType {
+  PLATFORM           // Internal — works for the PropertyHub platform
+  PROPERTY_PARTNER   // Embedded — works for a builder/developer company
 }
 
-model LeadNote {
-  id        String           @id @default(uuid())
-  leadId    String
-  authorId  String
-  content   String
-  category  LeadNoteCategory @default(GENERAL)
-  createdAt DateTime         @default(now())
-  updatedAt DateTime         @updatedAt
-  author    User             @relation("AuthorNotes", fields: [authorId], references: [id])
-  lead      Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
-
-  @@index([leadId])
-  @@index([authorId])
-  @@map("lead_notes")
-}
-
-model Visit {
-  id          String      @id @default(uuid())
-  leadId      String
-  scheduledAt DateTime
-  completedAt DateTime?
-  status      VisitStatus @default(SCHEDULED)
-  notes       String?
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
-  lead        Lead        @relation(fields: [leadId], references: [id])
-
-  @@index([leadId])
-  @@map("visits")
-}
-
-model Loan {
-  id           String     @id @default(uuid())
-  leadId       String
-  projectId    String
-  bankId       String
-  amount       Decimal    @db.Decimal(15, 2)
-  tenureYears  Int
-  interestRate Decimal    @db.Decimal(5, 2)
-  status       LoanStatus @default(PENDING)
-  notes        String?
-  documents    Json?      @default("{}")
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  bank         Bank       @relation(fields: [bankId], references: [id])
-  lead         Lead       @relation(fields: [leadId], references: [id])
-  project      Project    @relation(fields: [projectId], references: [id])
-
-  @@index([leadId])
-  @@index([projectId])
-  @@index([bankId])
-  @@index([status])
-  @@map("loans")
-}
-
-model Commission {
-  id         String           @id @default(uuid())
-  amount     Decimal          @db.Decimal(15, 2)
-  percentage Decimal?         @db.Decimal(5, 2)
-  agentId    String
-  projectId  String
-  status     CommissionStatus @default(PENDING)
-  paidAt     DateTime?
-  notes      String?
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
-  project    Project          @relation(fields: [projectId], references: [id])
-
-  @@index([agentId])
-  @@index([projectId])
-  @@index([status])
-  @@map("commissions")
-}
-
-model UserMetadata {
-  id               String   @id @default(uuid())
-  userId           String   @unique
-  firstName        String?
-  lastName         String?
-  phone            String?
-  regionPreference String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  language         String?  @default("en")
-  notifications    Json?    @default("{}")
-  onboardingStatus String?  @default("pending")
-  theme            String?  @default("light")
-  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("user_metadata")
-}
-
-model User {
-  id                      String                   @id @default(uuid())
-  email                   String                   @unique
-  phone                   String?
-  roles                   String[]
-  defaultRole             String?
-  status                  String                   @default("active")
-  createdAt               DateTime                 @default(now())
-  updatedAt               DateTime                 @updatedAt
-  agencyName              String?
-  rating                  Float?
-  reraId                  String?
-  visitsConducted         Int?                     @default(0)
-  onboardedById           String?
-  firstName               String
-  lastName                String?
-  isEmailVerified         Boolean                  @default(false)
-  passwordHash            String?
-  resetToken              String?
-  activityLogs            ActivityLog[]
-  adsRequests             AdsRequest[]
-  brokerProfile           BrokerProfile?
-  buyerProfile            BuyerProfile?
-  callLogs                CallLog[]
-  centralAuthorityProfile CentralAuthorityProfile?
-  consultantProfile       ConsultantProfile?
-  following               Follow[]                 @relation("UserFollowers")
-  followers               Follow[]                 @relation("UserFollowing")
-  influencerProfile       InfluencerProfile?
-  authoredNotes           LeadNote[]               @relation("AuthorNotes")
-  leads                   Lead[]                   @relation("LeadAssignee")
-  marketingManagerProfile MarketingManagerProfile?
-  projectsOnboarded       Project[]                @relation("UserOnboardedProjects")
-  propertyPartnerProfile  PropertyPartnerProfile?
-  reels                   Reel[]                   @relation("UserReels")
-  reviews                 Review[]                 @relation("UserReviews")
-  documents               UserDocument[]           @relation("UserDocuments")
-  userMetadata            UserMetadata?
-  onboardedBy             User?                    @relation("UserOnboardedUsers", fields: [onboardedById], references: [id])
-  onboardedUsers          User[]                   @relation("UserOnboardedUsers")
-  campaignsAssigned       MarketingCampaign[]      @relation("CampaignToUser")
-  assignedProjects        Project[]                @relation("ProjectAssignment")
-
-  @@map("users")
-}
-
-model Review {
-  id             String   @id @default(uuid())
-  content        String
-  rating         Int
-  authorId       String
-  authorName     String
-  authorRole     String
-  isApproved     Boolean  @default(false)
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  authorIcon     String?
-  showOnHomepage Boolean  @default(false)
-  author         User     @relation("UserReviews", fields: [authorId], references: [id])
-
-  @@map("reviews")
-}
-
-model Reel {
-  id                              String             @id @default(uuid())
-  title                           String?
-  description                     String?
-  videoUrl                        String
-  thumbnailUrl                    String?
-  userId                          String
-  projectId                       String
-  publishToOfficialInstagram      Boolean            @default(false)
-  publishToPartnerInstagram       Boolean            @default(false)
-  instagramStatus                 InstagramStatus    @default(PENDING)
-  instagramPostUrl                String?
-  instagramCaption                String?
-  officialInstagramModerationNote String?
-  createdAt                       DateTime           @default(now())
-  updatedAt                       DateTime           @updatedAt
-  project                         Project            @relation(fields: [projectId], references: [id])
-  user                            User               @relation("UserReels", fields: [userId], references: [id])
-
-  @@map("reels")
-}
-
-model InfluencerProfile {
-  id               String   @id @default(uuid())
-  userId           String   @unique
-  socialMediaLinks Json?
-  reach            Int?
-  niche            String?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  user             User     @relation(fields: [userId], references: [id])
-
-  @@map("influencer_profiles")
-}
-
-model CentralAuthorityProfile {
-  id          String   @id @default(uuid())
-  userId      String   @unique
-  department  String?
-  accessLevel String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  user        User     @relation(fields: [userId], references: [id])
-
-  @@map("central_authority_profiles")
-}
-
-model PropertyPartnerProfile {
-  id                    String           @id @default(uuid())
-  userId                String           @unique
-  companyName           String
-  companyAddress        String?
-  taxId                 String?
-  licenseNumber         String?
-  createdAt             DateTime         @default(now())
-  updatedAt             DateTime         @updatedAt
-  isPremium             Boolean          @default(false)
-  subscriptionMode      SubscriptionMode @default(PAID)
-  instagramAccessToken  String?
-  instagramUserId       String?
-  instagramUsername     String?
-  instagramConnectedAt  DateTime?
-  user                  User             @relation(fields: [userId], references: [id])
-
-  @@map("property_partner_profiles")
-}
-
-model BrokerProfile {
-  id                 String   @id @default(uuid())
-  userId             String   @unique
-  agencyBusinessName String
-  reraNumber         String?
-  officeAddress      String?
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  user               User     @relation(fields: [userId], references: [id])
-
-  @@map("broker_profiles")
-}
-
-model MarketingManagerProfile {
-  id                  String   @id @default(uuid())
-  userId              String   @unique
-  campaignBudgetLimit Decimal? @db.Decimal(15, 2)
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
-  user                User     @relation(fields: [userId], references: [id])
-
-  @@map("marketing_manager_profiles")
-}
-
-model ConsultantProfile {
-  id              String   @id @default(uuid())
-  userId          String   @unique
-  specialization  String[]
-  experienceYears Int?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  user            User     @relation(fields: [userId], references: [id])
-
-  @@map("consultant_profiles")
-}
-
-model BuyerProfile {
-  id                 String   @id @default(uuid())
-  userId             String   @unique
-  budgetMin          Decimal? @db.Decimal(15, 2)
-  budgetMax          Decimal? @db.Decimal(15, 2)
-  preferredLocations String[]
-  createdAt          DateTime @default(now())
-  updatedAt          DateTime @updatedAt
-  user               User     @relation(fields: [userId], references: [id])
-
-  @@map("buyer_profiles")
-}
-
-model ChatSession {
-  id            String            @id @default(uuid())
-  channelType   String            @default("DIRECT")
-  contextType   String?
-  contextId     String?
-  status        String            @default("active")
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  participants  ChatParticipant[]
-
-  @@index([contextType, contextId])
-  @@map("chat_sessions")
-}
-
-model ChatParticipant {
-  id            String      @id @default(uuid())
-  chatSessionId String
-  userId        String
-  role          String
-  joinedAt      DateTime    @default(now())
-  lastReadAt    DateTime?
-  chatSession   ChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
-
-  @@unique([chatSessionId, userId])
-  @@index([userId])
-  @@map("chat_participants")
-}
-
-model MarketingCampaign {
-  id          String   @id @default(uuid())
-  name        String
-  description String?
-  status      String   @default("DRAFT")
-  platform    String
-  budget      Decimal  @db.Decimal(15, 2)
-  spent       Decimal  @default(0) @db.Decimal(15, 2)
-  startDate   DateTime
-  endDate     DateTime
-  impressions Int      @default(0)
-  clicks      Int      @default(0)
-  leadsCount  Int      @default(0)
-  conversions Int      @default(0)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  leads       Lead[]
-  assignedTo  User[]   @relation("CampaignToUser")
-
-  @@map("marketing_campaigns")
-}
-
-model AdsRequest {
-  id            String   @id @default(uuid())
-  title         String
-  description   String?
-  status        String   @default("PENDING")
-  priority      String   @default("MEDIUM")
-  projectId     String?
-  budget        Decimal? @db.Decimal(15, 2)
-  platform      String?
-  requestedById String
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  project       Project? @relation(fields: [projectId], references: [id])
-  requestedBy   User     @relation(fields: [requestedById], references: [id])
-
-  @@map("ads_requests")
-}
-
-model WebhookLog {
-  id              String   @id @default(uuid())
-  method          String
-  endpoint        String
-  idempotencyKey  String?  @unique
-  requestPayload  Json
-  responseStatus  Int
-  responseBody    Json?
-  executionTimeMs Int
-  errorMessage    String?
-  createdAt       DateTime @default(now())
-
-  @@index([idempotencyKey])
-  @@index([endpoint])
-  @@index([createdAt])
-  @@map("webhook_logs")
-}
-
-model PostalCode {
-  id           String    @id @default(uuid())
-  code         String
-  circleName   String?
-  regionName   String?
-  divisionName String?
-  officeName   String?
-  officeType   String?
-  delivery     String?
-  district     String?
-  stateName    String?
-  latitude     String?
-  longitude    String?
-  city         String?
-  state        String?
-  country      String?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  continent    String?
-  projects     Project[] @relation("ProjectPostalCode")
-
-  @@unique([code, officeName])
-  @@index([code])
-  @@index([district])
-  @@map("postal_codes")
-}
-
-model ReraProject {
-  id               String    @id @default(uuid())
-  state            String
-  reraNumber       String    @unique
-  projectName      String
-  promoterName     String
-  status           String?
-  district         String?
-  address          String?
-  registrationDate DateTime?
-  completionDate   DateTime?
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
-
-  @@map("rera_projects")
-}
-
-model Bank {
-  id         String   @id @default(uuid())
-  name       String   @unique
-  percentage Decimal  @db.Decimal(5, 2)
-  logoUrl    String?
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  loans      Loan[]
-
-  @@map("banks")
-}
-
-model ReraSyncLog {
-  id              String    @id @default(uuid())
-  state           String
-  district        String?
-  status          String
-  projectsScraped Int       @default(0)
-  error           String?
-  startedAt       DateTime  @default(now())
-  completedAt     DateTime?
-
-  @@map("rera_sync_logs")
-}
-
-model ReraDistrictCount {
-  id           String   @id @default(uuid())
-  state        String
-  district     String
-  projectCount Int
-  updatedAt    DateTime @updatedAt
-
-  @@unique([state, district])
-  @@map("rera_district_counts")
-}
-
-model PostalCodeSyncLog {
-  id              String    @id @default(uuid())
-  status          String
-  recordsImported Int       @default(0)
-  totalRecords    Int       @default(0)
-  lastOffset      Int       @default(0)
-  error           String?
-  startedById     String?
-  startedAt       DateTime  @default(now())
-  completedAt     DateTime?
-
-  @@map("postal_code_sync_logs")
-}
-
-model CallLog {
-  id           String    @id @default(uuid())
-  sid          String?   @unique
-  leadId       String
-  consultantId String
-  status       String?
-  duration     Int?
-  recordingUrl String?
-  startTime    DateTime  @default(now())
-  endTime      DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  consultant   User      @relation(fields: [consultantId], references: [id])
-  lead         Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
-
-  @@index([leadId])
-  @@index([consultantId])
-  @@index([sid])
-  @@map("call_logs")
-}
-
-model City {
-  id        String    @id @default(uuid())
-  name      String    @unique
-  state     String
-  active    Boolean   @default(true)
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  projects  Project[]
-
-  @@map("cities")
-}
-
-model ActivityLog {
-  id        String   @id @default(uuid())
-  userId    String?
-  type      String
-  action    String
-  target    String
-  timestamp DateTime @default(now())
-  details   Json?
-  user      User?    @relation(fields: [userId], references: [id])
-
-  @@index([timestamp])
-  @@index([userId])
-  @@map("activity_logs")
-}
-
-model Follow {
-  id          String   @id @default(uuid())
-  followerId  String
-  followingId String
-  createdAt   DateTime @default(now())
-  follower    User     @relation("UserFollowers", fields: [followerId], references: [id])
-  following   User     @relation("UserFollowing", fields: [followingId], references: [id])
-
-  @@unique([followerId, followingId])
-  @@map("follows")
-}
-
-model UserDocument {
-  id        String   @id @default(uuid())
-  userId    String
-  name      String
-  category  String
-  url       String
-  status    String   @default("uploaded")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation("UserDocuments", fields: [userId], references: [id], onDelete: Cascade)
-
-  @@map("user_documents")
+enum OrganizationType {
+  PLATFORM           // The PropertyHub platform itself
+  BUILDER            // Property developer / builder company
+  BROKERAGE          // Broker agency
+  MARKETING_AGENCY   // External marketing agency
 }
 
 enum ProjectStatus {
@@ -679,11 +104,6 @@ enum CommissionStatus {
   REJECTED
 }
 
-enum SubscriptionMode {
-  PAID
-  FREE
-}
-
 enum LoanStatus {
   PENDING
   PROCESSING
@@ -698,4 +118,647 @@ enum LeadNoteCategory {
   BUDGET
   LEGAL
   FOLLOW_UP
+}
+
+enum SubscriptionMode {
+  PAID
+  FREE
+}
+
+// ============================================================
+// ORGANIZATION
+// Replaces PropertyPartnerProfile company fields.
+// BUILDER organizations own Instagram tokens, subscription, RERA license.
+// BROKERAGE organizations hold brokerage agencies.
+// MARKETING_AGENCY organizations for external campaign partners.
+// ============================================================
+
+model Organization {
+  id               String           @id @default(uuid())
+  name             String
+  type             OrganizationType
+  email            String?
+  phone            String?
+  address          String?
+  taxId            String?
+  licenseNumber    String?
+  logoUrl          String?
+  websiteUrl       String?
+  isActive         Boolean          @default(true)
+
+  // Builder / Property Partner specific
+  isPremium             Boolean          @default(false)
+  subscriptionMode      SubscriptionMode @default(PAID)
+  instagramAccessToken  String?
+  instagramUserId       String?
+  instagramUsername     String?
+  instagramConnectedAt  DateTime?
+
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  members          User[]
+
+  @@index([type])
+  @@index([name])
+  @@map("organizations")
+}
+
+// ============================================================
+// USER — Universal model for all roles
+// ============================================================
+
+model User {
+  id               String     @id @default(uuid())
+  email            String     @unique
+  phone            String?
+  passwordHash     String?
+  resetToken       String?
+  resetTokenExpiry DateTime?
+
+  // Identity
+  firstName        String
+  lastName         String?
+  avatarUrl        String?
+
+  // Role system — typed enum array
+  roles            UserRole[]
+  primaryRole      UserRole?        // The single active role for multi-role users
+  status           UserStatus       @default(ACTIVE)
+
+  // Organization membership — optional for independent actors (buyers, influencers, etc.)
+  organizationId   String?
+  organization     Organization?    @relation(fields: [organizationId], references: [id])
+
+  // Verification
+  isEmailVerified  Boolean          @default(false)
+  isPhoneVerified  Boolean          @default(false)
+
+  // Regulatory (applicable to BROKER, PROPERTY_PARTNER)
+  reraId           String?
+
+  // Onboarding chain
+  onboardedById    String?
+  onboardedBy      User?            @relation("UserOnboardedUsers", fields: [onboardedById], references: [id])
+  onboardedUsers   User[]           @relation("UserOnboardedUsers")
+
+  // User preferences — replaces UserMetadata table
+  language         String?          @default("en")
+  theme            String?          @default("light")
+  notifications    Json?            @default("{}")
+  onboardingStatus String?          @default("pending")
+  regionPreference String?
+
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  // Role-specific data stored as JSON — no separate profile tables needed.
+  // Structure varies by role, see UpdateProfileDto in users.dto.ts for shape.
+  profileData      Json?    @default("{}")
+
+  // ── Relations to domain entities ──
+  activityLogs          ActivityLog[]
+  adsRequests           AdsRequest[]
+  callLogs              CallLog[]
+  authoredNotes         LeadNote[]            @relation("AuthorNotes")
+  assignedLeads         Lead[]                @relation("LeadAssignee")
+  projectsOnboarded     Project[]             @relation("UserOnboardedProjects")
+  assignedProjects      Project[]             @relation("ProjectAssignment")
+  reels                 Reel[]                @relation("UserReels")
+  reviews               Review[]              @relation("UserReviews")
+  documents             UserDocument[]        @relation("UserDocuments")
+  campaignsAssigned     MarketingCampaign[]   @relation("CampaignToUser")
+  following             Follow[]              @relation("UserFollowers")
+  followers             Follow[]              @relation("UserFollowing")
+
+  @@index([email])
+  @@index([primaryRole])
+  @@index([status])
+  @@index([organizationId])
+  @@index([onboardedById])
+  @@index([createdAt])
+  @@map("users")
+}
+
+// ============================================================
+// PROJECT & PROPERTY
+// ============================================================
+
+model Project {
+  id            String        @id @default(uuid())
+  name          String
+  description   String?
+  location      String
+  address       String?
+  status        ProjectStatus @default(AVAILABLE)
+  price         Decimal       @db.Decimal(15, 2)
+  area          Decimal?      @db.Decimal(10, 2)
+  bedrooms      Int?
+  bathrooms     Int?
+  projectType   ProjectType
+  category      String?
+  videoUrl      String?
+  cityId        String?
+  postalCodeId  String?
+  onboardedById String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  city        City?       @relation(fields: [cityId], references: [id])
+  postalCode  PostalCode? @relation("ProjectPostalCode", fields: [postalCodeId], references: [id])
+  onboardedBy User?       @relation("UserOnboardedProjects", fields: [onboardedById], references: [id])
+
+  adsRequests AdsRequest[]
+  commissions Commission[]
+  leads       Lead[]
+  loans       Loan[]
+  units       PropertyUnit[]
+  reels       Reel[]
+  assignedTo  User[]         @relation("ProjectAssignment")
+
+  @@index([postalCodeId])
+  @@index([status])
+  @@index([onboardedById])
+  @@index([cityId])
+  @@index([projectType])
+  @@map("projects")
+}
+
+model PropertyUnit {
+  id         String     @id @default(uuid())
+  projectId  String
+  unitNumber String
+  floor      Int?
+  type       String?
+  area       Decimal?   @db.Decimal(10, 2)
+  price      Decimal    @db.Decimal(15, 2)
+  status     UnitStatus @default(AVAILABLE)
+  buyerName  String?
+  buyerPhone String?
+  salePrice  Decimal?   @db.Decimal(15, 2)
+  soldAt     DateTime?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, unitNumber])
+  @@index([projectId])
+  @@index([status])
+  @@map("property_units")
+}
+
+// ============================================================
+// LEADS & CRM
+// ============================================================
+
+model Lead {
+  id          String     @id @default(uuid())
+  name        String
+  email       String?
+  phone       String
+  projectId   String?
+  status      LeadStatus @default(NEW)
+  source      String?
+  assignedTo  String?
+  notes       String?
+  campaignId  String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  assignedToUser User?              @relation("LeadAssignee", fields: [assignedTo], references: [id])
+  campaign       MarketingCampaign? @relation(fields: [campaignId], references: [id])
+  project        Project?           @relation(fields: [projectId], references: [id])
+
+  callLogs  CallLog[]
+  leadNotes LeadNote[]
+  loans     Loan[]
+  visits    Visit[]
+
+  @@index([status])
+  @@index([assignedTo])
+  @@index([projectId])
+  @@index([source])
+  @@map("leads")
+}
+
+model LeadNote {
+  id        String           @id @default(uuid())
+  leadId    String
+  authorId  String
+  content   String
+  category  LeadNoteCategory @default(GENERAL)
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  author    User             @relation("AuthorNotes", fields: [authorId], references: [id])
+  lead      Lead             @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([authorId])
+  @@map("lead_notes")
+}
+
+model Visit {
+  id          String      @id @default(uuid())
+  leadId      String
+  scheduledAt DateTime
+  completedAt DateTime?
+  status      VisitStatus @default(SCHEDULED)
+  notes       String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  lead        Lead        @relation(fields: [leadId], references: [id])
+
+  @@index([leadId])
+  @@index([status])
+  @@map("visits")
+}
+
+model CallLog {
+  id           String    @id @default(uuid())
+  sid          String?   @unique
+  leadId       String
+  consultantId String
+  status       String?
+  duration     Int?
+  recordingUrl String?
+  startTime    DateTime  @default(now())
+  endTime      DateTime?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  consultant   User      @relation(fields: [consultantId], references: [id])
+  lead         Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
+
+  @@index([leadId])
+  @@index([consultantId])
+  @@index([sid])
+  @@map("call_logs")
+}
+
+// ============================================================
+// FINANCE
+// ============================================================
+
+model Loan {
+  id           String     @id @default(uuid())
+  leadId       String
+  projectId    String
+  bankId       String
+  amount       Decimal    @db.Decimal(15, 2)
+  tenureYears  Int
+  interestRate Decimal    @db.Decimal(5, 2)
+  status       LoanStatus @default(PENDING)
+  notes        String?
+  documents    Json?      @default("{}")
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  bank         Bank       @relation(fields: [bankId], references: [id])
+  lead         Lead       @relation(fields: [leadId], references: [id])
+  project      Project    @relation(fields: [projectId], references: [id])
+
+  @@index([leadId])
+  @@index([projectId])
+  @@index([bankId])
+  @@index([status])
+  @@map("loans")
+}
+
+model Commission {
+  id         String           @id @default(uuid())
+  amount     Decimal          @db.Decimal(15, 2)
+  percentage Decimal?         @db.Decimal(5, 2)
+  agentId    String
+  projectId  String
+  status     CommissionStatus @default(PENDING)
+  paidAt     DateTime?
+  notes      String?
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  project    Project          @relation(fields: [projectId], references: [id])
+
+  @@index([agentId])
+  @@index([projectId])
+  @@index([status])
+  @@map("commissions")
+}
+
+// ============================================================
+// MARKETING
+// ============================================================
+
+model MarketingCampaign {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  status      String   @default("DRAFT")
+  platform    String
+  budget      Decimal  @db.Decimal(15, 2)
+  spent       Decimal  @default(0) @db.Decimal(15, 2)
+  startDate   DateTime
+  endDate     DateTime
+  impressions Int      @default(0)
+  clicks      Int      @default(0)
+  leadsCount  Int      @default(0)
+  conversions Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  leads      Lead[]
+  assignedTo User[]   @relation("CampaignToUser")
+
+  @@index([status])
+  @@map("marketing_campaigns")
+}
+
+model AdsRequest {
+  id            String   @id @default(uuid())
+  title         String
+  description   String?
+  status        String   @default("PENDING")
+  priority      String   @default("MEDIUM")
+  projectId     String?
+  budget        Decimal? @db.Decimal(15, 2)
+  platform      String?
+  requestedById String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  project     Project? @relation(fields: [projectId], references: [id])
+  requestedBy User     @relation(fields: [requestedById], references: [id])
+
+  @@index([requestedById])
+  @@index([status])
+  @@map("ads_requests")
+}
+
+// ============================================================
+// CONTENT
+// ============================================================
+
+model Reel {
+  id                              String          @id @default(uuid())
+  title                           String?
+  description                     String?
+  videoUrl                        String
+  thumbnailUrl                    String?
+  userId                          String
+  projectId                       String
+  publishToOfficialInstagram      Boolean         @default(false)
+  publishToPartnerInstagram       Boolean         @default(false)
+  instagramStatus                 InstagramStatus @default(PENDING)
+  instagramPostUrl                String?
+  instagramCaption                String?
+  officialInstagramModerationNote String?
+  createdAt                       DateTime        @default(now())
+  updatedAt                       DateTime        @updatedAt
+  project                         Project         @relation(fields: [projectId], references: [id])
+  user                            User            @relation("UserReels", fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([projectId])
+  @@map("reels")
+}
+
+model Review {
+  id             String   @id @default(uuid())
+  content        String
+  rating         Int
+  authorId       String
+  authorName     String
+  authorRole     String
+  isApproved     Boolean  @default(false)
+  showOnHomepage Boolean  @default(false)
+  authorIcon     String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  author         User     @relation("UserReviews", fields: [authorId], references: [id])
+
+  @@index([isApproved])
+  @@map("reviews")
+}
+
+// ============================================================
+// USER DOCUMENTS & ACTIVITY
+// ============================================================
+
+model UserDocument {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String
+  category  String
+  url       String
+  status    String   @default("uploaded")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation("UserDocuments", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([category])
+  @@map("user_documents")
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  type      String
+  action    String
+  target    String
+  timestamp DateTime @default(now())
+  details   Json?
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([timestamp])
+  @@index([userId])
+  @@index([type])
+  @@map("activity_logs")
+}
+
+// ============================================================
+// SOCIAL
+// ============================================================
+
+model Follow {
+  id          String   @id @default(uuid())
+  followerId  String
+  followingId String
+  createdAt   DateTime @default(now())
+  follower    User     @relation("UserFollowers", fields: [followerId], references: [id])
+  following   User     @relation("UserFollowing", fields: [followingId], references: [id])
+
+  @@unique([followerId, followingId])
+  @@index([followerId])
+  @@index([followingId])
+  @@map("follows")
+}
+
+// ============================================================
+// CHAT
+// ============================================================
+
+model ChatSession {
+  id           String            @id @default(uuid())
+  channelType  String            @default("DIRECT")
+  contextType  String?
+  contextId    String?
+  status       String            @default("active")
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  participants ChatParticipant[]
+
+  @@index([contextType, contextId])
+  @@map("chat_sessions")
+}
+
+model ChatParticipant {
+  id            String      @id @default(uuid())
+  chatSessionId String
+  userId        String
+  role          String
+  joinedAt      DateTime    @default(now())
+  lastReadAt    DateTime?
+  chatSession   ChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
+
+  @@unique([chatSessionId, userId])
+  @@index([userId])
+  @@map("chat_participants")
+}
+
+// ============================================================
+// GEOGRAPHY
+// ============================================================
+
+model City {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  state     String
+  active    Boolean   @default(true)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  projects  Project[]
+
+  @@map("cities")
+}
+
+model PostalCode {
+  id           String    @id @default(uuid())
+  code         String
+  circleName   String?
+  regionName   String?
+  divisionName String?
+  officeName   String?
+  officeType   String?
+  delivery     String?
+  district     String?
+  stateName    String?
+  latitude     String?
+  longitude    String?
+  city         String?
+  state        String?
+  country      String?
+  continent    String?
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  projects     Project[] @relation("ProjectPostalCode")
+
+  @@unique([code, officeName])
+  @@index([code])
+  @@index([district])
+  @@map("postal_codes")
+}
+
+// ============================================================
+// BANK (kept separate — used for home loan interest rate display)
+// ============================================================
+
+model Bank {
+  id         String   @id @default(uuid())
+  name       String   @unique
+  percentage Decimal  @db.Decimal(5, 2)
+  logoUrl    String?
+  isActive   Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  loans      Loan[]
+
+  @@map("banks")
+}
+
+// ============================================================
+// RERA & SYNC
+// ============================================================
+
+model ReraProject {
+  id               String    @id @default(uuid())
+  state            String
+  reraNumber       String    @unique
+  projectName      String
+  promoterName     String
+  status           String?
+  district         String?
+  address          String?
+  registrationDate DateTime?
+  completionDate   DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@map("rera_projects")
+}
+
+model ReraSyncLog {
+  id              String    @id @default(uuid())
+  state           String
+  district        String?
+  status          String
+  projectsScraped Int       @default(0)
+  error           String?
+  startedAt       DateTime  @default(now())
+  completedAt     DateTime?
+
+  @@map("rera_sync_logs")
+}
+
+model ReraDistrictCount {
+  id           String   @id @default(uuid())
+  state        String
+  district     String
+  projectCount Int
+  updatedAt    DateTime @updatedAt
+
+  @@unique([state, district])
+  @@map("rera_district_counts")
+}
+
+model PostalCodeSyncLog {
+  id              String    @id @default(uuid())
+  status          String
+  recordsImported Int       @default(0)
+  totalRecords    Int       @default(0)
+  lastOffset      Int       @default(0)
+  error           String?
+  startedById     String?
+  startedAt       DateTime  @default(now())
+  completedAt     DateTime?
+
+  @@map("postal_code_sync_logs")
+}
+
+// ============================================================
+// WEBHOOK
+// ============================================================
+
+model WebhookLog {
+  id              String   @id @default(uuid())
+  method          String
+  endpoint        String
+  idempotencyKey  String?  @unique
+  requestPayload  Json
+  responseStatus  Int
+  responseBody    Json?
+  executionTimeMs Int
+  errorMessage    String?
+  createdAt       DateTime @default(now())
+
+  @@index([idempotencyKey])
+  @@index([endpoint])
+  @@index([createdAt])
+  @@map("webhook_logs")
 }

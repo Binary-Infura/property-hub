@@ -5,6 +5,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { Public } from '../../common/decorators/public.decorator';
 import { RequireRoles } from '../../common/decorators/require-roles.decorator';
+import { UserRole } from '../../common/enums/role.enum';
 
 @Controller('api/banks')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -18,25 +19,25 @@ export class BanksController {
     }
 
     @Get()
-    @RequireRoles('central-authority')
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     findAll() {
         return this.banksService.findAllBanks();
     }
 
     @Post()
-    @RequireRoles('central-authority')
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     create(@Body() dto: CreateBankDto) {
         return this.banksService.createBank(dto);
     }
 
     @Patch(':id')
-    @RequireRoles('central-authority')
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     update(@Param('id') id: string, @Body() dto: UpdateBankDto) {
         return this.banksService.updateBank(id, dto);
     }
 
     @Delete(':id')
-    @RequireRoles('central-authority')
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     remove(@Param('id') id: string) {
         return this.banksService.deleteBank(id);
     }

@@ -4,6 +4,7 @@ import * as path from 'path';
 import * as crypto from 'crypto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RequireRoles } from '../../common/decorators/require-roles.decorator';
+import { UserRole } from '../../common/enums/role.enum';
 import { StorageService } from '../../common/services/storage.service';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
@@ -33,7 +34,7 @@ export class UploadsController {
     }
 
     @Post()
-    @RequireRoles('property-partner', 'admin', 'central-authority', 'buyer', 'consultant')
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.BUYER, UserRole.CONSULTANT)
     async uploadFile(
         @Req() req: FastifyRequest,
         @CurrentUser() user: AuthenticatedUser
@@ -98,9 +99,8 @@ export class UploadsController {
             this.log(`[UploadDebug] File uploaded to storage: ${uploadedFileUrl}`);
 
             // If this is a buyer/consultant document, save to DB
-            const userRoles = user.roles.map(r => r.toLowerCase());
-            const isBuyer = userRoles.includes('buyer');
-            const isConsultant = userRoles.includes('consultant');
+            const isBuyer = user.roles.includes(UserRole.BUYER);
+            const isConsultant = user.roles.includes(UserRole.CONSULTANT);
 
             this.log(`[UploadDebug] Role check: isBuyer=${isBuyer}, isConsultant=${isConsultant}, category="${category}", name="${documentName}"`);
 

@@ -2,6 +2,7 @@ import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 import { UpdateBuyerProfileDto, RegisterBuyerDto } from './buyers.dto';
 import { UsersService } from '../../users/users.service';
+import { UserRole } from '../../../common/enums/role.enum';
 
 @Injectable()
 export class BuyersService {
@@ -10,30 +11,37 @@ export class BuyersService {
         private usersService: UsersService
     ) { }
 
+    /**
+     * BUYER has no separate profile table.
+     * Profile data (budgetMin, budgetMax, preferredLocations) is stored in User.profileData JSON.
+     */
     async getProfile(userId: string) {
-        const profile = await this.prisma.buyerProfile.findUnique({
-            where: { userId },
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+            select: { profileData: true },
         });
-        if (!profile) {
-            throw new NotFoundException('Buyer profile not found');
+        if (!user) {
+            throw new NotFoundException('Buyer user not found');
         }
-        return profile;
+        return user.profileData;
     }
 
     async upsertProfile(userId: string, dto: UpdateBuyerProfileDto) {
-        return this.prisma.buyerProfile.upsert({
-            where: { userId },
-            update: {
-                budgetMin: dto.budgetMin,
-                budgetMax: dto.budgetMax,
-                preferredLocations: dto.preferredLocations,
-            },
-            create: {
-                userId,
-                budgetMin: dto.budgetMin,
-                budgetMax: dto.budgetMax,
-                preferredLocations: dto.preferredLocations,
-            },
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user) throw new NotFoundException('User not found');
+
+        const existing = (user.profileData as Record<string, any>) || {};
+        const merged = {
+            ...existing,
+            ...(dto.budgetMin !== undefined ? { budgetMin: dto.budgetMin } : {}),
+            ...(dto.budgetMax !== undefined ? { budgetMax: dto.budgetMax } : {}),
+            ...(dto.preferredLocations ? { preferredLocations: dto.preferredLocations } : {}),
+        };
+
+        return this.prisma.user.update({
+            where: { id: userId },
+            data: { profileData: merged },
+            select: { id: true, profileData: true },
         });
     }
 
@@ -44,20 +52,15 @@ export class BuyersService {
 
         if (dto.budget) {
             if (dto.budget.includes('cr+')) {
-                // Handle "2cr+" -> min 20000000
                 const minStr = dto.budget.replace('cr+', '');
                 budgetMin = parseFloat(minStr) * 10000000;
             } else if (dto.budget.includes('cr')) {
-                // Handle "1cr-2cr" -> 10000000 - 20000000 or "80-1cr" -> 8000000 - 10000000
                 const parts = dto.budget.split('-');
                 if (parts.length === 2) {
                     const parsePart = (part: string) => {
                         if (part.includes('cr')) {
                             return parseFloat(part.replace('cr', '')) * 10000000;
                         } else {
-                            // optimize for lakhs if no unit specified in first part but present in second ? 
-                            // Usually "80-1cr" implies 80L
-                            // Assuming default is Lakhs if not Cr
                             return parseFloat(part) * 100000;
                         }
                     };
@@ -65,7 +68,6 @@ export class BuyersService {
                     budgetMax = parsePart(parts[1]);
                 }
             } else {
-                // Handle "20-40" (Lakhs)
                 const parts = dto.budget.split('-');
                 if (parts.length === 2) {
                     budgetMin = parseFloat(parts[0]) * 100000;
@@ -74,22 +76,21 @@ export class BuyersService {
             }
         }
 
-        // 2. Create User via UsersService
-        // This handles Keycloak invite + Local DB creation
+        // 2. Create User via UsersService with typed roles
         const user = await this.usersService.createUser({
             firstName: dto.firstName,
             lastName: dto.lastName,
             email: dto.email,
             phone: dto.phone,
-            roles: ['buyer'],
+            roles: [UserRole.BUYER],
+            primaryRole: UserRole.BUYER,
         });
 
-        // 3. Create Buyer Profile
+        // 3. Create Buyer Profile in profileData JSON
         await this.upsertProfile(user.id, {
             budgetMin,
             budgetMax,
-            preferredLocations: [dto.location]
-            // Intent is not in profile yet? We might need to store it or ignore for now.
+            preferredLocations: dto.location ? [dto.location] : []
         });
 
         return user;

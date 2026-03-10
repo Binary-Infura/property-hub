@@ -13,6 +13,7 @@ import { CreateUnitDto, UpdateUnitDto, MarkUnitAsSoldDto, BulkCreateUnitsDto, Bu
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { RequireRoles } from '../../common/decorators/require-roles.decorator';
+import { UserRole } from '../../common/enums/role.enum';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 import { Public } from '../../common/decorators/public.decorator';
@@ -23,19 +24,19 @@ export class UnitsController {
     constructor(private readonly unitsService: UnitsService) { }
 
     @Post()
-    @RequireRoles('onboarding-manager', 'property-partner', 'broker', 'central-authority')
+    @RequireRoles(UserRole.ONBOARDING_MANAGER, UserRole.PROPERTY_PARTNER, UserRole.BROKER, UserRole.CENTRAL_AUTHORITY)
     create(@Body() createUnitDto: CreateUnitDto, @CurrentUser() user: AuthenticatedUser) {
         return this.unitsService.create(createUnitDto, user);
     }
 
     @Post('bulk')
-    @RequireRoles('onboarding-manager', 'property-partner', 'broker', 'central-authority')
+    @RequireRoles(UserRole.ONBOARDING_MANAGER, UserRole.PROPERTY_PARTNER, UserRole.BROKER, UserRole.CENTRAL_AUTHORITY)
     createBulk(@Body() bulkCreateUnitsDto: BulkCreateUnitsDto, @CurrentUser() user: AuthenticatedUser) {
         return this.unitsService.createBulk(bulkCreateUnitsDto, user);
     }
 
     @Delete('bulk')
-    @RequireRoles('property-partner', 'central-authority')
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY)
     removeBulk(@Body() bulkDeleteUnitsDto: BulkDeleteUnitsDto, @CurrentUser() user: AuthenticatedUser) {
         return this.unitsService.removeBulk(bulkDeleteUnitsDto.ids, user);
     }
@@ -53,7 +54,7 @@ export class UnitsController {
     }
 
     @Patch(':id')
-    @RequireRoles('onboarding-manager', 'property-partner', 'broker', 'central-authority')
+    @RequireRoles(UserRole.ONBOARDING_MANAGER, UserRole.PROPERTY_PARTNER, UserRole.BROKER, UserRole.CENTRAL_AUTHORITY)
     update(
         @Param('id') id: string,
         @Body() updateUnitDto: UpdateUnitDto,
@@ -63,7 +64,7 @@ export class UnitsController {
     }
 
     @Patch(':id/sold')
-    @RequireRoles('onboarding-manager', 'property-partner', 'broker', 'central-authority')
+    @RequireRoles(UserRole.ONBOARDING_MANAGER, UserRole.PROPERTY_PARTNER, UserRole.BROKER, UserRole.CENTRAL_AUTHORITY)
     markAsSold(
         @Param('id') id: string,
         @Body() markUnitAsSoldDto: MarkUnitAsSoldDto,
@@ -73,13 +74,13 @@ export class UnitsController {
     }
 
     @Get('my')
-    @RequireRoles('property-partner', 'central-authority')
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY)
     findMyUnits(@CurrentUser() user: AuthenticatedUser) {
         return this.unitsService.findMyUnits(user);
     }
 
     @Delete(':id')
-    @RequireRoles('property-partner', 'central-authority')
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY)
     remove(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
         return this.unitsService.remove(id, user);
     }

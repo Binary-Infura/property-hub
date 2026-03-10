@@ -31,7 +31,7 @@ export default function OnboardingManagersPage() {
         try {
             setLoading(true);
             const result = await userService.getAllByRole(
-                'onboarding-manager',
+                'ONBOARDING_MANAGER',
                 token,
                 false,
                 currentPage,
@@ -81,7 +81,7 @@ export default function OnboardingManagersPage() {
             } else {
                 const created = await userService.create({
                     ...dataToSave,
-                    role: 'onboarding-manager',
+                    role: 'ONBOARDING_MANAGER',
                 }, token);
                 setManagers([created, ...managers]);
                 setShowAddModal(false);

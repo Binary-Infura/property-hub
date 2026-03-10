@@ -31,30 +31,30 @@ export default function UnifiedSidebar({ isOpen, onClose }: UnifiedSidebarProps)
     const isPremium = profileStatus?.[activeRole.id]?.profileData?.isPremium;
 
     // Split Property Partner nav into main and advanced if needed
-    const mainNav = activeRole.id === 'property-partner'
+    const mainNav = activeRole.id === 'PROPERTY_PARTNER'
         ? navigation.filter(item => !item.premium)
         : navigation;
 
-    const advancedNav = activeRole.id === 'property-partner'
+    const advancedNav = activeRole.id === 'PROPERTY_PARTNER'
         ? navigation.filter(item => item.premium)
         : [];
 
     const getRoleTheme = (roleId: string) => {
         switch (roleId) {
-            case 'marketing-manager': return {
+            case 'MARKETING_MANAGER': return {
                 bg: 'bg-purple-50',
                 text: 'text-purple-700',
                 border: 'border-purple-600',
                 hover: 'hover:bg-purple-50/50'
             };
-            case 'central-authority':
-            case 'influencer': return {
+            case 'CENTRAL_AUTHORITY':
+            case 'INFLUENCER': return {
                 bg: 'bg-blue-600',
                 text: 'text-white',
                 border: 'border-blue-400',
                 hover: 'hover:bg-blue-700'
             };
-            case 'property-partner': return {
+            case 'PROPERTY_PARTNER': return {
                 bg: 'bg-blue-50',
                 text: 'text-blue-700',
                 border: 'border-blue-600',
@@ -70,7 +70,7 @@ export default function UnifiedSidebar({ isOpen, onClose }: UnifiedSidebarProps)
     };
 
     const theme = getRoleTheme(activeRole.id);
-    const isDarkSidebar = activeRole.id === 'central-authority' || activeRole.id === 'influencer';
+    const isDarkSidebar = activeRole.id === 'CENTRAL_AUTHORITY' || activeRole.id === 'INFLUENCER';
 
     return (
         <aside className={`fixed inset-y-0 left-0 z-50 w-64 ${isDarkSidebar ? 'bg-slate-900 border-gray-800' : 'bg-white border-gray-200'} border-r transition-all duration-300 ease-in-out md:relative md:flex flex-col shrink-0 shadow-sm ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>

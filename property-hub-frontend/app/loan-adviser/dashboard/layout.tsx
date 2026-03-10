@@ -5,7 +5,7 @@ import UnifiedDashboardLayout from '@/app/components/dashboard/UnifiedDashboardL
 
 export default function LoanAdviserDashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <UnifiedDashboardLayout requiredRole="loan-adviser" title="Loan Adviser Dashboard">
+    <UnifiedDashboardLayout requiredRole="LOAN_ADVISOR" title="Loan Adviser Dashboard">
       {children}
     </UnifiedDashboardLayout>
   );

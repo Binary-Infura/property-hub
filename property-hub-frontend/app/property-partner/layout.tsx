@@ -9,7 +9,7 @@ export default function PropertyPartnerLayout({
     children: React.ReactNode;
 }) {
     return (
-        <UnifiedDashboardLayout requiredRole="property-partner" title="Property Partner Dashboard">
+        <UnifiedDashboardLayout requiredRole="PROPERTY_PARTNER" title="Property Partner Dashboard">
             {children}
         </UnifiedDashboardLayout>
     );

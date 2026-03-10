@@ -3,13 +3,14 @@ import { CentralAuthorityService } from './central-authority.service';
 import { JwtAuthGuard } from '../../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../../auth/guards/roles.guard';
 import { RequireRoles } from '../../../common/decorators/require-roles.decorator';
+import { UserRole } from '../../../common/enums/role.enum';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../../common/interfaces/jwt-payload.interface';
 import { UpdateCentralAuthorityProfileDto, CreateCentralAuthorityUserDto } from './central-authority.dto';
 
 @Controller('api/central-authority')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RequireRoles('central-authority')
+@RequireRoles(UserRole.CENTRAL_AUTHORITY)
 export class CentralAuthorityController {
     constructor(private readonly centralAuthorityService: CentralAuthorityService) { }
 
@@ -32,7 +33,7 @@ export class CentralAuthorityController {
     }
 
     @Post('users')
-    @RequireRoles('central-authority')
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     create(
         @CurrentUser() user: AuthenticatedUser,
         @Body() dto: CreateCentralAuthorityUserDto
@@ -41,7 +42,7 @@ export class CentralAuthorityController {
     }
 
     @Get('users')
-    @RequireRoles('central-authority')
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     findAll(
         @Query('role') role?: string,
         @Query('page') page: string = '1',

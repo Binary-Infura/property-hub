@@ -52,7 +52,7 @@ export default function PropertySearchCard({
   const { activeContext } = useUnifiedApp();
   const { authenticated } = useAuth();
   const alreadyInBucket = isInBucket(property.id);
-  const isBuyer = (activeContext.activeRole.id === 'buyer') && authenticated;
+  const isBuyer = (activeContext.activeRole.id === 'BUYER') && authenticated;
 
   const handleBucketAction = (e: React.MouseEvent) => {
     e.stopPropagation();

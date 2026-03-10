@@ -19,7 +19,7 @@ interface Lead {
 
 export default function LeadsPage() {
     const { token, profileStatus } = useAuth();
-    const isPremium = profileStatus?.['property-partner']?.profileData?.isPremium;
+    const isPremium = profileStatus?.['PROPERTY_PARTNER']?.profileData?.isPremium;
     const { activeContext } = useUnifiedApp();
     const [leads, setLeads] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
