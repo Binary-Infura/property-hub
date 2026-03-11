@@ -11,7 +11,13 @@ export default function DynamicReviews() {
     useEffect(() => {
         const fetchReviews = async () => {
             try {
-                const data = await reviewService.getHomepageReviews();
+                let data = await reviewService.getHomepageReviews();
+
+                // Fallback to latest approved reviews if none are explicitly curated for homepage
+                if (!data || data.length === 0) {
+                    data = await reviewService.getApprovedReviews();
+                }
+
                 // Show the latest 3 curated homepage reviews
                 setReviews(data.slice(0, 3));
             } catch (error) {
