@@ -182,7 +182,7 @@ export class ProjectsService {
         const isPropertyPartner = user.roles.includes(UserRole.PROPERTY_PARTNER);
         const isCentralAuthority = user.roles.includes(UserRole.CENTRAL_AUTHORITY);
 
-        if (isPropertyPartner) {
+        if (!isCentralAuthority && isPropertyPartner) {
             // Verify project ownership
             const project = await this.prisma.project.findUnique({
                 where: { id },
@@ -243,7 +243,7 @@ export class ProjectsService {
         const isPropertyPartner = user.roles.includes(UserRole.PROPERTY_PARTNER);
         const isCentralAuthority = user.roles.includes(UserRole.CENTRAL_AUTHORITY);
 
-        if (isPropertyPartner) {
+        if (!isCentralAuthority && isPropertyPartner) {
             const internalUser = await this.usersService.ensureUserSynced(user);
 
             // Verify all projects ownership

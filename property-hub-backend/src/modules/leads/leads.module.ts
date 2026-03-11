@@ -4,9 +4,10 @@ import { LeadsController } from './leads.controller';
 import { LeadNotesService } from '../lead-notes/lead-notes.service';
 import { ExotelModule } from '../exotel/exotel.module';
 import { DatabaseModule } from '../../database/database.module';
+import { WhatsappModule } from '../whatsapp/whatsapp.module';
 
 @Module({
-    imports: [ExotelModule, DatabaseModule],
+    imports: [ExotelModule, DatabaseModule, WhatsappModule],
     controllers: [LeadsController],
     providers: [LeadsService, LeadNotesService],
 })

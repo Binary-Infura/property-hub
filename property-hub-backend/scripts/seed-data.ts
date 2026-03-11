@@ -107,6 +107,51 @@ async function main() {
         },
     });
 
+    // 3.5. Individual Role Test Users
+    console.log('Creating Individual Role Test Users...');
+    const individualRoles = [
+        UserRole.CENTRAL_AUTHORITY,
+        UserRole.PROPERTY_PARTNER,
+        UserRole.BROKER,
+        UserRole.BUYER,
+        UserRole.CONSULTANT,
+        UserRole.INFLUENCER,
+        UserRole.MARKETING_MANAGER,
+        UserRole.LOAN_ADVISOR,
+        UserRole.ONBOARDING_MANAGER,
+        UserRole.VISIT_EXECUTIVE,
+    ];
+
+    for (const role of individualRoles) {
+        let orgId = undefined;
+        // Optionally assign to organization if role demands it (like PP or Broker)
+        if (role === UserRole.PROPERTY_PARTNER || role === UserRole.BROKER) {
+            orgId = prestigeOrg.id;
+        }
+
+        const email = `${role.toLowerCase()}@propertyhub.com`;
+
+        await prisma.user.upsert({
+            where: { email },
+            update: {
+                roles: [role],
+                primaryRole: role,
+                organizationId: orgId,
+            },
+            create: {
+                email,
+                firstName: 'Test',
+                lastName: role.replace('_', ' '),
+                roles: [role],
+                primaryRole: role,
+                status: UserStatus.ACTIVE,
+                passwordHash,
+                phone: `+91900000000${individualRoles.indexOf(role)}`,
+                organizationId: orgId,
+            },
+        });
+    }
+
     // 4. Properties
     console.log('Creating Properties...');
     const projectsData = [

@@ -6,6 +6,7 @@ import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface
 import { UserRole } from '../../common/enums/role.enum';
 import { ExotelService } from '../exotel/exotel.service';
 import { ConfigService } from '@nestjs/config';
+import { WhatsappService } from '../whatsapp/whatsapp.service';
 import axios from 'axios';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class LeadsService {
         private prisma: PrismaService,
         private exotelService: ExotelService,
         private configService: ConfigService,
+        private whatsappService: WhatsappService,
     ) { }
 
     async findAll(user: AuthenticatedUser): Promise<Lead[]> {
@@ -321,6 +323,18 @@ export class LeadsService {
                     notes: (lead.notes || '') + `\n[${new Date().toISOString()}] Video call link generated for ${dto.channel}: ${videoCallLink}`,
                 },
             });
+
+            if (dto.channel === 'whatsapp' && lead.phone) {
+                const whatsappResponse = await this.whatsappService.sendVideoCallLink(
+                    lead.phone,
+                    lead.name || 'Guest',
+                    videoCallLink
+                );
+
+                if (!whatsappResponse.success) {
+                    throw new BadRequestException('Failed to send WhatsApp message');
+                }
+            }
 
             return {
                 success: true,

@@ -26,7 +26,8 @@ export class UnitsService {
         if (!project) throw new NotFoundException('Project not found');
 
         const isPropertyPartner = user.roles.includes(UserRole.PROPERTY_PARTNER);
-        if (isPropertyPartner && project.onboardedById !== internalUser.id) {
+        const isCentralAuthority = user.roles.includes(UserRole.CENTRAL_AUTHORITY);
+        if (!isCentralAuthority && isPropertyPartner && project.onboardedById !== internalUser.id) {
             throw new BadRequestException('You can only add units to projects you have onboarded.');
         }
 
@@ -142,8 +143,9 @@ export class UnitsService {
 
         const internalUser = await this.usersService.ensureUserSynced(user);
         const isPropertyPartner = user.roles.includes(UserRole.PROPERTY_PARTNER);
+        const isCentralAuthority = user.roles.includes(UserRole.CENTRAL_AUTHORITY);
 
-        if (isPropertyPartner && project.onboardedById !== internalUser.id) {
+        if (!isCentralAuthority && isPropertyPartner && project.onboardedById !== internalUser.id) {
             throw new BadRequestException('You do not have permission to create units for this project');
         }
 
@@ -161,8 +163,9 @@ export class UnitsService {
     async findMyUnits(user: AuthenticatedUser): Promise<any[]> {
         const internalUser = await this.usersService.ensureUserSynced(user);
         const isPropertyPartner = user.roles.includes(UserRole.PROPERTY_PARTNER);
+        const isCentralAuthority = user.roles.includes(UserRole.CENTRAL_AUTHORITY);
 
-        const filter = isPropertyPartner
+        const filter = (!isCentralAuthority && isPropertyPartner)
             ? { project: { onboardedById: internalUser.id } }
             : {};
 
