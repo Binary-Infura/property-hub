@@ -17,7 +17,6 @@ interface DashboardStats {
         total: number;
         partners: number;
         consultants: number;
-        channelPartners: number;
     };
     leads: {
         monthly: number;
@@ -53,25 +52,11 @@ interface PropertyPartner {
     } | null;
 }
 
-interface Broker {
-    id: string;
-    firstName: string;
-    lastName: string;
-    email: string;
-    phone?: string;
-    createdAt?: string;
-    brokerProfile: {
-        agencyBusinessName: string;
-        reraNumber?: string;
-        officeAddress?: string;
-    } | null;
-}
 
 export default function CentralAuthorityDashboardPage() {
     const { token } = useAuth();
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [partners, setPartners] = useState<PropertyPartner[]>([]);
-    const [brokers, setBrokers] = useState<Broker[]>([]);
     const [districtCounts, setDistrictCounts] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [updatingPartner, setUpdatingPartner] = useState<string | null>(null);
@@ -96,20 +81,6 @@ export default function CentralAuthorityDashboardPage() {
         }
     };
 
-    const fetchBrokers = async () => {
-        if (!token) return;
-        try {
-            const response = await fetch(`${API_URL}/api/central-authority/brokers`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                setBrokers(data);
-            }
-        } catch (error) {
-            console.error('Failed to fetch brokers:', error);
-        }
-    };
 
     const fetchDistrictCounts = async (search?: string) => {
         if (!token) return;
@@ -152,7 +123,6 @@ export default function CentralAuthorityDashboardPage() {
 
         fetchStats();
         fetchPartners();
-        fetchBrokers();
     }, [token, API_URL]);
 
     const handleUpdateSubscription = async (userId: string, isPremium: boolean, mode: 'PAID' | 'FREE') => {
@@ -224,8 +194,6 @@ export default function CentralAuthorityDashboardPage() {
                         <span>{stats.users.partners} Property Partner</span>
                         <span>•</span>
                         <span>{stats.users.consultants} Cons</span>
-                        <span>•</span>
-                        <span>{stats.users.channelPartners} CP</span>
                     </div>
                 </div>
 
@@ -248,8 +216,8 @@ export default function CentralAuthorityDashboardPage() {
                 </Link>
             </div>
 
-            {/* Onboarded People: Property Partners & Brokers */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+            {/* Onboarded Property Partners */}
+            <div className="grid grid-cols-1 gap-6">
 
                 {/* Property Partner Management Section */}
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -348,76 +316,6 @@ export default function CentralAuthorityDashboardPage() {
                     )}
                 </div>
 
-                {/* Brokers Section */}
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <div>
-                            <h2 className="text-xl font-bold text-gray-900">Brokers</h2>
-                            <p className="text-sm text-gray-500 mt-1">
-                                {brokers.length} onboarded &bull; agency & RERA info
-                            </p>
-                        </div>
-                        <Link
-                            href="/central-authority/dashboard/brokers"
-                            className="text-sm font-semibold text-indigo-600 hover:text-indigo-800 flex items-center gap-1"
-                        >
-                            View All
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </Link>
-                    </div>
-
-                    <div className="overflow-x-auto">
-                        <table className="w-full text-left">
-                            <thead>
-                                <tr className="border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
-                                    <th className="px-4 py-3">Name</th>
-                                    <th className="px-4 py-3">Agency</th>
-                                    <th className="px-4 py-3">RERA No.</th>
-                                    <th className="px-4 py-3">Office</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50">
-                                {brokers.slice(0, 5).map((broker) => (
-                                    <tr key={broker.id} className="text-sm group hover:bg-gray-50 transition-colors">
-                                        <td className="px-4 py-3">
-                                            <p className="font-bold text-gray-900">{broker.firstName} {broker.lastName}</p>
-                                            <p className="text-xs text-gray-400">{broker.email}</p>
-                                        </td>
-                                        <td className="px-4 py-3 text-gray-700 text-xs font-medium">
-                                            {broker.brokerProfile?.agencyBusinessName || '-'}
-                                        </td>
-                                        <td className="px-4 py-3">
-                                            {broker.brokerProfile?.reraNumber ? (
-                                                <span className="bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded text-[10px] font-bold font-mono">
-                                                    {broker.brokerProfile.reraNumber}
-                                                </span>
-                                            ) : (
-                                                <span className="text-gray-400 text-xs italic">Not set</span>
-                                            )}
-                                        </td>
-                                        <td className="px-4 py-3 text-gray-500 text-xs truncate max-w-[120px]">
-                                            {broker.brokerProfile?.officeAddress || '-'}
-                                        </td>
-                                    </tr>
-                                ))}
-                                {brokers.length === 0 && (
-                                    <tr>
-                                        <td colSpan={4} className="px-4 py-8 text-center text-gray-400 italic text-sm">
-                                            No brokers onboarded yet.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    </div>
-                    {brokers.length > 5 && (
-                        <div className="mt-4 pt-4 border-t border-gray-50 text-center">
-                            <span className="text-xs text-gray-400 font-medium">+{brokers.length - 5} more brokers</span>
-                        </div>
-                    )}
-                </div>
             </div>
 
 

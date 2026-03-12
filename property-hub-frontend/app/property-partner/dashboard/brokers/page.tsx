@@ -1,0 +1,330 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/app/contexts/AuthContext';
+import Link from 'next/link';
+import { userService } from '@/app/services/userService';
+
+interface Broker {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    phone?: string;
+    reraId?: string;
+    createdAt?: string;
+    profileData?: any;
+    brokerProfile?: {
+        agencyBusinessName: string;
+        reraNumber?: string;
+        officeAddress?: string;
+    } | null;
+}
+
+export default function AllBrokersPage() {
+    const { token } = useAuth();
+    const [brokers, setBrokers] = useState<Broker[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [search, setSearch] = useState('');
+    const [showAddModal, setShowAddModal] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [formData, setFormData] = useState({
+        firstName: '',
+        lastName: '',
+        email: '',
+        phone: '',
+        agencyName: '',
+        reraId: '',
+    });
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+    const fetchBrokers = async () => {
+        if (!token) return;
+        try {
+            const response = await fetch(`${API_URL}/api/property-partners/brokers`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setBrokers(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch brokers:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchBrokers();
+    }, [token, API_URL]);
+
+    const handleInviteBroker = async () => {
+        if (!token) return;
+        if (!formData.firstName || !formData.email) {
+            alert('First Name and Email are required');
+            return;
+        }
+        try {
+            setSubmitting(true);
+            await userService.createBroker(formData, token);
+            setShowAddModal(false);
+            setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '', reraId: '' });
+            fetchBrokers();
+        } catch (error: any) {
+            alert(error.message || 'Failed to invite broker');
+        } finally {
+            setSubmitting(false);
+        }
+    };
+
+    const filtered = brokers.filter((b) => {
+        const q = search.toLowerCase();
+        const agency = b.profileData?.agencyName || b.brokerProfile?.agencyBusinessName || '';
+        const rera = b.reraId || b.brokerProfile?.reraNumber || '';
+        return (
+            b.firstName.toLowerCase().includes(q) ||
+            b.lastName.toLowerCase().includes(q) ||
+            b.email.toLowerCase().includes(q) ||
+            agency.toLowerCase().includes(q) ||
+            rera.toLowerCase().includes(q)
+        );
+    });
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-8">
+            {/* Header */}
+            <div className="flex items-center gap-4">
+                <Link
+                    href="/property-partner/dashboard"
+                    className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                    <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </Link>
+                <div className="flex-1">
+                    <h1 className="text-3xl font-bold text-gray-900">Brokers Network</h1>
+                    <p className="text-gray-600 mt-1">
+                        {brokers.length} broker{brokers.length !== 1 ? 's' : ''} in your network
+                    </p>
+                </div>
+
+                <button
+                    onClick={() => setShowAddModal(true)}
+                    className="px-6 py-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 font-bold transition flex items-center gap-2 shadow-lg shadow-indigo-100"
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Invite New Broker
+                </button>
+
+                {/* Search */}
+                <div className="relative">
+                    <svg className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                    </svg>
+                    <input
+                        type="text"
+                        placeholder="Search brokers..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="pl-9 pr-4 py-2 text-sm border border-gray-200 rounded-full bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-400 outline-none transition-all w-56"
+                    />
+                    {search && (
+                        <button
+                            onClick={() => setSearch('')}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                        >
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                    )}
+                </div>
+            </div>
+
+            {/* Table */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                <th className="px-4 py-3">Broker</th>
+                                <th className="px-4 py-3">Agency</th>
+                                <th className="px-4 py-3">RERA Number</th>
+                                <th className="px-4 py-3">Phone</th>
+                                <th className="px-4 py-3 text-right">Joined</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                            {filtered.map((broker) => (
+                                <tr key={broker.id} className="text-sm hover:bg-gray-50 transition-colors group">
+                                    <td className="px-4 py-4">
+                                        <p className="font-bold text-gray-900">
+                                            {broker.firstName} {broker.lastName}
+                                        </p>
+                                        <p className="text-xs text-gray-400">{broker.email}</p>
+                                    </td>
+                                    <td className="px-4 py-4">
+                                        <span className="font-medium text-gray-800">
+                                            {broker.profileData?.agencyName || broker.brokerProfile?.agencyBusinessName || (
+                                                <span className="text-gray-400 italic">No agency</span>
+                                            )}
+                                        </span>
+                                    </td>
+                                    <td className="px-4 py-4">
+                                        {(broker.reraId || broker.brokerProfile?.reraNumber) ? (
+                                            <span className="bg-indigo-50 text-indigo-700 px-2.5 py-1 rounded-lg text-xs font-bold font-mono">
+                                                {broker.reraId || broker.brokerProfile?.reraNumber}
+                                            </span>
+                                        ) : (
+                                            <span className="text-gray-400 text-xs italic">Not set</span>
+                                        )}
+                                    </td>
+                                    <td className="px-4 py-4 text-gray-600 text-xs">
+                                        {broker.phone || <span className="text-gray-400 italic">—</span>}
+                                    </td>
+                                    <td className="px-4 py-4 text-right text-xs text-gray-400">
+                                        {broker.createdAt
+                                            ? new Date(broker.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+                                            : '—'}
+                                    </td>
+                                </tr>
+                            ))}
+                            {filtered.length === 0 && (
+                                <tr>
+                                    <td colSpan={5} className="px-4 py-12 text-center">
+                                        <p className="text-gray-400 italic">
+                                            {search ? `No brokers matching "${search}"` : 'No brokers onboarded yet.'}
+                                        </p>
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Invite Modal */}
+            {showAddModal && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all animate-in zoom-in-95 duration-200">
+                        <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                            <div>
+                                <h2 className="text-2xl font-black text-gray-900 leading-tight">
+                                    Invite Broker Partner
+                                </h2>
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-1">Stategic Partnership Setup</p>
+                            </div>
+                            <button
+                                onClick={() => setShowAddModal(false)}
+                                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
+                            >
+                                <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+
+                        <div className="p-8 space-y-6">
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">First Name</label>
+                                    <input
+                                        type="text"
+                                        value={formData.firstName}
+                                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
+                                        className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-sm font-bold"
+                                        placeholder="Enter first name"
+                                    />
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Last Name</label>
+                                    <input
+                                        type="text"
+                                        value={formData.lastName}
+                                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
+                                        className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-sm font-bold"
+                                        placeholder="Enter last name"
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
+                                <input
+                                    type="email"
+                                    value={formData.email}
+                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                    className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-sm font-bold"
+                                    placeholder="broker@agency.com"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Phone Number</label>
+                                <input
+                                    type="tel"
+                                    value={formData.phone}
+                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                                    className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-sm font-bold"
+                                    placeholder="+91..."
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Agency Name</label>
+                                <input
+                                    type="text"
+                                    value={formData.agencyName}
+                                    onChange={(e) => setFormData({ ...formData, agencyName: e.target.value })}
+                                    className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-sm font-bold"
+                                    placeholder="e.g. Royal Estates"
+                                />
+                            </div>
+
+                            <div className="space-y-2">
+                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">RERA ID</label>
+                                <input
+                                    type="text"
+                                    value={formData.reraId}
+                                    onChange={(e) => setFormData({ ...formData, reraId: e.target.value })}
+                                    className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-sm font-bold"
+                                    placeholder="RERA-XX-XXXX"
+                                />
+                            </div>
+
+                            <div className="flex gap-4 pt-4">
+                                <button
+                                    onClick={() => setShowAddModal(false)}
+                                    className="flex-1 px-6 py-4 border border-gray-100 font-bold text-gray-400 rounded-2xl hover:bg-gray-50 transition-all text-sm uppercase tracking-widest"
+                                    disabled={submitting}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleInviteBroker}
+                                    className="flex-1 px-6 py-4 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 text-sm uppercase tracking-widest disabled:opacity-50"
+                                    disabled={submitting}
+                                >
+                                    {submitting ? 'Sending...' : 'Send Invitation'}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+        </div>
+    );
+}

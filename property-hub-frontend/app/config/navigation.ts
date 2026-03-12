@@ -12,7 +12,6 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
     'CENTRAL_AUTHORITY': [
         { name: 'Dashboard', href: '/central-authority/dashboard', icon: 'dashboard' },
         { name: 'Property Partners', href: '/central-authority/dashboard/property-partners', icon: 'building' },
-        { name: 'Brokers', href: '/central-authority/dashboard/brokers', icon: 'handshake' },
         { name: 'Consultants', href: '/central-authority/dashboard/consultants', icon: 'users' },
         { name: 'Loan Advisors', href: '/central-authority/dashboard/loan-advisers', icon: 'bank' },
         { name: 'Visit Executives', href: '/central-authority/dashboard/visit-executives', icon: 'car' },
@@ -38,7 +37,7 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Reviews', href: '/marketing-manager/dashboard/reviews', icon: 'star' },
     ],
     'ONBOARDING_MANAGER': [
-        { name: 'Broker Partners', href: '/onboarding-manager/dashboard', icon: 'handshake' },
+        { name: 'Onboarding Dashboard', href: '/onboarding-manager/dashboard', icon: 'dashboard' },
         { name: 'Project', href: '/onboarding-manager/dashboard/project', icon: 'building' },
         { name: 'Listing Requests', href: '/onboarding-manager/dashboard/listing-requests', icon: 'clipboard' },
         { name: 'Property Partners', href: '/onboarding-manager/dashboard/property-partners', icon: 'handshake' },
@@ -49,6 +48,7 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Projects', href: '/property-partner/dashboard/projects', icon: 'building' },
         { name: 'Units', href: '/property-partner/dashboard/units', icon: 'home' },
         { name: 'Consultants', href: '/property-partner/dashboard/consultants', icon: 'person', premium: true },
+        { name: 'Brokers', href: '/property-partner/dashboard/brokers', icon: 'handshake', premium: true },
         { name: 'Visit Executives', href: '/property-partner/dashboard/visit-executives', icon: 'pin', premium: true },
         { name: 'Project Allocation', href: '/property-partner/dashboard/projects/allocation', icon: 'building', premium: true },
         { name: 'Leads', href: '/property-partner/dashboard/leads', icon: 'clipboard' },

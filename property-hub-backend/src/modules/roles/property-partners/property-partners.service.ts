@@ -1,10 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
-import { UpdatePropertyPartnerProfileDto } from './property-partners.dto';
+import { UpdatePropertyPartnerProfileDto, CreateBrokerDto } from './property-partners.dto';
+import { UsersService } from '../../users/users.service';
+import { UserRole } from '../../../common/enums/role.enum';
 
 @Injectable()
 export class PropertyPartnersService {
-    constructor(private prisma: PrismaService) { }
+    constructor(
+        private prisma: PrismaService,
+        private usersService: UsersService
+    ) { }
 
     /**
      * Profile data for PROPERTY_PARTNER is split:
@@ -23,6 +28,45 @@ export class PropertyPartnersService {
             profileData: user.profileData,
             organization: user.organization,
         };
+    }
+
+    async getBrokers(userId: string) {
+        const user = await this.prisma.user.findUnique({
+            where: { id: userId },
+        });
+        if (!user || user.primaryRole !== 'PROPERTY_PARTNER') {
+            throw new NotFoundException('Property Partner not found');
+        }
+
+        const where: any = { roles: { has: UserRole.BROKER } };
+        if (user.organizationId) {
+            where.organizationId = user.organizationId;
+        } else {
+            // Fallback to onboardedBy if no organization link
+            where.onboardedById = user.id;
+        }
+
+        return this.prisma.user.findMany({
+            where,
+            orderBy: { createdAt: 'desc' }
+        });
+    }
+
+    async createBroker(userId: string, dto: CreateBrokerDto) {
+        const currentUser = await this.prisma.user.findUnique({
+            where: { id: userId }
+        });
+
+        if (!currentUser || currentUser.primaryRole !== 'PROPERTY_PARTNER') {
+            throw new NotFoundException('Property Partner not found');
+        }
+
+        return this.usersService.createUser({
+            ...dto,
+            roles: [UserRole.BROKER],
+            primaryRole: UserRole.BROKER,
+            organizationId: currentUser.organizationId || undefined,
+        }, { userId: currentUser.id, roles: currentUser.roles } as any);
     }
 
     async upsertProfile(userId: string, dto: UpdatePropertyPartnerProfileDto) {

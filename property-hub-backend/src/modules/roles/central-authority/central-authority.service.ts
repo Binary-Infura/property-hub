@@ -87,7 +87,6 @@ export class CentralAuthorityService {
             total: userStats.length,
             partners: userRolesFlattened.filter(r => r === UserRole.PROPERTY_PARTNER).length,
             consultants: userRolesFlattened.filter(r => r === UserRole.CONSULTANT).length,
-            brokers: userRolesFlattened.filter(r => r === UserRole.BROKER).length,
         };
 
         const recentActivity = await this.prisma.activityLog.findMany({
@@ -103,13 +102,6 @@ export class CentralAuthorityService {
         return this.prisma.user.findMany({
             where: { roles: { has: UserRole.PROPERTY_PARTNER } },
             include: { organization: true },
-            orderBy: { createdAt: 'desc' }
-        });
-    }
-
-    async getAllBrokers() {
-        return this.prisma.user.findMany({
-            where: { roles: { has: UserRole.BROKER } },
             orderBy: { createdAt: 'desc' }
         });
     }

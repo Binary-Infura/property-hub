@@ -16,6 +16,7 @@ export default function PropertyPartnerDashboard() {
   const [agentCounts, setAgentCounts] = useState({
     consultants: 0,
     visitExecutives: 0,
+    brokers: 0,
     totalAgents: 0
   });
 
@@ -37,9 +38,10 @@ export default function PropertyPartnerDashboard() {
     const fetchData = async () => {
       if (!token) return;
       try {
-        const [consultants, visitExecutives, leadsData, projects, units] = await Promise.all([
+        const [consultants, visitExecutives, brokersData, leadsData, projects, units] = await Promise.all([
           userService.getAllByRole('CONSULTANT', token, true, 1, 1),
           userService.getAllByRole('VISIT_EXECUTIVE', token, true, 1, 1),
+          fetch(`${API_URL}/api/property-partners/brokers`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
           fetch(`${API_URL}/api/leads`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
           propertyService.getAll(token, true),
           fetch(`${API_URL}/api/units/my`, {
@@ -50,13 +52,15 @@ export default function PropertyPartnerDashboard() {
         ]);
 
         const cCount = consultants.total || 0;
-        const leads = Array.isArray(leadsData) ? leadsData : [];
         const vCount = visitExecutives.total || 0;
+        const bCount = Array.isArray(brokersData) ? brokersData.length : 0;
+        const leads = Array.isArray(leadsData) ? leadsData : [];
 
         setAgentCounts({
           consultants: cCount,
           visitExecutives: vCount,
-          totalAgents: cCount + vCount
+          brokers: bCount,
+          totalAgents: cCount + vCount + bCount
         });
 
         const totalUnits = units.length || 0;
@@ -271,6 +275,7 @@ export default function PropertyPartnerDashboard() {
             <div className="flex gap-2 mt-2">
               <span className="text-[10px] font-bold bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">C: {agentCounts.consultants}</span>
               <span className="text-[10px] font-bold bg-rose-50 text-rose-600 px-1.5 py-0.5 rounded">V: {agentCounts.visitExecutives}</span>
+              <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded">B: {agentCounts.brokers}</span>
             </div>
           </div>
         </div>
@@ -289,6 +294,7 @@ export default function PropertyPartnerDashboard() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
               { name: 'Consultants', href: '/property-partner/dashboard/consultants', icon: 'person' as const, color: 'blue' },
+              { name: 'Brokers', href: '/property-partner/dashboard/brokers', icon: 'handshake' as const, color: 'indigo' },
               { name: 'Visit Executives', href: '/property-partner/dashboard/visit-executives', icon: 'pin' as const, color: 'rose' },
               { name: 'Project Allocation', href: '/property-partner/dashboard/projects/allocation', icon: 'building' as const, color: 'emerald' },
               { name: 'Units Inventory', href: '/property-partner/dashboard/units', icon: 'home' as const, color: 'purple' },

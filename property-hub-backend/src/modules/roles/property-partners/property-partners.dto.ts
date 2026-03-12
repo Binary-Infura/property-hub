@@ -17,3 +17,27 @@ export class UpdatePropertyPartnerProfileDto {
     @IsOptional()
     licenseNumber?: string;
 }
+
+export class CreateBrokerDto {
+    @IsString()
+    firstName: string;
+
+    @IsString()
+    @IsOptional()
+    lastName?: string;
+
+    @IsString()
+    email: string;
+
+    @IsString()
+    @IsOptional()
+    phone?: string;
+
+    @IsString()
+    @IsOptional()
+    agencyName?: string;
+
+    @IsString()
+    @IsOptional()
+    reraId?: string;
+}
