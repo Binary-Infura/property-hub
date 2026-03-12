@@ -298,31 +298,46 @@ export default function LeadsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-[calc(100vh-4rem)] bg-slate-50 p-6 lg:p-8 font-sans">
             {/* Call Modal */}
             {activeCall && <CallModal lead={activeCall} onClose={() => setActiveCall(null)} />}
 
-            <div className="max-w-7xl mx-auto space-y-6">
-                <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Leads Management</h1>
-                    <p className="text-gray-600 mt-1">Track and manage your property leads</p>
+            <div className="max-w-7xl mx-auto space-y-8">
+                {/* Header Section */}
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-5">
+                    <div>
+                        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Leads Hub</h1>
+                        <p className="text-slate-500 mt-2 text-sm max-w-xl leading-relaxed">
+                            Manage all your prospect communications, track progress, and close deals faster. Use detailed filters to find exactly who you need to contact.
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-3 bg-white px-5 py-3 rounded-2xl shadow-sm border border-slate-200/80">
+                         <span className="relative flex h-3.5 w-3.5">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-white"></span>
+                        </span>
+                        <div className="flex flex-col">
+                            <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider leading-none mb-1">Total Found</span>
+                            <span className="text-sm font-bold text-slate-800 leading-none">{filteredLeads.length} Leads</span>
+                        </div>
+                    </div>
                 </div>
 
-                {/* Filters and Search */}
-                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100">
-                    <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                        <div className="md:col-span-5 lg:col-span-1">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Search Leads</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                    <svg className="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                {/* Filters Board */}
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/80">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-5">
+                        <div className="lg:col-span-1">
+                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5">Search</label>
+                            <div className="relative group">
+                                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none">
+                                    <svg className="h-4 w-4 text-slate-400 group-focus-within:text-blue-500 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                     </svg>
                                 </div>
                                 <input
                                     type="text"
-                                    className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 sm:text-sm"
-                                    placeholder="Search name, email, phone..."
+                                    className="block w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all sm:text-sm placeholder-slate-400 font-medium"
+                                    placeholder="Name, email, phone..."
                                     value={searchQuery}
                                     onChange={(e) => setSearchQuery(e.target.value)}
                                 />
@@ -330,130 +345,161 @@ export default function LeadsPage() {
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Project</label>
-                            <select
-                                className="block w-full pl-3 pr-10 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg"
-                                value={selectedProject}
-                                onChange={(e) => setSelectedProject(e.target.value)}
-                            >
-                                {projectsList.map(project => (
-                                    <option key={project} value={project}>{project}</option>
-                                ))}
-                            </select>
+                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5">Project</label>
+                            <div className="relative">
+                                <select
+                                    className="block w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all sm:text-sm appearance-none font-medium cursor-pointer"
+                                    value={selectedProject}
+                                    onChange={(e) => setSelectedProject(e.target.value)}
+                                >
+                                    {projectsList.map(project => (
+                                        <option key={project} value={project}>{project}</option>
+                                    ))}
+                                </select>
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                                </div>
+                            </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Campaign</label>
-                            <select
-                                className="block w-full pl-3 pr-10 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg"
-                                value={selectedCampaign}
-                                onChange={(e) => setSelectedCampaign(e.target.value)}
-                            >
-                                {campaignsList.map(campaign => (
-                                    <option key={campaign} value={campaign}>{campaign}</option>
-                                ))}
-                            </select>
+                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5">Campaign</label>
+                            <div className="relative">
+                                <select
+                                    className="block w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all sm:text-sm appearance-none font-medium cursor-pointer"
+                                    value={selectedCampaign}
+                                    onChange={(e) => setSelectedCampaign(e.target.value)}
+                                >
+                                    {campaignsList.map(campaign => (
+                                        <option key={campaign} value={campaign}>{campaign}</option>
+                                    ))}
+                                </select>
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                                </div>
+                            </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Platform</label>
-                            <select
-                                className="block w-full pl-3 pr-10 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg"
-                                value={selectedPlatform}
-                                onChange={(e) => setSelectedPlatform(e.target.value)}
-                            >
-                                {platformsList.map(platform => (
-                                    <option key={platform} value={platform}>{platform}</option>
-                                ))}
-                            </select>
+                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5">Platform</label>
+                            <div className="relative">
+                                <select
+                                    className="block w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all sm:text-sm appearance-none font-medium cursor-pointer"
+                                    value={selectedPlatform}
+                                    onChange={(e) => setSelectedPlatform(e.target.value)}
+                                >
+                                    {platformsList.map(platform => (
+                                        <option key={platform} value={platform}>{platform}</option>
+                                    ))}
+                                </select>
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-slate-500">
+                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                                </div>
+                            </div>
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
-                            <select
-                                className="block w-full pl-3 pr-10 py-2 border border-gray-300 focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-lg"
-                                value={selectedState}
-                                onChange={(e) => setSelectedState(e.target.value)}
-                            >
-                                {leadStatesList.map(state => (
-                                    <option key={state} value={state}>{state}</option>
-                                ))}
-                            </select>
+                            <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2.5">Status Filter</label>
+                            <div className="relative">
+                                <select
+                                    className="block w-full pl-4 pr-10 py-2.5 bg-slate-50 border border-slate-200 text-slate-900 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 focus:bg-white transition-all sm:text-sm appearance-none font-medium cursor-pointer text-blue-700 bg-blue-50/30"
+                                    value={selectedState}
+                                    onChange={(e) => setSelectedState(e.target.value)}
+                                >
+                                    {leadStatesList.map(state => (
+                                        <option key={state} value={state}>{state}</option>
+                                    ))}
+                                </select>
+                                <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-blue-500">
+                                    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" /></svg>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
-                {/* Leads Table */}
-                <div className="bg-white shadow-sm rounded-xl border border-gray-100 overflow-hidden">
+                {/* Leads Table Card */}
+                <div className="bg-white shadow-sm rounded-2xl border border-slate-200/80 overflow-hidden">
                     <div className="overflow-x-auto">
-                        <table className="min-w-full divide-y divide-gray-200">
-                            <thead className="bg-gray-50">
+                        <table className="min-w-full divide-y divide-slate-200/80">
+                            <thead className="bg-slate-50/80">
                                 <tr>
-                                    <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Lead Info</th>
-                                    <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Project</th>
-                                    <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Campaign & Platform</th>
-                                    <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Status</th>
-                                    <th scope="col" className="px-6 py-4 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Action Date</th>
-                                    <th scope="col" className="px-6 py-4 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Actions</th>
+                                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Contact Info</th>
+                                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Project Focus</th>
+                                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Source</th>
+                                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Current Status</th>
+                                    <th scope="col" className="px-6 py-4 text-left text-xs font-bold text-slate-500 uppercase tracking-wider">Acquired On</th>
+                                    <th scope="col" className="sticky right-0 bg-slate-50/90 backdrop-blur-sm z-10 px-6 py-4 text-right text-xs font-bold text-slate-500 uppercase tracking-wider shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.05)] border-l border-slate-200/50">Quick Actions</th>
                                 </tr>
                             </thead>
-                            <tbody className="bg-white divide-y divide-gray-200">
+                            <tbody className="bg-white divide-y divide-slate-100">
                                 {filteredLeads.length > 0 ? (
                                     filteredLeads.map((lead, idx) => (
-                                        <tr key={lead.id || idx} className="hover:bg-gray-50 transition-colors cursor-pointer" onClick={() => setSelectedLeadForDetails(lead)}>
-                                            <td className="px-6 py-4 whitespace-nowrap">
+                                        <tr key={lead.id || idx} className="hover:bg-slate-50/80 transition-all duration-200 cursor-pointer group" onClick={() => setSelectedLeadForDetails(lead)}>
+                                            <td className="px-6 py-5 whitespace-nowrap">
                                                 <div className="flex items-center">
-                                                    <div className="h-10 w-10 flex-shrink-0 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold text-sm">
-                                                        {(lead.name || 'U').split(' ').map((n: string) => n[0]).join('').substring(0, 2)}
+                                                    <div className="h-11 w-11 flex-shrink-0 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-full flex items-center justify-center text-blue-700 font-bold text-sm shadow-sm border border-blue-200/50 group-hover:scale-105 transition-transform">
+                                                        {(lead.name || 'U').split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase()}
                                                     </div>
                                                     <div className="ml-4">
-                                                        <div className="text-sm font-medium text-gray-900">{lead.name || 'Unknown'}</div>
-                                                        <div className="text-sm text-gray-500">{lead.email || 'N/A'}</div>
-                                                        <div className="text-sm text-gray-400">{lead.phone || 'N/A'}</div>
+                                                        <div className="text-sm font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{lead.name || 'Unknown'}</div>
+                                                        <div className="text-sm text-slate-500 flex items-center gap-1.5 mt-0.5">
+                                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+                                                            {lead.email || 'N/A'}
+                                                        </div>
+                                                        <div className="text-sm text-slate-400 flex items-center gap-1.5 mt-0.5">
+                                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" /></svg>
+                                                            {lead.phone || 'N/A'}
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm font-medium text-gray-900">{lead.projectName}</div>
+                                            <td className="px-6 py-5 whitespace-nowrap">
+                                                <div className="inline-flex items-center px-2.5 py-1 rounded-md bg-slate-100/80 text-slate-700 text-sm font-semibold border border-slate-200">
+                                                    {lead.projectName}
+                                                </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <div className="text-sm text-gray-900 font-medium">{lead.campaignName}</div>
-                                                <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mt-1">{lead.platform}</div>
+                                            <td className="px-6 py-5 whitespace-nowrap">
+                                                <div className="text-sm font-bold text-slate-800">{lead.campaignName}</div>
+                                                <div className="inline-block mt-1.5 px-2 py-0.5 text-[10px] font-bold text-slate-500 uppercase tracking-widest bg-slate-100 rounded border border-slate-200/60">
+                                                    {lead.platform}
+                                                </div>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap">
-                                                <span className={`px-3 py-1 text-[10px] font-black uppercase tracking-widest rounded-full ${getStatusColor(lead.status)}`}>
+                                            <td className="px-6 py-5 whitespace-nowrap">
+                                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold uppercase tracking-widest border ${getStatusColor(lead.status).replace('bg-', 'bg-').replace('text-', 'text- border-')}`}>
+                                                    <span className={`w-1.5 h-1.5 rounded-full mr-1.5 ${getStatusColor(lead.status).replace('bg-', 'bg-').split(' ')[0].replace('100', '500')}`}></span>
                                                     {lead.status || 'NEW'}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                            <td className="px-6 py-5 whitespace-nowrap text-sm text-slate-500 font-medium">
                                                 {lead.createdAt ? new Date(lead.createdAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'N/A'}
                                             </td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium" onClick={(e) => e.stopPropagation()}>
-                                                <div className="flex items-center justify-end gap-2">
+                                            <td className="sticky right-0 bg-white/95 backdrop-blur-sm z-10 px-6 py-5 whitespace-nowrap text-right text-sm font-medium shadow-[-4px_0_8px_-4px_rgba(0,0,0,0.05)] border-l border-slate-100 group-hover:bg-slate-50/95 transition-colors" onClick={(e) => e.stopPropagation()}>
+                                                <div className="flex items-center justify-end gap-2.5">
                                                     <button
                                                         onClick={() => handleCallLead(lead)}
                                                         disabled={callingId === lead.id}
-                                                        title={lead.phone ? `Call ${lead.phone}` : 'No phone number'}
-                                                        className={`p-2 rounded-lg ${callingId === lead.id
-                                                            ? 'bg-gray-100 text-gray-400'
-                                                            : 'bg-green-50 text-green-600 hover:bg-green-100'
-                                                            } transition-colors`}
+                                                        title={lead.phone ? `Voice Call: ${lead.phone}` : 'No phone number'}
+                                                        className={`p-2.5 rounded-xl shadow-sm border ${callingId === lead.id
+                                                            ? 'bg-slate-50 border-slate-200 text-slate-400'
+                                                            : 'bg-white border-green-200 text-green-600 hover:bg-green-50 hover:border-green-300 hover:shadow'
+                                                            } transition-all active:scale-95`}
                                                     >
                                                         {callingId === lead.id ? (
-                                                            <span className="inline-block h-4 w-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                                            <span className="inline-block h-4 w-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin" />
                                                         ) : (
                                                             <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.45 2.33.7 3.58.7a1 1 0 011 1V20a1 1 0 01-1 1C10.61 21 3 13.39 3 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.25 2.45.7 3.57a1 1 0 01-.24 1.01l-2.34 2.21z" /></svg>
                                                         )}
                                                     </button>
-
+                                                    <div className="w-px h-6 bg-slate-200 mx-0.5"></div>
                                                     <button
                                                         onClick={() => {
                                                             const roomName = `room-${lead.id}`;
                                                             const leadName = encodeURIComponent(lead.name || 'User');
                                                             window.open(`/consultant/call/${roomName}?leadName=${leadName}`, '_blank', 'width=1400,height=900,menubar=no,toolbar=no,location=no,status=no');
                                                         }}
-                                                        title="Video Call"
-                                                        className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors"
+                                                        title="Start Video Meeting"
+                                                        className="p-2.5 bg-white border border-blue-200 text-blue-600 rounded-xl shadow-sm hover:bg-blue-50 hover:border-blue-300 hover:shadow transition-all active:scale-95"
                                                     >
                                                         <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                                             <path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -463,11 +509,11 @@ export default function LeadsPage() {
                                                     <button
                                                         onClick={() => handleSendVideoLink(lead, 'email')}
                                                         disabled={sendingLinkId === lead.id && sendingChannel === 'email'}
-                                                        title={lead.email ? `Send via email` : 'No email address'}
-                                                        className={`p-2 rounded-lg ${sendingLinkId === lead.id && sendingChannel === 'email'
-                                                            ? 'bg-gray-100 text-gray-400'
-                                                            : lead.email ? 'bg-orange-50 text-orange-600 hover:bg-orange-100' : 'bg-gray-50 text-gray-400'
-                                                            } transition-colors`}
+                                                        title={lead.email ? `Email Video Link` : 'No email address'}
+                                                        className={`p-2.5 rounded-xl border shadow-sm ${sendingLinkId === lead.id && sendingChannel === 'email'
+                                                            ? 'bg-slate-50 border-slate-200 text-slate-400'
+                                                            : lead.email ? 'bg-white border-orange-200 text-orange-500 hover:bg-orange-50 hover:border-orange-300 hover:shadow' : 'bg-slate-50 border-slate-100 text-slate-300'
+                                                            } transition-all active:scale-95`}
                                                     >
                                                         {sendingLinkId === lead.id && sendingChannel === 'email' ? (
                                                             <span className="inline-block h-4 w-4 border-2 border-orange-400 border-t-transparent rounded-full animate-spin" />
@@ -479,25 +525,25 @@ export default function LeadsPage() {
                                                     <button
                                                         onClick={() => handleSendVideoLink(lead, 'whatsapp')}
                                                         disabled={sendingLinkId === lead.id && sendingChannel === 'whatsapp'}
-                                                        title={lead.phone ? `Send via WhatsApp` : 'No phone number'}
-                                                        className={`p-2 rounded-lg ${sendingLinkId === lead.id && sendingChannel === 'whatsapp'
-                                                            ? 'bg-gray-100 text-gray-400'
-                                                            : lead.phone ? 'bg-green-50 text-green-600 hover:bg-green-100' : 'bg-gray-50 text-gray-400'
-                                                            } transition-colors`}
+                                                        title={lead.phone ? `WhatsApp Video Link` : 'No phone number'}
+                                                        className={`p-2.5 rounded-xl border shadow-sm ${sendingLinkId === lead.id && sendingChannel === 'whatsapp'
+                                                            ? 'bg-slate-50 border-slate-200 text-slate-400'
+                                                            : lead.phone ? 'bg-white border-emerald-200 text-emerald-500 hover:bg-emerald-50 hover:border-emerald-300 hover:shadow' : 'bg-slate-50 border-slate-100 text-slate-300'
+                                                            } transition-all active:scale-95`}
                                                     >
                                                         {sendingLinkId === lead.id && sendingChannel === 'whatsapp' ? (
-                                                            <span className="inline-block h-4 w-4 border-2 border-green-400 border-t-transparent rounded-full animate-spin" />
+                                                            <span className="inline-block h-4 w-4 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
                                                         ) : (
                                                             <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.6 6.32c-1.63-1.6-3.8-2.48-6.1-2.48-4.76 0-8.63 3.87-8.63 8.63 0 1.52.39 3 1.15 4.31L2.7 19.87l4.72-1.24c1.27.68 2.69 1.04 4.14 1.04h.01c4.76 0 8.63-3.87 8.63-8.63 0-2.3-.9-4.47-2.51-6.1zm-6.1 13.69c-1.29 0-2.56-.33-3.68-.97l-.26-.16-2.71.71.72-2.63-.17-.27c-.71-1.13-1.09-2.43-1.09-3.76 0-3.96 3.22-7.18 7.18-7.18 1.91 0 3.71.77 5.06 2.11 1.35 1.35 2.11 3.15 2.11 5.06 0 3.96-3.22 7.18-7.18 7.18zm3.94-5.39c-.22-.11-1.29-.64-1.49-.71-.2-.07-.34-.11-.49.11-.14.22-.57.71-.7.86-.13.15-.26.17-.48.05-.22-.11-.92-.34-1.75-1.08-.65-.58-1.09-1.29-1.22-1.51-.13-.22-.01-.34.1-.45.1-.1.22-.26.33-.39.11-.13.14-.22.22-.37.07-.15.04-.28-.02-.39-.07-.11-.49-1.18-.67-1.61-.18-.41-.36-.36-.49-.36-.13 0-.28-.02-.42-.02-.15 0-.39.06-.59.28-.2.22-.76.74-.76 1.81 0 1.07.78 2.1.89 2.25.11.15 1.54 2.35 3.73 3.3 2.2.95 2.2.63 2.6.59.4-.04 1.29-.53 1.47-1.04.18-.51.18-.95.12-1.04-.05-.09-.2-.14-.42-.25z" /></svg>
                                                         )}
                                                     </button>
-
+                                                    <div className="w-px h-6 bg-slate-200 mx-0.5"></div>
                                                     <button
                                                         onClick={() => setSelectedLeadForDetails(lead)}
-                                                        className="p-2 bg-gray-50 text-gray-600 rounded-lg hover:bg-gray-100 transition-colors"
-                                                        title="View Details"
+                                                        className="p-2.5 bg-white border border-slate-200 text-slate-500 rounded-xl hover:bg-slate-50 hover:text-slate-800 hover:border-slate-300 hover:shadow shadow-sm transition-all active:scale-95"
+                                                        title="Explore Details"
                                                     >
-                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 5l7 7-7 7" /></svg>
                                                     </button>
                                                 </div>
                                             </td>
@@ -505,12 +551,26 @@ export default function LeadsPage() {
                                     ))
                                 ) : (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-10 text-center text-gray-500">
-                                            <svg className="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                            </svg>
-                                            <p className="text-lg font-medium text-gray-900">No leads found</p>
-                                            <p className="mt-1">Try adjusting your filters or search query.</p>
+                                        <td colSpan={6} className="px-6 py-16 text-center text-slate-500 bg-slate-50/50">
+                                            <div className="mx-auto w-24 h-24 bg-white rounded-full flex items-center justify-center shadow-sm border border-slate-100 mb-5">
+                                                <svg className="h-10 w-10 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                                </svg>
+                                            </div>
+                                            <p className="text-xl font-bold text-slate-800">No leads discovered</p>
+                                            <p className="mt-2 text-sm text-slate-500 max-w-sm mx-auto">We couldn't find any leads matching your current criteria. Try clearing some filters or executing a broader search.</p>
+                                            <button 
+                                                onClick={() => {
+                                                    setSearchQuery('');
+                                                    setSelectedProject('All');
+                                                    setSelectedCampaign('All');
+                                                    setSelectedPlatform('All');
+                                                    setSelectedState('All');
+                                                }}
+                                                className="mt-6 px-6 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-bold text-slate-700 hover:bg-slate-50 hover:text-blue-600 transition-colors shadow-sm"
+                                            >
+                                                Reset All Filters
+                                            </button>
                                         </td>
                                     </tr>
                                 )}
@@ -518,15 +578,11 @@ export default function LeadsPage() {
                         </table>
                     </div>
 
-                    {/* Pagination */}
-                    <div className="bg-white px-4 py-3 border-t border-gray-200 flex items-center justify-between sm:px-6">
-                        <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
-                            <div>
-                                <p className="text-sm text-gray-700">
-                                    Showing <span className="font-medium">{filteredLeads.length > 0 ? 1 : 0}</span> to <span className="font-medium">{filteredLeads.length}</span> of <span className="font-medium">{filteredLeads.length}</span> results
-                                </p>
-                            </div>
-                        </div>
+                    {/* Pagination Bar */}
+                    <div className="bg-slate-50/80 px-6 py-4 border-t border-slate-200/80 flex items-center justify-between">
+                        <p className="text-sm font-medium text-slate-600">
+                            Showing <span className="text-slate-900 font-bold">{filteredLeads.length > 0 ? 1 : 0}</span> to <span className="text-slate-900 font-bold">{filteredLeads.length}</span> of <span className="text-slate-900 font-bold">{filteredLeads.length}</span> active leads
+                        </p>
                     </div>
                 </div>
             </div>
@@ -534,7 +590,7 @@ export default function LeadsPage() {
             {/* Backdrop for Lead Details Drawer */}
             {selectedLeadForDetails && (
                 <div
-                    className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[40] transition-opacity duration-300"
+                    className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[40] transition-all duration-300"
                     onClick={() => setSelectedLeadForDetails(null)}
                 />
             )}
