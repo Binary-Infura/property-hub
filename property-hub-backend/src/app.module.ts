@@ -35,6 +35,7 @@ import { ExotelModule } from './modules/exotel/exotel.module';
 import { LivekitModule } from './modules/livekit/livekit.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
+import { MailModule } from './modules/mail/mail.module';
 import { join } from 'path';
 
 @Module({
@@ -77,6 +78,7 @@ import { join } from 'path';
         LivekitModule,
         ReviewsModule,
         WhatsappModule,
+        MailModule,
         /*
         ServeStaticModule.forRoot({
             rootPath: join(__dirname, '..', 'uploads'),

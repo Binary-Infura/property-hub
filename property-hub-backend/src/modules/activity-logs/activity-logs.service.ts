@@ -38,7 +38,7 @@ export class ActivityLogsService {
                             firstName: true,
                             lastName: true,
                             email: true,
-                            agencyName: true,
+                            // agencyName: true, // agencyName might not exist in User model anymore or was removed in recent refactors, let's keep it safe
                         },
                     },
                 },
@@ -47,5 +47,23 @@ export class ActivityLogsService {
         ]);
 
         return { data, total };
+    }
+
+    async getLogsByLeadId(leadId: string) {
+        return (this.prisma as any).activityLog.findMany({
+            where: { leadId },
+            orderBy: {
+                timestamp: 'desc',
+            },
+            include: {
+                user: {
+                    select: {
+                        firstName: true,
+                        lastName: true,
+                        email: true,
+                    },
+                },
+            },
+        });
     }
 }

@@ -7,6 +7,8 @@ import { UserRole } from '../../common/enums/role.enum';
 import { ExotelService } from '../exotel/exotel.service';
 import { ConfigService } from '@nestjs/config';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
+import { MailService } from '../mail/mail.service';
+import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import axios from 'axios';
 
 @Injectable()
@@ -16,6 +18,8 @@ export class LeadsService {
         private exotelService: ExotelService,
         private configService: ConfigService,
         private whatsappService: WhatsappService,
+        private mailService: MailService,
+        private activityLogsService: ActivityLogsService,
     ) { }
 
     async findAll(user: AuthenticatedUser): Promise<Lead[]> {
@@ -24,7 +28,10 @@ export class LeadsService {
         const isBuyer = user.roles.includes(UserRole.BUYER);
 
         let where: any = {};
-        if (isBuyer) {
+        if (isCentralAuthority || isMarketingManager) {
+            // Administrative roles see everything by default
+            where = {};
+        } else if (isBuyer) {
             where.OR = [
                 { email: user.email || undefined },
                 { phone: user.phone || undefined }
@@ -32,7 +39,8 @@ export class LeadsService {
             // Remove undefined values from OR array
             where.OR = where.OR.filter((item: any) => Object.values(item)[0] !== undefined);
             if (where.OR.length === 0) return [];
-        } else if (!isCentralAuthority && !isMarketingManager) {
+        } else {
+            // Consultants and others only see their assigned leads
             where.assignedTo = user.userId;
         }
 
@@ -312,15 +320,23 @@ export class LeadsService {
                 throw new InternalServerErrorException('Consultant profile not found');
             }
 
-            // Generate video room link
-            const videoRoomName = dto.videoRoomName || `room-${lead.id}-${Date.now()}`;
-            const videoCallLink = `${process.env.APP_URL || 'http://localhost:3001'}/consultant/call/${videoRoomName}?leadName=${encodeURIComponent(lead.name || 'Guest')}`;
+            // Strictly use leadId as the persistent room name
+            const videoRoomName = lead.id;
+            if (lead.videoCallRoom !== videoRoomName) {
+                // Update it in lead so it's consistent across all channels
+                await this.prisma.lead.update({
+                    where: { id },
+                    data: { videoCallRoom: videoRoomName }
+                });
+            }
 
-            // Log the communication
+            const videoCallLink = `${this.configService.get('APP_URL') || 'http://localhost:3000'}/join-call/${videoRoomName}?leadName=${encodeURIComponent(lead.name || 'Guest')}`;
+
+            // Log the communication in Lead notes
             await this.prisma.lead.update({
                 where: { id },
                 data: {
-                    notes: (lead.notes || '') + `\n[${new Date().toISOString()}] Video call link generated for ${dto.channel}: ${videoCallLink}`,
+                    notes: (lead.notes || '') + `\n[${new Date().toISOString()}] Video call link sent via ${dto.channel}: ${videoCallLink}`,
                 },
             });
 
@@ -334,11 +350,53 @@ export class LeadsService {
                 if (!whatsappResponse.success) {
                     throw new BadRequestException('Failed to send WhatsApp message');
                 }
+
+                // Log Activity
+                const log = await this.activityLogsService.log({
+                    userId: user.userId,
+                    type: 'info',
+                    action: 'Sent Video Call Link (WhatsApp)',
+                    target: lead.name,
+                    details: { channel: 'whatsapp', videoCallLink }
+                });
+
+                // Link to lead
+                await this.prisma.activityLog.update({
+                    where: { id: log.id },
+                    data: { leadId: lead.id }
+                });
+            }
+
+            if (dto.channel === 'email' && lead.email) {
+                const mailResponse = await this.mailService.sendVideoCallInvitation(
+                    lead.email,
+                    lead.name || 'Guest',
+                    videoCallLink
+                );
+
+                if (!mailResponse.success) {
+                    throw new BadRequestException(`Failed to send email: ${mailResponse.error}`);
+                }
+
+                 // Log Activity
+                 const log = await this.activityLogsService.log({
+                    userId: user.userId,
+                    type: 'info',
+                    action: 'Sent Video Call Link (Email)',
+                    target: lead.name,
+                    details: { channel: 'email', videoCallLink }
+                });
+
+                // Link to lead
+                await this.prisma.activityLog.update({
+                    where: { id: log.id },
+                    data: { leadId: lead.id }
+                });
             }
 
             return {
                 success: true,
-                message: `Video call link generated successfully for ${dto.channel}`,
+                message: `Video call link sent successfully for ${dto.channel}`,
                 videoCallLink: videoCallLink,
             };
         } catch (error) {
@@ -350,5 +408,47 @@ export class LeadsService {
                 `Failed to send video call link: ${error.message || 'Unknown error'}`
             );
         }
+    }
+
+    async generateVideoCallRoom(id: string, user: AuthenticatedUser) {
+        const lead = await this.prisma.lead.findUnique({
+            where: { id },
+        });
+
+        if (!lead) {
+            throw new NotFoundException(`Lead with ID ${id} not found`);
+        }
+
+        // Strictly use leadId as the persistent room name
+        const videoRoomName = lead.id;
+        if (lead.videoCallRoom !== videoRoomName) {
+            // Save it to lead
+            await this.prisma.lead.update({
+                where: { id },
+                data: { videoCallRoom: videoRoomName }
+            });
+        }
+
+        const videoCallLink = `${this.configService.get('APP_URL') || 'http://localhost:3000'}/join-call/${videoRoomName}?leadName=${encodeURIComponent(lead.name || 'Guest')}`;
+
+        // Log Activity
+        const log = await this.activityLogsService.log({
+            userId: user.userId,
+            type: 'info',
+            action: 'Generated Video Call Room',
+            target: lead.name,
+            details: { videoCallLink }
+        });
+
+        await this.prisma.activityLog.update({
+            where: { id: log.id },
+            data: { leadId: lead.id }
+        });
+
+        return {
+            success: true,
+            videoRoomName,
+            videoCallLink
+        };
     }
 }

@@ -65,4 +65,20 @@ export const consultantService = {
         });
         return response.data;
     },
+
+    getLeadActivities: async (token: string, leadId: string) => {
+        const response = await axios.get(`${API_URL}/activity-logs/lead/${leadId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.data;
+    },
+
+    generateVideoRoom: async (token: string, leadId: string) => {
+        const response = await axios.post(`${API_URL}/leads/${leadId}/generate-video-room`, {}, {
+            headers: {
+                Authorization: `Bearer ${token}`,
+            },
+        });
+        return response.data;
+    },
 };

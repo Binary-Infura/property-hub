@@ -12,13 +12,17 @@ interface LeadDetailsDrawerProps {
 }
 
 export default function LeadDetailsDrawer({ lead, token, onClose, onStatusUpdate }: LeadDetailsDrawerProps) {
-    const [activeTab, setActiveTab] = useState<'notes' | 'calls' | 'info'>('notes');
+    const [activeTab, setActiveTab] = useState<'notes' | 'calls' | 'info' | 'activity'>('notes');
     const [notes, setNotes] = useState<LeadNote[]>([]);
     const [calls, setCalls] = useState<any[]>([]);
+    const [activities, setActivities] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
+    const [generatingLink, setGeneratingLink] = useState(false);
+    const [videoLink, setVideoLink] = useState(lead?.videoCallRoom ? `${window.location.origin}/consultant/call/${lead.videoCallRoom}?leadName=${encodeURIComponent(lead.name || 'Guest')}` : '');
     const [newNote, setNewNote] = useState('');
     const [newCategory, setNewCategory] = useState('GENERAL');
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+    const [sendingLink, setSendingLink] = useState<'email' | 'whatsapp' | null>(null);
 
     useEffect(() => {
         if (!lead || !token) return;
@@ -28,12 +32,14 @@ export default function LeadDetailsDrawer({ lead, token, onClose, onStatusUpdate
     async function fetchData() {
         setLoading(true);
         try {
-            const [fetchedNotes, fetchedCalls] = await Promise.all([
+            const [fetchedNotes, fetchedCalls, fetchedActivities] = await Promise.all([
                 leadNoteService.getNotes(token, lead.id),
-                consultantService.getLeadCallLogs(token, lead.id)
+                consultantService.getLeadCallLogs(token, lead.id),
+                consultantService.getLeadActivities(token, lead.id)
             ]);
             setNotes(fetchedNotes);
             setCalls(fetchedCalls);
+            setActivities(fetchedActivities);
         } catch (error) {
             console.error('Error fetching lead details:', error);
         } finally {
@@ -60,6 +66,39 @@ export default function LeadDetailsDrawer({ lead, token, onClose, onStatusUpdate
             await onStatusUpdate(lead.id, status);
         } finally {
             setIsUpdatingStatus(false);
+        }
+    };
+
+    const handleSendVideoLink = async (channel: 'email' | 'whatsapp') => {
+        setSendingLink(channel);
+        try {
+            await consultantService.sendVideoCallLink(token, lead.id, channel);
+            alert(`Video call link sent via ${channel} successfully!`);
+            // Refresh activity
+            const fetchedActivities = await consultantService.getLeadActivities(token, lead.id);
+            setActivities(fetchedActivities);
+        } catch (error) {
+            console.error(`Error sending video link via ${channel}:`, error);
+            alert(`Failed to send video link via ${channel}`);
+        } finally {
+            setSendingLink(null);
+        }
+    };
+
+    const handleGenerateVideoRoom = async () => {
+        setGeneratingLink(true);
+        try {
+            const result = await consultantService.generateVideoRoom(token, lead.id);
+            setVideoLink(result.videoCallLink);
+            // Refresh activity after generating
+            const fetchedActivities = await consultantService.getLeadActivities(token, lead.id);
+            setActivities(fetchedActivities);
+            alert('Video room generated successfully!');
+        } catch (error) {
+            console.error('Error generating video room:', error);
+            alert('Failed to generate video room');
+        } finally {
+            setGeneratingLink(false);
         }
     };
 
@@ -137,13 +176,19 @@ export default function LeadDetailsDrawer({ lead, token, onClose, onStatusUpdate
                     onClick={() => setActiveTab('calls')}
                     className={`flex-1 py-4 text-sm font-bold uppercase tracking-wider transition-colors ${activeTab === 'calls' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/30' : 'text-gray-400 hover:text-gray-600'}`}
                 >
-                    Call Logs
+                    Calls
+                </button>
+                <button
+                    onClick={() => setActiveTab('activity')}
+                    className={`flex-1 py-4 text-sm font-bold uppercase tracking-wider transition-colors ${activeTab === 'activity' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/30' : 'text-gray-400 hover:text-gray-600'}`}
+                >
+                    Activity
                 </button>
                 <button
                     onClick={() => setActiveTab('info')}
                     className={`flex-1 py-4 text-sm font-bold uppercase tracking-wider transition-colors ${activeTab === 'info' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/30' : 'text-gray-400 hover:text-gray-600'}`}
                 >
-                    Lead Details
+                    Details
                 </button>
             </div>
 
@@ -231,7 +276,6 @@ export default function LeadDetailsDrawer({ lead, token, onClose, onStatusUpdate
                         )}
                     </div>
                 )}
-
                 {activeTab === 'info' && (
                     <div className="space-y-6">
                         <section>
@@ -269,6 +313,100 @@ export default function LeadDetailsDrawer({ lead, token, onClose, onStatusUpdate
                                 </div>
                             </div>
                         </section>
+
+                        <section>
+                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2">Video Consultation</h4>
+                            <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100 space-y-3">
+                                {videoLink ? (
+                                    <>
+                                        <div className="text-xs text-blue-800 font-medium">Existing Room Link:</div>
+                                        <div className="bg-white p-2 rounded border border-blue-200 text-[10px] font-mono break-all text-blue-600">
+                                            {videoLink}
+                                        </div>
+                                        <div className="flex gap-2">
+                                            <button 
+                                                onClick={() => window.open(videoLink, '_blank')}
+                                                className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors"
+                                            >
+                                                Open Room
+                                            </button>
+                                            <button 
+                                                onClick={() => {
+                                                    navigator.clipboard.writeText(videoLink);
+                                                    alert('Link copied to clipboard!');
+                                                }}
+                                                className="px-3 py-2 bg-white text-blue-600 border border-blue-200 rounded-lg text-xs font-bold hover:bg-blue-50 transition-colors"
+                                            >
+                                                Copy
+                                            </button>
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-2 mt-2">
+                                            <button 
+                                                onClick={() => handleSendVideoLink('email')}
+                                                disabled={sendingLink !== null}
+                                                className="py-2 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors flex items-center justify-center gap-2"
+                                            >
+                                                {sendingLink === 'email' ? 'Sending...' : 'Send Email'}
+                                            </button>
+                                            <button 
+                                                onClick={() => handleSendVideoLink('whatsapp')}
+                                                disabled={sendingLink !== null}
+                                                className="py-2 bg-green-50 text-green-700 rounded-lg text-xs font-bold hover:bg-green-100 transition-colors flex items-center justify-center gap-2"
+                                            >
+                                                {sendingLink === 'whatsapp' ? 'Sending...' : 'Send WhatsApp'}
+                                            </button>
+                                        </div>
+                                    </>
+                                ) : (
+                                    <div className="text-center space-y-3">
+                                        <p className="text-xs text-blue-700 italic">No video room generated yet for this lead.</p>
+                                        <button 
+                                            onClick={handleGenerateVideoRoom}
+                                            disabled={generatingLink}
+                                            className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 disabled:bg-blue-300 transition-all shadow-md shadow-blue-100"
+                                        >
+                                            {generatingLink ? 'Generating...' : 'Generate Video Room Link'}
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        </section>
+                    </div>
+                )}
+
+                {activeTab === 'activity' && (
+                    <div className="space-y-4">
+                        {loading ? (
+                            <div className="text-center py-10 text-gray-400 animate-pulse">Loading activities...</div>
+                        ) : activities.length === 0 ? (
+                            <div className="text-center py-10 text-gray-400 italic">No recent activity found.</div>
+                        ) : (
+                            <div className="space-y-6 relative">
+                                <div className="absolute left-3 top-2 bottom-2 w-0.5 bg-gray-100" />
+                                {activities.map((activity, idx) => (
+                                    <div key={activity.id || idx} className="relative pl-10">
+                                        <div className="absolute left-1.5 top-1.5 h-3.5 w-3.5 rounded-full bg-blue-500 ring-4 ring-white shadow-sm" />
+                                        <div className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm space-y-1 hover:border-blue-200 transition-colors">
+                                            <div className="flex justify-between items-start">
+                                                <h5 className="text-sm font-bold text-gray-900">{activity.action}</h5>
+                                                <span className="text-[10px] font-bold text-gray-400 uppercase">{formatDate(activity.timestamp)}</span>
+                                            </div>
+                                            <p className="text-xs text-gray-500">By {activity.user?.firstName} {activity.user?.lastName}</p>
+                                            {activity.details && typeof activity.details === 'object' && Object.keys(activity.details).length > 0 && (
+                                                <div className="mt-2 text-[10px] bg-gray-50 p-2 rounded-lg text-gray-600 border border-gray-100">
+                                                    {Object.entries(activity.details).map(([key, val]: [string, any]) => (
+                                                        <div key={key} className="flex gap-2">
+                                                            <span className="font-bold uppercase tracking-wider opacity-50">{key}:</span>
+                                                            <span className="break-all">{String(val)}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
                     </div>
                 )}
             </div>

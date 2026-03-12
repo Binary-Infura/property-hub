@@ -98,7 +98,7 @@ export default function ConsultantDashboard() {
   };
 
   const handleVideoCallLead = async (lead: any) => {
-    const roomName = `room-${lead.id}`;
+    const roomName = lead.videoCallRoom || lead.id;
     const leadName = encodeURIComponent(lead.name);
     window.open(`/consultant/call/${roomName}?leadName=${leadName}`, '_blank', 'width=1400,height=900,menubar=no,toolbar=no,location=no,status=no');
   };
@@ -153,6 +153,7 @@ export default function ConsultantDashboard() {
       profileImage: lead.name?.split(' ').map((n: string) => n[0]).join('').substring(0, 2).toUpperCase() || 'L',
       projectId: lead.projectId,
       projectName: lead.project?.name,
+      videoCallRoom: lead.videoCallRoom,
     }));
   }, [assignedProjects]);
 

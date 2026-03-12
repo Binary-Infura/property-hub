@@ -153,4 +153,13 @@ export class LeadsController {
     ) {
         return this.leadsService.sendVideoCallLink(id, dto, user);
     }
+
+    @Post(':id/generate-video-room')
+    @RequireRoles(UserRole.CONSULTANT)
+    generateVideoRoom(
+        @Param('id') id: string,
+        @CurrentUser() user: AuthenticatedUser,
+    ) {
+        return this.leadsService.generateVideoCallRoom(id, user);
+    }
 }
