@@ -41,6 +41,7 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Project', href: '/onboarding-manager/dashboard/project', icon: 'building' },
         { name: 'Listing Requests', href: '/onboarding-manager/dashboard/listing-requests', icon: 'clipboard' },
         { name: 'Property Partners', href: '/onboarding-manager/dashboard/property-partners', icon: 'handshake' },
+        { name: 'Loan Advisors', href: '/onboarding-manager/dashboard/loan-advisers', icon: 'bank' },
         { name: 'Reviews', href: '/onboarding-manager/dashboard/reviews', icon: 'star' },
     ],
     'PROPERTY_PARTNER': [

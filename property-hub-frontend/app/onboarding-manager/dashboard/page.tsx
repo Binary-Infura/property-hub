@@ -12,7 +12,8 @@ export default function OnboardingDashboard() {
         totalPartners: 0,
         activePartners: 0,
         pendingRequests: 0,
-        totalProjects: 0
+        totalProjects: 0,
+        totalLoanAdvisors: 0
     });
     const [loading, setLoading] = useState(true);
 
@@ -22,18 +23,20 @@ export default function OnboardingDashboard() {
         if (!token) return;
         try {
             setLoading(true);
-            const [partners, requests, projects] = await Promise.all([
+            const [partners, requests, projects, loanAdvisors] = await Promise.all([
                 userService.getAllByRole('PROPERTY_PARTNER', token, true),
                 fetch(`${API_URL}/api/ads-requests`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
                 // For now, using a placeholder for projects or fetching from a real endpoint if available
-                Promise.resolve({ total: 0 }) 
+                Promise.resolve({ total: 0 }),
+                userService.getAllByRole('LOAN_ADVISOR', token, true)
             ]);
 
             setStats({
                 totalPartners: partners.data?.length || 0,
                 activePartners: partners.data?.filter((p: any) => p.status === 'active').length || 0,
                 pendingRequests: Array.isArray(requests) ? requests.filter((r: any) => r.status === 'PENDING').length : 0,
-                totalProjects: 0 // Placeholder
+                totalProjects: 0, // Placeholder
+                totalLoanAdvisors: loanAdvisors.data?.length || 0
             });
         } catch (err) {
             console.error('Failed to fetch dashboard data:', err);
@@ -64,7 +67,7 @@ export default function OnboardingDashboard() {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8 mt-8">
+            <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-8 mt-8">
                 <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <div className="flex items-center gap-4 mb-4">
                         <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
@@ -128,6 +131,22 @@ export default function OnboardingDashboard() {
                         <Link href="/onboarding-manager/dashboard/reviews" className="text-purple-600 hover:underline">View</Link>
                     </div>
                 </div>
+
+                <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+                    <div className="flex items-center gap-4 mb-4">
+                        <div className="p-3 bg-indigo-50 text-indigo-600 rounded-xl">
+                            <SidebarIcon name="bank" className="w-6 h-6" />
+                        </div>
+                        <div>
+                            <p className="text-xs font-black text-gray-400 uppercase tracking-widest">Loan Advisors</p>
+                            <h3 className="text-2xl font-bold text-gray-900">{stats.totalLoanAdvisors}</h3>
+                        </div>
+                    </div>
+                    <div className="flex items-center justify-between text-xs">
+                        <span className="text-indigo-600 font-bold">Finance Experts</span>
+                        <Link href="/onboarding-manager/dashboard/loan-advisers" className="text-indigo-600 hover:underline">Manage</Link>
+                    </div>
+                </div>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -153,6 +172,16 @@ export default function OnboardingDashboard() {
                             </div>
                             <p className="font-bold text-gray-900">Add Project</p>
                             <p className="text-xs text-gray-500 mt-1">Create new property listing</p>
+                        </Link>
+                        <Link 
+                            href="/onboarding-manager/dashboard/loan-advisers" 
+                            className="p-6 bg-gray-50 rounded-2xl hover:bg-indigo-50 transition-all group"
+                        >
+                            <div className="w-12 h-12 bg-white rounded-xl shadow-sm flex items-center justify-center mb-4 group-hover:text-indigo-600 transition-colors">
+                                <SidebarIcon name="bank" className="w-6 h-6" />
+                            </div>
+                            <p className="font-bold text-gray-900">Add Loan Advisor</p>
+                            <p className="text-xs text-gray-500 mt-1">Onboard new loan advisor</p>
                         </Link>
                     </div>
                 </div>
