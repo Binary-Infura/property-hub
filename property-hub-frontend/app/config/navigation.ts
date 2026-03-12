@@ -26,8 +26,6 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Leads', href: '/broker/dashboard/leads', icon: 'users' },
         { name: 'Commissions', href: '/broker/dashboard/commissions', icon: 'money' },
         { name: 'Promotions', href: '/broker/dashboard/promotions', icon: 'megaphone' },
-        { name: 'Ads & Campaigns', href: '/broker/dashboard/campaigns-leads', icon: 'chart' },
-        { name: 'Ad Requests', href: '/broker/dashboard/advertisement-requests', icon: 'note' },
         { name: 'Reviews', href: '/broker/dashboard/reviews', icon: 'star' },
     ],
     'MARKETING_MANAGER': [
