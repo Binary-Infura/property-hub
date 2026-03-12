@@ -40,37 +40,16 @@ export default function UnifiedSidebar({ isOpen, onClose }: UnifiedSidebarProps)
         : [];
 
     const getRoleTheme = (roleId: string) => {
-        switch (roleId) {
-            case 'MARKETING_MANAGER': return {
-                bg: 'bg-purple-50',
-                text: 'text-purple-700',
-                border: 'border-purple-600',
-                hover: 'hover:bg-purple-50/50'
-            };
-            case 'CENTRAL_AUTHORITY':
-            case 'INFLUENCER': return {
-                bg: 'bg-blue-600',
-                text: 'text-white',
-                border: 'border-blue-400',
-                hover: 'hover:bg-blue-700'
-            };
-            case 'PROPERTY_PARTNER': return {
-                bg: 'bg-blue-50',
-                text: 'text-blue-700',
-                border: 'border-blue-600',
-                hover: 'hover:bg-blue-50/50'
-            };
-            default: return {
-                bg: 'bg-blue-50',
-                text: 'text-blue-700',
-                border: 'border-blue-600',
-                hover: 'hover:bg-blue-50/50'
-            };
-        }
+        return {
+            bg: 'bg-blue-600',
+            text: 'text-white',
+            border: 'border-blue-400',
+            hover: 'hover:bg-blue-700'
+        };
     };
 
     const theme = getRoleTheme(activeRole.id);
-    const isDarkSidebar = activeRole.id === 'CENTRAL_AUTHORITY' || activeRole.id === 'INFLUENCER';
+    const isDarkSidebar = true;
 
     return (
         <aside className={`fixed inset-y-0 left-0 z-50 w-64 ${isDarkSidebar ? 'bg-slate-900 border-gray-800' : 'bg-white border-gray-200'} border-r transition-all duration-300 ease-in-out md:relative md:flex flex-col shrink-0 shadow-sm ${isOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'}`}>
