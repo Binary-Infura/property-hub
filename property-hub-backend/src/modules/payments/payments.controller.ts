@@ -4,7 +4,7 @@ import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { ApiBearerAuth, ApiTags, ApiOperation } from '@nestjs/swagger';
 
 @ApiTags('Payments')
-@Controller('payments')
+@Controller('api/payments')
 export class PaymentsController {
   constructor(private readonly paymentsService: PaymentsService) {}
 
@@ -16,7 +16,7 @@ export class PaymentsController {
     @Req() req: any,
     @Body() body: { amount: number },
   ) {
-    return this.paymentsService.createOrder(req.user.id, body.amount || 1000); // Default to 1000 INR if not passed
+    return this.paymentsService.createOrder(req.user.userId, body.amount || 1000); // Default to 1000 INR if not passed
   }
 
   @ApiBearerAuth()
@@ -32,7 +32,7 @@ export class PaymentsController {
     },
   ) {
     return this.paymentsService.verifyPayment(
-      req.user.id,
+      req.user.userId,
       body.razorpayOrderId,
       body.razorpayPaymentId,
       body.razorpaySignature,

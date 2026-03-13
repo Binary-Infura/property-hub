@@ -256,6 +256,10 @@ export class UsersService {
      * Returns the profileData JSON merged with any org data for the user.
      * No separate profile table queries needed.
      */
+    /**
+     * Returns a role-indexed map of completion status and profile data.
+     * Expected by frontend components like Sidebar and ProfileCompletionPrompt.
+     */
     async getProfileStatus(userId: string, roles: string[]) {
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
@@ -263,13 +267,41 @@ export class UsersService {
         });
         if (!user) return {};
 
-        return {
+        const result: any = {
             roles: user.roles,
             primaryRole: user.primaryRole,
-            profileData: user.profileData,           // role-specific JSON blob
-            organization: user.organization,          // org data for PROPERTY_PARTNER etc.
         };
+
+        // For each role the user has, build a status object
+        user.roles.forEach(role => {
+            const profileData = (user.profileData as any) || {};
+            
+            // Check if profile is considered 'complete' (basic heuristic)
+            let hasProfile = false;
+            if (role === 'PROPERTY_PARTNER') {
+                hasProfile = !!user.organizationId;
+            } else if (role === 'BUYER') {
+                hasProfile = true; // Buyers usually don't need much
+            } else {
+                // For other roles, check if role-specific keys exist in profileData
+                // This is a simple check; could be more robust
+                hasProfile = Object.keys(profileData).length > 0;
+            }
+
+            result[role] = {
+                hasProfile,
+                profileData: {
+                    ...profileData,
+                    // Inject organization data if applicable
+                    isPremium: role === 'PROPERTY_PARTNER' ? (user.organization?.isPremium || false) : false,
+                    subscriptionMode: role === 'PROPERTY_PARTNER' ? (user.organization?.subscriptionMode || 'FREE') : 'FREE',
+                }
+            };
+        });
+
+        return result;
     }
+
 
     /**
      * Updates profileData JSON field for any role.

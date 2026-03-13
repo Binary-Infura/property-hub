@@ -20,7 +20,7 @@ model Organization {
   websiteUrl           String?
   isActive             Boolean          @default(true)
   isPremium            Boolean          @default(false)
-  subscriptionMode     SubscriptionMode @default(PAID)
+  subscriptionMode     SubscriptionMode @default(FREE)
   instagramAccessToken String?
   instagramUserId      String?
   instagramUsername    String?
@@ -77,6 +77,10 @@ model User {
   campaignsAssigned MarketingCampaign[] @relation("CampaignToUser")
   assignedProjects  Project[]           @relation("ProjectAssignment")
   invitationsSent   Invitation[]        @relation("UserInvites")
+  paymentOrders     PaymentOrder[]      @relation("UserPaymentOrders")
+
+
+
 
   @@index([email])
   @@index([primaryRole])
@@ -579,6 +583,28 @@ model Invitation {
   @@index([status])
   @@map("invitations")
 }
+
+model PaymentOrder {
+  id                String   @id @default(uuid())
+  userId            String
+  amount            Decimal  @db.Decimal(15, 2)
+  currency          String   @default("INR")
+  status            String   @default("PENDING") // PENDING, SUCCESS, FAILED
+  razorpayOrderId   String?  @unique
+  razorpayPaymentId String?  @unique
+  razorpaySignature String?
+  receipt           String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  user              User     @relation("UserPaymentOrders", fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("payment_orders")
+}
+
+
+
 
 enum UserRole {
   CENTRAL_AUTHORITY

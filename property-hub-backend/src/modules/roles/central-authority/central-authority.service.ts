@@ -100,12 +100,25 @@ export class CentralAuthorityService {
     }
 
     async getAllPropertyPartners() {
-        return this.prisma.user.findMany({
+        const partners = await this.prisma.user.findMany({
             where: { roles: { has: UserRole.PROPERTY_PARTNER } },
-            include: { organization: true },
+            include: { 
+                organization: true,
+                paymentOrders: {
+                    where: { status: 'SUCCESS' },
+                    orderBy: { createdAt: 'desc' },
+                    take: 1
+                }
+            },
             orderBy: { createdAt: 'desc' }
         });
+
+        return partners.map(p => ({
+            ...p,
+            latestPayment: p.paymentOrders?.[0] || null
+        }));
     }
+
 
     async updatePartnerSubscription(currentUser: AuthenticatedUser, targetUserId: string, isPremium: boolean, subscriptionMode: 'PAID' | 'FREE') {
         const user = await this.prisma.user.findUnique({

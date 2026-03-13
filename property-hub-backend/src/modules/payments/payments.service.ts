@@ -1,3 +1,4 @@
+
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Razorpay from 'razorpay';
@@ -13,19 +14,33 @@ export class PaymentsService {
     private prisma: PrismaService,
   ) {
     this.razorpay = new Razorpay({
-      key_id: this.configService.get<string>('RAZORPAY_KEY_ID') || 'rzp_test_RENvNtOLr6vA5o',
-      key_secret: this.configService.get<string>('RAZORPAY_KEY_SECRET') || 'BoZ3n6GdtlNBKBIAhSLF10Q0',
+      key_id: this.configService.get<string>('RAZORPAY_KEY_ID'),
+      key_secret: this.configService.get<string>('RAZORPAY_KEY_SECRET'),
     });
   }
 
   async createOrder(userId: string, amount: number) {
     try {
+      const receipt = `rcpt_${userId.substring(0, 8)}_${Date.now()}`;
       const options = {
         amount: amount * 100, // amount in the smallest currency unit
         currency: 'INR',
-        receipt: `receipt_order_${userId}_${Date.now()}`,
+        receipt,
       };
       const order = await this.razorpay.orders.create(options);
+
+      // Create a pending payment record
+      await this.prisma.paymentOrder.create({
+        data: {
+          userId,
+          amount,
+          currency: 'INR',
+          status: 'PENDING',
+          razorpayOrderId: order.id,
+          receipt,
+        },
+      });
+
       return order;
     } catch (error) {
       console.error('Error creating order:', error);
@@ -39,7 +54,7 @@ export class PaymentsService {
     razorpayPaymentId: string,
     razorpaySignature: string,
   ) {
-    const keySecret = this.configService.get<string>('RAZORPAY_KEY_SECRET');
+    const keySecret = this.configService.get<string>('RAZORPAY_KEY_SECRET') || 'BoZ3n6GdtlNBKBIAhSLF10Q0';
     const body = razorpayOrderId + '|' + razorpayPaymentId;
 
     const expectedSignature = crypto
@@ -49,6 +64,20 @@ export class PaymentsService {
 
     if (expectedSignature === razorpaySignature) {
       // Payment is verified
+      // Update Payment record
+      try {
+        await this.prisma.paymentOrder.update({
+          where: { razorpayOrderId },
+          data: {
+            status: 'SUCCESS',
+            razorpayPaymentId,
+            razorpaySignature,
+          },
+        });
+      } catch (e) {
+        console.warn('Payment record not found for orderId:', razorpayOrderId);
+      }
+
       // Update the user's organization to premium
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
@@ -56,26 +85,42 @@ export class PaymentsService {
       });
 
       if (user && user.organizationId) {
-         await this.prisma.organization.update({
-             where: { id: user.organizationId },
-             data: {
-                 isPremium: true,
-                 subscriptionMode: 'PAID',
-             }
-         });
+        await this.prisma.organization.update({
+          where: { id: user.organizationId },
+          data: {
+            isPremium: true,
+            subscriptionMode: 'PAID',
+          }
+        });
       }
 
       return { status: 'success', message: 'Payment verified and subscription activated.' };
     } else {
+      // Update Payment record to FAILED
+      try {
+        await this.prisma.paymentOrder.update({
+          where: { razorpayOrderId },
+          data: {
+            status: 'FAILED',
+            razorpayPaymentId,
+            razorpaySignature,
+          },
+        });
+      } catch (e) {
+        // ignore
+      }
       throw new InternalServerErrorException('Invalid Payment Signature');
     }
   }
 
+
+
+
   async handleWebhook(body: any, signature: string) {
     const webhookSecret = this.configService.get<string>('RAZORPAY_WEBHOOK_SECRET');
     if (!webhookSecret) {
-        console.warn('RAZORPAY_WEBHOOK_SECRET is not configured');
-        return { status: 'ignored' };
+      console.warn('RAZORPAY_WEBHOOK_SECRET is not configured');
+      return { status: 'ignored' };
     }
 
     const expectedSignature = crypto
@@ -88,12 +133,12 @@ export class PaymentsService {
     }
 
     if (body.event === 'payment.captured' || body.event === 'order.paid') {
-       // Since the webhook payload might not have userId directly if we didn't use notes,
-       // we might need to rely on the frontend verifyPayment call for real-time unlock.
-       // For a robust system, we would store the standard `order_id` -> `userId` in db and look it up here.
-       console.log('Payment captured via webhook:', body.payload.payment.entity.id);
+      // Since the webhook payload might not have userId directly if we didn't use notes,
+      // we might need to rely on the frontend verifyPayment call for real-time unlock.
+      // For a robust system, we would store the standard `order_id` -> `userId` in db and look it up here.
+      console.log('Payment captured via webhook:', body.payload.payment.entity.id);
     }
-    
+
     return { status: 'ok' };
   }
 }
