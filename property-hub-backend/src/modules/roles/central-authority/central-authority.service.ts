@@ -71,7 +71,7 @@ export class CentralAuthorityService {
     }
 
     async getDashboardStats() {
-        const [totalRevenue, totalPostalCodes, projectStats, userStats, recentInvitations] = await Promise.all([
+        const [totalRevenue, totalPostalCodes, projectStats, userStats, recentInvitations, totalOrganizations] = await Promise.all([
             this.prisma.paymentOrder.aggregate({
                 where: { status: 'SUCCESS' },
                 _sum: { amount: true }
@@ -90,7 +90,8 @@ export class CentralAuthorityService {
                         }
                     }
                 }
-            })
+            }),
+            this.prisma.organization.count()
         ]);
 
         const projects = {
@@ -115,6 +116,7 @@ export class CentralAuthorityService {
         return {
             totalRevenue: totalRevenue._sum.amount ? Number(totalRevenue._sum.amount) : 0,
             totalPostalCodes,
+            totalOrganizations,
             projects,
             users,
             leads: { monthly: 0 },
@@ -209,5 +211,16 @@ export class CentralAuthorityService {
         ]);
 
         return { data, total, page, limit };
+    }
+
+    async getAllOrganizations() {
+        return this.prisma.organization.findMany({
+            orderBy: { createdAt: 'desc' },
+            include: {
+                _count: {
+                    select: { members: true }
+                }
+            }
+        });
     }
 }

@@ -11,6 +11,7 @@ export interface NavItem {
 export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
     'CENTRAL_AUTHORITY': [
         { name: 'Dashboard', href: '/central-authority/dashboard', icon: 'dashboard' },
+        { name: 'Organizations', href: '/central-authority/dashboard/organizations', icon: 'building' },
         { name: 'Property Partners', href: '/central-authority/dashboard/property-partners', icon: 'building' },
         { name: 'Consultants', href: '/central-authority/dashboard/consultants', icon: 'users' },
         { name: 'Loan Advisors', href: '/central-authority/dashboard/loan-advisers', icon: 'bank' },

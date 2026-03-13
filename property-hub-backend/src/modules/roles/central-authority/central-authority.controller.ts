@@ -77,4 +77,9 @@ export class CentralAuthorityController {
     ) {
         return this.centralAuthorityService.getAllInvitations(Number(page), Number(limit));
     }
+
+    @Get('organizations')
+    async getAllOrganizations() {
+        return this.centralAuthorityService.getAllOrganizations();
+    }
 }
