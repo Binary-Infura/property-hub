@@ -41,7 +41,7 @@ async function main() {
                 email: 'contact@prestige.com',
                 phone: '+919876543000',
                 address: '123 Builder Lane, Mumbai',
-                type: OrganizationType.BUILDER,
+                type: (OrganizationType as any).PROPERTY_PARTNER,
                 taxId: 'TAX123456',
             }
         });
