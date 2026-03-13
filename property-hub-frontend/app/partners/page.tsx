@@ -13,6 +13,14 @@ export default function PartnersPage() {
         phone: '',
         partnerType: '',
         details: '',
+        // Property Partner specific
+        organizationName: '',
+        reraRegistration: '',
+        experience: '',
+        // Influencer specific
+        primaryPlatform: '',
+        channelLink: '',
+        followerCount: '',
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -20,7 +28,6 @@ export default function PartnersPage() {
     const [isSuccess, setIsSuccess] = useState(false);
 
     const partnerTypes = [
-        { id: 'BROKER', label: 'Real Estate Broker' },
         { id: 'PROPERTY_PARTNER', label: 'Property Partner' },
         { id: 'INFLUENCER', label: 'Influencer' },
     ];
@@ -60,6 +67,17 @@ export default function PartnersPage() {
 
         if (!formData.partnerType) {
             newErrors.partnerType = 'Please select a partner type';
+        }
+
+        if (formData.partnerType === 'PROPERTY_PARTNER') {
+            if (!formData.organizationName.trim()) newErrors.organizationName = 'Organization name is required';
+            if (!formData.experience) newErrors.experience = 'Experience is required';
+        }
+
+        if (formData.partnerType === 'INFLUENCER') {
+            if (!formData.primaryPlatform) newErrors.primaryPlatform = 'Primary platform is required';
+            if (!formData.channelLink.trim()) newErrors.channelLink = 'Channel link is required';
+            if (!formData.followerCount) newErrors.followerCount = 'Follower count is required';
         }
 
         setErrors(newErrors);
@@ -130,19 +148,10 @@ export default function PartnersPage() {
                     </div>
 
                     {/* Cards Section */}
-                    <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-16">
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
-                            <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mb-4 text-xl font-bold">
-                                1
-                            </div>
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">Real Estate Broker</h3>
-                            <p className="text-gray-600 text-sm leading-relaxed">
-                                Brokers can refer clients AND upload properties to PropertyHub. Earn unmatched commissions on successful closures.
-                            </p>
-                        </div>
+                    <div className="grid md:grid-cols-2 lg:grid-cols-2 max-w-4xl mx-auto gap-6 mb-16">
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
                             <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mb-4 text-xl font-bold">
-                                2
+                                1
                             </div>
                             <h3 className="text-lg font-bold text-gray-900 mb-2">Property Partner</h3>
                             <p className="text-gray-600 text-sm leading-relaxed">
@@ -151,7 +160,7 @@ export default function PartnersPage() {
                         </div>
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
                             <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center mb-4 text-xl font-bold">
-                                3
+                                2
                             </div>
                             <h3 className="text-lg font-bold text-gray-900 mb-2">Influencer</h3>
                             <p className="text-gray-600 text-sm leading-relaxed">
@@ -276,6 +285,120 @@ export default function PartnersPage() {
                                         </div>
                                         {errors.partnerType && <p className="mt-2 text-sm text-red-500">{errors.partnerType}</p>}
                                     </div>
+
+                                    {formData.partnerType === 'PROPERTY_PARTNER' && (
+                                        <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 space-y-6 animate-fade-in">
+                                            <h3 className="text-lg font-bold text-blue-900 border-b border-blue-200 pb-2">Property Partner Details</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                                        Organization / Company Name <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        name="organizationName"
+                                                        value={formData.organizationName}
+                                                        onChange={handleChange}
+                                                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition ${errors.organizationName ? 'border-red-400 focus:ring-red-500' : 'border-gray-200 bg-white'}`}
+                                                        placeholder="Your Agency Name"
+                                                    />
+                                                    {errors.organizationName && <p className="mt-1 text-sm text-red-500">{errors.organizationName}</p>}
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                                        RERA Registration No. (Optional)
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        name="reraRegistration"
+                                                        value={formData.reraRegistration}
+                                                        onChange={handleChange}
+                                                        className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition border-gray-200 bg-white"
+                                                        placeholder="RERA-1234..."
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                                        Years of Experience <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <select
+                                                        name="experience"
+                                                        value={formData.experience}
+                                                        onChange={handleChange}
+                                                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition ${errors.experience ? 'border-red-400 focus:ring-red-500' : 'border-gray-200 bg-white'}`}
+                                                    >
+                                                        <option value="">Select experience</option>
+                                                        <option value="0-2">0-2 years</option>
+                                                        <option value="3-5">3-5 years</option>
+                                                        <option value="5-10">5-10 years</option>
+                                                        <option value="10+">10+ years</option>
+                                                    </select>
+                                                    {errors.experience && <p className="mt-1 text-sm text-red-500">{errors.experience}</p>}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {formData.partnerType === 'INFLUENCER' && (
+                                        <div className="bg-purple-50 p-6 rounded-xl border border-purple-100 space-y-6 animate-fade-in">
+                                            <h3 className="text-lg font-bold text-purple-900 border-b border-purple-200 pb-2">Influencer Details</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                                        Primary Platform <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <select
+                                                        name="primaryPlatform"
+                                                        value={formData.primaryPlatform}
+                                                        onChange={handleChange}
+                                                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none transition ${errors.primaryPlatform ? 'border-red-400 focus:ring-red-500' : 'border-gray-200 bg-white'}`}
+                                                    >
+                                                        <option value="">Select platform</option>
+                                                        <option value="Instagram">Instagram</option>
+                                                        <option value="YouTube">YouTube</option>
+                                                        <option value="Facebook">Facebook</option>
+                                                        <option value="Twitter/X">Twitter / X</option>
+                                                        <option value="LinkedIn">LinkedIn</option>
+                                                        <option value="Other">Other</option>
+                                                    </select>
+                                                    {errors.primaryPlatform && <p className="mt-1 text-sm text-red-500">{errors.primaryPlatform}</p>}
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                                        Follower/Subscriber Count <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <select
+                                                        name="followerCount"
+                                                        value={formData.followerCount}
+                                                        onChange={handleChange}
+                                                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none transition ${errors.followerCount ? 'border-red-400 focus:ring-red-500' : 'border-gray-200 bg-white'}`}
+                                                    >
+                                                        <option value="">Select count</option>
+                                                        <option value="<10k">Under 10,000</option>
+                                                        <option value="10k-50k">10,000 - 50,000</option>
+                                                        <option value="50k-100k">50,000 - 100,000</option>
+                                                        <option value="100k-500k">100,000 - 500,000</option>
+                                                        <option value="500k+">500,000+</option>
+                                                    </select>
+                                                    {errors.followerCount && <p className="mt-1 text-sm text-red-500">{errors.followerCount}</p>}
+                                                </div>
+                                                <div className="md:col-span-2">
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                                        Channel / Profile Link <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <input
+                                                        type="url"
+                                                        name="channelLink"
+                                                        value={formData.channelLink}
+                                                        onChange={handleChange}
+                                                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none transition ${errors.channelLink ? 'border-red-400 focus:ring-red-500' : 'border-gray-200 bg-white'}`}
+                                                        placeholder="https://instagram.com/yourhandle"
+                                                    />
+                                                    {errors.channelLink && <p className="mt-1 text-sm text-red-500">{errors.channelLink}</p>}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-2">
