@@ -68,4 +68,13 @@ export class CentralAuthorityController {
             body.subscriptionMode
         );
     }
+
+    @Get('invitations')
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
+    async getAllInvitations(
+        @Query('page') page: string = '1',
+        @Query('limit') limit: string = '20'
+    ) {
+        return this.centralAuthorityService.getAllInvitations(Number(page), Number(limit));
+    }
 }

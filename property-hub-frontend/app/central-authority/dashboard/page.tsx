@@ -9,6 +9,19 @@ import BankManagerSection from '@/app/components/dashboard/BankManagerSection';
 import PaymentDetailsModal from '@/app/components/dashboard/PaymentDetailsModal';
 
 
+interface Invitation {
+    id: string;
+    email: string | null;
+    phone: string | null;
+    roles: string[];
+    status: string;
+    createdAt: string;
+    invitedBy: {
+        firstName: string;
+        lastName: string | null;
+    };
+}
+
 interface DashboardStats {
     totalRevenue: number;
     projects: {
@@ -39,6 +52,7 @@ interface DashboardStats {
         target: string;
         timestamp: string;
     }>;
+    recentInvitations: Invitation[];
 }
 
 interface PropertyPartner {
@@ -601,9 +615,10 @@ export default function CentralAuthorityDashboardPage() {
                 </Link>
             </div>
 
-            {/* Recent Activity Feed */}
-            <div className="max-w-2xl">
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+            {/* Recent Activity & Invitations Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Recent Activity Feed */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 h-fit">
                     <h2 className="text-lg font-semibold text-gray-900 mb-4">Recent Alerts</h2>
                     <div className="space-y-4">
                         {stats.recentActivity.map((log) => (
@@ -622,6 +637,55 @@ export default function CentralAuthorityDashboardPage() {
                         <Link href="/central-authority/dashboard/audit-log" className="block w-full py-2.5 bg-gray-50 text-xs text-center text-gray-500 hover:text-gray-900 font-bold uppercase tracking-[0.2em] rounded-lg transition-all hover:bg-gray-100 active:scale-95">
                             View Audit Log
                         </Link>
+                    </div>
+                </div>
+
+                {/* Sent Invitations Feed */}
+                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 h-fit">
+                    <div className="flex justify-between items-center mb-4">
+                        <h2 className="text-lg font-semibold text-gray-900">Sent Invitations</h2>
+                        <Link 
+                            href="/central-authority/dashboard/invitations"
+                            className="text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-widest flex items-center gap-1"
+                        >
+                            View All
+                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </Link>
+                    </div>
+                    <div className="space-y-4">
+                        {stats.recentInvitations?.map((invitation) => (
+                            <div key={invitation.id} className="flex flex-col p-3 rounded-lg bg-gray-50 border border-gray-100 hover:bg-white transition-colors cursor-default group">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className={`px-2 py-0.5 rounded-full text-[9px] font-bold uppercase ${
+                                        invitation.status === 'ACCEPTED' ? 'bg-green-100 text-green-700' :
+                                        invitation.status === 'EXPIRED' ? 'bg-red-100 text-red-700' :
+                                        'bg-blue-100 text-blue-700'
+                                    }`}>
+                                        {invitation.status}
+                                    </span>
+                                    <span className="text-[10px] text-gray-400">{new Date(invitation.createdAt).toLocaleDateString()}</span>
+                                </div>
+                                <p className="text-sm font-bold text-gray-900 truncate">{invitation.email || invitation.phone}</p>
+                                <div className="flex items-center gap-1 mt-1 text-[11px] text-gray-500">
+                                    <span className="font-medium">Sent by:</span>
+                                    <span className="text-blue-600 font-bold">{invitation.invitedBy.firstName} {invitation.invitedBy.lastName}</span>
+                                </div>
+                                <div className="flex flex-wrap gap-1 mt-2">
+                                    {invitation.roles.map((role) => (
+                                        <span key={role} className="text-[8px] bg-slate-200 text-slate-600 px-1.5 py-0.5 rounded font-bold">
+                                            {role.replace('_', ' ')}
+                                        </span>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                        {(!stats.recentInvitations || stats.recentInvitations.length === 0) && (
+                            <div className="text-center py-12">
+                                <p className="text-sm text-gray-400 italic">No invitations sent yet.</p>
+                            </div>
+                        )}
                     </div>
                 </div>
             </div>

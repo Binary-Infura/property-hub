@@ -71,7 +71,7 @@ export class CentralAuthorityService {
     }
 
     async getDashboardStats() {
-        const [totalRevenue, totalPostalCodes, projectStats, userStats] = await Promise.all([
+        const [totalRevenue, totalPostalCodes, projectStats, userStats, recentInvitations] = await Promise.all([
             this.prisma.paymentOrder.aggregate({
                 where: { status: 'SUCCESS' },
                 _sum: { amount: true }
@@ -79,6 +79,18 @@ export class CentralAuthorityService {
             this.prisma.postalCode.count(),
             this.prisma.project.groupBy({ by: ['status'], _count: { _all: true } }),
             this.prisma.user.findMany({ select: { roles: true } }),
+            this.prisma.invitation.findMany({
+                take: 10,
+                orderBy: { createdAt: 'desc' },
+                include: {
+                    invitedBy: {
+                        select: {
+                            firstName: true,
+                            lastName: true,
+                        }
+                    }
+                }
+            })
         ]);
 
         const projects = {
@@ -107,7 +119,8 @@ export class CentralAuthorityService {
             users,
             leads: { monthly: 0 },
             regions: [],
-            recentActivity
+            recentActivity,
+            recentInvitations
         };
     }
 
@@ -173,5 +186,28 @@ export class CentralAuthorityService {
         });
 
         return result;
+    }
+
+    async getAllInvitations(page: number = 1, limit: number = 20) {
+        const skip = (page - 1) * limit;
+        const [data, total] = await Promise.all([
+            this.prisma.invitation.findMany({
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+                include: {
+                    invitedBy: {
+                        select: {
+                            firstName: true,
+                            lastName: true,
+                            email: true
+                        }
+                    }
+                }
+            }),
+            this.prisma.invitation.count()
+        ]);
+
+        return { data, total, page, limit };
     }
 }
