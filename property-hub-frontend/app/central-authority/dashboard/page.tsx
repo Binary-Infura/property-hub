@@ -6,6 +6,8 @@ import { reraService } from '@/app/services/reraService';
 import Link from 'next/link';
 import ReraImportSection from '@/app/components/dashboard/ReraImportSection';
 import BankManagerSection from '@/app/components/dashboard/BankManagerSection';
+import PaymentDetailsModal from '@/app/components/dashboard/PaymentDetailsModal';
+
 
 interface DashboardStats {
     projects: {
@@ -44,13 +46,24 @@ interface PropertyPartner {
     lastName: string;
     email: string;
     agencyName: string;
-    createdAt?: string;
-    propertyPartnerProfile: {
+    organization: {
+        id: string;
+        name: string;
         isPremium: boolean;
         subscriptionMode: 'PAID' | 'FREE';
-        companyName?: string;
+    } | null;
+    latestPayment?: {
+        id: string;
+        amount: number;
+        currency: string;
+        razorpayOrderId: string;
+        razorpayPaymentId: string;
+        createdAt: string;
     } | null;
 }
+
+
+
 
 
 export default function CentralAuthorityDashboardPage() {
@@ -62,9 +75,12 @@ export default function CentralAuthorityDashboardPage() {
     const [updatingPartner, setUpdatingPartner] = useState<string | null>(null);
     const [fetchingCounts, setFetchingCounts] = useState(false);
     const [districtSearch, setDistrictSearch] = useState('');
+    const [selectedPayment, setSelectedPayment] = useState<PropertyPartner['latestPayment'] | null>(null);
     const [showReraImport, setShowReraImport] = useState(false);
 
+
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
 
     const fetchPartners = async () => {
         if (!token) return;
@@ -251,8 +267,9 @@ export default function CentralAuthorityDashboardPage() {
                             </thead>
                             <tbody className="divide-y divide-gray-50">
                                 {partners.slice(0, 5).map((partner) => {
-                                    const isPremium = partner.propertyPartnerProfile?.isPremium || false;
-                                    const mode = partner.propertyPartnerProfile?.subscriptionMode || 'PAID';
+                                    const isPremium = partner.organization?.isPremium || false;
+                                    const mode = partner.organization?.subscriptionMode || 'FREE';
+
 
                                     return (
                                         <tr key={partner.id} className="text-sm group hover:bg-gray-50 transition-colors">
@@ -261,8 +278,9 @@ export default function CentralAuthorityDashboardPage() {
                                                 <p className="text-xs text-gray-400">{partner.email}</p>
                                             </td>
                                             <td className="px-4 py-3 text-gray-600 text-xs">
-                                                {partner.propertyPartnerProfile?.companyName || partner.agencyName || '-'}
+                                                {partner.organization?.name || partner.agencyName || '-'}
                                             </td>
+
                                             <td className="px-4 py-3">
                                                 <div className="flex flex-col gap-1">
                                                     {isPremium ? (
@@ -270,13 +288,30 @@ export default function CentralAuthorityDashboardPage() {
                                                     ) : (
                                                         <span className="bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase w-fit">Standard</span>
                                                     )}
-                                                    <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase w-fit ${mode === 'FREE' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}`}>
-                                                        {mode}
-                                                    </span>
+                                                    <div className="flex items-center gap-2">
+                                                        <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase w-fit ${mode === 'FREE' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'}`}>
+                                                            {mode}
+                                                        </span>
+                                                        {partner.latestPayment && (
+                                                            <button
+                                                                onClick={() => setSelectedPayment(partner.latestPayment!)}
+                                                                className="p-1 hover:bg-blue-50 rounded text-blue-600 transition-colors"
+                                                                title="View Payment Details"
+                                                            >
+                                                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                                </svg>
+                                                            </button>
+                                                        )}
+                                                    </div>
                                                 </div>
                                             </td>
+
+
                                             <td className="px-4 py-3 text-right">
-                                                {!isPremium ? (
+                                                {mode === 'PAID' ? (
+                                                    <span className="text-xs font-bold text-gray-400 italic">Managed by Payment</span>
+                                                ) : !isPremium ? (
                                                     <button
                                                         onClick={() => handleUpdateSubscription(partner.id, true, 'FREE')}
                                                         disabled={updatingPartner === partner.id}
@@ -286,14 +321,16 @@ export default function CentralAuthorityDashboardPage() {
                                                     </button>
                                                 ) : (
                                                     <button
-                                                        onClick={() => handleUpdateSubscription(partner.id, false, 'PAID')}
+                                                        onClick={() => handleUpdateSubscription(partner.id, false, 'FREE')}
                                                         disabled={updatingPartner === partner.id}
                                                         className="text-xs font-bold text-red-600 hover:text-red-800 disabled:opacity-50"
                                                     >
-                                                        {updatingPartner === partner.id ? 'Updating...' : 'Revoke'}
+                                                        {updatingPartner === partner.id ? 'Updating...' : 'Revoke Gift'}
                                                     </button>
                                                 )}
                                             </td>
+
+
                                         </tr>
                                     );
                                 })}
@@ -569,6 +606,14 @@ export default function CentralAuthorityDashboardPage() {
                     </div>
                 </div>
             </div>
+            {/* Payment Details Modal */}
+            <PaymentDetailsModal 
+                payment={selectedPayment || null} 
+                onClose={() => setSelectedPayment(null)} 
+            />
+
         </div>
     );
 }
+
+
