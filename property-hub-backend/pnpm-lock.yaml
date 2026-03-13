@@ -92,6 +92,9 @@ dependencies:
   playwright:
     specifier: ^1.58.2
     version: 1.58.2
+  razorpay:
+    specifier: ^2.9.6
+    version: 2.9.6
   reflect-metadata:
     specifier: ^0.1.14
     version: 0.1.14
@@ -6312,6 +6315,14 @@ packages:
   /quick-lru@6.1.2:
     resolution: {integrity: sha512-AAFUA5O1d83pIHEhJwWCq/RQcRukCkn/NSm2QsTEMle5f2hP0ChI2+3Xb051PZCkLryI/Ir1MVKviT2FIloaTQ==}
     engines: {node: '>=12'}
+    dev: false
+
+  /razorpay@2.9.6:
+    resolution: {integrity: sha512-zsHAQzd6e1Cc6BNoCNZQaf65ElL6O6yw0wulxmoG5VQDr363fZC90Mp1V5EktVzG45yPyNomNXWlf4cQ3622gQ==}
+    dependencies:
+      axios: 1.13.6
+    transitivePeerDependencies:
+      - debug
     dev: false
 
   /react-is@18.3.1:

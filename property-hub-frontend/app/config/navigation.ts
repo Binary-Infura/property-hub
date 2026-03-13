@@ -56,6 +56,7 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Reels', href: '/property-partner/dashboard/reels', icon: 'video' },
         { name: 'Ads Requests', href: '/property-partner/dashboard/ads-requests', icon: 'megaphone' },
         { name: 'Reviews', href: '/property-partner/dashboard/reviews', icon: 'star' },
+        { name: 'Premium Subscription', href: '/property-partner/dashboard/subscription', icon: 'star' },
     ],
     'CONSULTANT': [
         { name: 'Dashboard', href: '/consultant/dashboard', icon: 'dashboard' },
