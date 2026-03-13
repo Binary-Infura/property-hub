@@ -10,6 +10,7 @@ import PaymentDetailsModal from '@/app/components/dashboard/PaymentDetailsModal'
 
 
 interface DashboardStats {
+    totalRevenue: number;
     projects: {
         total: number;
         active: number;
@@ -185,6 +186,24 @@ export default function CentralAuthorityDashboardPage() {
 
             {/* Global Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+
+                <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 bg-gradient-to-br from-white to-green-50/30">
+                    <h3 className="text-sm font-medium text-gray-500">Subscription Revenue</h3>
+                    <div className="flex items-end gap-2 mt-2">
+                        <span className="text-3xl font-bold text-slate-900">
+                            ₹{stats.totalRevenue.toLocaleString('en-IN')}
+                        </span>
+                    </div>
+                    <p className="text-xs text-green-600 mt-1">Total successful payments</p>
+                    <div className="mt-4 flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                            <svg className="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Growth +15%</span>
+                    </div>
+                </div>
 
                 <Link href="/central-authority/dashboard/properties" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-blue-300 transition-all hover:shadow-md group">
                     <h3 className="text-sm font-medium text-gray-500 group-hover:text-blue-600 transition-colors">Total Projects</h3>
@@ -480,7 +499,7 @@ export default function CentralAuthorityDashboardPage() {
             </div>
 
             {/* Property Management Quick Access */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 <Link href="/central-authority/dashboard/reviews" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-yellow-300 transition-all hover:shadow-md group">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-lg bg-yellow-50 flex items-center justify-center group-hover:bg-yellow-100 transition-colors">

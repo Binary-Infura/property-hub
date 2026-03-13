@@ -71,7 +71,11 @@ export class CentralAuthorityService {
     }
 
     async getDashboardStats() {
-        const [totalPostalCodes, projectStats, userStats] = await Promise.all([
+        const [totalRevenue, totalPostalCodes, projectStats, userStats] = await Promise.all([
+            this.prisma.paymentOrder.aggregate({
+                where: { status: 'SUCCESS' },
+                _sum: { amount: true }
+            }),
             this.prisma.postalCode.count(),
             this.prisma.project.groupBy({ by: ['status'], _count: { _all: true } }),
             this.prisma.user.findMany({ select: { roles: true } }),
@@ -96,7 +100,15 @@ export class CentralAuthorityService {
             select: { id: true, type: true, action: true, target: true, timestamp: true }
         });
 
-        return { totalPostalCodes, projects, users, leads: { monthly: 0 }, regions: [], recentActivity };
+        return {
+            totalRevenue: totalRevenue._sum.amount ? Number(totalRevenue._sum.amount) : 0,
+            totalPostalCodes,
+            projects,
+            users,
+            leads: { monthly: 0 },
+            regions: [],
+            recentActivity
+        };
     }
 
     async getAllPropertyPartners() {
