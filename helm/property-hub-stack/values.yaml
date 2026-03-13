@@ -1,19 +1,13 @@
 global:
   domain: "property-hub.local"
 
-# PostgreSQL Dependency Configuration
-postgresql:
-  enabled: true
-  auth:
-    username: postgres
-    password: "changeme"
-    database: property_hub
-  # Create additional databases on init
-  primary:
-    initdb:
-      scripts:
-        create_databases.sql: |
-          -- Database creation scripts
+# Managed PostgreSQL Service Configuration (External to cluster)
+database:
+  host: "your-managed-db-host"
+  user: "postgres"
+  password: "your-password"
+  name: "property_hub"
+  port: 5432
 
 # Property Hub Backend
 backend:
@@ -26,52 +20,29 @@ backend:
     type: ClusterIP
     port: 3001
   env:
-    # Database connection
-    POSTGRES_USER: postgres
-    POSTGRES_PASSWORD: "changeme"
-    POSTGRES_DB: property_hub
-    # Host is the release name + -postgresql defined by the dependency
-    POSTGRES_HOST: "property-hub-stack-postgresql" 
+    # These will use the database settings above
+    # Additional backend env vars can go here
 
-# Jitsi Meet
-jitsi:
+# Property Hub Frontend
+frontend:
   enabled: true
-  # Common configuration
-  publicUrl: "https://meet.property-hub.local"
-  timeZone: "UTC"
-  
-  web:
-    image: jitsi/web:stable-10741
-    service:
-      httpPort: 80
-      httpsPort: 443
-  
-  prosody:
-    image: jitsi/prosody:stable-10741
-    service:
-      xmppClientPort: 5222
-      xmppServerPort: 5269
-      httpPort: 5280
-  
-  jicofo:
-    image: jitsi/jicofo:stable-10741
-    auth:
-      user: focus
-      password: "focuspassword"
-  
-  jvb:
-    image: jitsi/jvb:stable-10741
-    auth:
-      user: jvb
-      password: "jvbpassword"
-    service:
-      udpPort: 10000
-      tcpPort: 4443
-    # JVB Needs public IP in some configs, usually passed via Docker env DOCKER_HOST_ADDRESS
-    # Kubernetes often handles this differently. 
+  image:
+    repository: property-hub-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 3000
 
-  # Shared secrets
-  secrets:
-    jicofoComponentSecret: "jicofo-secret"
-    jvbComponentSecret: "jvb-secret"
-    jwtAppSecret: "jwt-app-secret"
+# LiveKit (Video/Audio)
+livekit:
+  enabled: true
+  image:
+    repository: livekit/livekit-server
+    tag: latest
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 7880
+  apiKey: "devkey"
+  apiSecret: "secret"

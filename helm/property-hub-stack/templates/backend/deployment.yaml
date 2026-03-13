@@ -27,10 +27,13 @@ spec:
               protocol: TCP
           env:
             - name: POSTGRES_USER
-              value: {{ .Values.backend.env.POSTGRES_USER | quote }}
+              value: {{ .Values.database.user | quote }}
             - name: POSTGRES_PASSWORD
-              value: {{ .Values.backend.env.POSTGRES_PASSWORD | quote }}
+              value: {{ .Values.database.password | quote }}
             - name: POSTGRES_DB
-              value: {{ .Values.backend.env.POSTGRES_DB | quote }}
+              value: {{ .Values.database.name | quote }}
+            - name: POSTGRES_HOST
+              value: {{ .Values.database.host | quote }}
             - name: DATABASE_URL
-              value: "postgresql://{{ .Values.backend.env.POSTGRES_USER }}:{{ .Values.backend.env.POSTGRES_PASSWORD }}@{{ .Values.backend.env.POSTGRES_HOST }}:5432/{{ .Values.backend.env.POSTGRES_DB }}?schema=public"
+              value: "postgresql://{{ .Values.database.user }}:{{ .Values.database.password }}@{{ .Values.database.host }}:{{ .Values.database.port }}/{{ .Values.database.name }}?schema=public"
+
