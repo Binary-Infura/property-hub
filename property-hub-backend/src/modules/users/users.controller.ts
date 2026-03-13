@@ -46,32 +46,6 @@ export class UsersController {
         return this.usersService.updateMyProfile(user.userId, user.roles, dto);
     }
 
-    // --- User Invitation Endpoints ---
-
-    /**
-     * Invite a user with roles
-     */
-    @Post('invite')
-    @UseGuards(RolesGuard)
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
-    async inviteUser(
-        @Body() dto: InviteUserDto,
-    ): Promise<InvitationResponse> {
-        return this.usersService.inviteUser(dto);
-    }
-
-    /**
-     * Invite a central authority user
-     * Only accessible by existing central authority users
-     */
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
-    @UseGuards(RolesGuard)
-    @Post('invite-central')
-    async inviteCentralAuthority(
-        @Body() dto: InviteCentralAuthorityDto,
-    ): Promise<InvitationResponse> {
-        return this.usersService.inviteCentralAuthorityUser(dto);
-    }
 
     // Role-based User Management
 

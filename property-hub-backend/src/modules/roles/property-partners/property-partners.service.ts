@@ -3,6 +3,7 @@ import { PrismaService } from '../../../database/prisma.service';
 import { UpdatePropertyPartnerProfileDto, CreateBrokerDto } from './property-partners.dto';
 import { UsersService } from '../../users/users.service';
 import { UserRole } from '../../../common/enums/role.enum';
+import { OrganizationType } from '../../../common/enums/organization-type.enum';
 
 @Injectable()
 export class PropertyPartnersService {
@@ -86,7 +87,7 @@ export class PropertyPartnersService {
             await this.prisma.organization.update({ where: { id: user.organizationId }, data: orgData });
         } else if (Object.keys(orgData).length > 0) {
             const org = await this.prisma.organization.create({
-                data: { name: dto.companyName || 'New Company', type: 'BUILDER', ...orgData },
+                data: { name: dto.companyName || 'New Company', type: OrganizationType.PROPERTY_PARTNER as any, ...orgData },
             });
             await this.prisma.user.update({ where: { id: userId }, data: { organizationId: org.id } });
         }

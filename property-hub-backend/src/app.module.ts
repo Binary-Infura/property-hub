@@ -36,6 +36,7 @@ import { LivekitModule } from './modules/livekit/livekit.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 import { MailModule } from './modules/mail/mail.module';
+import { InvitationsModule } from './modules/invitations/invitations.module';
 import { join } from 'path';
 
 @Module({
@@ -79,6 +80,7 @@ import { join } from 'path';
         ReviewsModule,
         WhatsappModule,
         MailModule,
+        InvitationsModule,
         /*
         ServeStaticModule.forRoot({
             rootPath: join(__dirname, '..', 'uploads'),

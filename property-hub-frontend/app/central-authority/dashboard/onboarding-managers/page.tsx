@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import { userService, User } from '@/app/services/userService';
+import InviteUserModal from '@/app/components/invitations/InviteUserModal';
 
 export default function OnboardingManagersPage() {
     const { token } = useAuth();
@@ -52,7 +53,6 @@ export default function OnboardingManagersPage() {
     }, [token, currentPage]);
 
     const handleAddManager = () => {
-        setFormData({ firstName: '', lastName: '', email: '', phone: '' });
         setShowAddModal(true);
     };
 
@@ -131,7 +131,7 @@ export default function OnboardingManagersPage() {
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
-                    Add Onboarding Manager
+                    Invite Onboarding Manager
                 </button>
             </div>
 
@@ -258,19 +258,25 @@ export default function OnboardingManagersPage() {
                 )}
             </div>
 
-            {(showAddModal || showEditModal) && (
+            <InviteUserModal
+                isOpen={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                onSuccess={fetchManagers}
+                forcedRole="ONBOARDING_MANAGER"
+            />
+
+            {showEditModal && (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-in zoom-in-95 duration-200 flex flex-col">
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                             <div>
                                 <h2 className="text-xl font-bold text-gray-900 leading-tight">
-                                    {showEditModal ? 'Scale Profile' : 'Onboard New Expert'}
+                                    Scale Profile
                                 </h2>
                                 <p className="text-[11px] font-bold text-gray-400 uppercase tracking-widest mt-1">Identity Configuration</p>
                             </div>
                             <button
                                 onClick={() => {
-                                    setShowAddModal(false);
                                     setShowEditModal(false);
                                     setFormData({ firstName: '', lastName: '', email: '', phone: '' });
                                 }}
@@ -330,7 +336,6 @@ export default function OnboardingManagersPage() {
                             <div className="flex gap-3 pt-4">
                                 <button
                                     onClick={() => {
-                                        setShowAddModal(false);
                                         setShowEditModal(false);
                                         setFormData({ firstName: '', lastName: '', email: '', phone: '' });
                                     }}
@@ -342,7 +347,7 @@ export default function OnboardingManagersPage() {
                                     onClick={handleSaveManager}
                                     className="flex-[1.5] px-6 py-3 bg-orange-600 text-white rounded-xl hover:bg-orange-700 font-bold text-sm transition-all shadow-lg shadow-orange-200 transform active:scale-95"
                                 >
-                                    {showEditModal ? 'Commit Changes' : 'Execute Onboarding'}
+                                    Commit Changes
                                 </button>
                             </div>
                         </div>

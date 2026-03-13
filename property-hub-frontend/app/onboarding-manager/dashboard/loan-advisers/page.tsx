@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import { userService, User } from '@/app/services/userService';
+import InviteUserModal from '@/app/components/invitations/InviteUserModal';
 
 export default function LoanAdvisersPage() {
     const { token } = useAuth();
@@ -206,7 +207,14 @@ export default function LoanAdvisersPage() {
                 </div>
             </div>
 
-            {(showAddModal || showEditModal) && (
+            <InviteUserModal
+                isOpen={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                onSuccess={fetchAdvisers}
+                forcedRole="LOAN_ADVISOR"
+            />
+
+            {(showEditModal) && (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-in zoom-in-95 duration-200">
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">

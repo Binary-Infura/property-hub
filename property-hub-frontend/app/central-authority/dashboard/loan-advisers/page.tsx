@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import { userService, User } from '@/app/services/userService';
+import InviteUserModal from '@/app/components/invitations/InviteUserModal';
 
 export default function LoanAdvisersPage() {
     const { token } = useAuth();
@@ -46,7 +47,6 @@ export default function LoanAdvisersPage() {
     }, [token]);
 
     const handleAddAdviser = () => {
-        setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '' });
         setShowAddModal(true);
     };
 
@@ -118,7 +118,7 @@ export default function LoanAdvisersPage() {
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                             </svg>
-                            Add New Adviser
+                            Invite Adviser
                         </button>
                     )}
                 </div>
@@ -206,16 +206,22 @@ export default function LoanAdvisersPage() {
                 </div>
             </div>
 
-            {(showAddModal || showEditModal) && (
+            <InviteUserModal
+                isOpen={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                onSuccess={fetchAdvisers}
+                forcedRole="LOAN_ADVISOR"
+            />
+
+            {showEditModal && (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-in zoom-in-95 duration-200">
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                             <h2 className="text-xl font-bold text-gray-900">
-                                {showEditModal ? 'Edit Loan Adviser' : 'Add Loan Adviser'}
+                                Edit Loan Adviser
                             </h2>
                             <button
                                 onClick={() => {
-                                    setShowAddModal(false);
                                     setShowEditModal(false);
                                     setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '' });
                                 }}
@@ -283,7 +289,6 @@ export default function LoanAdvisersPage() {
                             <div className="flex gap-3 pt-2">
                                 <button
                                     onClick={() => {
-                                        setShowAddModal(false);
                                         setShowEditModal(false);
                                         setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '' });
                                     }}
@@ -295,7 +300,7 @@ export default function LoanAdvisersPage() {
                                     onClick={handleSaveAdviser}
                                     className="flex-1 px-4 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-200 text-sm"
                                 >
-                                    {showEditModal ? 'Save Changes' : 'Add Adviser'}
+                                    Save Changes
                                 </button>
                             </div>
                         </div>

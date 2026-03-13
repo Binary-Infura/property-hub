@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-import AddMarketingManagerModal from '@/app/components/central-authority/AddMarketingManagerModal';
+import InviteUserModal from '@/app/components/invitations/InviteUserModal';
 
 export default function MarketingManagersPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -233,11 +233,12 @@ export default function MarketingManagersPage() {
                 )}
             </div>
 
-            {/* Add Marketing Manager Modal */}
-            <AddMarketingManagerModal
+            {/* Invite Marketing Manager Modal */}
+            <InviteUserModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSuccess={fetchData}
+                forcedRole="MARKETING_MANAGER"
             />
         </div>
     );

@@ -5,6 +5,7 @@ import { UsersService } from '../../users/users.service';
 import { ActivityLogsService } from '../../activity-logs/activity-logs.service';
 import { UpdateCentralAuthorityProfileDto, CreateCentralAuthorityUserDto, CentralAuthorityUserDto } from './central-authority.dto';
 import { UserRole } from '../../../common/enums/role.enum';
+import { OrganizationType } from '../../../common/enums/organization-type.enum';
 
 @Injectable()
 export class CentralAuthorityService {
@@ -129,7 +130,7 @@ export class CentralAuthorityService {
             const org = await this.prisma.organization.create({
                 data: {
                     name: user.firstName + ' ' + (user.lastName || ''),
-                    type: 'BUILDER',
+                    type: OrganizationType.PROPERTY_PARTNER as any,
                     isPremium,
                     subscriptionMode,
                 },

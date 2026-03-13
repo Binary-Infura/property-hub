@@ -115,6 +115,18 @@ export class CreateUserDto {
     @IsString()
     @IsOptional()
     licenseNumber?: string;
+
+    @IsString()
+    @IsOptional()
+    agencyName?: string;
+
+    @IsString()
+    @IsOptional()
+    officeAddress?: string;
+
+    @IsString()
+    @IsOptional()
+    reraNumber?: string;
 }
 
 export class UpdateUserDto {
@@ -171,6 +183,18 @@ export class UpdateUserDto {
     @IsString()
     @IsOptional()
     licenseNumber?: string;
+
+    @IsString()
+    @IsOptional()
+    agencyName?: string;
+
+    @IsString()
+    @IsOptional()
+    officeAddress?: string;
+
+    @IsString()
+    @IsOptional()
+    reraNumber?: string;
 }
 
 export class UpdateProfileDto {

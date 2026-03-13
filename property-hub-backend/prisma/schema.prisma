@@ -76,6 +76,7 @@ model User {
   organization      Organization?       @relation(fields: [organizationId], references: [id])
   campaignsAssigned MarketingCampaign[] @relation("CampaignToUser")
   assignedProjects  Project[]           @relation("ProjectAssignment")
+  invitationsSent   Invitation[]        @relation("UserInvites")
 
   @@index([email])
   @@index([primaryRole])
@@ -559,6 +560,26 @@ model WebhookLog {
   @@map("webhook_logs")
 }
 
+model Invitation {
+  id          String           @id @default(uuid())
+  email       String?
+  phone       String?
+  roles       UserRole[]
+  token       String           @unique
+  status      InvitationStatus @default(PENDING)
+  invitedById String
+  invitedBy   User             @relation("UserInvites", fields: [invitedById], references: [id])
+  expiresAt   DateTime
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  @@index([token])
+  @@index([email])
+  @@index([phone])
+  @@index([status])
+  @@map("invitations")
+}
+
 enum UserRole {
   CENTRAL_AUTHORITY
   PROPERTY_PARTNER
@@ -586,7 +607,7 @@ enum ConsultantType {
 
 enum OrganizationType {
   PLATFORM
-  BUILDER
+  PROPERTY_PARTNER
   BROKERAGE
   MARKETING_AGENCY
 }
@@ -671,4 +692,11 @@ enum LeadNoteCategory {
 enum SubscriptionMode {
   PAID
   FREE
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  EXPIRED
+  REVOKED
 }

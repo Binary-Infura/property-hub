@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
 import { userService } from '@/app/services/userService';
+import InviteUserModal from '@/app/components/invitations/InviteUserModal';
 
 interface Broker {
     id: string;
@@ -60,23 +61,8 @@ export default function AllBrokersPage() {
         fetchBrokers();
     }, [token, API_URL]);
 
-    const handleInviteBroker = async () => {
-        if (!token) return;
-        if (!formData.firstName || !formData.email) {
-            alert('First Name and Email are required');
-            return;
-        }
-        try {
-            setSubmitting(true);
-            await userService.createBroker(formData, token);
-            setShowAddModal(false);
-            setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '', reraId: '' });
-            fetchBrokers();
-        } catch (error: any) {
-            alert(error.message || 'Failed to invite broker');
-        } finally {
-            setSubmitting(false);
-        }
+    const handleInviteBroker = () => {
+        setShowAddModal(true);
     };
 
     const filtered = brokers.filter((b) => {
@@ -217,114 +203,12 @@ export default function AllBrokersPage() {
             </div>
 
             {/* Invite Modal */}
-            {showAddModal && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all animate-in zoom-in-95 duration-200">
-                        <div className="p-8 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                            <div>
-                                <h2 className="text-2xl font-black text-gray-900 leading-tight">
-                                    Invite Broker Partner
-                                </h2>
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-1">Stategic Partnership Setup</p>
-                            </div>
-                            <button
-                                onClick={() => setShowAddModal(false)}
-                                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
-                            >
-                                <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div className="p-8 space-y-6">
-                            <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-2">
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">First Name</label>
-                                    <input
-                                        type="text"
-                                        value={formData.firstName}
-                                        onChange={(e) => setFormData({ ...formData, firstName: e.target.value })}
-                                        className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-sm font-bold"
-                                        placeholder="Enter first name"
-                                    />
-                                </div>
-                                <div className="space-y-2">
-                                    <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Last Name</label>
-                                    <input
-                                        type="text"
-                                        value={formData.lastName}
-                                        onChange={(e) => setFormData({ ...formData, lastName: e.target.value })}
-                                        className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-sm font-bold"
-                                        placeholder="Enter last name"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Email Address</label>
-                                <input
-                                    type="email"
-                                    value={formData.email}
-                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-sm font-bold"
-                                    placeholder="broker@agency.com"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Phone Number</label>
-                                <input
-                                    type="tel"
-                                    value={formData.phone}
-                                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-sm font-bold"
-                                    placeholder="+91..."
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">Agency Name</label>
-                                <input
-                                    type="text"
-                                    value={formData.agencyName}
-                                    onChange={(e) => setFormData({ ...formData, agencyName: e.target.value })}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-sm font-bold"
-                                    placeholder="e.g. Royal Estates"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="block text-[10px] font-black text-gray-400 uppercase tracking-widest ml-1">RERA ID</label>
-                                <input
-                                    type="text"
-                                    value={formData.reraId}
-                                    onChange={(e) => setFormData({ ...formData, reraId: e.target.value })}
-                                    className="w-full px-4 py-3 bg-gray-50 border border-transparent rounded-2xl focus:bg-white focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none transition-all text-sm font-bold"
-                                    placeholder="RERA-XX-XXXX"
-                                />
-                            </div>
-
-                            <div className="flex gap-4 pt-4">
-                                <button
-                                    onClick={() => setShowAddModal(false)}
-                                    className="flex-1 px-6 py-4 border border-gray-100 font-bold text-gray-400 rounded-2xl hover:bg-gray-50 transition-all text-sm uppercase tracking-widest"
-                                    disabled={submitting}
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleInviteBroker}
-                                    className="flex-1 px-6 py-4 bg-indigo-600 text-white font-black rounded-2xl hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 text-sm uppercase tracking-widest disabled:opacity-50"
-                                    disabled={submitting}
-                                >
-                                    {submitting ? 'Sending...' : 'Send Invitation'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <InviteUserModal
+                isOpen={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                onSuccess={fetchBrokers}
+                forcedRole="BROKER"
+            />
         </div>
     );
 }

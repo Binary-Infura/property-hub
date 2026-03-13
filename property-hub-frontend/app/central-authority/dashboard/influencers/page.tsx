@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../../contexts/AuthContext';
-import AddInfluencerModal from '@/app/components/central-authority/AddInfluencerModal';
+import InviteUserModal from '@/app/components/invitations/InviteUserModal';
 
 export default function InfluencersPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
@@ -174,11 +174,12 @@ export default function InfluencersPage() {
                 )}
             </div>
 
-            {/* Add Influencer Modal */}
-            <AddInfluencerModal
+            {/* Invite Influencer Modal */}
+            <InviteUserModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSuccess={fetchData}
+                forcedRole="INFLUENCER"
             />
         </div>
     );

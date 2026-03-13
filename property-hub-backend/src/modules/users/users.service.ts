@@ -12,6 +12,7 @@ import { User } from '@prisma/client';
 import { ConfigService } from '@nestjs/config';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 import { UserRole } from '../../common/enums/role.enum';
+import { OrganizationType } from '../../common/enums/organization-type.enum';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
@@ -52,39 +53,6 @@ export class UsersService {
         return user;
     }
 
-    // ─────────────────────────────────────────────────────────────
-    // INVITE
-    // ─────────────────────────────────────────────────────────────
-
-    async inviteUser(dto: InviteUserDto): Promise<InvitationResponse> {
-        try {
-            const tempPassword = 'password';
-            const passwordHash = await this.hashPassword(tempPassword);
-
-            const existingUser = await this.prisma.user.findUnique({ where: { email: dto.email } });
-            if (existingUser) throw new BadRequestException('User with this email already exists');
-
-            const user = await this.prisma.user.create({
-                data: {
-                    email: dto.email,
-                    firstName: dto.firstName,
-                    lastName: dto.lastName,
-                    passwordHash,
-                    roles: dto.roles || [],
-                    primaryRole: dto.roles?.[0] ?? undefined,
-                }
-            });
-
-            return { userId: user.id, email: dto.email, temporaryPassword: tempPassword };
-        } catch (error: any) {
-            if (error instanceof HttpException) throw error;
-            throw new InternalServerErrorException(error.message || 'Failed to invite user');
-        }
-    }
-
-    async inviteCentralAuthorityUser(dto: InviteCentralAuthorityDto): Promise<InvitationResponse> {
-        return this.inviteUser({ ...dto, roles: [UserRole.CENTRAL_AUTHORITY] });
-    }
 
     // ─────────────────────────────────────────────────────────────
     // AUTH SUPPORT
@@ -132,16 +100,53 @@ export class UsersService {
             if (internalUser) onboardedById = internalUser.id;
         }
 
-        // If PROPERTY_PARTNER and org info provided, create/find org first
+        // Check if user already exists
+        const existingUser = await this.prisma.user.findUnique({
+            where: { email: dto.email },
+        });
+
+        if (existingUser) {
+            // Append new roles, ensuring uniqueness
+            const updatedRoles = Array.from(new Set([...existingUser.roles, ...dto.roles]));
+            const primaryRole = dto.primaryRole || dto.roles[0] || existingUser.primaryRole;
+
+            const updatedUser = await this.prisma.user.update({
+                where: { id: existingUser.id },
+                data: {
+                    roles: updatedRoles,
+                    primaryRole: primaryRole as any,
+                    // Optionally update other fields if they are missing or if we want to overwrite
+                    phone: existingUser.phone || dto.phone,
+                    firstName: existingUser.firstName || dto.firstName,
+                    lastName: existingUser.lastName || dto.lastName,
+                },
+            });
+
+            await this.activityLogsService.log({
+                userId: onboardedById || updatedUser.id,
+                type: 'info',
+                action: 'User Roles Updated via Invitation',
+                target: `${updatedUser.firstName} ${updatedUser.lastName || ''}`,
+                details: { newRoles: dto.roles, allRoles: updatedUser.roles }
+            });
+
+            return updatedUser;
+        }
+
+        // Create/find organization if business info provided for specific roles
         let organizationId = dto.organizationId ?? null;
-        if (dto.roles.includes(UserRole.PROPERTY_PARTNER) && dto.companyName && !organizationId) {
+        const needsOrg = dto.roles.includes(UserRole.PROPERTY_PARTNER) || dto.roles.includes(UserRole.BROKER);
+        const hasBusinessInfo = dto.companyName || dto.agencyName;
+
+        if (needsOrg && hasBusinessInfo && !organizationId) {
+            const orgType = dto.roles.includes(UserRole.PROPERTY_PARTNER) ? OrganizationType.PROPERTY_PARTNER : OrganizationType.BROKERAGE as any;
             const org = await this.prisma.organization.create({
                 data: {
-                    name: dto.companyName,
-                    type: 'BUILDER',
-                    address: dto.companyAddress,
+                    name: (dto.companyName || dto.agencyName) as string,
+                    type: orgType,
+                    address: dto.companyAddress || dto.officeAddress,
                     taxId: dto.taxId,
-                    licenseNumber: dto.licenseNumber,
+                    licenseNumber: dto.licenseNumber || dto.reraNumber,
                 },
             });
             organizationId = org.id;
@@ -306,7 +311,7 @@ export class UsersService {
                     await this.prisma.organization.update({ where: { id: user.organizationId }, data: orgData });
                 } else {
                     const org = await this.prisma.organization.create({
-                        data: { name: incoming.companyName || 'New Company', type: 'BUILDER', ...orgData },
+                        data: { name: incoming.companyName || 'New Company', type: OrganizationType.PROPERTY_PARTNER as any, ...orgData },
                     });
                     await this.prisma.user.update({ where: { id: user.id }, data: { organizationId: org.id } });
                 }

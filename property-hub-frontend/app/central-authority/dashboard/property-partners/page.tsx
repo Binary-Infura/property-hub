@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
+import InviteUserModal from '@/app/components/invitations/InviteUserModal';
 
 interface PropertyPartner {
     id: string;
@@ -21,6 +22,7 @@ export default function AllPropertyPartnersPage() {
     const [partners, setPartners] = useState<PropertyPartner[]>([]);
     const [loading, setLoading] = useState(true);
     const [updatingPartner, setUpdatingPartner] = useState<string | null>(null);
+    const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -95,6 +97,15 @@ export default function AllPropertyPartnersPage() {
                     <h1 className="text-3xl font-bold text-gray-900">All Property Partners</h1>
                     <p className="text-gray-600 mt-1">Manage platform-wide property partner subscriptions</p>
                 </div>
+                <button
+                    onClick={() => setIsInviteModalOpen(true)}
+                    className="ml-auto px-6 py-2.5 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition shadow-xl shadow-slate-200 font-bold flex items-center gap-2 text-sm uppercase tracking-widest"
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Invite Partner
+                </button>
             </div>
 
             <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
@@ -168,6 +179,13 @@ export default function AllPropertyPartnersPage() {
                     </table>
                 </div>
             </div>
+
+            <InviteUserModal
+                isOpen={isInviteModalOpen}
+                onClose={() => setIsInviteModalOpen(false)}
+                onSuccess={fetchPartners}
+                forcedRole="PROPERTY_PARTNER"
+            />
         </div>
     );
 }

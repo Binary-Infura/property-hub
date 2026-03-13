@@ -5,6 +5,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import PremiumLockedOverlay from '@/app/components/property-partner/PremiumLockedOverlay';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import { userService, User } from '@/app/services/userService';
+import InviteUserModal from '@/app/components/invitations/InviteUserModal';
 
 export default function ConsultantsPage() {
     const { token, profileStatus } = useAuth();
@@ -129,111 +130,12 @@ export default function ConsultantsPage() {
                 </table>
             </div>
 
-            {isAddModalOpen && (
-                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all animate-in zoom-in-95 duration-200">
-                        <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                            <div>
-                                <h2 className="text-xl font-bold text-gray-900">Onboard New Consultant</h2>
-                                <p className="text-sm text-gray-500 mt-1">Onboard a new consultant to your team.</p>
-                            </div>
-                            <button
-                                onClick={() => setIsAddModalOpen(false)}
-                                className="p-2 hover:bg-gray-200 rounded-full transition-colors"
-                            >
-                                <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
-                        </div>
-
-                        <div className="p-6 space-y-5">
-                            <div className="grid grid-cols-2 gap-5">
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 col-span-2">
-                                    <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">First Name</label>
-                                        <input
-                                            type="text"
-                                            id="consultant-firstName"
-                                            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
-                                            placeholder="Enter first name"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Last Name</label>
-                                        <input
-                                            type="text"
-                                            id="consultant-lastName"
-                                            className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
-                                            placeholder="Enter last name"
-                                        />
-                                    </div>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
-                                    <input
-                                        type="email"
-                                        id="consultant-email"
-                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
-                                        placeholder="consultant@example.com"
-                                    />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Phone Number</label>
-                                    <input
-                                        type="tel"
-                                        id="consultant-phone"
-                                        className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm placeholder:text-gray-400"
-                                        placeholder="+91 98765 43210"
-                                    />
-                                </div>
-                            </div>
-
-                            <div className="flex gap-3 pt-2">
-                                <button
-                                    onClick={() => setIsAddModalOpen(false)}
-                                    className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 transition-all text-sm"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={async () => {
-                                        if (!token) return;
-                                        try {
-                                            const firstName = (document.getElementById('consultant-firstName') as HTMLInputElement)?.value;
-                                            const lastName = (document.getElementById('consultant-lastName') as HTMLInputElement)?.value;
-                                            const email = (document.getElementById('consultant-email') as HTMLInputElement)?.value;
-                                            const phone = (document.getElementById('consultant-phone') as HTMLInputElement)?.value;
-
-                                            if (!firstName || !lastName || !email || !phone) {
-                                                alert('Please fill all fields');
-                                                return;
-                                            }
-
-                                            const payload = {
-                                                firstName,
-                                                lastName,
-                                                email,
-                                                phone,
-                                                role: 'CONSULTANT',
-                                            };
-
-                                            await userService.create(payload, token);
-                                            fetchConsultants();
-                                            setIsAddModalOpen(false);
-                                        } catch (err: any) {
-                                            alert(err.message || 'Failed to onboard consultant');
-                                        }
-                                    }}
-                                    className="flex-1 px-4 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-200 text-sm"
-                                >
-                                    Onboard Consultant
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <InviteUserModal 
+                isOpen={isAddModalOpen}
+                onClose={() => setIsAddModalOpen(false)}
+                onSuccess={fetchConsultants}
+                forcedRole="CONSULTANT"
+            />
         </div>
     );
 }

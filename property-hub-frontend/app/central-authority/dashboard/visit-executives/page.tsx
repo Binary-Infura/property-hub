@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import { userService, User } from '@/app/services/userService';
+import InviteUserModal from '@/app/components/invitations/InviteUserModal';
 
 export default function VisitExecutivesPage() {
     const { token } = useAuth();
@@ -44,7 +45,6 @@ export default function VisitExecutivesPage() {
     }, [token]);
 
     const handleAddExecutive = () => {
-        setFormData({ firstName: '', lastName: '', email: '', phone: '' });
         setShowAddModal(true);
     };
 
@@ -115,7 +115,7 @@ export default function VisitExecutivesPage() {
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                         </svg>
-                        Add New Executive
+                        Invite Executive
                     </button>
                 </div>
             </div>
@@ -226,17 +226,23 @@ export default function VisitExecutivesPage() {
                 </div>
             </div>
 
-            {/* Modal */}
-            {(showAddModal || showEditModal) && (
+            <InviteUserModal
+                isOpen={showAddModal}
+                onClose={() => setShowAddModal(false)}
+                onSuccess={fetchExecutives}
+                forcedRole="VISIT_EXECUTIVE"
+            />
+
+            {/* Edit Modal */}
+            {showEditModal && (
                 <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-in zoom-in-95 duration-200">
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                             <h2 className="text-xl font-bold text-gray-900">
-                                {showEditModal ? 'Edit Visit Executive' : 'Add Visit Executive'}
+                                Edit Visit Executive
                             </h2>
                             <button
                                 onClick={() => {
-                                    setShowAddModal(false);
                                     setShowEditModal(false);
                                     setFormData({ firstName: '', lastName: '', email: '', phone: '' });
                                 }}
@@ -294,7 +300,6 @@ export default function VisitExecutivesPage() {
                             <div className="flex gap-3 pt-2">
                                 <button
                                     onClick={() => {
-                                        setShowAddModal(false);
                                         setShowEditModal(false);
                                         setFormData({ firstName: '', lastName: '', email: '', phone: '' });
                                     }}
@@ -306,7 +311,7 @@ export default function VisitExecutivesPage() {
                                     onClick={handleSaveExecutive}
                                     className="flex-1 px-4 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-200 text-sm"
                                 >
-                                    {showEditModal ? 'Save Changes' : 'Add Executive'}
+                                    Save Changes
                                 </button>
                             </div>
                         </div>
