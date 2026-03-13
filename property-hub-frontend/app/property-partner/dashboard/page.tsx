@@ -280,14 +280,34 @@ export default function PropertyPartnerDashboard() {
           </div>
         </div>
 
-        {/* Team Management Quick Access */}
-        {/* Premium Team Management Quick Access */}
+        {/* Management Quick Access */}
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Premium Team & Partner Management</h2>
+            <h2 className="text-xl font-bold text-gray-900">Management & Tools</h2>
+          </div>
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            {[
+              { name: 'Units Inventory', href: '/property-partner/dashboard/units', icon: 'home' as const, color: 'purple' },
+              { name: 'Leads Management', href: '/property-partner/dashboard/leads', icon: 'clipboard' as const, color: 'orange' },
+              { name: 'Reels Management', href: '/property-partner/dashboard/reels', icon: 'video' as const, color: 'blue' },
+              { name: 'Ads Requests', href: '/property-partner/dashboard/ads-requests', icon: 'megaphone' as const, color: 'indigo' },
+            ].map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className={`bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-${item.color}-200 transition-all text-center group relative`}
+              >
+                <div className="mb-3 flex justify-center"><SidebarIcon name={item.icon} className="w-6 h-6 text-gray-600" /></div>
+                <p className="font-semibold text-gray-900 text-sm">{item.name}</p>
+              </Link>
+            ))}
+          </div>
+
+          <div className="flex items-center gap-3 mb-6">
+            <h2 className="text-xl font-bold text-gray-900">Premium Team Management</h2>
             {!isPremium && (
-              <span className="bg-gray-100 text-gray-600 border border-gray-200 text-xs px-2.5 py-1 rounded-full font-bold flex items-center gap-1">
-                <SidebarIcon name="lock" className="w-3 h-3" /> Locked
+              <span className="bg-amber-50 text-amber-700 border border-amber-100 text-xs px-2.5 py-1 rounded-full font-bold flex items-center gap-1">
+                <SidebarIcon name="lock" className="w-3 h-3" /> Premium Feature
               </span>
             )}
           </div>
@@ -297,9 +317,6 @@ export default function PropertyPartnerDashboard() {
               { name: 'Brokers', href: '/property-partner/dashboard/brokers', icon: 'handshake' as const, color: 'indigo' },
               { name: 'Visit Executives', href: '/property-partner/dashboard/visit-executives', icon: 'pin' as const, color: 'rose' },
               { name: 'Project Allocation', href: '/property-partner/dashboard/projects/allocation', icon: 'building' as const, color: 'emerald' },
-              { name: 'Units Inventory', href: '/property-partner/dashboard/units', icon: 'home' as const, color: 'purple' },
-              { name: 'Leads', href: '/property-partner/dashboard/leads', icon: 'clipboard' as const, color: 'orange' },
-              { name: 'Reels Management', href: '/property-partner/dashboard/reels', icon: 'video' as const, color: 'blue' },
             ].map((item) => (
               <Link
                 key={item.name}

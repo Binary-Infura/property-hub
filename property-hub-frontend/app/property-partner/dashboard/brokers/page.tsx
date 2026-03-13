@@ -5,6 +5,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
 import { userService } from '@/app/services/userService';
 import InviteUserModal from '@/app/components/invitations/InviteUserModal';
+import PremiumLockedOverlay from '@/app/components/property-partner/PremiumLockedOverlay';
 
 interface Broker {
     id: string;
@@ -23,7 +24,8 @@ interface Broker {
 }
 
 export default function AllBrokersPage() {
-    const { token } = useAuth();
+    const { token, profileStatus } = useAuth();
+    const isPremium = profileStatus?.['PROPERTY_PARTNER']?.profileData?.isPremium;
     const [brokers, setBrokers] = useState<Broker[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
@@ -41,7 +43,7 @@ export default function AllBrokersPage() {
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
     const fetchBrokers = async () => {
-        if (!token) return;
+        if (!token || !isPremium) return;
         try {
             const response = await fetch(`${API_URL}/api/property-partners/brokers`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -77,7 +79,11 @@ export default function AllBrokersPage() {
             rera.toLowerCase().includes(q)
         );
     });
-
+    
+    if (!isPremium) {
+        return <PremiumLockedOverlay title="Brokers Network" description="Manage and track your authorized brokers, monitor their performance and manage RERA details." />;
+    }
+    
     if (loading) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">

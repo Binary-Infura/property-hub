@@ -5,9 +5,11 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { propertyService, Property } from '@/app/services/propertyService';
 import { userService, User } from '@/app/services/userService';
 import { cityService, City } from '@/app/services/cityService';
+import PremiumLockedOverlay from '@/app/components/property-partner/PremiumLockedOverlay';
 
 export default function ProjectPartnerBulkAllocationPage() {
-    const { token } = useAuth();
+    const { token, profileStatus } = useAuth();
+    const isPremium = profileStatus?.['PROPERTY_PARTNER']?.profileData?.isPremium;
     const [projects, setProjects] = useState<Property[]>([]);
     const [agents, setAgents] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
@@ -33,15 +35,16 @@ export default function ProjectPartnerBulkAllocationPage() {
 
     useEffect(() => {
         const loadInitialData = async () => {
-            if (!token) return;
+            if (!token || !isPremium) return;
             try {
                 setLoading(true);
                 // Fetch only "my" properties and agents
-                const [props, consultantsData, loanAdvisersData, visitExecutivesData, statesData] = await Promise.all([
+                const [props, consultantsData, loanAdvisersData, visitExecutivesData, brokersData, statesData] = await Promise.all([
                     propertyService.getAll(token, true),
                     userService.getAllByRole('CONSULTANT', token, true, 1, 100),
                     userService.getAllByRole('LOAN_ADVISOR', token, true, 1, 100),
                     userService.getAllByRole('VISIT_EXECUTIVE', token, true, 1, 100),
+                    userService.getAllByRole('BROKER', token, true, 1, 100),
                     cityService.getStates(token)
                 ]);
 
@@ -49,7 +52,8 @@ export default function ProjectPartnerBulkAllocationPage() {
                 const combined = [
                     ...consultantsData.data.map((u: User) => ({ ...u, role: u.role || 'CONSULTANT' })),
                     ...loanAdvisersData.data.map((u: User) => ({ ...u, role: u.role || 'LOAN_ADVISOR' })),
-                    ...visitExecutivesData.data.map((u: User) => ({ ...u, role: u.role || 'VISIT_EXECUTIVE' }))
+                    ...visitExecutivesData.data.map((u: User) => ({ ...u, role: u.role || 'VISIT_EXECUTIVE' })),
+                    ...brokersData.data.map((u: User) => ({ ...u, role: u.role || 'BROKER' }))
                 ];
 
                 // De-duplicate by ID
@@ -186,6 +190,10 @@ export default function ProjectPartnerBulkAllocationPage() {
             setProcessing(false);
         }
     };
+
+    if (!isPremium) {
+        return <PremiumLockedOverlay title="Project Allocation" description="Advanced project assignment tools to manage your team's workload and track performance across your portfolio." />;
+    }
 
     if (loading) {
         return (

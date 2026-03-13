@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
-import PremiumLockedOverlay from '@/app/components/property-partner/PremiumLockedOverlay';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -19,14 +18,13 @@ interface Lead {
 
 export default function LeadsPage() {
     const { token, profileStatus } = useAuth();
-    const isPremium = profileStatus?.['PROPERTY_PARTNER']?.profileData?.isPremium;
     const { activeContext } = useUnifiedApp();
     const [leads, setLeads] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         const fetchLeads = async () => {
-            if (!token || !isPremium) {
+            if (!token) {
                 setLoading(false);
                 return;
             }
@@ -48,11 +46,8 @@ export default function LeadsPage() {
         };
 
         fetchLeads();
-    }, [token, isPremium]);
+    }, [token]);
 
-    if (!isPremium) {
-        return <PremiumLockedOverlay title="Leads Management" description="Track and manage potential buyers, schedule visits, and close deals faster with our advanced tracking system." />;
-    }
 
     if (loading) {
         return (
