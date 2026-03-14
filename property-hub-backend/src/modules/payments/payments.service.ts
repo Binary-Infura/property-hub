@@ -1,5 +1,5 @@
 
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Razorpay from 'razorpay';
 import * as crypto from 'crypto';
@@ -29,6 +29,15 @@ export class PaymentsService {
       };
       const order = await this.razorpay.orders.create(options);
 
+      // Verify user exists first to prevent foreign key constraint failure
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId }
+      });
+
+      if (!user) {
+        throw new UnauthorizedException('User not found. Please log in again.');
+      }
+
       // Create a pending payment record
       await this.prisma.paymentOrder.create({
         data: {
@@ -44,6 +53,9 @@ export class PaymentsService {
       return order;
     } catch (error) {
       console.error('Error creating order:', error);
+      if (error.status === 401) {
+        throw error;
+      }
       throw new InternalServerErrorException('Error creating Razorpay order');
     }
   }
