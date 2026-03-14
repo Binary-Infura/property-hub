@@ -1,6 +1,6 @@
 'use client';
 
-import PropertySearchPage from '@/app/search/page';
+import PropertySearchPage from '@/app/(public-pages)/search/page';
 
 export default function DashboardSearchPage() {
     return (
