@@ -21,6 +21,10 @@ export default function PartnersPage() {
         primaryPlatform: '',
         channelLink: '',
         followerCount: '',
+        // Loan Advisor specific
+        lenderName: '',
+        loanTypes: '',
+        loanExperience: '',
     });
 
     const [errors, setErrors] = useState<Record<string, string>>({});
@@ -30,6 +34,7 @@ export default function PartnersPage() {
     const partnerTypes = [
         { id: 'PROPERTY_PARTNER', label: 'Property Partner' },
         { id: 'INFLUENCER', label: 'Influencer' },
+        { id: 'LOAN_ADVISOR', label: 'Loan Advisor' },
     ];
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -78,6 +83,11 @@ export default function PartnersPage() {
             if (!formData.primaryPlatform) newErrors.primaryPlatform = 'Primary platform is required';
             if (!formData.channelLink.trim()) newErrors.channelLink = 'Channel link is required';
             if (!formData.followerCount) newErrors.followerCount = 'Follower count is required';
+        }
+
+        if (formData.partnerType === 'LOAN_ADVISOR') {
+            if (!formData.loanTypes.trim()) newErrors.loanTypes = 'Please specify loan types you offer';
+            if (!formData.loanExperience) newErrors.loanExperience = 'Experience is required';
         }
 
         setErrors(newErrors);
@@ -148,7 +158,7 @@ export default function PartnersPage() {
                     </div>
 
                     {/* Cards Section */}
-                    <div className="grid md:grid-cols-2 lg:grid-cols-2 max-w-4xl mx-auto gap-6 mb-16">
+                    <div className="grid md:grid-cols-3 lg:grid-cols-3 max-w-5xl mx-auto gap-6 mb-16">
                         <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
                             <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mb-4 text-xl font-bold">
                                 1
@@ -165,6 +175,15 @@ export default function PartnersPage() {
                             <h3 className="text-lg font-bold text-gray-900 mb-2">Influencer</h3>
                             <p className="text-gray-600 text-sm leading-relaxed">
                                 Spread the word about PropertyHub. Partner with our brand for sponsored campaigns and affiliate rewards.
+                            </p>
+                        </div>
+                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
+                            <div className="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center mb-4 text-xl font-bold">
+                                3
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-900 mb-2">Loan Advisor</h3>
+                            <p className="text-gray-600 text-sm leading-relaxed">
+                                Help our homebuyers secure the best home loan deals. Connect them with top lenders and earn referral commissions.
                             </p>
                         </div>
                     </div>
@@ -262,7 +281,7 @@ export default function PartnersPage() {
                                         <label className="block text-sm font-semibold text-gray-700 mb-3">
                                             Partnership Type <span className="text-red-500">*</span>
                                         </label>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                             {partnerTypes.map(type => (
                                                 <label
                                                     key={type.id}
@@ -395,6 +414,59 @@ export default function PartnersPage() {
                                                         placeholder="https://instagram.com/yourhandle"
                                                     />
                                                     {errors.channelLink && <p className="mt-1 text-sm text-red-500">{errors.channelLink}</p>}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {formData.partnerType === 'LOAN_ADVISOR' && (
+                                        <div className="bg-green-50 p-6 rounded-xl border border-green-100 space-y-6 animate-fade-in">
+                                            <h3 className="text-lg font-bold text-green-900 border-b border-green-200 pb-2">Loan Advisor Details</h3>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                                        Bank / NBFC / Lender Name (Optional)
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        name="lenderName"
+                                                        value={formData.lenderName}
+                                                        onChange={handleChange}
+                                                        className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition border-gray-200 bg-white"
+                                                        placeholder="e.g. HDFC Bank, SBI, LIC HFL"
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                                        Years of Experience <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <select
+                                                        name="loanExperience"
+                                                        value={formData.loanExperience}
+                                                        onChange={handleChange}
+                                                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition ${errors.loanExperience ? 'border-red-400 focus:ring-red-500' : 'border-gray-200 bg-white'}`}
+                                                    >
+                                                        <option value="">Select experience</option>
+                                                        <option value="0-2">0-2 years</option>
+                                                        <option value="3-5">3-5 years</option>
+                                                        <option value="5-10">5-10 years</option>
+                                                        <option value="10+">10+ years</option>
+                                                    </select>
+                                                    {errors.loanExperience && <p className="mt-1 text-sm text-red-500">{errors.loanExperience}</p>}
+                                                </div>
+                                                <div className="md:col-span-2">
+                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                                        Loan Types Offered <span className="text-red-500">*</span>
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        name="loanTypes"
+                                                        value={formData.loanTypes}
+                                                        onChange={handleChange}
+                                                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition ${errors.loanTypes ? 'border-red-400 focus:ring-red-500' : 'border-gray-200 bg-white'}`}
+                                                        placeholder="e.g. Home Loan, Loan Against Property, Plot Loan"
+                                                    />
+                                                    {errors.loanTypes && <p className="mt-1 text-sm text-red-500">{errors.loanTypes}</p>}
                                                 </div>
                                             </div>
                                         </div>
