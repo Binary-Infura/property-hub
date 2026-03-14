@@ -220,7 +220,7 @@ export default function CentralAuthorityDashboardPage() {
                     </div>
                 </div>
 
-                <Link href="/central-authority/dashboard/properties" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-blue-300 transition-all hover:shadow-md group">
+                <Link href="/dashboard/properties" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-blue-300 transition-all hover:shadow-md group">
                     <h3 className="text-sm font-medium text-gray-500 group-hover:text-blue-600 transition-colors">Total Projects</h3>
                     <div className="flex items-end gap-2 mt-2">
                         <span className="text-3xl font-bold text-slate-900">{stats.projects.total}</span>
@@ -253,7 +253,7 @@ export default function CentralAuthorityDashboardPage() {
                     <p className="text-xs text-green-600 mt-1">+12% from last month</p>
                 </div>
 
-                <Link href="/central-authority/dashboard/postal-codes" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-blue-300 transition-all hover:shadow-md group">
+                <Link href="/dashboard/postal-codes" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-blue-300 transition-all hover:shadow-md group">
                     <h3 className="text-sm font-medium text-gray-500 group-hover:text-blue-600 transition-colors">Postal Codes</h3>
                     <p className="text-3xl font-bold text-slate-900 mt-2">{stats.totalPostalCodes.toLocaleString()}</p>
                     <p className="text-xs text-blue-600 mt-1">Manage platform postal data</p>
@@ -433,7 +433,7 @@ export default function CentralAuthorityDashboardPage() {
                             {showReraImport ? 'Close Importer' : 'Import RERA Data'}
                         </button>
                         <Link
-                            href="/central-authority/dashboard/rera-counts"
+                            href="/dashboard/rera-counts"
                             className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
                         >
                             View Details
@@ -496,7 +496,7 @@ export default function CentralAuthorityDashboardPage() {
                 {districtCounts.length > 5 && (
                     <div className="mt-4 pt-4 border-t border-gray-50">
                         <Link
-                            href="/central-authority/dashboard/rera-counts"
+                            href="/dashboard/rera-counts"
                             className="text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-wider flex items-center justify-center gap-1"
                         >
                             View All {districtCounts.length} Districts
@@ -515,7 +515,7 @@ export default function CentralAuthorityDashboardPage() {
 
             {/* Property Management Quick Access */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <Link href="/central-authority/dashboard/reviews" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-yellow-300 transition-all hover:shadow-md group">
+                <Link href="/dashboard/reviews" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-yellow-300 transition-all hover:shadow-md group">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-lg bg-yellow-50 flex items-center justify-center group-hover:bg-yellow-100 transition-colors">
                             <svg className="w-5 h-5 text-yellow-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -535,7 +535,7 @@ export default function CentralAuthorityDashboardPage() {
                     </div>
                 </Link>
 
-                <Link href="/central-authority/dashboard/properties/allocation" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-blue-300 transition-all hover:shadow-md group">
+                <Link href="/dashboard/properties/allocation" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-blue-300 transition-all hover:shadow-md group">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
                             <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -555,7 +555,7 @@ export default function CentralAuthorityDashboardPage() {
                     </div>
                 </Link>
 
-                <Link href="/central-authority/dashboard/commissions" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-green-300 transition-all hover:shadow-md group">
+                <Link href="/dashboard/commissions" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-green-300 transition-all hover:shadow-md group">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-lg bg-green-50 flex items-center justify-center group-hover:bg-green-100 transition-colors">
                             <svg className="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -575,7 +575,7 @@ export default function CentralAuthorityDashboardPage() {
                     </div>
                 </Link>
 
-                <Link href="/central-authority/dashboard/ads-requests" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-purple-300 transition-all hover:shadow-md group">
+                <Link href="/dashboard/ads-requests" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-purple-300 transition-all hover:shadow-md group">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-lg bg-purple-50 flex items-center justify-center group-hover:bg-purple-100 transition-colors">
                             <svg className="w-5 h-5 text-purple-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -595,7 +595,7 @@ export default function CentralAuthorityDashboardPage() {
                     </div>
                 </Link>
 
-                <Link href="/central-authority/dashboard/system-call-records" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-orange-300 transition-all hover:shadow-md group">
+                <Link href="/dashboard/system-call-records" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-orange-300 transition-all hover:shadow-md group">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-lg bg-orange-50 flex items-center justify-center group-hover:bg-orange-100 transition-colors">
                             <svg className="w-5 h-5 text-orange-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -614,7 +614,7 @@ export default function CentralAuthorityDashboardPage() {
                         </svg>
                     </div>
                 </Link>
-                <Link href="/central-authority/dashboard/organizations" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-indigo-300 transition-all hover:shadow-md group">
+                <Link href="/dashboard/organizations" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-indigo-300 transition-all hover:shadow-md group">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-lg bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100 transition-colors">
                             <svg className="w-5 h-5 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -654,7 +654,7 @@ export default function CentralAuthorityDashboardPage() {
                         ))}
                     </div>
                     <div className="mt-6 pt-4 border-t border-gray-100">
-                        <Link href="/central-authority/dashboard/audit-log" className="block w-full py-2.5 bg-gray-50 text-xs text-center text-gray-500 hover:text-gray-900 font-bold uppercase tracking-[0.2em] rounded-lg transition-all hover:bg-gray-100 active:scale-95">
+                        <Link href="/dashboard/audit-log" className="block w-full py-2.5 bg-gray-50 text-xs text-center text-gray-500 hover:text-gray-900 font-bold uppercase tracking-[0.2em] rounded-lg transition-all hover:bg-gray-100 active:scale-95">
                             View Audit Log
                         </Link>
                     </div>
@@ -665,7 +665,7 @@ export default function CentralAuthorityDashboardPage() {
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-lg font-semibold text-gray-900">Sent Invitations</h2>
                         <Link 
-                            href="/central-authority/dashboard/invitations"
+                            href="/dashboard/invitations"
                             className="text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-widest flex items-center gap-1"
                         >
                             View All

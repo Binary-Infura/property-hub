@@ -62,7 +62,7 @@ export default function AuditLogPage() {
                     <p className="text-gray-600 mt-1">Review every action taken across the platform.</p>
                 </div>
                 <Link
-                    href="/central-authority/dashboard"
+                    href="/dashboard"
                     className="text-sm font-semibold text-gray-500 hover:text-gray-900 flex items-center gap-1"
                 >
                     <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

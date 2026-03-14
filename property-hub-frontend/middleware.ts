@@ -97,11 +97,13 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // 5. Cleanup: if user manually enters role-specific URLs, we could optionally redirect to clean URL
-  // but for now we just let it pass if already at the internal path to avoid loops.
+  // 5. Cleanup: if user manually enters role-specific URLs, redirect to clean URL
   const currentRoleSlug = userRole ? ROLE_SLUG_MAP[userRole] : null;
-  if (currentRoleSlug && pathname.startsWith(`/${currentRoleSlug}/dashboard`)) {
-    // Optionally redirect to clean /dashboard/... URL here
+  if (currentRoleSlug && (pathname.startsWith(`/${currentRoleSlug}/dashboard`) || pathname === `/${currentRoleSlug}`)) {
+    const cleanPath = pathname.replace(`/${currentRoleSlug}`, '');
+    const finalPath = cleanPath === '' ? '/dashboard' : cleanPath;
+    console.log(`Middleware: Redirecting legacy/manual path ${pathname} -> ${finalPath}`);
+    return NextResponse.redirect(new URL(finalPath, request.url));
   }
 
   return NextResponse.next();

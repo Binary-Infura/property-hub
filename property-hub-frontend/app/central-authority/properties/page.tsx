@@ -192,7 +192,7 @@ export default function CentralAuthorityPropertiesPage() {
                                     </td>
                                     <td className="px-6 py-5">
                                         <Link
-                                            href={`/central-authority/dashboard/properties/${property.id}`}
+                                            href={`/dashboard/properties/${property.id}`}
                                             className="inline-flex items-center gap-2 px-3 py-1.5 bg-white border border-gray-100 rounded-xl text-xs font-bold text-blue-600 hover:bg-blue-600 hover:text-white hover:border-blue-600 hover:shadow-lg hover:shadow-blue-100 transition-all active:scale-95"
                                         >
                                             Manage
