@@ -3,9 +3,9 @@
 import React from 'react';
 import UnifiedDashboardLayout from '@/app/components/dashboard/UnifiedDashboardLayout';
 
-export default function PropertyPartnerLayout({ children }: { children: React.ReactNode }) {
+export default function MarketingManagerLayout({ children }: { children: React.ReactNode }) {
     return (
-        <UnifiedDashboardLayout requiredRole="PROPERTY_PARTNER" title="Property Partner Dashboard">
+        <UnifiedDashboardLayout requiredRole="MARKETING_MANAGER" title="Marketing Dashboard">
             {children}
         </UnifiedDashboardLayout>
     );

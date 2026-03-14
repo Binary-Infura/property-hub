@@ -1,0 +1,235 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/app/contexts/AuthContext';
+import Link from 'next/link';
+import InviteUserModal from '@/app/components/invitations/InviteUserModal';
+import PaymentDetailsModal from '@/app/components/dashboard/PaymentDetailsModal';
+
+
+interface PropertyPartner {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+    organization: {
+        id: string;
+        name: string;
+        isPremium: boolean;
+        subscriptionMode: 'PAID' | 'FREE';
+    } | null;
+    latestPayment?: {
+        id: string;
+        amount: number;
+        currency: string;
+        razorpayOrderId: string;
+        razorpayPaymentId: string;
+        createdAt: string;
+    } | null;
+}
+
+
+
+export default function AllPropertyPartnersPage() {
+    const { token } = useAuth();
+    const [partners, setPartners] = useState<PropertyPartner[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [updatingPartner, setUpdatingPartner] = useState<string | null>(null);
+    const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
+
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+    const fetchPartners = async () => {
+        if (!token) return;
+        try {
+            const response = await fetch(`${API_URL}/api/central-authority/property-partners`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                setPartners(data);
+            }
+        } catch (error) {
+            console.error('Failed to fetch partners:', error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    useEffect(() => {
+        fetchPartners();
+    }, [token, API_URL]);
+
+    const handleUpdateSubscription = async (userId: string, isPremium: boolean, mode: 'PAID' | 'FREE') => {
+        setUpdatingPartner(userId);
+        try {
+            const response = await fetch(`${API_URL}/api/central-authority/property-partners/${userId}/subscription`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ isPremium, subscriptionMode: mode })
+            });
+
+            if (response.ok) {
+                await fetchPartners();
+            } else {
+                alert('Failed to update subscription');
+            }
+        } catch (error) {
+            console.error('Error updating subscription:', error);
+            alert('Error updating subscription');
+        } finally {
+            setUpdatingPartner(null);
+        }
+    };
+
+    const [selectedPayment, setSelectedPayment] = useState<PropertyPartner['latestPayment'] | null>(null);
+
+    if (loading) {
+
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+            </div>
+        );
+    }
+
+    return (
+        <div className="space-y-8">
+            <div className="flex items-center gap-4">
+                <Link
+                   href="/dashboard" className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                >
+                    <svg className="w-6 h-6 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                </Link>
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900">All Property Partners</h1>
+                    <p className="text-gray-600 mt-1">Manage platform-wide property partner subscriptions</p>
+                </div>
+                <button
+                    onClick={() => setIsInviteModalOpen(true)}
+                    className="ml-auto px-6 py-2.5 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition shadow-xl shadow-slate-200 font-bold flex items-center gap-2 text-sm uppercase tracking-widest"
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Invite Partner
+                </button>
+            </div>
+
+            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left">
+                        <thead>
+                            <tr className="border-b border-gray-100 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                <th className="px-4 py-3">Partner Name</th>
+                                <th className="px-4 py-3">Email</th>
+                                <th className="px-4 py-3">Agency</th>
+                                <th className="px-4 py-3">Status</th>
+                                <th className="px-4 py-3">Mode</th>
+                                <th className="px-4 py-3 text-right">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody className="divide-y divide-gray-50">
+                            {partners.map((partner) => {
+                                const isPremium = partner.organization?.isPremium || false;
+                                const mode = partner.organization?.subscriptionMode || 'FREE';
+                                const agencyName = partner.organization?.name || '-';
+
+
+                                return (
+                                    <tr key={partner.id} className="text-sm group hover:bg-gray-50 transition-colors">
+                                        <td className="px-4 py-4 font-bold text-gray-900">
+                                            {partner.firstName} {partner.lastName}
+                                        </td>
+                                        <td className="px-4 py-4 text-gray-600">{partner.email}</td>
+                                        <td className="px-4 py-4 text-gray-600">{agencyName}</td>
+
+                                        <td className="px-4 py-4">
+                                            {isPremium ? (
+                                                <span className="bg-green-100 text-green-700 px-2 py-1 rounded-full text-[10px] font-bold uppercase">Premium</span>
+                                            ) : (
+                                                <span className="bg-gray-100 text-gray-500 px-2 py-1 rounded-full text-[10px] font-bold uppercase">Standard</span>
+                                            )}
+                                        </td>
+                                        <td className="px-4 py-4">
+                                            <div className="flex items-center gap-2">
+                                                <span className={`px-2 py-1 rounded-full text-[10px] font-bold uppercase ${mode === 'FREE' ? 'bg-orange-100 text-orange-700' : 'bg-blue-100 text-blue-700'
+                                                    }`}>
+                                                    {mode}
+                                                </span>
+                                                {partner.latestPayment && (
+                                                    <button
+                                                        onClick={() => setSelectedPayment(partner.latestPayment!)}
+                                                        className="p-1 hover:bg-blue-50 rounded-lg text-blue-600 transition-colors"
+                                                        title="View Payment Details"
+                                                    >
+                                                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                                        </svg>
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </td>
+
+                                        <td className="px-4 py-4 text-right">
+                                            {mode === 'PAID' ? (
+                                                <span className="text-xs font-bold text-gray-400 italic">Managed by Payment</span>
+                                            ) : !isPremium ? (
+                                                <button
+                                                    onClick={() => handleUpdateSubscription(partner.id, true, 'FREE')}
+                                                    disabled={updatingPartner === partner.id}
+                                                    className="text-xs font-bold text-blue-600 hover:text-blue-800 disabled:opacity-50"
+                                                >
+                                                    {updatingPartner === partner.id ? 'Updating...' : 'Gift Premium'}
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    onClick={() => handleUpdateSubscription(partner.id, false, 'FREE')}
+                                                    disabled={updatingPartner === partner.id}
+                                                    className="text-xs font-bold text-red-600 hover:text-red-800 disabled:opacity-50"
+                                                >
+                                                    {updatingPartner === partner.id ? 'Updating...' : 'Revoke Gift'}
+                                                </button>
+                                            )}
+                                        </td>
+
+
+                                    </tr>
+                                );
+                            })}
+                            {partners.length === 0 && (
+                                <tr>
+                                    <td colSpan={6} className="px-4 py-8 text-center text-gray-500 italic">
+                                        No property partners found.
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Payment Details Modal */}
+            <PaymentDetailsModal 
+                payment={selectedPayment || null} 
+                onClose={() => setSelectedPayment(null)} 
+            />
+
+            <InviteUserModal
+
+
+                isOpen={isInviteModalOpen}
+                onClose={() => setIsInviteModalOpen(false)}
+                onSuccess={fetchPartners}
+                forcedRole="PROPERTY_PARTNER"
+            />
+        </div>
+    );
+}

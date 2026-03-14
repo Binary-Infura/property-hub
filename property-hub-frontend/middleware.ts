@@ -81,9 +81,14 @@ export function middleware(request: NextRequest) {
     const roleSlug = isShared ? 'shared' : ROLE_SLUG_MAP[effectiveRole];
 
     if (roleSlug) {
-      // Rewrite /dashboard/:path* to /${roleSlug}/dashboard/:path*
+      // Rewrite /dashboard/:path* to internal structure
       const pathSuffix = pathname.replace('/dashboard', '');
-      const internalPath = `/${roleSlug}/dashboard${pathSuffix}`;
+      
+      // If pathSuffix is empty, we are at root /dashboard -> serve from /${roleSlug}/dashboard
+      // Otherwise (e.g., /reviews), serve from /${roleSlug}/reviews (flattened)
+      const internalPath = pathSuffix === '' || pathSuffix === '/'
+        ? `/${roleSlug}` 
+        : `/${roleSlug}${pathSuffix}`;
       
       console.log(`Middleware: [${effectiveRole}${userRole ? '' : ' (Fallback)'}] Rewriting ${pathname} -> ${internalPath}`);
       return NextResponse.rewrite(new URL(internalPath, request.url));

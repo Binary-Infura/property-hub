@@ -56,13 +56,13 @@ export default function PremiumLockedOverlay({ title, description }: PremiumLock
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-5 justify-center items-center">
-                    <Link href="/property-partner/dashboard/subscription" className="w-full sm:w-auto px-10 py-4 bg-white text-[#2563EB] font-bold rounded-2xl shadow-xl hover:shadow-2xl hover:bg-gray-50 hover:scale-[1.02] transition-all transform flex items-center justify-center gap-2 text-lg">
+                    <Link href="/dashboard/subscription" className="w-full sm:w-auto px-10 py-4 bg-white text-[#2563EB] font-bold rounded-2xl shadow-xl hover:shadow-2xl hover:bg-gray-50 hover:scale-[1.02] transition-all transform flex items-center justify-center gap-2 text-lg">
                         <span>Subscribe Now</span>
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                         </svg>
                     </Link>
-                    <Link href="/property-partner/dashboard" className="w-full sm:w-auto px-8 py-4 bg-[#1e40af]/30 text-white font-semibold rounded-2xl border border-blue-400/30 hover:bg-[#1e40af]/50 transition-colors backdrop-blur-sm flex items-center justify-center">
+                    <Link href="/dashboard" className="w-full sm:w-auto px-8 py-4 bg-[#1e40af]/30 text-white font-semibold rounded-2xl border border-blue-400/30 hover:bg-[#1e40af]/50 transition-colors backdrop-blur-sm flex items-center justify-center">
                         Maybe Later
                     </Link>
                 </div>
