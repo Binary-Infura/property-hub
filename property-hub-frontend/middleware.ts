@@ -77,8 +77,8 @@ export function middleware(request: NextRequest) {
     const isShared = sharedPaths.some(p => pathname === p || pathname.startsWith(p + '/'));
 
     // Determine the role slug for internal routing
-    // For shared pages, we always use 'buyer' as the canonical home
-    const roleSlug = isShared ? 'buyer' : ROLE_SLUG_MAP[effectiveRole];
+    // For shared pages, we always use 'shared' as the canonical home
+    const roleSlug = isShared ? 'shared' : ROLE_SLUG_MAP[effectiveRole];
 
     if (roleSlug) {
       // Rewrite /dashboard/:path* to /${roleSlug}/dashboard/:path*

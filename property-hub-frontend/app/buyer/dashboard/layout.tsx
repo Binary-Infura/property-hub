@@ -10,17 +10,10 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
-  
-  const sharedPaths = ['/dashboard/search', '/dashboard/loan', '/dashboard/saved', '/dashboard/inquiries', '/dashboard/documents'];
-  const isShared = sharedPaths.some(p => pathname.startsWith(p));
-  
-  // If it's a shared path, we don't require a specific role (just authentication).
-  // Otherwise, default to BUYER (the canonical user of /dashboard).
-  const requiredRole = isShared ? undefined : 'BUYER';
+  const requiredRole = 'BUYER';
 
   return (
-    <UnifiedDashboardLayout requiredRole={requiredRole as any} title="Dashboard">
+    <UnifiedDashboardLayout requiredRole={requiredRole} title="Buyer Dashboard">
       {children}
     </UnifiedDashboardLayout>
   );
