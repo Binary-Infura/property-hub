@@ -2,6 +2,7 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../database/prisma.service';
 import * as bcrypt from 'bcrypt';
+import { UserRole } from '../common/enums/role.enum';
 import { LoginDto } from './auth.dto';
 
 @Injectable()
@@ -17,9 +18,10 @@ export class AuthService {
         });
 
         if (user && user.passwordHash) {
-            // Block VISIT_EXECUTIVE from logging in
-            if (user.roles && user.roles.includes('VISIT_EXECUTIVE')) {
-                throw new UnauthorizedException('Visit Executives do not have login access');
+            // Block specific roles from logging in
+            if (user.roles && (user.roles.includes(UserRole.VISIT_EXECUTIVE as any) || user.roles.includes(UserRole.BROKER as any))) {
+                const blockedRole = user.roles.includes(UserRole.BROKER as any) ? 'Brokers' : 'Visit Executives';
+                throw new UnauthorizedException(`${blockedRole} do not have login access`);
             }
 
             const isMatch = await bcrypt.compare(pass, user.passwordHash);

@@ -89,8 +89,6 @@ function RegisterForm() {
         companyAddress: formData.companyAddress || undefined,
         taxId: formData.taxId || undefined,
         licenseNumber: formData.licenseNumber || undefined,
-        agencyName: formData.agencyName || undefined,
-        officeAddress: formData.officeAddress || undefined,
         reraNumber: formData.reraNumber || undefined,
       });
 
@@ -252,26 +250,7 @@ function RegisterForm() {
             </div>
           )}
 
-          {/* Broker Specific Fields */}
-          {invitation?.roles.includes('BROKER') && (
-            <div className="space-y-4 rounded-2xl border border-indigo-100 bg-indigo-50/40 p-5">
-              <p className="text-xs font-bold text-indigo-600 uppercase tracking-wider">🏷️ Agency Information (Broker)</p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">Agency / Business Name *</label>
-                  <input type="text" name="agencyName" required value={formData.agencyName} onChange={handleChange} placeholder="XYZ Realty" className="w-full px-5 py-3.5 bg-white border border-indigo-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none" />
-                </div>
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">RERA Number</label>
-                  <input type="text" name="reraNumber" value={formData.reraNumber} onChange={handleChange} placeholder="RERA/MH/12345" className="w-full px-5 py-3.5 bg-white border border-indigo-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none" />
-                </div>
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">Office Address</label>
-                  <input type="text" name="officeAddress" value={formData.officeAddress} onChange={handleChange} placeholder="Office 5, 2nd Floor, Commercial Complex, Pune" className="w-full px-5 py-3.5 bg-white border border-indigo-200 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 focus:border-indigo-500 transition-all outline-none" />
-                </div>
-              </div>
-            </div>
-          )}
+
 
           <button
             type="submit"

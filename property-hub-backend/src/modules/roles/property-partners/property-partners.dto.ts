@@ -39,9 +39,17 @@ export class CreateBrokerDto {
 
     @IsString()
     @IsOptional()
+    officeAddress?: string;
+
+    @IsString()
+    @IsOptional()
+    reraNumber?: string;
+
+    @IsString()
+    @IsOptional()
     reraId?: string;
 
     @IsString()
     @IsOptional()
-    brokerType?: string; // 'INDIVIDUAL' or 'ORGANIZATION'
+    brokerType?: 'INDIVIDUAL' | 'FIRM' | 'ORGANIZATION';
 }

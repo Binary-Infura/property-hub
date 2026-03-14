@@ -20,7 +20,6 @@ const ROLE_SLUG_MAP: Record<string, string> = {
   'BUYER': 'buyer',
   'CONSULTANT': 'consultant',
   'PROPERTY_PARTNER': 'property-partner',
-  'BROKER': 'broker',
   'LOAN_ADVISOR': 'loan-adviser',
   'CENTRAL_AUTHORITY': 'central-authority',
   'MARKETING_MANAGER': 'marketing-manager',

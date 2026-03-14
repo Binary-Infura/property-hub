@@ -6,10 +6,9 @@ import { UserRole } from '../../common/enums/role.enum';
  * Permission rules for chat access
  * 
  * Rules:
- * - Buyers can chat with: consultants, property-partners, brokers
+ * - Buyers can chat with: consultants, property-partners
  * - Consultants can chat with: buyers
  * - Project Partners can chat with: buyers
- * - Brokers can chat with: buyers
  */
 
 interface ChatPermissionRule {
@@ -19,7 +18,7 @@ interface ChatPermissionRule {
 
 const CHAT_PERMISSION_RULES: Record<string, ChatPermissionRule> = {
     [UserRole.BUYER]: {
-        canChatWith: [UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER, UserRole.BROKER],
+        canChatWith: [UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER],
         canViewChatsOf: 'self'
     },
     [UserRole.CONSULTANT]: {
@@ -30,10 +29,7 @@ const CHAT_PERMISSION_RULES: Record<string, ChatPermissionRule> = {
         canChatWith: [UserRole.BUYER],
         canViewChatsOf: 'self'
     },
-    [UserRole.BROKER]: {
-        canChatWith: [UserRole.BUYER],
-        canViewChatsOf: 'self'
-    },
+
     [UserRole.MARKETING_MANAGER]: {
         canChatWith: [],
         canViewChatsOf: 'self'

@@ -79,8 +79,8 @@ export class UsersService {
                 email: authenticatedUser.email || 'unknown',
                 firstName: authenticatedUser.firstName || authenticatedUser.username || 'System',
                 lastName: authenticatedUser.lastName || 'User',
-                roles: fallbackRoles,
-                primaryRole: fallbackRoles[0],
+                roles: fallbackRoles as any[],
+                primaryRole: fallbackRoles[0] as any,
             },
         });
     }
@@ -113,7 +113,7 @@ export class UsersService {
             const updatedUser = await this.prisma.user.update({
                 where: { id: existingUser.id },
                 data: {
-                    roles: updatedRoles,
+                    roles: updatedRoles as any[],
                     primaryRole: primaryRole as any,
                     // Optionally update other fields if they are missing or if we want to overwrite
                     phone: existingUser.phone || dto.phone,
@@ -135,15 +135,15 @@ export class UsersService {
 
         // Create/find organization if business info provided for specific roles
         let organizationId = dto.organizationId ?? null;
-        const needsOrg = dto.roles.includes(UserRole.PROPERTY_PARTNER) || dto.roles.includes(UserRole.BROKER);
-        const hasBusinessInfo = dto.companyName || dto.agencyName;
+        const needsOrg = dto.roles.includes(UserRole.PROPERTY_PARTNER);
+        const hasBusinessInfo = dto.companyName;
 
         if (needsOrg && hasBusinessInfo && !organizationId) {
-            const orgType = dto.roles.includes(UserRole.PROPERTY_PARTNER) ? OrganizationType.PROPERTY_PARTNER : OrganizationType.BROKERAGE as any;
+            const orgType = OrganizationType.PROPERTY_PARTNER;
             const org = await this.prisma.organization.create({
                 data: {
                     name: (dto.companyName || dto.agencyName) as string,
-                    type: orgType,
+                    type: orgType as any,
                     address: dto.companyAddress || dto.officeAddress,
                     taxId: dto.taxId,
                     licenseNumber: dto.licenseNumber || dto.reraNumber,
@@ -159,15 +159,17 @@ export class UsersService {
                 lastName: dto.lastName,
                 email: dto.email,
                 phone: dto.phone,
-                roles: dto.roles,
-                primaryRole: dto.primaryRole ?? dto.roles[0] ?? undefined,
+                roles: dto.roles as any[],
+                primaryRole: (dto.primaryRole ?? dto.roles[0] ?? undefined) as any,
                 reraId: dto.reraId,
                 organizationId,
                 onboardedById,
-                profileData: {
-                    brokerType: dto.brokerType,
+                profileData: (dto.roles.includes(UserRole.BROKER as any)) ? {
                     agencyName: dto.agencyName,
-                },
+                    officeAddress: dto.officeAddress,
+                    reraNumber: dto.reraNumber || dto.reraId,
+                    brokerType: dto.brokerType,
+                } : undefined,
             },
         });
 
@@ -234,8 +236,8 @@ export class UsersService {
                 phone: dto.phone,
                 avatarUrl: dto.avatarUrl,
                 status: dto.status as any,
-                roles: dto.roles,
-                primaryRole: dto.primaryRole ?? (dto.roles ? dto.roles[0] : undefined),
+                roles: dto.roles as any[],
+                primaryRole: (dto.primaryRole ?? (dto.roles ? dto.roles[0] : undefined)) as any,
                 reraId: dto.reraId,
                 organizationId: dto.organizationId,
             },
@@ -328,7 +330,7 @@ export class UsersService {
                 firstName: dto.firstName ?? user.firstName,
                 lastName: dto.lastName ?? user.lastName,
                 phone: dto.phone ?? user.phone,
-                primaryRole: dto.primaryRole ?? user.primaryRole,
+                primaryRole: (dto.primaryRole ?? user.primaryRole) as any,
                 profileData: mergedProfile,
             }
         });

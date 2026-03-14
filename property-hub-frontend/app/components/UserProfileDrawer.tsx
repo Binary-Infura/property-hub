@@ -21,10 +21,7 @@ export default function UserProfileDrawer() {
         companyAddress: '',
         taxId: '',
         licenseNumber: '',
-        // Broker
-        agencyBusinessName: '',
-        reraNumber: '',
-        officeAddress: '',
+
         // Consultant
         specialization: [],
         experienceYears: 0,
@@ -47,7 +44,7 @@ export default function UserProfileDrawer() {
         if (!user || !profileStatus) return;
 
         const pp = profileStatus['PROPERTY_PARTNER']?.profileData || {};
-        const br = profileStatus['BROKER']?.profileData || {};
+
         const co = profileStatus['CONSULTANT']?.profileData || {};
         const bu = profileStatus['BUYER']?.profileData || {};
         const inf = profileStatus['INFLUENCER']?.profileData || {};
@@ -64,10 +61,7 @@ export default function UserProfileDrawer() {
             companyAddress: pp.companyAddress || '',
             taxId: pp.taxId || '',
             licenseNumber: pp.licenseNumber || '',
-            // Broker
-            agencyBusinessName: br.agencyBusinessName || user.agencyName || '',
-            reraNumber: br.reraNumber || '',
-            officeAddress: br.officeAddress || '',
+
             // Consultant
             specialization: co.specialization || [],
             experienceYears: co.experienceYears || 0,
@@ -271,51 +265,7 @@ export default function UserProfileDrawer() {
                                 </div>
                             )}
 
-                            {/* Section: Broker */}
-                            {userRoles.includes('BROKER') && (
-                                <div className="space-y-6 pt-6 border-t border-gray-100">
-                                    <div className="flex items-center gap-2 mb-2">
-                                        <div className="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
-                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                            </svg>
-                                        </div>
-                                        <h3 className="text-sm font-black text-gray-900 uppercase tracking-wider">Broker Details</h3>
-                                    </div>
 
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Agency Name</label>
-                                        <input
-                                            type="text"
-                                            value={formData.agencyBusinessName}
-                                            onChange={(e) => setFormData({ ...formData, agencyBusinessName: e.target.value })}
-                                            className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all text-sm font-medium"
-                                            placeholder="Your Real Estate Firm"
-                                        />
-                                    </div>
-
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">RERA Number</label>
-                                        <input
-                                            type="text"
-                                            value={formData.reraNumber}
-                                            onChange={(e) => setFormData({ ...formData, reraNumber: e.target.value })}
-                                            className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all text-sm font-medium"
-                                            placeholder="A/123/456"
-                                        />
-                                    </div>
-
-                                    <div className="space-y-1.5">
-                                        <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Office Address</label>
-                                        <textarea
-                                            value={formData.officeAddress}
-                                            onChange={(e) => setFormData({ ...formData, officeAddress: e.target.value })}
-                                            className="w-full px-4 py-3 bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-500/20 focus:bg-white transition-all text-sm font-medium min-h-[80px]"
-                                            placeholder="Your business address"
-                                        />
-                                    </div>
-                                </div>
-                            )}
 
                             {/* Section: Consultant */}
                             {userRoles.includes('CONSULTANT') && (

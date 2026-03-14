@@ -637,8 +637,6 @@ enum ConsultantType {
 enum OrganizationType {
   PLATFORM
   PROPERTY_PARTNER
-  BROKERAGE
-  MARKETING_AGENCY
 }
 
 enum ProjectStatus {

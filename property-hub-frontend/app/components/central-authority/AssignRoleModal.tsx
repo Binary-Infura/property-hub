@@ -33,7 +33,7 @@ interface City {
 
 export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRole, fixedRole, isCityContext }: AssignRoleModalProps) {
     const { token } = useAuth();
-    const [role, setRole] = useState<RoleId>(initialRole || 'BROKER');
+    const [role, setRole] = useState<RoleId>(initialRole || 'MARKETING_MANAGER');
     const [selectedUserId, setSelectedUserId] = useState('');
     const [selectedCityIds, setSelectedCityIds] = useState<string[]>([]);
     const [users, setUsers] = useState<User[]>([]);
@@ -51,7 +51,6 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
     const ALL_ROLES: RoleId[] = [
-        'BROKER',
         'MARKETING_MANAGER',
 
     ];
@@ -209,7 +208,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
     };
 
     const resetForm = () => {
-        setRole(initialRole || 'BROKER');
+        setRole(initialRole || 'MARKETING_MANAGER');
         setSelectedUserId('');
         setSelectedCityIds([]);
         setUserSearch('');

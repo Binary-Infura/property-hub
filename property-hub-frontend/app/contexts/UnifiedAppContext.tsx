@@ -8,7 +8,6 @@ import { useAuth } from './AuthContext';
 // --- Types ---
 export type RoleId =
     | 'CENTRAL_AUTHORITY'
-    | 'BROKER'
     | 'MARKETING_MANAGER'
 
     | 'PROPERTY_PARTNER'
@@ -66,12 +65,6 @@ const KNOWN_ROLES: UserRole[] = [
         id: 'PROPERTY_PARTNER',
         name: 'Property Partner',
         permissionHint: 'Manage properties and inventory',
-        dashboardUrl: '/dashboard'
-    },
-    {
-        id: 'BROKER',
-        name: 'Real Estate Broker',
-        permissionHint: 'Referral, lead management and property creation',
         dashboardUrl: '/dashboard'
     },
     {

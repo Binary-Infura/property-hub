@@ -6,7 +6,7 @@ import { RequireRoles } from '../../../common/decorators/require-roles.decorator
 import { UserRole } from '../../../common/enums/role.enum';
 import { CurrentUser } from '../../../common/decorators/current-user.decorator';
 import { AuthenticatedUser } from '../../../common/interfaces/jwt-payload.interface';
-import { UpdatePropertyPartnerProfileDto, CreateBrokerDto } from './property-partners.dto';
+import { UpdatePropertyPartnerProfileDto } from './property-partners.dto';
 
 @Controller('api/property-partners')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -35,8 +35,8 @@ export class PropertyPartnersController {
     @Post('brokers')
     async createBroker(
         @CurrentUser() user: AuthenticatedUser,
-        @Body() dto: CreateBrokerDto,
+        @Body() dto: any, // Use any or CreateBrokerDto
     ) {
-        return this.propertyPartnersService.createBroker(user.userId, dto);
+        return this.propertyPartnersService.createBroker(dto, user);
     }
 }

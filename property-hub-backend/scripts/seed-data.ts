@@ -66,21 +66,19 @@ async function main() {
         budgetMin: 5000000,
         budgetMax: 100000000,
         preferredLocations: ['Mumbai', 'Pune', 'Bangalore', 'Delhi'],
-        // Broker fields
-        agencyName: 'Prestige Builders',
-        reraNumber: 'RERA12345',
-        officeAddress: '123 Builder Lane, Mumbai',
+        // Influencer fields
+        socialMediaLinks: {},
+        reach: 100000,
+        niche: 'Real Estate'
     };
 
     const roles: UserRole[] = [
         UserRole.CENTRAL_AUTHORITY,
-        UserRole.BROKER,
         UserRole.MARKETING_MANAGER,
         UserRole.CONSULTANT,
         UserRole.BUYER,
         UserRole.PROPERTY_PARTNER,
         UserRole.LOAN_ADVISOR,
-        UserRole.VISIT_EXECUTIVE,
         UserRole.INFLUENCER,
     ];
 
@@ -111,18 +109,17 @@ async function main() {
     const individualRoles = [
         UserRole.CENTRAL_AUTHORITY,
         UserRole.PROPERTY_PARTNER,
-        UserRole.BROKER,
+
         UserRole.BUYER,
         UserRole.CONSULTANT,
         UserRole.INFLUENCER,
         UserRole.MARKETING_MANAGER,
-        UserRole.VISIT_EXECUTIVE,
     ];
 
     for (const role of individualRoles) {
         let orgId = undefined;
-        // Optionally assign to organization if role demands it (like PP or Broker)
-        if (role === UserRole.PROPERTY_PARTNER || role === UserRole.BROKER) {
+        // Optionally assign to organization if role demands it (like PP)
+        if (role === UserRole.PROPERTY_PARTNER) {
             orgId = prestigeOrg.id;
         }
 

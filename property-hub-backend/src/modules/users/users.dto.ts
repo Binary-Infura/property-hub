@@ -116,6 +116,7 @@ export class CreateUserDto {
     @IsOptional()
     licenseNumber?: string;
 
+    // Broker Specific Fields
     @IsString()
     @IsOptional()
     agencyName?: string;
@@ -130,7 +131,15 @@ export class CreateUserDto {
 
     @IsString()
     @IsOptional()
-    brokerType?: string;
+    brokerType?: string; // 'INDIVIDUAL', 'FIRM'
+
+
+
+
+
+
+
+
 }
 
 export class UpdateUserDto {
@@ -188,6 +197,7 @@ export class UpdateUserDto {
     @IsOptional()
     licenseNumber?: string;
 
+    // Broker Specific Fields
     @IsString()
     @IsOptional()
     agencyName?: string;
@@ -199,6 +209,16 @@ export class UpdateUserDto {
     @IsString()
     @IsOptional()
     reraNumber?: string;
+
+    @IsString()
+    @IsOptional()
+    brokerType?: string;
+
+
+
+
+
+
 }
 
 export class UpdateProfileDto {
@@ -225,7 +245,7 @@ export class UpdateProfileDto {
      * BUYER:           { budgetMin, budgetMax, preferredLocations, propertyTypes }
      * CONSULTANT:      { consultantType, specialization, experienceYears, rating }
      * INFLUENCER:      { socialMediaLinks, reach, niche }
-     * BROKER:          { agencyName, reraNumber, officeAddress }
+     * BROKER:          { agencyName, officeAddress, reraNumber, brokerType }
      * PROPERTY_PARTNER: { companyName, companyAddress, taxId, licenseNumber }
      */
     @IsObject()

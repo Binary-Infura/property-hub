@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
 import { UpdatePropertyPartnerProfileDto, CreateBrokerDto } from './property-partners.dto';
+import { AuthenticatedUser } from '../../../common/interfaces/jwt-payload.interface';
 import { UsersService } from '../../users/users.service';
 import { UserRole } from '../../../common/enums/role.enum';
 import { OrganizationType } from '../../../common/enums/organization-type.enum';
@@ -31,52 +32,7 @@ export class PropertyPartnersService {
         };
     }
 
-    async getBrokers(userId: string) {
-        const user = await this.prisma.user.findUnique({
-            where: { id: userId },
-        });
-        if (!user || user.primaryRole !== 'PROPERTY_PARTNER') {
-            throw new NotFoundException('Property Partner not found');
-        }
 
-        const where: any = { 
-            roles: { has: UserRole.BROKER },
-            OR: [
-                { onboardedById: user.id }
-            ]
-        };
-        if (user.organizationId) {
-            where.OR.push({ organizationId: user.organizationId });
-        }
-
-        return this.prisma.user.findMany({
-            where,
-            include: {
-                organization: true,
-                onboardedBy: { select: { firstName: true, lastName: true } }
-            },
-            orderBy: { createdAt: 'desc' }
-        });
-    }
-
-    async createBroker(userId: string, dto: CreateBrokerDto) {
-        const currentUser = await this.prisma.user.findUnique({
-            where: { id: userId }
-        });
-
-        if (!currentUser || currentUser.primaryRole !== 'PROPERTY_PARTNER') {
-            throw new NotFoundException('Property Partner not found');
-        }
-
-        return this.usersService.createUser({
-            ...dto,
-            roles: [UserRole.BROKER],
-            primaryRole: UserRole.BROKER,
-            // If agencyName is provided, usersService will create an Organization.
-            // If not (Individual), we keep organizationId undefined so they are independent brokers.
-            organizationId: undefined,
-        }, { userId: currentUser.id, roles: currentUser.roles } as any);
-    }
 
     async upsertProfile(userId: string, dto: UpdatePropertyPartnerProfileDto) {
         const user = await this.prisma.user.findUnique({
@@ -101,5 +57,25 @@ export class PropertyPartnersService {
         }
 
         return this.getProfile(userId);
+    }
+
+    async getBrokers(userId: string) {
+        // Find users with BROKER role
+        return this.prisma.user.findMany({
+            where: {
+                roles: { has: UserRole.BROKER as any }
+            },
+            include: {
+                organization: true
+            }
+        });
+    }
+
+    async createBroker(dto: CreateBrokerDto, currentUser: AuthenticatedUser) {
+        return this.usersService.createUser({
+            ...dto,
+            roles: [UserRole.BROKER as any],
+            primaryRole: UserRole.BROKER as any
+        }, currentUser);
     }
 }
