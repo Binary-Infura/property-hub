@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { invitationService, Invitation } from '../services/invitationService';
+import { invitationService, Invitation } from '@/app/services/invitationService';
 
 function RegisterForm() {
   const router = useRouter();

@@ -1,6 +1,6 @@
-import Navbar from "./components/Navbar";
-import LoanCalculator from "./components/LoanCalculator";
-import DynamicReviews from "./components/DynamicReviews";
+import Navbar from "@/app/components/Navbar";
+import LoanCalculator from "@/app/components/LoanCalculator";
+import DynamicReviews from "@/app/components/DynamicReviews";
 
 export default function Home() {
   return (

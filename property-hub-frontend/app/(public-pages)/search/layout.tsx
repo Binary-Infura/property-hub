@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import Navbar from '../components/Navbar';
+import Navbar from '@/app/components/Navbar';
 
 export const metadata = {
   title: 'Search Properties - PropertyHub',

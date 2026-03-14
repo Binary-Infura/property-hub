@@ -3,8 +3,8 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { useAuth } from '../contexts/AuthContext';
-import { getDashboardRoute } from '../lib/routing';
+import { useAuth } from '@/app/contexts/AuthContext';
+import { getDashboardRoute } from '@/app/lib/routing';
 
 export default function SignInPage() {
     const { loginWithCredentials, authenticated, user, roles } = useAuth();

@@ -3,7 +3,7 @@
 import React, { Suspense, useEffect, useRef, useState, useCallback } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { reelService, Reel } from '../../services/reelService';
+import { reelService, Reel } from '@/app/services/reelService';
 
 const PAGE_SIZE = 10;
 

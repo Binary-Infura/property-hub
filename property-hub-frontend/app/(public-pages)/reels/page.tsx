@@ -1,9 +1,9 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import Navbar from '../components/Navbar';
-import ReelCard from '../components/ReelCard';
-import { reelService, Reel } from '../services/reelService';
+import Navbar from '@/app/components/Navbar';
+import ReelCard from '@/app/components/ReelCard';
+import { reelService, Reel } from '@/app/services/reelService';
 
 const PAGE_SIZE = 4;
 
