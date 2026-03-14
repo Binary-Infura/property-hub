@@ -9,8 +9,7 @@ export default function ReviewApprovalPage() {
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<'pending' | 'approved'>('pending');
 
-    // Global setting simulation (can be moved to a dedicated settings API later)
-    const [showViewAll, setShowViewAll] = useState(true);
+
 
     useEffect(() => {
         fetchAll();
@@ -70,16 +69,6 @@ export default function ReviewApprovalPage() {
                 </div>
 
                 <div className="flex flex-wrap items-center gap-4">
-                    <div className="flex items-center gap-3 bg-slate-50 px-4 py-2 rounded-2xl border border-slate-100">
-                        <span className="text-sm font-bold text-slate-600 italic">"View All" Button</span>
-                        <button
-                            onClick={() => setShowViewAll(!showViewAll)}
-                            className={`w-12 h-6 rounded-full transition-all relative ${showViewAll ? 'bg-blue-600' : 'bg-gray-300'}`}
-                        >
-                            <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-all ${showViewAll ? 'right-1' : 'left-1'}`} />
-                        </button>
-                    </div>
-
                     <div className="flex bg-gray-100 p-1.5 rounded-2xl">
                         <button
                             onClick={() => setActiveTab('pending')}
