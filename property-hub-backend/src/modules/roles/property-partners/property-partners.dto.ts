@@ -53,3 +53,4 @@ export class CreateBrokerDto {
     @IsOptional()
     brokerType?: 'INDIVIDUAL' | 'FIRM' | 'ORGANIZATION';
 }
+

@@ -8,6 +8,7 @@ async function main() {
 
     const passwordHash = await bcrypt.hash('password123', 10);
 
+
     // 1. Cities
     console.log('Creating Cities...');
     const citiesData = [
@@ -109,11 +110,11 @@ async function main() {
     const individualRoles = [
         UserRole.CENTRAL_AUTHORITY,
         UserRole.PROPERTY_PARTNER,
-
         UserRole.BUYER,
         UserRole.CONSULTANT,
         UserRole.INFLUENCER,
         UserRole.MARKETING_MANAGER,
+        UserRole.LOAN_ADVISOR,
     ];
 
     for (const role of individualRoles) {

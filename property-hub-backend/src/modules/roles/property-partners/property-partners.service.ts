@@ -1,10 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../database/prisma.service';
-import { UpdatePropertyPartnerProfileDto, CreateBrokerDto } from './property-partners.dto';
+import { UpdatePropertyPartnerProfileDto } from './property-partners.dto';
 import { AuthenticatedUser } from '../../../common/interfaces/jwt-payload.interface';
 import { UsersService } from '../../users/users.service';
 import { UserRole } from '../../../common/enums/role.enum';
 import { OrganizationType } from '../../../common/enums/organization-type.enum';
+import { CreateBrokerDto } from './property-partners.dto';
 
 @Injectable()
 export class PropertyPartnersService {

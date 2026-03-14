@@ -17,14 +17,12 @@ All test users share the same common password:
 | :--- | :--- |
 | **Central Authority** | `central_authority@propertyhub.com` |
 | **Property Partner** | `property_partner@propertyhub.com` |
-| **Broker** | `broker@propertyhub.com` |
 | **Buyer** | `buyer@propertyhub.com` |
 | **Consultant** | `consultant@propertyhub.com` |
 | **Influencer** | `influencer@propertyhub.com` |
 | **Marketing Manager** | `marketing_manager@propertyhub.com` |
 | **Loan Advisor** | `loan_advisor@propertyhub.com` |
 | **Onboarding Manager** | `onboarding_manager@propertyhub.com` |
-| **Visit Executive** | `visit_executive@propertyhub.com` |
 
 ## Seeding Command
 If you ever need to reset or recreate these users, you can run the seeding script:
