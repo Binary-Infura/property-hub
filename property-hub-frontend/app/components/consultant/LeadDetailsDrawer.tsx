@@ -410,9 +410,6 @@ export default function LeadDetailsDrawer({ lead, token, onClose, onStatusUpdate
                     </div>
                 )}
             </div>
-
-            {/* Backdrop-like close area if needed, but this is usually handled by parent. 
-                For now we just provide the drawer content. */}
         </div>
     );
 }

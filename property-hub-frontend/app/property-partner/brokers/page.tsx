@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
 import { userService } from '@/app/services/userService';
-import InviteUserModal from '@/app/components/invitations/InviteUserModal';
 import PremiumLockedOverlay from '@/app/components/property-partner/PremiumLockedOverlay';
 
 interface Broker {
@@ -15,11 +14,18 @@ interface Broker {
     phone?: string;
     reraId?: string;
     createdAt?: string;
-    profileData?: any;
+    profileData?: {
+        brokerType?: string;
+        agencyName?: string;
+    } | null;
     brokerProfile?: {
         agencyBusinessName: string;
         reraNumber?: string;
         officeAddress?: string;
+    } | null;
+    organization?: {
+        name: string;
+        type: string;
     } | null;
 }
 
@@ -38,6 +44,7 @@ export default function AllBrokersPage() {
         phone: '',
         agencyName: '',
         reraId: '',
+        brokerType: 'INDIVIDUAL',
     });
 
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
@@ -63,8 +70,40 @@ export default function AllBrokersPage() {
         fetchBrokers();
     }, [token, API_URL]);
 
-    const handleInviteBroker = () => {
-        setShowAddModal(true);
+    const handleAddBroker = async (e: React.FormEvent) => {
+        e.preventDefault();
+        setSubmitting(true);
+        try {
+            const response = await fetch(`${API_URL}/api/property-partners/brokers`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(formData)
+            });
+            if (response.ok) {
+                setShowAddModal(false);
+                setFormData({
+                    firstName: '',
+                    lastName: '',
+                    email: '',
+                    phone: '',
+                    agencyName: '',
+                    reraId: '',
+                    brokerType: 'INDIVIDUAL',
+                });
+                fetchBrokers();
+            } else {
+                const errorData = await response.json();
+                alert(errorData.message || 'Failed to add broker');
+            }
+        } catch (error) {
+            console.error('Error adding broker:', error);
+            alert('An error occurred. Please try again.');
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const filtered = brokers.filter((b) => {
@@ -118,7 +157,7 @@ export default function AllBrokersPage() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
-                    Invite New Broker
+                    Add New Broker
                 </button>
 
                 {/* Search */}
@@ -170,8 +209,8 @@ export default function AllBrokersPage() {
                                     </td>
                                     <td className="px-4 py-4">
                                         <span className="font-medium text-gray-800">
-                                            {broker.profileData?.agencyName || broker.brokerProfile?.agencyBusinessName || (
-                                                <span className="text-gray-400 italic">No agency</span>
+                                            {broker.organization?.name || broker.profileData?.agencyName || broker.brokerProfile?.agencyBusinessName || (
+                                                <span className="text-gray-400 italic">Individual</span>
                                             )}
                                         </span>
                                     </td>
@@ -208,13 +247,93 @@ export default function AllBrokersPage() {
                 </div>
             </div>
 
-            {/* Invite Modal */}
-            <InviteUserModal
-                isOpen={showAddModal}
-                onClose={() => setShowAddModal(false)}
-                onSuccess={fetchBrokers}
-                forcedRole="BROKER"
-            />
+            {/* Add Modal */}
+            {showAddModal && (
+                <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
+                  <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden transform transition-all animate-in zoom-in-95 duration-300 border border-white/20">
+                    <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
+                      <div>
+                        <h2 className="text-xl font-black text-slate-900">Add New Broker</h2>
+                        <p className="text-sm text-gray-500 font-medium mt-1">Directly add a broker to your network</p>
+                      </div>
+                      <button onClick={() => setShowAddModal(false)} className="p-2 hover:bg-gray-200 rounded-full transition-all hover:rotate-90">
+                        <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      </button>
+                    </div>
+
+                    <form onSubmit={handleAddBroker} className="p-6 space-y-4">
+                      {/* Broker Type Selection */}
+                      <div className="space-y-2">
+                        <label className="text-sm font-bold text-slate-700 ml-1">Broker Type</label>
+                        <div className="flex bg-slate-100 p-1.5 rounded-2xl">
+                          <button
+                            type="button"
+                            onClick={() => setFormData({...formData, brokerType: 'INDIVIDUAL', agencyName: ''})}
+                            className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${formData.brokerType === 'INDIVIDUAL' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                          >
+                            Individual
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setFormData({...formData, brokerType: 'ORGANIZATION'})}
+                            className={`flex-1 py-3 rounded-xl text-xs font-black uppercase tracking-widest transition-all ${formData.brokerType === 'ORGANIZATION' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-400 hover:text-slate-600'}`}
+                          >
+                            Organization
+                          </button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-sm font-bold text-slate-700 ml-1">First Name *</label>
+                          <input required type="text" value={formData.firstName} onChange={e => setFormData({...formData, firstName: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50/50 text-sm placeholder:text-gray-400" placeholder="John" />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-sm font-bold text-slate-700 ml-1">Last Name</label>
+                          <input type="text" value={formData.lastName} onChange={e => setFormData({...formData, lastName: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50/50 text-sm placeholder:text-gray-400" placeholder="Doe" />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-sm font-bold text-slate-700 ml-1">Email Address *</label>
+                        <input required type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50/50 text-sm placeholder:text-gray-400" placeholder="john@example.com" />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="text-sm font-bold text-slate-700 ml-1">Phone Number</label>
+                        <input type="tel" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50/50 text-sm placeholder:text-gray-400" placeholder="+91 98765 43210" />
+                      </div>
+
+                      {formData.brokerType === 'ORGANIZATION' ? (
+                        <div className="grid grid-cols-2 gap-4 animate-in slide-in-from-top-2 duration-300">
+                          <div className="space-y-1">
+                            <label className="text-sm font-bold text-slate-700 ml-1">Agency Name *</label>
+                            <input required={formData.brokerType === 'ORGANIZATION'} type="text" value={formData.agencyName} onChange={e => setFormData({...formData, agencyName: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50/50 text-sm placeholder:text-gray-400" placeholder="Agency LLC" />
+                          </div>
+                          <div className="space-y-1">
+                            <label className="text-sm font-bold text-slate-700 ml-1">RERA ID</label>
+                            <input type="text" value={formData.reraId} onChange={e => setFormData({...formData, reraId: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50/50 text-sm placeholder:text-gray-400" placeholder="RERA123" />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-1 animate-in slide-in-from-top-2 duration-300">
+                          <label className="text-sm font-bold text-slate-700 ml-1">RERA ID (Optional)</label>
+                          <input type="text" value={formData.reraId} onChange={e => setFormData({...formData, reraId: e.target.value})} className="w-full px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 bg-gray-50/50 text-sm placeholder:text-gray-400" placeholder="RERA123" />
+                        </div>
+                      )}
+
+                      <div className="flex gap-3 pt-4">
+                        <button type="button" onClick={() => setShowAddModal(false)} className="px-6 py-4 font-black tracking-widest uppercase text-slate-400 border-2 border-slate-100 hover:bg-slate-50 rounded-2xl transition-all text-xs w-1/3">Cancel</button>
+                        <button type="submit" disabled={submitting} className="px-6 py-4 font-black tracking-widest uppercase text-white bg-slate-900 hover:bg-slate-800 rounded-2xl transition-all shadow-xl shadow-slate-200 flex-[2] flex justify-center items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed text-xs">
+                          {submitting ? 'Adding...' : 'Add Broker'}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+            )}
         </div>
     );
 }

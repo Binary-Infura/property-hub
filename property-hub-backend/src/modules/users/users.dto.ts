@@ -127,6 +127,10 @@ export class CreateUserDto {
     @IsString()
     @IsOptional()
     reraNumber?: string;
+
+    @IsString()
+    @IsOptional()
+    brokerType?: string;
 }
 
 export class UpdateUserDto {

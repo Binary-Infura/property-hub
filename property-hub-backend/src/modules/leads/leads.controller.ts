@@ -117,7 +117,7 @@ export class LeadsController {
     }
 
     @Patch(':id')
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.MARKETING_MANAGER, UserRole.CONSULTANT)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.MARKETING_MANAGER, UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER)
     update(
         @Param('id') id: string,
         @Body() updateLeadDto: UpdateLeadDto,

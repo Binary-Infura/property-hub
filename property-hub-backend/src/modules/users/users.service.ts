@@ -164,7 +164,10 @@ export class UsersService {
                 reraId: dto.reraId,
                 organizationId,
                 onboardedById,
-                profileData: {},
+                profileData: {
+                    brokerType: dto.brokerType,
+                    agencyName: dto.agencyName,
+                },
             },
         });
 

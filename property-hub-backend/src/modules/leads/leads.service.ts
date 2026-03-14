@@ -39,6 +39,9 @@ export class LeadsService {
             // Remove undefined values from OR array
             where.OR = where.OR.filter((item: any) => Object.values(item)[0] !== undefined);
             if (where.OR.length === 0) return [];
+        } else if (user.roles.includes(UserRole.PROPERTY_PARTNER)) {
+            // Property partners can see all leads to assign them
+            where = {};
         } else {
             // Consultants and others only see their assigned leads
             where.assignedTo = user.userId;
@@ -144,9 +147,10 @@ export class LeadsService {
         // Authorization check: only central-authority, marketing-manager, and the assigned consultant can access the lead
         const isCentralAuthority = user.roles.includes(UserRole.CENTRAL_AUTHORITY);
         const isMarketingManager = user.roles.includes(UserRole.MARKETING_MANAGER);
+        const isPropertyPartner = user.roles.includes(UserRole.PROPERTY_PARTNER);
         const isAssignedConsultant = lead.assignedTo === user.userId;
 
-        if (!isCentralAuthority && !isMarketingManager && !isAssignedConsultant) {
+        if (!isCentralAuthority && !isMarketingManager && !isPropertyPartner && !isAssignedConsultant) {
             throw new NotFoundException(`Lead with ID ${id} not found`);
         }
 

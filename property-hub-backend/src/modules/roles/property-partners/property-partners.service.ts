@@ -39,16 +39,22 @@ export class PropertyPartnersService {
             throw new NotFoundException('Property Partner not found');
         }
 
-        const where: any = { roles: { has: UserRole.BROKER } };
+        const where: any = { 
+            roles: { has: UserRole.BROKER },
+            OR: [
+                { onboardedById: user.id }
+            ]
+        };
         if (user.organizationId) {
-            where.organizationId = user.organizationId;
-        } else {
-            // Fallback to onboardedBy if no organization link
-            where.onboardedById = user.id;
+            where.OR.push({ organizationId: user.organizationId });
         }
 
         return this.prisma.user.findMany({
             where,
+            include: {
+                organization: true,
+                onboardedBy: { select: { firstName: true, lastName: true } }
+            },
             orderBy: { createdAt: 'desc' }
         });
     }
@@ -66,7 +72,9 @@ export class PropertyPartnersService {
             ...dto,
             roles: [UserRole.BROKER],
             primaryRole: UserRole.BROKER,
-            organizationId: currentUser.organizationId || undefined,
+            // If agencyName is provided, usersService will create an Organization.
+            // If not (Individual), we keep organizationId undefined so they are independent brokers.
+            organizationId: undefined,
         }, { userId: currentUser.id, roles: currentUser.roles } as any);
     }
 

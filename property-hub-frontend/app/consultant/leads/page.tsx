@@ -5,6 +5,8 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { consultantService } from '@/app/services/consultantService';
 import VideoCallModal from '@/app/components/consultant/VideoCallModal';
 import LeadDetailsDrawer from '@/app/components/consultant/LeadDetailsDrawer';
+import { marketingService } from '@/app/services/marketingService';
+import { organizationService } from '@/app/services/organizationService';
 
 // ─── Call Modal ───────────────────────────────────────────────────────────────
 interface CallModalProps {
@@ -109,6 +111,22 @@ export default function LeadsPage() {
     const [sendingLinkId, setSendingLinkId] = useState<string | null>(null);
     const [sendingChannel, setSendingChannel] = useState<'email' | 'whatsapp' | null>(null);
 
+    // Manual Lead Form State
+    const [showCreateModal, setShowCreateModal] = useState(false);
+    const [submitting, setSubmitting] = useState(false);
+    const [formData, setFormData] = useState({
+        name: '',
+        phone: '',
+        email: '',
+        projectId: '',
+        source: 'Manual',
+        notes: ''
+    });
+
+    const [availableProperties, setAvailableProperties] = useState<any[]>([]);
+    const [allBrokers, setAllBrokers] = useState<any[]>([]);
+    const [selectedBroker, setSelectedBroker] = useState<string>('');
+
     useEffect(() => {
         async function fetchData() {
             if (!token) return;
@@ -184,7 +202,63 @@ export default function LeadsPage() {
             }
         }
         fetchData();
+
+        if (token) {
+            marketingService.getProperties(token).then(setAvailableProperties);
+            // Fetch brokers from organizations of type BROKERAGE
+            fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/organizations?type=BROKERAGE`, {
+                headers: { Authorization: `Bearer ${token}` }
+            })
+            .then(r => r.json())
+            .then(async (orgs: any[]) => {
+                const brokersPromises = orgs.map(org => 
+                    organizationService.getMembers(token, org.id, 'BROKER').then(members => 
+                        members.map((m: any) => ({ ...m, organization: org }))
+                    )
+                );
+                const results = await Promise.all(brokersPromises);
+                setAllBrokers(results.flat());
+            })
+            .catch(err => console.error("Error fetching brokers for consultant:", err));
+        }
     }, [token]);
+
+    const handleCreateLead = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (!token) return;
+        setSubmitting(true);
+        try {
+            let sourceLabel = formData.source;
+            if (selectedBroker) {
+                const broker = allBrokers.find(b => b.id === selectedBroker);
+                sourceLabel = `Broker: ${broker?.firstName} ${broker?.lastName}`;
+            }
+
+            await marketingService.createLead(token, {
+                ...formData,
+                source: sourceLabel,
+                projectId: formData.projectId || undefined,
+            });
+
+            setShowCreateModal(false);
+            setFormData({
+                name: '',
+                phone: '',
+                email: '',
+                projectId: '',
+                source: 'Manual',
+                notes: ''
+            });
+            setSelectedBroker('');
+            // Refresh list
+            window.location.reload(); 
+        } catch (error) {
+            console.error('Error creating lead:', error);
+            alert('Error creating lead');
+        } finally {
+            setSubmitting(false);
+        }
+    };
 
     // Update campaigns list when project changes
     useEffect(() => {
@@ -316,11 +390,18 @@ export default function LeadsPage() {
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-white"></span>
                         </span>
-                        <div className="flex flex-col">
+                    <div className="flex flex-col">
                             <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider leading-none mb-1">Total Found</span>
                             <span className="text-sm font-bold text-slate-800 leading-none">{filteredLeads.length} Leads</span>
                         </div>
                     </div>
+                    <button
+                        onClick={() => setShowCreateModal(true)}
+                        className="px-6 py-3.5 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 flex items-center gap-2 active:scale-95"
+                    >
+                        <svg className="w-5 h-5 font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" /></svg>
+                        Create Manual Lead
+                    </button>
                 </div>
 
                 {/* Filters Board */}
@@ -613,6 +694,136 @@ export default function LeadsPage() {
                     leadName={selectedLeadForVideo.name || 'User'}
                     onClose={() => setSelectedLeadForVideo(null)}
                 />
+            )}
+
+            {/* Create Manual Lead Modal */}
+            {showCreateModal && (
+                <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-[100] p-4">
+                    <div className="bg-white rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl overflow-y-auto max-h-[90vh] border border-white/20">
+                        <div className="flex justify-between items-center mb-8">
+                            <div>
+                                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Add New Lead</h2>
+                                <p className="text-slate-500 mt-1 font-medium italic">Inject a new prospect into the sales engine</p>
+                            </div>
+                            <button onClick={() => setShowCreateModal(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
+                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                        </div>
+
+                        <form onSubmit={handleCreateLead} className="space-y-6">
+                            <div className="grid grid-cols-1 gap-6">
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Lead Name</label>
+                                    <input
+                                        type="text"
+                                        required
+                                        value={formData.name}
+                                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                                        className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300"
+                                        placeholder="Full Name"
+                                    />
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-6">
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">WhatsApp / Phone</label>
+                                        <input
+                                            type="tel"
+                                            required
+                                            value={formData.phone}
+                                            onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                                            className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300"
+                                            placeholder="+91..."
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Email Address</label>
+                                        <input
+                                            type="email"
+                                            value={formData.email}
+                                            onChange={(e) => setFormData({...formData, email: e.target.value})}
+                                            className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-slate-900 placeholder:text-slate-300"
+                                            placeholder="prospect@domain.com"
+                                        />
+                                    </div>
+                                </div>
+
+                                    <div className="grid grid-cols-1 gap-6">
+                                        <div>
+                                            <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3">Interested Project</label>
+                                            <div className="relative">
+                                                <select
+                                                    value={formData.projectId}
+                                                    onChange={(e) => setFormData({...formData, projectId: e.target.value})}
+                                                    className="w-full pl-6 pr-12 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-slate-900 appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207.5L10%2012.5L15%207.5%22%20stroke%3D%22%2364748b%22%20stroke-width%3D%221.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:1.2rem_1.2rem] bg-[right_1.5rem_center] bg-no-repeat"
+                                                >
+                                                    <option value="">Select Property</option>
+                                                    {availableProperties.map(p => (
+                                                        <option key={p.id} value={p.id}>{p.name}</option>
+                                                    ))}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                <div className="p-6 bg-blue-50/50 rounded-3xl border border-blue-100 space-y-4 shadow-inner">
+                                    <div className="flex items-center gap-2 mb-2">
+                                        <div className="p-1.5 bg-blue-600 rounded-lg text-white shadow-md shadow-blue-100/50">
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                                        </div>
+                                        <h3 className="text-[10px] font-black text-blue-900 uppercase tracking-widest">Broker Referral</h3>
+                                    </div>
+                                    
+                                    <div>
+                                        <label className="block text-[10px] font-bold text-blue-400 uppercase mb-2 ml-1 opacity-60">Select Professional</label>
+                                        <div className="relative">
+                                            <select
+                                                value={selectedBroker}
+                                                onChange={(e) => setSelectedBroker(e.target.value)}
+                                                className="w-full pl-5 pr-10 py-3.5 bg-white border border-blue-100 rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition-all text-sm font-bold text-slate-800 shadow-sm appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207.5L10%2012.5L15%207.5%22%20stroke%3D%22%232563eb%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_1.25rem_center] bg-no-repeat"
+                                            >
+                                                <option value="">No Referral (Direct)</option>
+                                                {allBrokers.map(u => (
+                                                    <option key={u.id} value={u.id}>
+                                                        {u.firstName} {u.lastName} {u.organization?.name ? `(${u.organization.name})` : ''}
+                                                    </option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Discovery Notes</label>
+                                    <textarea
+                                        rows={3}
+                                        value={formData.notes}
+                                        onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                                        className="w-full px-5 py-4 bg-slate-50 border border-slate-100 rounded-2xl focus:ring-2 focus:ring-blue-500 outline-none transition-all font-bold text-slate-900 resize-none placeholder:text-slate-300"
+                                        placeholder="Any unique context or requirements..."
+                                    />
+                                </div>
+                            </div>
+
+                            <div className="flex gap-4 pt-4">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowCreateModal(false)}
+                                    className="flex-1 py-4 border border-slate-200 text-slate-500 rounded-2xl font-bold hover:bg-slate-50 transition-all active:scale-95"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    disabled={submitting}
+                                    className="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 disabled:opacity-50 shadow-xl shadow-blue-100 transition-all transform active:scale-95"
+                                >
+                                    {submitting ? 'Injecting...' : 'Add Lead to Hub'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
             )}
         </div>
     );

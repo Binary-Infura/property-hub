@@ -40,4 +40,8 @@ export class CreateBrokerDto {
     @IsString()
     @IsOptional()
     reraId?: string;
+
+    @IsString()
+    @IsOptional()
+    brokerType?: string; // 'INDIVIDUAL' or 'ORGANIZATION'
 }
