@@ -653,6 +653,26 @@ export default function CentralAuthorityDashboardPage() {
                         </svg>
                     </div>
                 </Link>
+
+                <Link href="/dashboard/cities" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-rose-300 transition-all hover:shadow-md group">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-lg bg-rose-50 flex items-center justify-center group-hover:bg-rose-100 transition-colors">
+                            <svg className="w-5 h-5 text-rose-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-semibold text-gray-900 group-hover:text-rose-600 transition-colors">Cities</h3>
+                            <p className="text-xs text-gray-500">{stats.cities?.length || 0} Registered</p>
+                        </div>
+                    </div>
+                    <div className="text-xs font-semibold text-rose-600 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        View System Cities
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                </Link>
             </div>
 
             {/* Recent Activity & Invitations Row */}

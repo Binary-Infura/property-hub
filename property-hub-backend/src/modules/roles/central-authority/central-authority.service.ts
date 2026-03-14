@@ -71,7 +71,7 @@ export class CentralAuthorityService {
     }
 
     async getDashboardStats() {
-        const [totalRevenue, totalPostalCodes, projectStats, userStats, recentInvitations, totalOrganizations] = await Promise.all([
+        const [totalRevenue, totalPostalCodes, projectStats, userStats, recentInvitations, totalOrganizations, cities] = await Promise.all([
             this.prisma.paymentOrder.aggregate({
                 where: { status: 'SUCCESS' },
                 _sum: { amount: true }
@@ -91,7 +91,8 @@ export class CentralAuthorityService {
                     }
                 }
             }),
-            this.prisma.organization.count()
+            this.prisma.organization.count(),
+            this.prisma.city.findMany({ select: { id: true, name: true } })
         ]);
 
         const projects = {
@@ -121,6 +122,7 @@ export class CentralAuthorityService {
             users,
             leads: { monthly: 0 },
             regions: [],
+            cities,
             recentActivity,
             recentInvitations
         };
