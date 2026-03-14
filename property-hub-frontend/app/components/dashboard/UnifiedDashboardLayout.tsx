@@ -9,7 +9,7 @@ import { RoleId } from '@/app/contexts/UnifiedAppContext';
 
 interface UnifiedDashboardLayoutProps {
     children: React.ReactNode;
-    requiredRole: RoleId;
+    requiredRole?: RoleId;
     title: string;
 }
 

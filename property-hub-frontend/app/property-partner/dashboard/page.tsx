@@ -183,10 +183,10 @@ export default function PropertyPartnerDashboard() {
             <p className="text-gray-600 mt-1">Overview of your project portfolio</p>
           </div>
           <div className="flex gap-3">
-            <Link href="/property-partner/dashboard/projects" className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-semibold hover:bg-blue-100 transition-colors flex items-center gap-2">
+            <Link href="/dashboard/projects" className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-semibold hover:bg-blue-100 transition-colors flex items-center gap-2">
               <SidebarIcon name="building" className="w-4 h-4" /> My Projects
             </Link>
-            <Link href="/property-partner/dashboard/units" className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg font-semibold hover:bg-emerald-100 transition-colors flex items-center gap-2">
+            <Link href="/dashboard/units" className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg font-semibold hover:bg-emerald-100 transition-colors flex items-center gap-2">
               <SidebarIcon name="home" className="w-4 h-4" /> All Units
             </Link>
           </div>
@@ -287,10 +287,10 @@ export default function PropertyPartnerDashboard() {
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {[
-              { name: 'Units Inventory', href: '/property-partner/dashboard/units', icon: 'home' as const, color: 'purple' },
-              { name: 'Leads Management', href: '/property-partner/dashboard/leads', icon: 'clipboard' as const, color: 'orange' },
-              { name: 'Reels Management', href: '/property-partner/dashboard/reels', icon: 'video' as const, color: 'blue' },
-              { name: 'Ads Requests', href: '/property-partner/dashboard/ads-requests', icon: 'megaphone' as const, color: 'indigo' },
+              { name: 'Units Inventory', href: '/dashboard/units', icon: 'home' as const, color: 'purple' },
+              { name: 'Leads Management', href: '/dashboard/leads', icon: 'clipboard' as const, color: 'orange' },
+              { name: 'Reels Management', href: '/dashboard/reels', icon: 'video' as const, color: 'blue' },
+              { name: 'Ads Requests', href: '/dashboard/ads-requests', icon: 'megaphone' as const, color: 'indigo' },
             ].map((item) => (
               <Link
                 key={item.name}
@@ -313,10 +313,10 @@ export default function PropertyPartnerDashboard() {
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
             {[
-              { name: 'Consultants', href: '/property-partner/dashboard/consultants', icon: 'person' as const, color: 'blue' },
-              { name: 'Brokers', href: '/property-partner/dashboard/brokers', icon: 'handshake' as const, color: 'indigo' },
-              { name: 'Visit Executives', href: '/property-partner/dashboard/visit-executives', icon: 'pin' as const, color: 'rose' },
-              { name: 'Project Allocation', href: '/property-partner/dashboard/projects/allocation', icon: 'building' as const, color: 'emerald' },
+              { name: 'Consultants', href: '/dashboard/consultants', icon: 'person' as const, color: 'blue' },
+              { name: 'Brokers', href: '/dashboard/brokers', icon: 'handshake' as const, color: 'indigo' },
+              { name: 'Visit Executives', href: '/dashboard/visit-executives', icon: 'pin' as const, color: 'rose' },
+              { name: 'Project Allocation', href: '/dashboard/projects/allocation', icon: 'building' as const, color: 'emerald' },
             ].map((item) => (
               <Link
                 key={item.name}

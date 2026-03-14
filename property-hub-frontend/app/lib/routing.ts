@@ -28,15 +28,15 @@ export type UserRole =
  */
 export const DASHBOARD_ROUTES: Record<string, string> = {
   BUYER: '/dashboard',
-  CONSULTANT: '/consultant/dashboard',
-  PROPERTY_PARTNER: '/property-partner/dashboard',
-  BROKER: '/broker/dashboard',
-  LOAN_ADVISOR: '/loan-adviser/dashboard',
-  VISIT_EXECUTIVE: '/visit-executive/dashboard',
-  ONBOARDING_MANAGER: '/onboarding-manager/dashboard',
-  CENTRAL_AUTHORITY: '/central-authority/dashboard',
-  MARKETING_MANAGER: '/marketing-manager/dashboard',
-  INFLUENCER: '/influencer/dashboard',
+  CONSULTANT: '/dashboard',
+  PROPERTY_PARTNER: '/dashboard',
+  BROKER: '/dashboard',
+  LOAN_ADVISOR: '/dashboard',
+  VISIT_EXECUTIVE: '/dashboard',
+  ONBOARDING_MANAGER: '/dashboard',
+  CENTRAL_AUTHORITY: '/dashboard',
+  MARKETING_MANAGER: '/dashboard',
+  INFLUENCER: '/dashboard',
 };
 
 /**
@@ -51,37 +51,9 @@ export function getDashboardRoute(role: string): string {
  * Returns standardized role name
  */
 export function getRoleFromPath(pathname: string): UserRole | null {
-  if (pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
-    return 'BUYER';
-  }
-  if (pathname.startsWith('/consultant/dashboard')) {
-    return 'CONSULTANT';
-  }
-  if (pathname.startsWith('/property-partner/dashboard')) {
-    return 'PROPERTY_PARTNER';
-  }
-  if (pathname.startsWith('/broker/dashboard')) {
-    return 'BROKER';
-  }
-  if (pathname.startsWith('/loan-adviser/dashboard')) {
-    return 'LOAN_ADVISOR';
-  }
-  if (pathname.startsWith('/visit-executive/dashboard')) {
-    return 'VISIT_EXECUTIVE';
-  }
-  if (pathname.startsWith('/onboarding-manager/dashboard')) {
-    return 'ONBOARDING_MANAGER';
-  }
-  if (pathname.startsWith('/central-authority/dashboard')) {
-    return 'CENTRAL_AUTHORITY';
-  }
-  if (pathname.startsWith('/marketing-manager/dashboard')) {
-    return 'MARKETING_MANAGER';
-  }
-  if (pathname.startsWith('/influencer/dashboard')) {
-    return 'INFLUENCER';
-  }
-
+  // Since all roles now share /dashboard, we can't reliably infer role from path alone.
+  // Role inference should now happen via AuthContext/cookies or explicit requiredRole props.
+  // We return null to allow RouteGuard to use its explicit requirements.
   return null;
 }
 

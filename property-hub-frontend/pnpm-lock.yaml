@@ -14,6 +14,9 @@ dependencies:
   axios:
     specifier: ^1.13.5
     version: 1.13.6
+  cookies-next:
+    specifier: ^6.1.1
+    version: 6.1.1(next@16.1.1)(react@19.2.3)
   country-state-city:
     specifier: ^3.2.1
     version: 3.2.1
@@ -1566,6 +1569,22 @@ packages:
 
   /convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
+
+  /cookie@1.1.1:
+    resolution: {integrity: sha512-ei8Aos7ja0weRpFzJnEA9UHJ/7XQmqglbRwnf2ATjcB9Wq874VKH9kfjjirM6UhU2/E5fFYadylyhFldcqSidQ==}
+    engines: {node: '>=18'}
+    dev: false
+
+  /cookies-next@6.1.1(next@16.1.1)(react@19.2.3):
+    resolution: {integrity: sha512-8JZBc4IN2m8xqOXyG7uicth6yH3SvynAUGSeV/FQ5lcEclzNGoR0+YCjySdn8r6keZdRyGQr4YJ8qy8F+Jq5uw==}
+    peerDependencies:
+      next: '>=15.0.0'
+      react: '>= 16.8.0'
+    dependencies:
+      cookie: 1.1.1
+      next: 16.1.1(@babel/core@7.29.0)(react-dom@19.2.3)(react@19.2.3)
+      react: 19.2.3
+    dev: false
 
   /country-state-city@3.2.1:
     resolution: {integrity: sha512-kxbanqMc6izjhc/EHkGPCTabSPZ2G6eG4/97akAYHJUN4stzzFEvQPZoF8oXDQ+10gM/O/yUmISCR1ZVxyb6EA==}

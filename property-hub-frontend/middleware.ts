@@ -1,0 +1,116 @@
+import { NextResponse } from 'next/server';
+import type { NextRequest } from 'next/server';
+
+const PUBLIC_PATHS = new Set([
+  'signin',
+  'register',
+  'search',
+  'reels',
+  'partners',
+  'api',
+  '_next',
+  'favicon.ico',
+  'sw.js',
+  'manifest.json',
+  'apple-icon.png',
+  'logo.png',
+]);
+
+const ROLE_SLUG_MAP: Record<string, string> = {
+  'BUYER': 'buyer',
+  'CONSULTANT': 'consultant',
+  'PROPERTY_PARTNER': 'property-partner',
+  'BROKER': 'broker',
+  'LOAN_ADVISOR': 'loan-adviser',
+  'VISIT_EXECUTIVE': 'visit-executive',
+  'ONBOARDING_MANAGER': 'onboarding-manager',
+  'CENTRAL_AUTHORITY': 'central-authority',
+  'MARKETING_MANAGER': 'marketing-manager',
+  'INFLUENCER': 'influencer',
+};
+
+export function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+  const segments = pathname.split('/').filter(Boolean);
+  const firstSegment = segments[0];
+
+  // 1. Skip if it's a known public path or asset
+  if (firstSegment && PUBLIC_PATHS.has(firstSegment)) {
+    return NextResponse.next();
+  }
+
+  // 2. Get the role from the cookie or fall back to decoding the JWT token
+  let userRole = request.cookies.get('user_role')?.value;
+
+  if (!userRole) {
+    const authToken = request.cookies.get('auth_token')?.value;
+    if (authToken) {
+      try {
+        const payloadBase64 = authToken.split('.')[1];
+        if (payloadBase64) {
+          const base64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
+          const payloadJson = atob(base64);
+          const payload = JSON.parse(payloadJson);
+          userRole = payload.primaryRole || (payload.roles && payload.roles[0]);
+          console.log(`Middleware: Recovered role "${userRole}" from JWT token`);
+        }
+      } catch (e) {
+        console.error('Middleware: Failed to decode auth_token', e);
+      }
+    }
+  }
+
+  // 3. If no role can be determined, just serve the page or fallback to landing
+  if (!userRole) {
+    return NextResponse.next();
+  }
+
+  // 4. Handle Rewriting for /dashboard
+  if (pathname === '/dashboard' || pathname.startsWith('/dashboard/')) {
+    
+    // Fallback if no role cookie is present - default to BUYER as a graceful fallback
+    // This avoids 404s when the role cookie hasn't synced yet.
+    const effectiveRole = userRole || 'BUYER';
+    
+    // Special case for shared pages to avoid 404 and allow cross-role access
+    const sharedPaths = ['/dashboard/search', '/dashboard/loan', '/dashboard/saved', '/dashboard/inquiries', '/dashboard/documents'];
+    const isShared = sharedPaths.some(p => pathname === p || pathname.startsWith(p + '/'));
+
+    // Determine the role slug for internal routing
+    // For shared pages, we always use 'buyer' as the canonical home
+    const roleSlug = isShared ? 'buyer' : ROLE_SLUG_MAP[effectiveRole];
+
+    if (roleSlug) {
+      // Rewrite /dashboard/:path* to /${roleSlug}/dashboard/:path*
+      const pathSuffix = pathname.replace('/dashboard', '');
+      const internalPath = `/${roleSlug}/dashboard${pathSuffix}`;
+      
+      console.log(`Middleware: [${effectiveRole}${userRole ? '' : ' (Fallback)'}] Rewriting ${pathname} -> ${internalPath}`);
+      return NextResponse.rewrite(new URL(internalPath, request.url));
+    } else {
+      console.warn(`Middleware: No role slug found for ${effectiveRole}. Path: ${pathname}`);
+    }
+  }
+
+  // 5. Cleanup: if user manually enters role-specific URLs, we could optionally redirect to clean URL
+  // but for now we just let it pass if already at the internal path to avoid loops.
+  const currentRoleSlug = userRole ? ROLE_SLUG_MAP[userRole] : null;
+  if (currentRoleSlug && pathname.startsWith(`/${currentRoleSlug}/dashboard`)) {
+    // Optionally redirect to clean /dashboard/... URL here
+  }
+
+  return NextResponse.next();
+}
+
+export const config = {
+  matcher: [
+    /*
+     * Match all request paths except for the ones starting with:
+     * - api (API routes)
+     * - _next/static (static files)
+     * - _next/image (image optimization files)
+     * - favicon.ico (favicon file)
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
+};

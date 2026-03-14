@@ -412,7 +412,7 @@ export default function ProjectsPage() {
                           </button>
                         )}
                         <Link
-                          href={`/property-partner/dashboard/projects/${project.id}`}
+                          href={`/dashboard/projects/${project.id}`}
                           className="px-3 py-1.5 bg-gray-50 text-gray-700 text-xs font-bold rounded-lg border border-gray-100 hover:bg-white hover:shadow-sm transition-all"
                         >
                           Details
@@ -505,7 +505,7 @@ export default function ProjectsPage() {
                       )}
                     </div>
                     <Link
-                      href={`/property-partner/dashboard/projects/${project.id}`}
+                      href={`/dashboard/projects/${project.id}`}
                       className="text-[10px] font-bold text-gray-900 group-hover:text-blue-600 uppercase tracking-wider flex items-center gap-1"
                     >
                       View Details

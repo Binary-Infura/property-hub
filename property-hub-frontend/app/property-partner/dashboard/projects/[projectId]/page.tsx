@@ -201,7 +201,7 @@ export default function ProjectDetailPage() {
       });
 
       if (res.ok) {
-        router.push('/property-partner/dashboard/projects');
+        router.push('/dashboard/projects');
       } else {
         alert('Failed to delete project');
       }
@@ -228,7 +228,7 @@ export default function ProjectDetailPage() {
     return (
       <div className="text-center py-12">
         <p className="text-gray-600 mb-4">Project not found</p>
-        <Link href="/property-partner/dashboard/projects" className="text-blue-600 hover:text-blue-700">
+        <Link href="/dashboard/projects" className="text-blue-600 hover:text-blue-700">
           Back to Projects
         </Link>
       </div>
@@ -270,7 +270,7 @@ export default function ProjectDetailPage() {
           <p className="text-sm text-gray-600 mt-1">Starting Price</p>
           {(project.status as string) === 'draft' && (
             <Link
-              href={`/property-partner/dashboard/projects/add?id=${project.id}`}
+              href={`/dashboard/projects/add?id=${project.id}`}
               className="mt-2 inline-block px-4 py-2 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg hover:bg-blue-100 text-sm font-medium transition"
             >
               Continue Editing

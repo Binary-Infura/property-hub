@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
+import { setCookie } from 'cookies-next';
 import { useAuth } from './AuthContext';
 
 // --- Types ---
@@ -53,49 +54,49 @@ const KNOWN_ROLES: UserRole[] = [
         id: 'CENTRAL_AUTHORITY',
         name: 'Central Authority',
         permissionHint: 'Platform-wide administrator',
-        dashboardUrl: '/central-authority/dashboard'
+        dashboardUrl: '/dashboard'
     },
     {
         id: 'MARKETING_MANAGER',
         name: 'Marketing Manager',
         permissionHint: 'Manage campaigns & leads platform-wide',
-        dashboardUrl: '/marketing-manager/dashboard'
+        dashboardUrl: '/dashboard'
     },
     {
         id: 'ONBOARDING_MANAGER',
         name: 'Onboarding Manager',
         permissionHint: 'Property intake and verification',
-        dashboardUrl: '/onboarding-manager/dashboard'
+        dashboardUrl: '/dashboard'
     },
     {
         id: 'PROPERTY_PARTNER',
         name: 'Property Partner',
         permissionHint: 'Manage properties and inventory',
-        dashboardUrl: '/property-partner/dashboard'
+        dashboardUrl: '/dashboard'
     },
     {
         id: 'BROKER',
         name: 'Real Estate Broker',
         permissionHint: 'Referral, lead management and property creation',
-        dashboardUrl: '/broker/dashboard'
+        dashboardUrl: '/dashboard'
     },
     {
         id: 'CONSULTANT',
         name: 'Sales Consultant',
         permissionHint: 'Direct sales and client guidance',
-        dashboardUrl: '/consultant/dashboard'
+        dashboardUrl: '/dashboard'
     },
     {
         id: 'LOAN_ADVISOR',
         name: 'Loan Advisor',
         permissionHint: 'Financial and loan facilitation',
-        dashboardUrl: '/loan-adviser/dashboard'
+        dashboardUrl: '/dashboard'
     },
     {
         id: 'VISIT_EXECUTIVE',
         name: 'Visit Executive',
         permissionHint: 'Property site visits and viewings',
-        dashboardUrl: '/visit-executive/dashboard'
+        dashboardUrl: '/dashboard'
     },
     {
         id: 'BUYER',
@@ -107,7 +108,7 @@ const KNOWN_ROLES: UserRole[] = [
         id: 'INFLUENCER',
         name: 'Influencer',
         permissionHint: 'Marketing influencer',
-        dashboardUrl: '/influencer/dashboard'
+        dashboardUrl: '/dashboard'
     }
 ];
 
@@ -177,9 +178,14 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
                 const savedRoleId = localStorage.getItem('activeRoleId') as RoleId | null;
                 const primaryRoleId = user?.primaryRole as RoleId | undefined;
 
+                // Priority:
+                // 1. Explicit savedRoleId (from previous switch or login)
+                // 2. Path matching (if path is role-specific, though mostly /dashboard now)
+                // 3. User's primary role
+                // 4. First available role
                 const resolvedRole =
-                    pathMatchedRole ||
                     (savedRoleId && roleList.find(r => r.id === savedRoleId)) ||
+                    pathMatchedRole ||
                     (primaryRoleId && roleList.find(r => r.id === primaryRoleId)) ||
                     roleList[0];
 
@@ -200,10 +206,16 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
 
         setActiveRole(role);
         localStorage.setItem('activeRoleId', roleId);
+        
+        // Sync the user_role cookie so the middleware can perform correct rewriting
+        setCookie('user_role', roleId, { maxAge: 60 * 60 * 24 * 7, path: '/' });
 
         console.log(`Switching context to role: ${role.name}`);
         if (shouldRedirect) {
-            router.push(role.dashboardUrl);
+            // Use window.location.href to force a server-side hit and middleware re-evaluation.
+            // This is necessary because Next.js router.push might not trigger middleware 
+            // if the path (/dashboard) remains the same.
+            window.location.href = role.dashboardUrl;
         }
     };
 

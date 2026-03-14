@@ -1,4 +1,5 @@
 'use client';
+import { setCookie, deleteCookie } from 'cookies-next';
 
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 
@@ -78,6 +79,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     setToken(storedToken);
                     setUser(payload);
                     setRoles(payload.roles || []);
+                    // Only set initial cookie if it doesn't exist, to avoid overwriting user persistence
+                    const existingRoleCookie = document.cookie.split('; ').find(row => row.startsWith('user_role='))?.split('=')[1];
+                    if (!existingRoleCookie) {
+                        if (payload.primaryRole) {
+                            setCookie('user_role', payload.primaryRole, { maxAge: 60 * 60 * 24 * 7, path: '/' });
+                        } else if (payload.roles && payload.roles.length > 0) {
+                            setCookie('user_role', payload.roles[0], { maxAge: 60 * 60 * 24 * 7, path: '/' });
+                        }
+                    }
                     refreshProfileStatus(storedToken);
                 } else {
                     localStorage.removeItem('auth_token');
@@ -110,6 +120,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setUser(payload);
                 setRoles(payload?.roles || []);
 
+                if (payload?.primaryRole) {
+                    setCookie('user_role', payload.primaryRole, { maxAge: 60 * 60 * 24 * 7, path: '/' });
+                }
+
                 refreshProfileStatus(access_token);
                 return { success: true };
             } else {
@@ -130,6 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setRoles([]);
         setToken(undefined);
         localStorage.removeItem('auth_token');
+        deleteCookie('user_role', { path: '/' });
         window.location.href = '/signin';
     };
 

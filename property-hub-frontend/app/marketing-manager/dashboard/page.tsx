@@ -157,7 +157,7 @@ export default function MarketingManagerDashboard() {
                     <div className="flex items-center justify-between">
                         <h2 className="text-xl font-bold text-gray-900">Campaign Performance</h2>
                         <Link
-                            href="/marketing-manager/dashboard/campaigns?action=create"
+                            href="/dashboard/campaigns?action=create"
                             className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium"
                         >
                             + New Campaign
