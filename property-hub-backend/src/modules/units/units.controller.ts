@@ -24,13 +24,13 @@ export class UnitsController {
     constructor(private readonly unitsService: UnitsService) { }
 
     @Post()
-    @RequireRoles(UserRole.ONBOARDING_MANAGER, UserRole.PROPERTY_PARTNER, UserRole.BROKER, UserRole.CENTRAL_AUTHORITY)
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.BROKER, UserRole.CENTRAL_AUTHORITY)
     create(@Body() createUnitDto: CreateUnitDto, @CurrentUser() user: AuthenticatedUser) {
         return this.unitsService.create(createUnitDto, user);
     }
 
     @Post('bulk')
-    @RequireRoles(UserRole.ONBOARDING_MANAGER, UserRole.PROPERTY_PARTNER, UserRole.BROKER, UserRole.CENTRAL_AUTHORITY)
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.BROKER, UserRole.CENTRAL_AUTHORITY)
     createBulk(@Body() bulkCreateUnitsDto: BulkCreateUnitsDto, @CurrentUser() user: AuthenticatedUser) {
         return this.unitsService.createBulk(bulkCreateUnitsDto, user);
     }
@@ -54,7 +54,7 @@ export class UnitsController {
     }
 
     @Patch(':id')
-    @RequireRoles(UserRole.ONBOARDING_MANAGER, UserRole.PROPERTY_PARTNER, UserRole.BROKER, UserRole.CENTRAL_AUTHORITY)
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.BROKER, UserRole.CENTRAL_AUTHORITY)
     update(
         @Param('id') id: string,
         @Body() updateUnitDto: UpdateUnitDto,
@@ -64,7 +64,7 @@ export class UnitsController {
     }
 
     @Patch(':id/sold')
-    @RequireRoles(UserRole.ONBOARDING_MANAGER, UserRole.PROPERTY_PARTNER, UserRole.BROKER, UserRole.CENTRAL_AUTHORITY)
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.BROKER, UserRole.CENTRAL_AUTHORITY)
     markAsSold(
         @Param('id') id: string,
         @Body() markUnitAsSoldDto: MarkUnitAsSoldDto,

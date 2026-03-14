@@ -14,7 +14,7 @@ export class InvitationsController {
   constructor(private readonly invitationsService: InvitationsService) {}
 
   @Post()
-  @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.ONBOARDING_MANAGER, UserRole.PROPERTY_PARTNER)
+  @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.PROPERTY_PARTNER)
   async createInvitation(
     @Body() dto: CreateInvitationDto,
     @CurrentUser() user: any,

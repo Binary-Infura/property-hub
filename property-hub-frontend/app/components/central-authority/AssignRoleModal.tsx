@@ -53,12 +53,12 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
     const ALL_ROLES: RoleId[] = [
         'BROKER',
         'MARKETING_MANAGER',
-        'ONBOARDING_MANAGER',
+
     ];
 
     const ASSIGNABLE_ROLES = isCityContext
-        ? ['ONBOARDING_MANAGER' as RoleId, 'MARKETING_MANAGER' as RoleId]
-        : ALL_ROLES.filter(r => r !== 'ONBOARDING_MANAGER' && r !== 'MARKETING_MANAGER');
+        ? ['MARKETING_MANAGER' as RoleId]
+        : ALL_ROLES.filter(r => r !== 'MARKETING_MANAGER');
 
     useEffect(() => {
         if (isOpen && initialRole) {

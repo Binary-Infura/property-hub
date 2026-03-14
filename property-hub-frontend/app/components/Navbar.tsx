@@ -208,7 +208,7 @@ function AuthUserMenu({ user, roles, token, logout, activeRole }: {
             const rolePrefixes = [
                 '/central-authority',
                 '/marketing-manager',
-                '/onboarding-manager',
+
                 '/property-partner',
                 '/broker',
                 '/consultant',

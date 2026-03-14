@@ -71,7 +71,7 @@ export class UsersService {
         const normalizedRoles = rawRoles
             .filter(r => Object.values(UserRole).includes(r as any)) as UserRole[];
 
-        const fallbackRoles = normalizedRoles.length > 0 ? normalizedRoles : [UserRole.ONBOARDING_MANAGER];
+        const fallbackRoles = normalizedRoles.length > 0 ? normalizedRoles : [UserRole.BUYER];
 
         return this.prisma.user.create({
             data: {

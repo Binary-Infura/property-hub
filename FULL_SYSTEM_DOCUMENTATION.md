@@ -43,7 +43,7 @@ The system follows a role-based access control (RBAC) model. Each role has a ded
 | `CONSULTANT` | Expert Guide | Guiding buyers, matching them with properties. | `/consultant/dashboard` |
 | `INFLUENCER` | Content Creator | Promoting properties via Reels/social media. | `/influencer/dashboard` |
 | `LOAN_ADVISOR` | Loan Advisor | Managing loan applications and bank coordination. | `/loan-advisor/dashboard` |
-| `ONBOARDING_MANAGER` | Onboarding | Managing property/user onboarding processes. | `/onboarding-manager/dashboard` |
+
 | `MARKETING_MANAGER` | Marketing Specialist | Managing ad campaigns and leads. | `/marketing-manager/dashboard` |
 | `VISIT_EXECUTIVE` | Field Executive | Coordinating and completing site visits. | `/visit-executive/dashboard` |
 

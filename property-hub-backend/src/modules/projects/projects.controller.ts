@@ -21,7 +21,7 @@ import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface
 
 @Controller('api/projects')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.MARKETING_MANAGER, UserRole.ONBOARDING_MANAGER, UserRole.PROPERTY_PARTNER, UserRole.BROKER, UserRole.CONSULTANT, UserRole.BUYER, UserRole.LOAN_ADVISOR, UserRole.VISIT_EXECUTIVE)
+@RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.MARKETING_MANAGER, UserRole.PROPERTY_PARTNER, UserRole.BROKER, UserRole.CONSULTANT, UserRole.BUYER, UserRole.LOAN_ADVISOR, UserRole.VISIT_EXECUTIVE)
 export class ProjectsController {
     constructor(private readonly projectsService: ProjectsService) { }
 
@@ -52,7 +52,7 @@ export class ProjectsController {
     }
 
     @Post()
-    @RequireRoles(UserRole.ONBOARDING_MANAGER, UserRole.PROPERTY_PARTNER, UserRole.BROKER)
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.BROKER)
     create(
         @Body() createProjectDto: CreateProjectDto,
         @CurrentUser() user: AuthenticatedUser
@@ -61,7 +61,7 @@ export class ProjectsController {
     }
 
     @Patch(':id')
-    @RequireRoles(UserRole.ONBOARDING_MANAGER, UserRole.PROPERTY_PARTNER, UserRole.BROKER)
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.BROKER)
     update(
         @Param('id') id: string,
         @Body() updateProjectDto: UpdateProjectDto,

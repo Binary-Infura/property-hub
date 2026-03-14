@@ -79,7 +79,6 @@ async function main() {
         UserRole.CONSULTANT,
         UserRole.BUYER,
         UserRole.PROPERTY_PARTNER,
-        UserRole.ONBOARDING_MANAGER,
         UserRole.LOAN_ADVISOR,
         UserRole.VISIT_EXECUTIVE,
         UserRole.INFLUENCER,
@@ -117,8 +116,6 @@ async function main() {
         UserRole.CONSULTANT,
         UserRole.INFLUENCER,
         UserRole.MARKETING_MANAGER,
-        UserRole.LOAN_ADVISOR,
-        UserRole.ONBOARDING_MANAGER,
         UserRole.VISIT_EXECUTIVE,
     ];
 

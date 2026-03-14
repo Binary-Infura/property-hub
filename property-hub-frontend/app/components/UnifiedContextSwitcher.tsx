@@ -27,7 +27,7 @@ export default function UnifiedContextSwitcher() {
     const rolePrefixes = [
         '/central-authority',
         '/marketing-manager',
-        '/onboarding-manager',
+
         '/property-partner',
         '/broker',
         '/consultant',

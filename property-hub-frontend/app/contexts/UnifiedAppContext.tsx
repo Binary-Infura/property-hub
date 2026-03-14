@@ -10,7 +10,7 @@ export type RoleId =
     | 'CENTRAL_AUTHORITY'
     | 'BROKER'
     | 'MARKETING_MANAGER'
-    | 'ONBOARDING_MANAGER'
+
     | 'PROPERTY_PARTNER'
     | 'CONSULTANT'
     | 'LOAN_ADVISOR'
@@ -61,12 +61,7 @@ const KNOWN_ROLES: UserRole[] = [
         permissionHint: 'Manage campaigns & leads platform-wide',
         dashboardUrl: '/dashboard'
     },
-    {
-        id: 'ONBOARDING_MANAGER',
-        name: 'Onboarding Manager',
-        permissionHint: 'Property intake and verification',
-        dashboardUrl: '/dashboard'
-    },
+
     {
         id: 'PROPERTY_PARTNER',
         name: 'Property Partner',
