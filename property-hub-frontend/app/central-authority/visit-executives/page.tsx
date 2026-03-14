@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import { userService, User } from '@/app/services/userService';
-import InviteUserModal from '@/app/components/invitations/InviteUserModal';
+import AddVisitExecutiveModal from '@/app/components/visit-executives/AddVisitExecutiveModal';
 
 export default function VisitExecutivesPage() {
     const { token } = useAuth();
@@ -115,7 +115,7 @@ export default function VisitExecutivesPage() {
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                         </svg>
-                        Invite Executive
+                        Add Executive
                     </button>
                 </div>
             </div>
@@ -226,11 +226,13 @@ export default function VisitExecutivesPage() {
                 </div>
             </div>
 
-            <InviteUserModal
+            <AddVisitExecutiveModal
                 isOpen={showAddModal}
                 onClose={() => setShowAddModal(false)}
-                onSuccess={fetchExecutives}
-                forcedRole="VISIT_EXECUTIVE"
+                onSuccess={(created) => {
+                    setExecutives(prev => [created, ...prev]);
+                    setShowAddModal(false);
+                }}
             />
 
             {/* Edit Modal */}

@@ -74,13 +74,6 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Documents', href: '/dashboard/documents', icon: 'document' },
         { name: 'Reviews', href: '/dashboard/reviews', icon: 'star' },
     ],
-    'VISIT_EXECUTIVE': [
-        { name: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
-        { name: 'Schedule', href: '/dashboard/schedule', icon: 'calendar' },
-        { name: 'My Visits', href: '/dashboard/visits', icon: 'pin' },
-        { name: 'Clients', href: '/dashboard/clients', icon: 'users' },
-        { name: 'Reviews', href: '/dashboard/reviews', icon: 'star' },
-    ],
     'BUYER': [
         { name: 'My Dashboard', href: '/dashboard', icon: 'dashboard' },
         { name: 'Search Properties', href: '/dashboard/search', icon: 'search' },

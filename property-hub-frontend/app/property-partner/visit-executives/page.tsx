@@ -5,7 +5,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import PremiumLockedOverlay from '@/app/components/property-partner/PremiumLockedOverlay';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import { userService, User } from '@/app/services/userService';
-import InviteUserModal from '@/app/components/invitations/InviteUserModal';
+import AddVisitExecutiveModal from '@/app/components/visit-executives/AddVisitExecutiveModal';
 
 export default function VisitExecutivesPage() {
     const { token, profileStatus } = useAuth();
@@ -130,11 +130,13 @@ export default function VisitExecutivesPage() {
                 </table>
             </div>
 
-            <InviteUserModal 
+            <AddVisitExecutiveModal
                 isOpen={isAddModalOpen}
                 onClose={() => setIsAddModalOpen(false)}
-                onSuccess={fetchExecutives}
-                forcedRole="VISIT_EXECUTIVE"
+                onSuccess={(created) => {
+                    setExecutives(prev => [created, ...prev]);
+                    setIsAddModalOpen(false);
+                }}
             />
         </div>
     );

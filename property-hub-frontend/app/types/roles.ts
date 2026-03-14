@@ -6,7 +6,6 @@ export type UserRole =
     | 'MARKETING_MANAGER'
     | 'INFLUENCER'
     | 'LOAN_ADVISOR'
-    | 'VISIT_EXECUTIVE'
     | 'ONBOARDING_MANAGER'
     | 'BUYER';
 
@@ -62,12 +61,7 @@ export const ROLES: Record<UserRole, RoleDefinition> = {
         description: 'Advisor for loans',
         permissions: []
     },
-    'VISIT_EXECUTIVE': {
-        role: 'VISIT_EXECUTIVE',
-        label: 'Visit Executive',
-        description: 'Executive for site visits',
-        permissions: []
-    },
+
     'ONBOARDING_MANAGER': {
         role: 'ONBOARDING_MANAGER',
         label: 'Onboarding Manager',

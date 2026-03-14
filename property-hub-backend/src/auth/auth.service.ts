@@ -17,6 +17,11 @@ export class AuthService {
         });
 
         if (user && user.passwordHash) {
+            // Block VISIT_EXECUTIVE from logging in
+            if (user.roles && user.roles.includes('VISIT_EXECUTIVE')) {
+                throw new UnauthorizedException('Visit Executives do not have login access');
+            }
+
             const isMatch = await bcrypt.compare(pass, user.passwordHash);
             if (isMatch) {
                 const { passwordHash, ...result } = user;

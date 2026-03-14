@@ -14,7 +14,6 @@ export type RoleId =
     | 'PROPERTY_PARTNER'
     | 'CONSULTANT'
     | 'LOAN_ADVISOR'
-    | 'VISIT_EXECUTIVE'
     | 'BUYER'
     | 'INFLUENCER';
 
@@ -92,12 +91,7 @@ const KNOWN_ROLES: UserRole[] = [
         permissionHint: 'Financial and loan facilitation',
         dashboardUrl: '/dashboard'
     },
-    {
-        id: 'VISIT_EXECUTIVE',
-        name: 'Visit Executive',
-        permissionHint: 'Property site visits and viewings',
-        dashboardUrl: '/dashboard'
-    },
+
     {
         id: 'BUYER',
         name: 'Buyer',
