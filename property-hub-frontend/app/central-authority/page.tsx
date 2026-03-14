@@ -633,6 +633,26 @@ export default function CentralAuthorityDashboardPage() {
                         </svg>
                     </div>
                 </Link>
+
+                <Link href="/dashboard/listing-requests" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-teal-300 transition-all hover:shadow-md group">
+                    <div className="flex items-center gap-3 mb-3">
+                        <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center group-hover:bg-teal-100 transition-colors">
+                            <svg className="w-5 h-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h3 className="text-sm font-semibold text-gray-900 group-hover:text-teal-600 transition-colors">Listing Requests</h3>
+                            <p className="text-xs text-gray-500">{stats.projects.pending} Pending Approval</p>
+                        </div>
+                    </div>
+                    <div className="text-xs font-semibold text-teal-600 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        Review Requests
+                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                    </div>
+                </Link>
             </div>
 
             {/* Recent Activity & Invitations Row */}
