@@ -6,6 +6,7 @@ export interface JwtPayload {
     firstName?: string;
     lastName?: string;
     roles: string[];
+    activeRole: string;
     phone?: string;
 }
 
@@ -16,5 +17,6 @@ export interface AuthenticatedUser {
     firstName?: string;
     lastName?: string;
     roles: string[];   // Raw from JWT — may still be kebab-case; normalize via normalizeRole()
+    activeRole: string;
     phone?: string;
 }

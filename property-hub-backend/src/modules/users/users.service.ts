@@ -80,7 +80,7 @@ export class UsersService {
                 firstName: authenticatedUser.firstName || authenticatedUser.username || 'System',
                 lastName: authenticatedUser.lastName || 'User',
                 roles: fallbackRoles as any[],
-                primaryRole: fallbackRoles[0] as any,
+                activeRole: fallbackRoles[0] as any,
             },
         });
     }
@@ -108,13 +108,13 @@ export class UsersService {
         if (existingUser) {
             // Append new roles, ensuring uniqueness
             const updatedRoles = Array.from(new Set([...existingUser.roles, ...dto.roles]));
-            const primaryRole = dto.primaryRole || dto.roles[0] || existingUser.primaryRole;
+            const activeRole = dto.activeRole || dto.roles[0] || existingUser.activeRole;
 
             const updatedUser = await this.prisma.user.update({
                 where: { id: existingUser.id },
                 data: {
                     roles: updatedRoles as any[],
-                    primaryRole: primaryRole as any,
+                    activeRole: activeRole as any,
                     // Optionally update other fields if they are missing or if we want to overwrite
                     phone: existingUser.phone || dto.phone,
                     firstName: existingUser.firstName || dto.firstName,
@@ -160,7 +160,7 @@ export class UsersService {
                 email: dto.email,
                 phone: dto.phone,
                 roles: dto.roles as any[],
-                primaryRole: (dto.primaryRole ?? dto.roles[0] ?? undefined) as any,
+                activeRole: (dto.activeRole ?? dto.roles[0] ?? undefined) as any,
                 reraId: dto.reraId,
                 organizationId,
                 onboardedById,
@@ -205,7 +205,7 @@ export class UsersService {
                 where,
                 include: {
                     organization: { select: { id: true, name: true, type: true, isPremium: true, subscriptionMode: true } },
-                    onboardedBy: { select: { firstName: true, lastName: true, primaryRole: true } },
+                    onboardedBy: { select: { firstName: true, lastName: true, activeRole: true } },
                 },
                 orderBy: { createdAt: 'desc' },
                 skip,
@@ -237,7 +237,7 @@ export class UsersService {
                 avatarUrl: dto.avatarUrl,
                 status: dto.status as any,
                 roles: dto.roles as any[],
-                primaryRole: (dto.primaryRole ?? (dto.roles ? dto.roles[0] : undefined)) as any,
+                activeRole: (dto.activeRole ?? (dto.roles ? dto.roles[0] : undefined)) as any,
                 reraId: dto.reraId,
                 organizationId: dto.organizationId,
             },
@@ -274,7 +274,7 @@ export class UsersService {
 
         const result: any = {
             roles: user.roles,
-            primaryRole: user.primaryRole,
+            activeRole: user.activeRole,
         };
 
         // For each role the user has, build a status object
@@ -330,7 +330,7 @@ export class UsersService {
                 firstName: dto.firstName ?? user.firstName,
                 lastName: dto.lastName ?? user.lastName,
                 phone: dto.phone ?? user.phone,
-                primaryRole: (dto.primaryRole ?? user.primaryRole) as any,
+                activeRole: (dto.activeRole ?? user.activeRole) as any,
                 profileData: mergedProfile,
             }
         });

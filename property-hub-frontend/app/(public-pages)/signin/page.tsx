@@ -28,10 +28,10 @@ export default function SignInPage() {
                 return;
             }
 
-            // 0. Use primaryRole if available
-            const primaryRole = user.primaryRole;
-            if (primaryRole && roles.includes(primaryRole)) {
-                router.push(getDashboardRoute(primaryRole));
+            // 0. Use activeRole if available, otherwise fallback to first role
+            const activeRole = user.activeRole;
+            if (activeRole && roles.includes(activeRole)) {
+                router.push(getDashboardRoute(activeRole));
                 return;
             }
 
@@ -41,7 +41,7 @@ export default function SignInPage() {
                 return;
             }
 
-            // 2. If multiple roles without a primaryRole, let them choose
+            // 2. If multiple roles without an activeRole, let them choose
             if (roles.length > 1) {
                 router.push('/my-dashboards');
                 return;

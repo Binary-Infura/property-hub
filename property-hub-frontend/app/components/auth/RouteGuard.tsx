@@ -16,7 +16,7 @@ interface RouteGuardProps {
  * Redirects to home if authenticated but lacks the required role.
  */
 export default function RouteGuard({ children, requiredRole }: RouteGuardProps) {
-    const { authenticated, roles, initialized } = useAuth();
+    const { authenticated, user, roles, initialized } = useAuth();
     const router = useRouter();
     const pathname = usePathname();
 
@@ -35,12 +35,18 @@ export default function RouteGuard({ children, requiredRole }: RouteGuardProps) 
         // Otherwise, try to infer the required role from the current path.
         const effectiveRequiredRole = requiredRole || getRoleFromPath(pathname);
 
-        if (effectiveRequiredRole && !roles.includes(effectiveRequiredRole)) {
-            console.warn(`RouteGuard: User does not have required role "${effectiveRequiredRole}". User roles:`, roles);
-            // Redirect to home if they are in the wrong place
-            router.push('/');
+        // If the route has a required role, strictly require the user's activeRole to match.
+        // For shared routes (where effectiveRequiredRole is null), allow access.
+        if (effectiveRequiredRole && user?.activeRole !== effectiveRequiredRole) {
+            console.warn(`RouteGuard: User's active role "${user?.activeRole}" does not match required role "${effectiveRequiredRole}". Redirecting.`);
+            // Redirect to their active role's canonical dashboard
+            if (user?.activeRole) {
+                router.push('/dashboard');
+            } else {
+                router.push('/');
+            }
         }
-    }, [authenticated, roles, initialized, router, pathname, requiredRole]);
+    }, [authenticated, user, roles, initialized, router, pathname, requiredRole]);
 
     // While initializing or if unauthenticated, show nothing or a loader
     if (!initialized || (!authenticated && pathname !== '/')) {

@@ -41,7 +41,7 @@ export interface UnifiedAppContextType {
         availableRoles: UserRole[];
     };
     activeContext: UserContextData;
-    switchContext: (roleId: RoleId, shouldRedirect?: boolean) => void;
+    switchContext: (roleId: RoleId, shouldRedirect?: boolean, explicitUrl?: string) => void;
     isProfileOpen: boolean;
     setIsProfileOpen: (open: boolean) => void;
 }
@@ -158,17 +158,15 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
                 }
 
                 const savedRoleId = localStorage.getItem('activeRoleId') as RoleId | null;
-                const primaryRoleId = user?.primaryRole as RoleId | undefined;
+                const activeRoleId = user?.activeRole as RoleId | undefined;
 
                 // Priority:
-                // 1. Explicit savedRoleId (from previous switch or login)
-                // 2. Path matching (if path is role-specific, though mostly /dashboard now)
-                // 3. User's primary role
-                // 4. First available role
+                // 1. User's active role (Absolute source of truth from verified JWT)
+                // 2. Explicit savedRoleId (from local storage as fallback UI state)
+                // 3. First available role
                 const resolvedRole =
+                    (activeRoleId && roleList.find(r => r.id === activeRoleId)) ||
                     (savedRoleId && roleList.find(r => r.id === savedRoleId)) ||
-                    pathMatchedRole ||
-                    (primaryRoleId && roleList.find(r => r.id === primaryRoleId)) ||
                     roleList[0];
 
                 setActiveRole(resolvedRole);
@@ -182,7 +180,7 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
         syncAppData();
     }, [initialized, authenticated, user, roles, activeRole?.id, pathname]);
 
-    const switchContext = (roleId: RoleId, shouldRedirect: boolean = true) => {
+    const switchContext = (roleId: RoleId, shouldRedirect: boolean = true, explicitUrl?: string) => {
         const role = availableRoles.find(r => r.id === roleId);
         if (!role) return;
 
@@ -195,9 +193,7 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
         console.log(`Switching context to role: ${role.name}`);
         if (shouldRedirect) {
             // Use window.location.href to force a server-side hit and middleware re-evaluation.
-            // This is necessary because Next.js router.push might not trigger middleware 
-            // if the path (/dashboard) remains the same.
-            window.location.href = role.dashboardUrl;
+            window.location.href = explicitUrl || role.dashboardUrl;
         }
     };
 

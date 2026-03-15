@@ -53,7 +53,7 @@ model User {
   notifications     Json?               @default("{}")
   onboardingStatus  String?             @default("pending")
   organizationId    String?
-  primaryRole       UserRole?
+  activeRole        UserRole?
   profileData       Json?               @default("{}")
   regionPreference  String?
   resetTokenExpiry  DateTime?
@@ -84,7 +84,7 @@ model User {
 
 
   @@index([email])
-  @@index([primaryRole])
+  @@index([activeRole])
   @@index([status])
   @@index([organizationId])
   @@index([onboardedById])

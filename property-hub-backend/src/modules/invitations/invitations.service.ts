@@ -102,7 +102,7 @@ export class InvitationsService {
       password: dto.password,
       phone: dto.phone || invitation.phone || undefined,
       roles: invitation.roles as UserRole[],
-      primaryRole: invitation.roles[0] as UserRole,
+      activeRole: invitation.roles[0] as UserRole,
       companyName: dto.companyName,
       companyAddress: dto.companyAddress,
       taxId: dto.taxId,

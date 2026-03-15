@@ -83,7 +83,7 @@ export class CreateUserDto {
 
     @IsEnum(UserRole)
     @IsOptional()
-    primaryRole?: UserRole;
+    activeRole?: UserRole;
 
     @IsString()
     @IsOptional()
@@ -170,7 +170,7 @@ export class UpdateUserDto {
 
     @IsEnum(UserRole)
     @IsOptional()
-    primaryRole?: UserRole;
+    activeRole?: UserRole;
 
     @IsString()
     @IsOptional()
@@ -236,7 +236,7 @@ export class UpdateProfileDto {
 
     @IsEnum(UserRole)
     @IsOptional()
-    primaryRole?: UserRole;
+    activeRole?: UserRole;
 
     /**
      * Role-specific profile data stored as a JSON blob on the User row.

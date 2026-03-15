@@ -19,7 +19,7 @@ export class MarketingManagersService {
                 email: dto.email,
                 phone: dto.phone,
                 roles: [UserRole.MARKETING_MANAGER],
-                primaryRole: UserRole.MARKETING_MANAGER,
+                activeRole: UserRole.MARKETING_MANAGER,
                 passwordHash: await this.usersService['hashPassword']('password'),
                 // Store campaignBudgetLimit in profileData JSON if provided
                 profileData: dto.campaignBudgetLimit ? { campaignBudgetLimit: dto.campaignBudgetLimit } : {},

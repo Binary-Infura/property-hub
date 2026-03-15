@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { useConsultingBucket } from '../contexts/ConsultingBucketContext';
-import { useUnifiedApp } from '../contexts/UnifiedAppContext';
+import { useUnifiedApp, RoleId } from '../contexts/UnifiedAppContext';
 import { DASHBOARD_ROUTES } from '../lib/routing';
 
 export default function Navbar() {
@@ -183,6 +183,7 @@ function AuthUserMenu({ user, roles, token, logout, activeRole }: {
     activeRole: any;
 }) {
     const { switchContext } = useUnifiedApp();
+    const { refreshAuthToken } = useAuth();
     const pathname = usePathname();
     const [open, setOpen] = React.useState(false);
     const ref = React.useRef<HTMLDivElement>(null);
@@ -199,26 +200,20 @@ function AuthUserMenu({ user, roles, token, logout, activeRole }: {
 
     const handleRoleSwitch = async (newRole: string) => {
         try {
-            await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/users/profile`, {
-                method: 'PATCH',
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/switch-role`, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ primaryRole: newRole })
+                body: JSON.stringify({ activeRole: newRole })
             });
-            // Use unified context switcher logic instead of hard reload
-            const rolePrefixes = [
-                '/central-authority',
-                '/marketing-manager',
-
-                '/property-partner',
-                '/broker',
-                '/consultant',
-                '/loan-adviser',
-                '/visit-executive',
-                '/dashboard',
-                '/influencer'
-            ];
-            const isOnDashboard = rolePrefixes.some(prefix => pathname?.startsWith(prefix));
-            switchContext(newRole as any, isOnDashboard);
+            if (res.ok) {
+                const data = await res.json();
+                if (data.access_token) {
+                    refreshAuthToken(data.access_token);
+                }
+            }
+            // Force redirect to the new role's dashboard using mapped routing list instead of generic window.location.href prefix matching
+            const targetRoute = DASHBOARD_ROUTES[newRole as RoleId] || '/dashboard';
+            (switchContext as any)(newRole as any, true, targetRoute);
         } catch { /* silent */ }
     };
 

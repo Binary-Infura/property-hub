@@ -14,6 +14,7 @@ interface AuthContextType {
     initialized: boolean;
     profileStatus: any;
     refreshProfileStatus: () => Promise<void>;
+    refreshAuthToken: (newToken: string) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -45,6 +46,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     };
 
+    const refreshAuthToken = (newToken: string) => {
+        localStorage.setItem('auth_token', newToken);
+        const payload = decodeToken(newToken);
+        if (payload) {
+            setToken(newToken);
+            setUser(payload);
+            setRoles(payload.roles || []);
+            const currentActiveRole = payload.activeRole;
+            if (currentActiveRole) {
+                setCookie('user_role', currentActiveRole, { maxAge: 60 * 60 * 24 * 7, path: '/' });
+            }
+        }
+    };
+
     const decodeToken = (t: string) => {
         try {
             const base64Url = t.split('.')[1];
@@ -58,7 +73,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 firstName: payload.firstName,
                 lastName: payload.lastName,
                 roles: payload.roles || [],
-                primaryRole: payload.primaryRole,
+                activeRole: payload.activeRole,
             };
 
             return normalized;
@@ -82,8 +97,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                     // Only set initial cookie if it doesn't exist, to avoid overwriting user persistence
                     const existingRoleCookie = document.cookie.split('; ').find(row => row.startsWith('user_role='))?.split('=')[1];
                     if (!existingRoleCookie) {
-                        if (payload.primaryRole) {
-                            setCookie('user_role', payload.primaryRole, { maxAge: 60 * 60 * 24 * 7, path: '/' });
+                        if (payload.activeRole) {
+                            setCookie('user_role', payload.activeRole, { maxAge: 60 * 60 * 24 * 7, path: '/' });
                         } else if (payload.roles && payload.roles.length > 0) {
                             setCookie('user_role', payload.roles[0], { maxAge: 60 * 60 * 24 * 7, path: '/' });
                         }
@@ -120,8 +135,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 setUser(payload);
                 setRoles(payload?.roles || []);
 
-                if (payload?.primaryRole) {
-                    setCookie('user_role', payload.primaryRole, { maxAge: 60 * 60 * 24 * 7, path: '/' });
+                const currentActiveRole = payload?.activeRole;
+                if (currentActiveRole) {
+                    setCookie('user_role', currentActiveRole, { maxAge: 60 * 60 * 24 * 7, path: '/' });
                 }
 
                 refreshProfileStatus(access_token);
@@ -161,6 +177,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 initialized,
                 profileStatus,
                 refreshProfileStatus: () => refreshProfileStatus(),
+                refreshAuthToken,
             }}
         >
             {children}

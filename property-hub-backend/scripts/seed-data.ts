@@ -87,7 +87,7 @@ async function main() {
         where: { email: 'superuser@propertyhub.com' },
         update: {
             roles: roles,
-            primaryRole: UserRole.CENTRAL_AUTHORITY,
+            activeRole: UserRole.CENTRAL_AUTHORITY,
             profileData: superUserProfileData,
             organizationId: prestigeOrg.id,
         },
@@ -96,7 +96,7 @@ async function main() {
             firstName: 'Super',
             lastName: 'User',
             roles: roles,
-            primaryRole: UserRole.CENTRAL_AUTHORITY,
+            activeRole: UserRole.CENTRAL_AUTHORITY,
             status: UserStatus.ACTIVE,
             passwordHash,
             phone: '+919876543222',
@@ -130,7 +130,7 @@ async function main() {
             where: { email },
             update: {
                 roles: [role],
-                primaryRole: role,
+                activeRole: role,
                 organizationId: orgId,
             },
             create: {
@@ -138,7 +138,7 @@ async function main() {
                 firstName: 'Test',
                 lastName: role.replace('_', ' '),
                 roles: [role],
-                primaryRole: role,
+                activeRole: role,
                 status: UserStatus.ACTIVE,
                 passwordHash,
                 phone: `+91900000000${individualRoles.indexOf(role)}`,

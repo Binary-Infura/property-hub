@@ -48,7 +48,7 @@ export function middleware(request: NextRequest) {
           const base64 = payloadBase64.replace(/-/g, '+').replace(/_/g, '/');
           const payloadJson = atob(base64);
           const payload = JSON.parse(payloadJson);
-          userRole = payload.primaryRole || (payload.roles && payload.roles[0]);
+          userRole = payload.activeRole;
           console.log(`Middleware: Recovered role "${userRole}" from JWT token`);
         }
       } catch (e) {
@@ -57,8 +57,15 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  // 3. If no role can be determined, just serve the page or fallback to landing
+  // 3. If no role can be determined, block access to protected areas
   if (!userRole) {
+    const isProtectedPath = pathname.startsWith('/dashboard') || 
+                            pathname === '/my-dashboards' || 
+                            Object.values(ROLE_SLUG_MAP).some(slug => pathname.startsWith(`/${slug}`));
+    
+    if (isProtectedPath) {
+      return NextResponse.redirect(new URL('/signin', request.url));
+    }
     return NextResponse.next();
   }
 

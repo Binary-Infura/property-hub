@@ -76,7 +76,7 @@ export class PropertyPartnersService {
         return this.usersService.createUser({
             ...dto,
             roles: [UserRole.BROKER as any],
-            primaryRole: UserRole.BROKER as any
+            activeRole: UserRole.BROKER as any
         }, currentUser);
     }
 }

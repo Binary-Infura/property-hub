@@ -34,9 +34,21 @@ export class AuthService {
     }
 
     async login(loginDto: LoginDto) {
-        const user = await this.validateUser(loginDto.email, loginDto.password);
+        let user = await this.validateUser(loginDto.email, loginDto.password);
         if (!user) {
             throw new UnauthorizedException('Invalid credentials');
+        }
+
+        // Ensure user has an activeRole to prevent redirection/authorization issues
+        let effectiveActiveRole = user.activeRole;
+        if (!effectiveActiveRole && user.roles && user.roles.length > 0) {
+            effectiveActiveRole = user.roles[0];
+            // Optionally persist it
+            await this.prisma.user.update({
+                where: { id: user.id },
+                data: { activeRole: effectiveActiveRole as UserRole },
+            });
+            user.activeRole = effectiveActiveRole;
         }
 
         const payload = {
@@ -45,7 +57,7 @@ export class AuthService {
             firstName: user.firstName,
             lastName: user.lastName,
             roles: user.roles,
-            primaryRole: user.primaryRole,
+            activeRole: effectiveActiveRole,
         };
 
         return {
@@ -56,7 +68,41 @@ export class AuthService {
                 firstName: user.firstName,
                 lastName: user.lastName,
                 roles: user.roles,
-                primaryRole: user.primaryRole,
+                activeRole: effectiveActiveRole,
+            },
+        };
+    }
+
+    async switchRole(userId: string, newRole: string) {
+        const user = await this.prisma.user.findUnique({ where: { id: userId } });
+        if (!user || (!user.roles.includes(newRole as UserRole) && user.activeRole !== newRole)) {
+            // Need to handle case where they might have newRole in roles (it's stored as JSON array or explicit string)
+            throw new UnauthorizedException('Role not assigned to user');
+        }
+
+        const updatedUser = await this.prisma.user.update({
+            where: { id: userId },
+            data: { activeRole: newRole as UserRole },
+        });
+
+        const payload = {
+            sub: updatedUser.id,
+            email: updatedUser.email,
+            firstName: updatedUser.firstName,
+            lastName: updatedUser.lastName,
+            roles: updatedUser.roles,
+            activeRole: updatedUser.activeRole,
+        };
+
+        return {
+            access_token: this.jwtService.sign(payload),
+            user: {
+                id: updatedUser.id,
+                email: updatedUser.email,
+                firstName: updatedUser.firstName,
+                lastName: updatedUser.lastName,
+                roles: updatedUser.roles,
+                activeRole: updatedUser.activeRole,
             },
         };
     }

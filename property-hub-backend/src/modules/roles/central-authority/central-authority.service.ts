@@ -22,7 +22,7 @@ export class CentralAuthorityService {
     async getProfile(userId: string) {
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
-            select: { id: true, profileData: true, roles: true, primaryRole: true },
+            select: { id: true, profileData: true, roles: true, activeRole: true },
         });
         if (!user) throw new NotFoundException('Central Authority user not found');
         return user.profileData;

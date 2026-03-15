@@ -15,7 +15,7 @@ export default function UserProfileDrawer() {
         firstName: '',
         lastName: '',
         phone: '',
-        primaryRole: '',
+        activeRole: '',
         // Property Partner
         companyName: '',
         companyAddress: '',
@@ -55,7 +55,7 @@ export default function UserProfileDrawer() {
             firstName: user.firstName || '',
             lastName: user.lastName || '',
             phone: user.phone || '',
-            primaryRole: user.primaryRole || '',
+            activeRole: user.activeRole || '',
             // Property Partner
             companyName: pp.companyName || user.agencyName || '',
             companyAddress: pp.companyAddress || '',

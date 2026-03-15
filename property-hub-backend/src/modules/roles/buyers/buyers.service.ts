@@ -83,7 +83,7 @@ export class BuyersService {
             email: dto.email,
             phone: dto.phone,
             roles: [UserRole.BUYER],
-            primaryRole: UserRole.BUYER,
+            activeRole: UserRole.BUYER,
         });
 
         // 3. Create Buyer Profile in profileData JSON
