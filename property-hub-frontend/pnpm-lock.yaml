@@ -5,6 +5,9 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@countrystatecity/countries':
+    specifier: ^1.0.5
+    version: 1.0.5
   '@livekit/components-react':
     specifier: ^2.9.20
     version: 2.9.20(livekit-client@2.17.3)(react-dom@19.2.3)(react@19.2.3)(tslib@2.8.1)
@@ -226,6 +229,10 @@ packages:
 
   /@bufbuild/protobuf@1.10.1:
     resolution: {integrity: sha512-wJ8ReQbHxsAfXhrf9ixl0aYbZorRuOWpBNzm8pL8ftmSxQx/wnJD5Eg861NwJU/czy2VXFIebCeZnZrI9rktIQ==}
+    dev: false
+
+  /@countrystatecity/countries@1.0.5:
+    resolution: {integrity: sha512-AsxLm46eYTnP+lLKKk8o2ShJslVX4pAh762Kjux/40sVBEVH152PSgevlBEUxRawNXrccCbA8CQYLAJj5s9Tyw==}
     dev: false
 
   /@dimforge/rapier3d-compat@0.12.0:

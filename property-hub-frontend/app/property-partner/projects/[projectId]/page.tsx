@@ -84,6 +84,11 @@ export default function ProjectDetailPage() {
           amenities = parts[1].split(',').map((a: string) => a.trim());
         }
 
+        // Handle city object that may come from API relationship
+        const cityName = typeof data.city === 'object' && data.city?.name ? data.city.name : (data.city || '');
+        // Handle state object that may come from API relationship  
+        const stateName = typeof data.state === 'object' && data.state?.name ? data.state.name : (data.state || '');
+
         const mapped: Property = {
           id: data.id,
           title: data.name,
@@ -91,8 +96,8 @@ export default function ProjectDetailPage() {
           propertyCategory: data.category?.toLowerCase() as any,
           location: data.location,
           address: data.address || '',
-          city: data.city || '',
-          state: data.state || '',
+          city: cityName,
+          state: stateName,
           pincode: data.pincode || '',
           totalArea: parseFloat(data.area) || 0,
           totalBuildings: 0,

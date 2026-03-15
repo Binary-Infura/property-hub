@@ -79,6 +79,10 @@ export default function ProjectsPage() {
             amenities = parts[1].split(',').map((a: string) => a.trim());
           }
 
+          // Extract city and state, handling both string and object formats from API
+          const cityName = p.locationRel?.city ? (typeof p.locationRel.city === 'object' ? p.locationRel.city.name : p.locationRel.city) : (typeof p.city === 'object' && p.city?.name ? p.city.name : (p.city || ''));
+          const stateName = p.locationRel?.state ? (typeof p.locationRel.state === 'object' ? p.locationRel.state.name : p.locationRel.state) : (typeof p.state === 'object' && p.state?.name ? p.state.name : (p.state || ''));
+
           return {
             id: p.id,
             title: p.name,
@@ -86,8 +90,8 @@ export default function ProjectsPage() {
             propertyCategory: p.category?.toLowerCase() as any,
             location: p.location,
             address: p.address || '',
-            city: p.locationRel?.city || p.city || '',
-            state: p.locationRel?.state || '',
+            city: cityName,
+            state: stateName,
             pincode: p.pincode || '',
             totalArea: parseFloat(p.area) || 0,
             totalBuildings: 0,

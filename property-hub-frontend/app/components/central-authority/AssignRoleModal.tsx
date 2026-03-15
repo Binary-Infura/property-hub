@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { RoleId } from '@/app/contexts/UnifiedAppContext';
+import { getStatesOfCountry, getCitiesOfState } from '@countrystatecity/countries';
 
 interface AssignRoleModalProps {
     isOpen: boolean;
@@ -126,20 +127,31 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
 
     const fetchStates = async (cCode: string) => {
         try {
-            const res = await fetch(`${API_URL}/api/locations/states/${cCode}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.ok) setAvailableStates(await res.json());
-        } catch (e) { console.error(e); }
+            const statesData = await getStatesOfCountry(cCode);
+            const formatted = statesData.map((state: any) => ({
+                id: state.iso2,
+                name: state.name,
+                code: state.iso2,
+            }));
+            setAvailableStates(formatted);
+        } catch (e) { 
+            console.error('Error fetching states:', e); 
+            setAvailableStates([]);
+        }
     };
 
     const fetchCities = async (cCode: string, sCode: string) => {
         try {
-            const res = await fetch(`${API_URL}/api/locations/cities/${cCode}/${sCode}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.ok) setAvailableCities(await res.json());
-        } catch (e) { console.error(e); }
+            const citiesData = await getCitiesOfState(cCode, sCode);
+            const formatted = citiesData.map((city: any) => ({
+                id: city.id,
+                name: city.name,
+            }));
+            setAvailableCities(formatted);
+        } catch (e) { 
+            console.error('Error fetching cities:', e); 
+            setAvailableCities([]);
+        }
     };
 
     const searchUsers = async () => {

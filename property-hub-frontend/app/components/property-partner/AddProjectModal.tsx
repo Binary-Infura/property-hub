@@ -5,6 +5,7 @@ import { Property, PropertyStatus } from '@/app/types/property';
 import { PROPERTY_TYPES, AMENITIES_OPTIONS, INDIAN_STATES } from '@/app/constants/property';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
+import { getStatesOfCountry, getCitiesOfState } from '@countrystatecity/countries';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -90,7 +91,6 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
     const [states, setStates] = useState<State[]>([]);
     const [cities, setCities] = useState<City[]>([]);
     const [selectedStateCode, setSelectedStateCode] = useState('');
-    const [loadingLocations, setLoadingLocations] = useState(false);
 
     useEffect(() => {
         if (!isOpen) {
@@ -119,43 +119,44 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
             setVideoUrl('');
             setCurrentStep(1);
             setProjectCategory('');
-            if (token) fetchStates('IN');
+            fetchStates('IN');
         }
     }, [isOpen, editId, token]);
 
     useEffect(() => {
-        if (selectedStateCode && token) {
+        if (selectedStateCode) {
             fetchCities('IN', selectedStateCode);
         } else {
             setCities([]);
         }
-    }, [selectedStateCode, token]);
+    }, [selectedStateCode]);
 
     const fetchStates = async (cCode: string) => {
-        setLoadingLocations(true);
         try {
-            const res = await fetch(`${API_URL}/api/locations/states/${cCode}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.ok) setStates(await res.json());
+            const statesData = await getStatesOfCountry(cCode);
+            const formattedStates = statesData.map((state: any) => ({
+                id: state.iso2,
+                name: state.name,
+                code: state.iso2,
+            }));
+            setStates(formattedStates);
         } catch (e) {
-            console.error(e);
-        } finally {
-            setLoadingLocations(false);
+            console.error('Error fetching states:', e);
+            setStates([]);
         }
     };
 
     const fetchCities = async (cCode: string, sCode: string) => {
-        setLoadingLocations(true);
         try {
-            const res = await fetch(`${API_URL}/api/locations/cities/${cCode}/${sCode}`, {
-                headers: { Authorization: `Bearer ${token}` }
-            });
-            if (res.ok) setCities(await res.json());
+            const citiesData = await getCitiesOfState(cCode, sCode);
+            const formattedCities = citiesData.map((city: any) => ({
+                id: city.id,
+                name: city.name,
+            }));
+            setCities(formattedCities);
         } catch (e) {
-            console.error(e);
-        } finally {
-            setLoadingLocations(false);
+            console.error('Error fetching cities:', e);
+            setCities([]);
         }
     };
 
@@ -202,11 +203,15 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                     amenities: amenities,
                 });
 
+                // Extract city and state, handling both string and object formats from API
+                const cityName = typeof data.city === 'object' && data.city?.name ? data.city.name : (data.city || '');
+                const stateName = typeof data.state === 'object' && data.state?.name ? data.state.name : (data.state || '');
+
                 setAddressData({
                     location: data.location || '',
                     address: data.address || '',
-                    city: data.city || '',
-                    state: data.state || '',
+                    city: cityName,
+                    state: stateName,
                 });
 
                 setVideoUrl(data.videoUrl || '');
@@ -478,14 +483,14 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                                 <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">State {loadingLocations && states.length === 0 && <span className="ml-1 text-xs text-gray-400">Loading...</span>}</label>
+                                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">State</label>
                                             <select value={selectedStateCode} onChange={(e) => handleLocationChange('state', e.target.value)} className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
                                                 <option value="">Select State</option>
                                                 {states.map(state => <option key={state.id} value={state.code}>{state.name}</option>)}
                                             </select>
                                         </div>
                                         <div>
-                                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">City {loadingLocations && cities.length === 0 && selectedStateCode && <span className="ml-1 text-xs text-gray-400">Loading...</span>}</label>
+                                            <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">City</label>
                                             <select value={addressData.city} onChange={(e) => handleLocationChange('city', e.target.value)} disabled={!selectedStateCode} className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
                                                 <option value="">Select City</option>
                                                 {cities.map(city => <option key={city.id} value={city.name}>{city.name}</option>)}
