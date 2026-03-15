@@ -32,7 +32,7 @@ export default function DashboardHeader({
     children
 }: DashboardHeaderProps) {
     return (
-        <header className="bg-white border-b border-gray-200 sticky top-0 z-50 h-16 shrink-0">
+        <header className="bg-white/80 backdrop-blur-md border-b border-gray-200 sticky top-0 z-50 h-16 shrink-0">
             <div className="h-full px-4 sm:px-8 flex items-center justify-between">
                 <div className="flex items-center gap-4 sm:gap-6 flex-1 min-w-0">
                     {/* Menu button for mobile */}

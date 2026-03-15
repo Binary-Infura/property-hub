@@ -3,6 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { motion } from 'framer-motion';
 import SidebarIcon from '@/app/components/SidebarIcon';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import { useAuth } from '@/app/contexts/AuthContext';
@@ -66,27 +67,36 @@ export default function UnifiedSidebar({ isOpen, onClose }: UnifiedSidebarProps)
             </div>
 
             <div className="flex-1 overflow-y-auto custom-scrollbar pt-4">
-                <nav className="px-3 space-y-1">
+                <nav className="px-3 space-y-1 relative">
                     {mainNav.map((item) => {
                         const active = isActive(item.href);
                         return (
                             <Link
                                 key={item.name}
                                 href={item.href}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all duration-200 group ${active
-                                    ? `${theme.bg} ${theme.text} shadow-sm border-l-[3px] ${theme.border}`
-                                    : `${isDarkSidebar ? 'text-gray-400 hover:bg-slate-800 hover:text-white' : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900'}`
+                                className={`relative flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-colors duration-300 group ${active
+                                    ? `text-white shadow-sm`
+                                    : `${isDarkSidebar ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`
                                     }`}
                             >
-                                <div className={`transition-transform duration-200 ${active ? 'scale-110' : 'group-hover:scale-110'}`}>
+                                {active && (
+                                    <motion.div
+                                        layoutId="active-indicator"
+                                        className={`absolute inset-0 rounded-xl ${theme.bg} z-0`}
+                                        transition={{
+                                            type: "spring",
+                                            stiffness: 180,
+                                            damping: 24
+                                        }}
+                                    />
+                                )}
+                                <div className={`relative z-10 transition-transform duration-300 ${active ? 'scale-110' : 'group-hover:scale-110'}`}>
                                     <SidebarIcon name={item.icon as any} />
                                 </div>
-                                <span className="text-sm">{item.name}</span>
+                                <span className="relative z-10 text-sm">{item.name}</span>
                             </Link>
                         );
                     })}
-
-
                 </nav>
 
                 {advancedNav.length > 0 && (

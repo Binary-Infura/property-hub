@@ -7,6 +7,8 @@ import DashboardHeader from '@/app/components/dashboard/DashboardHeader';
 import UnifiedSidebar from '@/app/components/dashboard/UnifiedSidebar';
 import { RoleId } from '@/app/contexts/UnifiedAppContext';
 
+import PageTransition from '@/app/components/dashboard/PageTransition';
+
 interface UnifiedDashboardLayoutProps {
     children: React.ReactNode;
     requiredRole?: RoleId;
@@ -46,7 +48,9 @@ export default function UnifiedDashboardLayout({
 
                     <main className="flex-1 overflow-y-auto p-4 md:p-8">
                         <ProfileCompletionPrompt />
-                        {children}
+                        <PageTransition>
+                            {children}
+                        </PageTransition>
                     </main>
                 </div>
             </div>

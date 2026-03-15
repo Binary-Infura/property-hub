@@ -132,12 +132,30 @@ export default function RoleSwitchTransition({ isVisible, roleName, roleId }: Ro
                             Switching to
                         </motion.p>
 
-                        {/* Role name */}
                         <motion.h1
-                            className="text-white text-4xl font-black text-center tracking-tight drop-shadow-lg"
+                            className="text-white text-4xl font-black text-center tracking-tight drop-shadow-xl relative overflow-hidden"
                             initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.25, duration: 0.45, ease: 'easeOut' }}
+                            animate={{ 
+                                opacity: 1, 
+                                y: 0,
+                                backgroundImage: [
+                                    'linear-gradient(110deg, #fff 45%, #ffffffaa 50%, #fff 55%)',
+                                    'linear-gradient(110deg, #fff 0%, #ffffffaa 5%, #fff 10%)',
+                                    'linear-gradient(110deg, #fff 90%, #ffffffaa 95%, #fff 100%)'
+                                ],
+                                backgroundSize: '200% 100%',
+                            }}
+                            transition={{ 
+                                delay: 0.25, 
+                                opacity: { duration: 0.45 },
+                                y: { duration: 0.45, ease: 'easeOut' },
+                                backgroundImage: { duration: 2, repeat: Infinity, ease: 'linear' }
+                            }}
+                            style={{
+                                WebkitBackgroundClip: 'text',
+                                WebkitTextFillColor: 'transparent',
+                                backgroundImage: 'linear-gradient(110deg, #fff 45%, #ffffffaa 50%, #fff 55%)',
+                            }}
                         >
                             {roleName}
                         </motion.h1>
