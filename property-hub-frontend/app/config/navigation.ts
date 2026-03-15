@@ -13,12 +13,14 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
         { name: 'Organizations', href: '/dashboard/organizations', icon: 'building' },
         { name: 'Property Partners', href: '/dashboard/property-partners', icon: 'building' },
+        { name: 'Listing Requests', href: '/dashboard/listing-requests', icon: 'clipboard' },
         { name: 'Consultants', href: '/dashboard/consultants', icon: 'users' },
+        { name: 'Cities', href: '/dashboard/cities', icon: 'pin' },
         { name: 'Loan Advisors', href: '/dashboard/loan-advisers', icon: 'bank' },
         { name: 'Visit Executives', href: '/dashboard/visit-executives', icon: 'car' },
         { name: 'Marketing Managers', href: '/dashboard/marketing-managers', icon: 'megaphone' },
-
         { name: 'Influencers', href: '/dashboard/influencers', icon: 'phone' },
+        { name: 'Reviews', href: '/dashboard/reviews', icon: 'star' },
         { name: 'Global Users', href: '/dashboard/global-users', icon: 'globe' },
     ],
     'MARKETING_MANAGER': [
