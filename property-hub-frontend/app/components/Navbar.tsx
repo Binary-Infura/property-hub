@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { useConsultingBucket } from '../contexts/ConsultingBucketContext';
 import { useUnifiedApp, RoleId } from '../contexts/UnifiedAppContext';
+import UserProfileMenu from './UserProfileMenu';
 
 
 export default function Navbar() {
@@ -124,12 +125,7 @@ export default function Navbar() {
                         )}
                         {initialized ? (
                             authenticated ? (
-                                <AuthUserMenu
-                                    user={user}
-                                    roles={roles}
-                                    logout={logout}
-                                    activeRole={activeContext.activeRole}
-                                />
+                                <UserProfileMenu />
                             ) : (
                                 <>
                                     <Link href="/signin" className="text-gray-600 hover:text-gray-900 px-4 py-2 text-sm font-medium">
@@ -174,105 +170,3 @@ export default function Navbar() {
     );
 }
 
-function AuthUserMenu({ user, roles, logout, activeRole }: {
-    user: any;
-    roles: string[];
-    logout: () => void;
-    activeRole: any;
-}) {
-    const { switchRole } = useAuth();
-    const { currentUser } = useUnifiedApp();
-    const pathname = usePathname();
-    const [open, setOpen] = React.useState(false);
-    const ref = React.useRef<HTMLDivElement>(null);
-    const firstName = user?.firstName || user?.name?.split(' ')[0] || 'User';
-    const roleLabel = activeRole?.name || 'User';
-
-    React.useEffect(() => {
-        function onOutside(e: MouseEvent) {
-            if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-        }
-        document.addEventListener('mousedown', onOutside);
-        return () => document.removeEventListener('mousedown', onOutside);
-    }, []);
-
-    const handleRoleSwitch = async (newRole: string) => {
-        if (newRole === activeRole?.id) {
-            setOpen(false);
-            return;
-        }
-        setOpen(false);
-        try {
-            await switchRole(newRole);
-            window.location.href = `/dashboard`;
-        } catch (err: any) {
-            alert(err?.message || 'Failed to switch role');
-        }
-    };
-
-    const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName)}&background=1d4ed8&color=fff&size=64`;
-
-    return (
-        <div className="relative" ref={ref}>
-            <button
-                onClick={() => setOpen(!open)}
-                className="flex items-center gap-2.5 pl-1 pr-3 py-1 rounded-full border border-gray-200 hover:border-blue-300 hover:bg-blue-50/50 transition-all"
-            >
-                <img src={avatarUrl} alt={firstName} className="w-8 h-8 rounded-full" />
-                <div className="hidden sm:flex flex-col items-start text-left leading-none">
-                    <span className="text-sm font-semibold text-gray-900">{firstName}</span>
-                    <span className="text-[10px] text-blue-600 font-bold uppercase tracking-wide">{roleLabel}</span>
-                </div>
-                <svg className={`w-3.5 h-3.5 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                </svg>
-            </button>
-
-            {open && (
-                <div className="absolute right-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-100 z-50 overflow-hidden">
-
-                    {/* Dashboard Link */}
-                    <div className="py-1 border-b border-gray-100">
-                        <Link
-                            href="/dashboard"
-                            onClick={() => setOpen(false)}
-                            className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
-                        >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                            </svg>
-                            My Dashboard
-                        </Link>
-                    </div>
-
-                    {/* Role switcher — only if multiple roles */}
-                    {roles.length > 1 && (
-                        <div className="py-1 border-b border-gray-100">
-                            <p className="px-4 pt-2 pb-1 text-[10px] font-black text-gray-400 uppercase tracking-widest">Switch Role</p>
-                            {roles.map(role => (
-                                <button
-                                    key={role}
-                                    onClick={() => { setOpen(false); handleRoleSwitch(role); }}
-                                    className={`w-full text-left px-4 py-2 text-sm transition-colors ${role === activeRole?.id ? 'text-blue-600 font-bold bg-blue-50/50' : 'text-gray-600 hover:bg-gray-50'}`}
-                                >
-                                    {role.split('_').map((w: string) => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ')}
-                                </button>
-                            ))}
-                        </div>
-                    )}
-
-                    {/* Logout */}
-                    <button
-                        onClick={() => { setOpen(false); logout(); }}
-                        className="w-full flex items-center gap-3 px-4 py-3 text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
-                    >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
-                        </svg>
-                        Sign Out
-                    </button>
-                </div>
-            )}
-        </div>
-    );
-}
