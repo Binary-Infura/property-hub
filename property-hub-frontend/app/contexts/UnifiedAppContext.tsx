@@ -1,15 +1,14 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
-import { setCookie } from 'cookies-next';
+import React, { createContext, useContext, useState, useMemo, ReactNode } from 'react';
 import { useAuth } from './AuthContext';
 
-// --- Types ---
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 export type RoleId =
     | 'CENTRAL_AUTHORITY'
     | 'MARKETING_MANAGER'
-
     | 'PROPERTY_PARTNER'
     | 'CONSULTANT'
     | 'LOAN_ADVISOR'
@@ -41,181 +40,108 @@ export interface UnifiedAppContextType {
         availableRoles: UserRole[];
     };
     activeContext: UserContextData;
-    switchContext: (roleId: RoleId, shouldRedirect?: boolean, explicitUrl?: string) => void;
     isProfileOpen: boolean;
     setIsProfileOpen: (open: boolean) => void;
 }
 
-// --- Application Configuration (Static) ---
-const KNOWN_ROLES: UserRole[] = [
-    {
+// ---------------------------------------------------------------------------
+// Static role catalogue — add / remove roles HERE only
+// ---------------------------------------------------------------------------
+export const KNOWN_ROLES: Record<RoleId, UserRole> = {
+    CENTRAL_AUTHORITY: {
         id: 'CENTRAL_AUTHORITY',
         name: 'Central Authority',
         permissionHint: 'Platform-wide administrator',
-        dashboardUrl: '/dashboard'
+        dashboardUrl: '/dashboard',
     },
-    {
+    MARKETING_MANAGER: {
         id: 'MARKETING_MANAGER',
         name: 'Marketing Manager',
         permissionHint: 'Manage campaigns & leads platform-wide',
-        dashboardUrl: '/dashboard'
+        dashboardUrl: '/dashboard',
     },
-
-    {
+    PROPERTY_PARTNER: {
         id: 'PROPERTY_PARTNER',
         name: 'Property Partner',
         permissionHint: 'Manage properties and inventory',
-        dashboardUrl: '/dashboard'
+        dashboardUrl: '/dashboard',
     },
-    {
+    CONSULTANT: {
         id: 'CONSULTANT',
         name: 'Sales Consultant',
         permissionHint: 'Direct sales and client guidance',
-        dashboardUrl: '/dashboard'
+        dashboardUrl: '/dashboard',
     },
-    {
+    LOAN_ADVISOR: {
         id: 'LOAN_ADVISOR',
         name: 'Loan Advisor',
         permissionHint: 'Financial and loan facilitation',
-        dashboardUrl: '/dashboard'
+        dashboardUrl: '/dashboard',
     },
-
-    {
+    BUYER: {
         id: 'BUYER',
         name: 'Buyer',
         permissionHint: 'Property search and purchase',
-        dashboardUrl: '/dashboard'
+        dashboardUrl: '/dashboard',
     },
-    {
+    INFLUENCER: {
         id: 'INFLUENCER',
         name: 'Influencer',
         permissionHint: 'Marketing influencer',
-        dashboardUrl: '/dashboard'
-    }
-];
-
-const DEFAULT_CONTEXT: UnifiedAppContextType = {
-    currentUser: {
-        name: 'Guest',
-        avatar: 'https://ui-avatars.com/api/?name=Guest&background=0D8ABC&color=fff',
-        availableRoles: []
+        dashboardUrl: '/dashboard',
     },
-    activeContext: {
-        activeRole: KNOWN_ROLES[8], // Default to buyer
-        activeCity: null
-    },
-    switchContext: () => { },
-    isProfileOpen: false,
-    setIsProfileOpen: () => { }
 };
 
-// --- Context ---
-const UnifiedAppContext = createContext<UnifiedAppContextType>(DEFAULT_CONTEXT);
+const FALLBACK_ROLE: UserRole = KNOWN_ROLES['BUYER'];
 
-// --- Provider ---
+// ---------------------------------------------------------------------------
+// Context
+// ---------------------------------------------------------------------------
+const UnifiedAppContext = createContext<UnifiedAppContextType>({
+    currentUser: { name: 'Guest', avatar: '', availableRoles: [] },
+    activeContext: { activeRole: FALLBACK_ROLE, activeCity: null },
+    isProfileOpen: false,
+    setIsProfileOpen: () => {},
+});
+
+// ---------------------------------------------------------------------------
+// Provider — all role state is DERIVED from AuthContext, nothing stored locally
+// ---------------------------------------------------------------------------
 export function UnifiedAppProvider({ children }: { children: ReactNode }) {
-    const { user, roles, authenticated, initialized, token } = useAuth();
-    const router = useRouter();
-    const pathname = usePathname();
-
-    const [activeRole, setActiveRole] = useState<UserRole | null>(null);
-    const [availableRoles, setAvailableRoles] = useState<UserRole[]>([]);
+    const { user, roles, activeRole: activeRoleId, authenticated } = useAuth();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
 
-    // Sync context with Auth state
-    useEffect(() => {
-        if (!initialized) return;
+    const displayName = user
+        ? `${user.firstName || user.given_name || ''}${user.lastName || user.family_name ? ' ' + (user.lastName || user.family_name) : ''}`.trim() || user.email || 'User'
+        : 'Guest';
 
-        const syncAppData = async () => {
-            let roleList: UserRole[] = [];
+    const avatarUrl = user
+        ? `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0D8ABC&color=fff`
+        : '';
 
-            // 1. Determine Roles
-            if (authenticated && user) {
-                roleList = KNOWN_ROLES.filter(knownRole =>
-                    roles.includes(knownRole.id)
-                );
-            } else {
-                // Guests are treated as buyers for discovery purposes
-                roleList = [KNOWN_ROLES.find(r => r.id === 'BUYER')!];
-            }
+    // Compute available roles from the JWT roles array
+    const availableRoles = useMemo((): UserRole[] => {
+        if (!authenticated || !roles.length) return [FALLBACK_ROLE];
+        return roles
+            .filter((r): r is RoleId => r in KNOWN_ROLES)
+            .map(r => KNOWN_ROLES[r]);
+    }, [authenticated, roles]);
 
-            if (roleList.length > 0) {
-                setAvailableRoles(roleList);
-
-                // 2. Determine Active Role intelligently
-                let pathMatchedRole: UserRole | undefined;
-
-                // Check if current URL matches a specific role dashboard pattern
-                for (const r of roleList) {
-                    // Check both standardized role path and buyer dashboard
-                    if (pathname && (
-                        pathname.startsWith(r.dashboardUrl) ||
-                        (r.id === 'BUYER' && (pathname === '/dashboard' || pathname.startsWith('/dashboard/')))
-                    )) {
-                        pathMatchedRole = r;
-                        break;
-                    }
-                }
-
-                const savedRoleId = localStorage.getItem('activeRoleId') as RoleId | null;
-                const activeRoleId = user?.activeRole as RoleId | undefined;
-
-                // Priority:
-                // 1. User's active role (Absolute source of truth from verified JWT)
-                // 2. Explicit savedRoleId (from local storage as fallback UI state)
-                // 3. First available role
-                const resolvedRole =
-                    (activeRoleId && roleList.find(r => r.id === activeRoleId)) ||
-                    (savedRoleId && roleList.find(r => r.id === savedRoleId)) ||
-                    roleList[0];
-
-                setActiveRole(resolvedRole);
-
-                if (resolvedRole) {
-                    localStorage.setItem('activeRoleId', resolvedRole.id);
-                }
-            }
-
-        };
-        syncAppData();
-    }, [initialized, authenticated, user, roles, activeRole?.id, pathname]);
-
-    const switchContext = (roleId: RoleId, shouldRedirect: boolean = true, explicitUrl?: string) => {
-        const role = availableRoles.find(r => r.id === roleId);
-        if (!role) return;
-
-        setActiveRole(role);
-        localStorage.setItem('activeRoleId', roleId);
-        
-        // Sync the user_role cookie so the middleware can perform correct rewriting
-        setCookie('user_role', roleId, { maxAge: 60 * 60 * 24 * 7, path: '/' });
-
-        console.log(`Switching context to role: ${role.name}`);
-        if (shouldRedirect) {
-            // Use window.location.href to force a server-side hit and middleware re-evaluation.
-            window.location.href = explicitUrl || role.dashboardUrl;
+    // Resolve the active role from the JWT activeRole — no localStorage, no guessing
+    const resolvedActiveRole = useMemo((): UserRole => {
+        if (activeRoleId && activeRoleId in KNOWN_ROLES) {
+            return KNOWN_ROLES[activeRoleId as RoleId];
         }
-    };
+        // Graceful fallback: first available role, or BUYER
+        return availableRoles[0] ?? FALLBACK_ROLE;
+    }, [activeRoleId, availableRoles]);
 
-    const displayName = user ? (user.firstName || user.name || 'User') : 'Guest';
-    const avatarUrl = user ? `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=0D8ABC&color=fff` : DEFAULT_CONTEXT.currentUser.avatar;
-
-    const fallbackRole = KNOWN_ROLES.find(r => r.id === 'BUYER')!;
-
-    const value = {
-        currentUser: {
-            name: displayName,
-            avatar: avatarUrl,
-            availableRoles
-        },
-        activeContext: {
-            activeRole: activeRole ?? fallbackRole,
-            activeCity: null
-        },
-        switchContext,
+    const value = useMemo((): UnifiedAppContextType => ({
+        currentUser: { name: displayName, avatar: avatarUrl, availableRoles },
+        activeContext: { activeRole: resolvedActiveRole, activeCity: null },
         isProfileOpen,
-        setIsProfileOpen
-    };
+        setIsProfileOpen,
+    }), [displayName, avatarUrl, availableRoles, resolvedActiveRole, isProfileOpen]);
 
     return (
         <UnifiedAppContext.Provider value={value}>
@@ -224,7 +150,9 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
     );
 }
 
-// --- Hook ---
+// ---------------------------------------------------------------------------
+// Hook
+// ---------------------------------------------------------------------------
 export function useUnifiedApp() {
     return useContext(UnifiedAppContext);
 }

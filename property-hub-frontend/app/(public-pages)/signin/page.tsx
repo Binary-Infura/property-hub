@@ -7,7 +7,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { getDashboardRoute } from '@/app/lib/routing';
 
 export default function SignInPage() {
-    const { loginWithCredentials, authenticated, user, roles } = useAuth();
+    const { loginWithCredentials, authenticated, activeRole, roles } = useAuth();
     const router = useRouter();
     const [formData, setFormData] = useState({
         identifier: '',
@@ -17,40 +17,18 @@ export default function SignInPage() {
     const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
-        if (authenticated && user) {
-            console.log('User roles for redirection:', roles);
+        if (!authenticated) return;
 
-            // Check for explicit redirect request
-            const savedRedirect = localStorage.getItem('redirect_after_auth');
-            if (savedRedirect) {
-                localStorage.removeItem('redirect_after_auth');
-                router.push(savedRedirect);
-                return;
-            }
-
-            // 0. Use activeRole if available, otherwise fallback to first role
-            const activeRole = user.activeRole;
-            if (activeRole && roles.includes(activeRole)) {
-                router.push(getDashboardRoute(activeRole));
-                return;
-            }
-
-            // 1. If single role, go there
-            if (roles.length === 1) {
-                router.push(getDashboardRoute(roles[0]));
-                return;
-            }
-
-            // 2. If multiple roles without an activeRole, let them choose
-            if (roles.length > 1) {
-                router.push('/my-dashboards');
-                return;
-            }
-
-            // Fallback
-            router.push('/');
+        const savedRedirect = localStorage.getItem('redirect_after_auth');
+        if (savedRedirect) {
+            localStorage.removeItem('redirect_after_auth');
+            router.push(savedRedirect);
+            return;
         }
-    }, [authenticated, user, roles, router]);
+
+        // All roles use /dashboard — middleware rewrites based on the user_role cookie
+        router.push('/dashboard');
+    }, [authenticated, activeRole, router]);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();

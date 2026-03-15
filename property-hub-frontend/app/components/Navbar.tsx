@@ -6,17 +6,17 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '../contexts/AuthContext';
 import { useConsultingBucket } from '../contexts/ConsultingBucketContext';
 import { useUnifiedApp, RoleId } from '../contexts/UnifiedAppContext';
-import { DASHBOARD_ROUTES } from '../lib/routing';
+
 
 export default function Navbar() {
-    const { authenticated, user, roles, token, logout, initialized } = useAuth();
+    const { authenticated, user, roles, token, logout, initialized, activeRole: activeRoleId } = useAuth();
     const { itemCount, items, removeItem } = useConsultingBucket();
     const { activeContext } = useUnifiedApp();
     const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
     const [isBucketOpen, setIsBucketOpen] = useState(false);
     const bucketRef = useRef<HTMLDivElement>(null);
 
-    const isBuyer = (activeContext?.activeRole?.id === 'BUYER') && authenticated;
+    const isBuyer = (activeRoleId === 'BUYER') && authenticated;
 
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
@@ -127,7 +127,6 @@ export default function Navbar() {
                                 <AuthUserMenu
                                     user={user}
                                     roles={roles}
-                                    token={token}
                                     logout={logout}
                                     activeRole={activeContext.activeRole}
                                 />
@@ -175,15 +174,14 @@ export default function Navbar() {
     );
 }
 
-function AuthUserMenu({ user, roles, token, logout, activeRole }: {
+function AuthUserMenu({ user, roles, logout, activeRole }: {
     user: any;
     roles: string[];
-    token: string | undefined;
     logout: () => void;
     activeRole: any;
 }) {
-    const { switchContext } = useUnifiedApp();
-    const { refreshAuthToken } = useAuth();
+    const { switchRole } = useAuth();
+    const { currentUser } = useUnifiedApp();
     const pathname = usePathname();
     const [open, setOpen] = React.useState(false);
     const ref = React.useRef<HTMLDivElement>(null);
@@ -199,22 +197,17 @@ function AuthUserMenu({ user, roles, token, logout, activeRole }: {
     }, []);
 
     const handleRoleSwitch = async (newRole: string) => {
+        if (newRole === activeRole?.id) {
+            setOpen(false);
+            return;
+        }
+        setOpen(false);
         try {
-            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/switch-role`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                body: JSON.stringify({ activeRole: newRole })
-            });
-            if (res.ok) {
-                const data = await res.json();
-                if (data.access_token) {
-                    refreshAuthToken(data.access_token);
-                }
-            }
-            // Force redirect to the new role's dashboard using mapped routing list instead of generic window.location.href prefix matching
-            const targetRoute = DASHBOARD_ROUTES[newRole as RoleId] || '/dashboard';
-            (switchContext as any)(newRole as any, true, targetRoute);
-        } catch { /* silent */ }
+            await switchRole(newRole);
+            window.location.href = `/dashboard`;
+        } catch (err: any) {
+            alert(err?.message || 'Failed to switch role');
+        }
     };
 
     const avatarUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(firstName)}&background=1d4ed8&color=fff&size=64`;
@@ -241,7 +234,7 @@ function AuthUserMenu({ user, roles, token, logout, activeRole }: {
                     {/* Dashboard Link */}
                     <div className="py-1 border-b border-gray-100">
                         <Link
-                            href={roles.length > 1 ? '/my-dashboards' : (DASHBOARD_ROUTES[activeRole?.id] || '/dashboard')}
+                            href="/dashboard"
                             onClick={() => setOpen(false)}
                             className="w-full flex items-center gap-3 px-4 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 transition-colors"
                         >
