@@ -42,6 +42,8 @@ export interface UnifiedAppContextType {
     activeContext: UserContextData;
     isProfileOpen: boolean;
     setIsProfileOpen: (open: boolean) => void;
+    transition: { visible: boolean; roleId: string; roleName: string };
+    triggerTransition: (roleId: string, roleName: string) => void;
 }
 
 // ---------------------------------------------------------------------------
@@ -102,6 +104,8 @@ const UnifiedAppContext = createContext<UnifiedAppContextType>({
     activeContext: { activeRole: FALLBACK_ROLE, activeCity: null },
     isProfileOpen: false,
     setIsProfileOpen: () => {},
+    transition: { visible: false, roleId: '', roleName: '' },
+    triggerTransition: () => {},
 });
 
 // ---------------------------------------------------------------------------
@@ -110,6 +114,13 @@ const UnifiedAppContext = createContext<UnifiedAppContextType>({
 export function UnifiedAppProvider({ children }: { children: ReactNode }) {
     const { user, roles, activeRole: activeRoleId, authenticated } = useAuth();
     const [isProfileOpen, setIsProfileOpen] = useState(false);
+    const [transition, setTransition] = useState({ visible: false, roleId: '', roleName: '' });
+
+    const triggerTransition = (roleId: string, roleName: string) => {
+        setTransition({ visible: true, roleId, roleName });
+        // Auto-hide after 3 seconds as a safety (though navigation usually handles it)
+        setTimeout(() => setTransition(prev => ({ ...prev, visible: false })), 3000);
+    };
 
     const displayName = user
         ? `${user.firstName || user.given_name || ''}${user.lastName || user.family_name ? ' ' + (user.lastName || user.family_name) : ''}`.trim() || user.email || 'User'
@@ -141,7 +152,9 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
         activeContext: { activeRole: resolvedActiveRole, activeCity: null },
         isProfileOpen,
         setIsProfileOpen,
-    }), [displayName, avatarUrl, availableRoles, resolvedActiveRole, isProfileOpen]);
+        transition,
+        triggerTransition,
+    }), [displayName, avatarUrl, availableRoles, resolvedActiveRole, isProfileOpen, transition]);
 
     return (
         <UnifiedAppContext.Provider value={value}>

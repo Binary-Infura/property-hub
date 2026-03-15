@@ -3,18 +3,14 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useUnifiedApp } from '../contexts/UnifiedAppContext';
 import { useAuth } from '../contexts/AuthContext';
-import RoleSwitchTransition from './RoleSwitchTransition';
 import Link from 'next/link';
 
 export default function UserProfileMenu() {
-    const { currentUser, activeContext, setIsProfileOpen } = useUnifiedApp();
+    const { currentUser, activeContext, setIsProfileOpen, triggerTransition } = useUnifiedApp();
     const { user, logout, switchRole, activeRole: activeRoleId } = useAuth();
 
     const [isOpen, setIsOpen] = useState(false);
     const [switching, setSwitching] = useState<string | null>(null);
-    const [transition, setTransition] = useState<{ visible: boolean; roleId: string; roleName: string }>({
-        visible: false, roleId: '', roleName: '',
-    });
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     const { activeRole } = activeContext;
@@ -46,7 +42,7 @@ export default function UserProfileMenu() {
 
         try {
             await switchRole(roleId);
-            setTransition({ visible: true, roleId, roleName });
+            triggerTransition(roleId, roleName);
             setTimeout(() => {
                 window.location.href = '/dashboard';
             }, 1800);
@@ -58,14 +54,7 @@ export default function UserProfileMenu() {
     };
 
     return (
-        <>
-            <RoleSwitchTransition
-                isVisible={transition.visible}
-                roleId={transition.roleId}
-                roleName={transition.roleName}
-            />
-
-            <div className="relative" ref={dropdownRef}>
+        <div className="relative" ref={dropdownRef}>
                 {/* Trigger button - Premium Aura Bloom Style */}
                 <button
                     onClick={() => setIsOpen(!isOpen)}
@@ -191,6 +180,5 @@ export default function UserProfileMenu() {
                     </div>
                 )}
             </div>
-        </>
     );
 }

@@ -69,7 +69,7 @@ export default function RoleSwitchTransition({ isVisible, roleName, roleId }: Ro
             {isVisible && (
                 <motion.div
                     key="role-switch-overlay"
-                    className={`fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-gradient-to-br ${config.gradient} overflow-hidden`}
+                    className={`fixed inset-0 z-[99999] w-screen h-screen flex flex-col items-center justify-center bg-gradient-to-br ${config.gradient} overflow-hidden`}
                     initial={{ opacity: 0, scale: 1.05 }}
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.97, transition: { duration: 0.35, ease: 'easeIn' } }}
