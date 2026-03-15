@@ -5,7 +5,7 @@ import { Property, PropertyStatus } from '@/app/types/property';
 import { PROPERTY_TYPES, AMENITIES_OPTIONS, INDIAN_STATES } from '@/app/constants/property';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
-import { getStatesOfCountry, getCitiesOfState } from '@countrystatecity/countries';
+import { State, City } from 'country-state-city';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -133,13 +133,17 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
 
     const fetchStates = async (cCode: string) => {
         try {
-            const statesData = await getStatesOfCountry(cCode);
-            const formattedStates = statesData.map((state: any) => ({
-                id: state.iso2,
-                name: state.name,
-                code: state.iso2,
-            }));
-            setStates(formattedStates);
+            const statesData = State.getStatesOfCountry(cCode);
+            if (statesData && Array.isArray(statesData)) {
+                const formattedStates = statesData.map((state: any) => ({
+                    id: state.isoCode || state.name,
+                    name: state.name,
+                    code: state.isoCode,
+                }));
+                setStates(formattedStates);
+            } else {
+                setStates([]);
+            }
         } catch (e) {
             console.error('Error fetching states:', e);
             setStates([]);
@@ -148,12 +152,16 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
 
     const fetchCities = async (cCode: string, sCode: string) => {
         try {
-            const citiesData = await getCitiesOfState(cCode, sCode);
-            const formattedCities = citiesData.map((city: any) => ({
-                id: city.id,
-                name: city.name,
-            }));
-            setCities(formattedCities);
+            const citiesData = City.getCitiesOfState(cCode, sCode);
+            if (citiesData && Array.isArray(citiesData)) {
+                const formattedCities = citiesData.map((city: any) => ({
+                    id: city.name,
+                    name: city.name,
+                }));
+                setCities(formattedCities);
+            } else {
+                setCities([]);
+            }
         } catch (e) {
             console.error('Error fetching cities:', e);
             setCities([]);
@@ -493,7 +501,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                                             <label className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-1">City</label>
                                             <select value={addressData.city} onChange={(e) => handleLocationChange('city', e.target.value)} disabled={!selectedStateCode} className="w-full bg-white border border-gray-200 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5">
                                                 <option value="">Select City</option>
-                                                {cities.map(city => <option key={city.id} value={city.name}>{city.name}</option>)}
+                                                {cities.map(city => <option key={city.name} value={city.name}>{city.name}</option>)}
                                             </select>
                                         </div>
                                     </div>
