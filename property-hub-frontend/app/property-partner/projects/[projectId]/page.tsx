@@ -559,14 +559,6 @@ export default function ProjectDetailPage() {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Project Status</h3>
                 <p className="text-gray-700 mb-4">Current Status: <span className={`font-bold ${statusConfig.color}`}>{statusConfig.label}</span></p>
-                <div className="flex gap-2">
-                  <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-medium transition text-sm">
-                    Submit for Approval
-                  </button>
-                  <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 font-medium transition text-sm">
-                    Save as Draft
-                  </button>
-                </div>
               </div>
 
               <div className="border-t border-gray-200 pt-6">
