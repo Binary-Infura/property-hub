@@ -166,11 +166,8 @@ export default function ProjectsPage() {
 
   const statusCounts = {
     total: projects.length,
-    drafts: projects.filter(p => p.status === 'available' || p.status === 'draft').length,
-    submitted: projects.filter(p => p.status === 'submitted').length,
-    approved: projects.filter(p => p.status === 'approved' || p.status === 'published').length,
-    rejected: projects.filter(p => p.status === 'rejected').length,
-    sold: projects.filter(p => p.status === 'sold').length,
+    available: projects.filter(p => p.status === 'available').length,
+    published: projects.filter(p => p.status === 'published').length,
   };
 
   return (
@@ -244,14 +241,11 @@ export default function ProjectsPage() {
 
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-3 gap-4">
         {[
           { label: 'Total', count: statusCounts.total, color: 'text-gray-900', bgColor: 'bg-white' },
-          { label: 'Drafts', count: statusCounts.drafts, color: 'text-amber-600', bgColor: 'bg-white' },
-          { label: 'Submitted', count: statusCounts.submitted, color: 'text-blue-600', bgColor: 'bg-white' },
-          { label: 'Approved', count: statusCounts.approved, color: 'text-emerald-600', bgColor: 'bg-white' },
-          { label: 'Sold', count: statusCounts.sold, color: 'text-gray-900', bgColor: 'bg-white' },
-          { label: 'Rejected', count: statusCounts.rejected, color: 'text-red-600', bgColor: 'bg-white' },
+          { label: 'Available', count: statusCounts.available, color: 'text-emerald-600', bgColor: 'bg-white' },
+          { label: 'Published', count: statusCounts.published, color: 'text-blue-600', bgColor: 'bg-white' },
         ].map(stat => (
           <div key={stat.label} className={`${stat.bgColor} rounded-lg shadow-sm border border-gray-100 p-4`}>
             <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">{stat.label}</p>
