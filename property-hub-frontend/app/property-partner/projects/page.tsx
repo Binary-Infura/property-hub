@@ -279,7 +279,7 @@ export default function ProjectsPage() {
           </div>
 
           <div className="flex gap-1.5 flex-wrap">
-            {['all', 'available', 'submitted', 'approved', 'sold', 'rejected'].map((status) => (
+            {['all', 'available', 'published'].map((status) => (
               <button
                 key={status}
                 onClick={() => setFilterStatus(status as any)}
