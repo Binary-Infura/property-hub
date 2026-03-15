@@ -115,7 +115,16 @@ export default function UserProfileMenu() {
 
                             <Link
                                 href="/dashboard"
-                                onClick={() => setIsOpen(false)}
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    setIsOpen(false);
+                                    const roleId = activeRole?.id || 'BUYER';
+                                    const roleName = activeRole?.name || 'User';
+                                    triggerTransition(roleId, roleName);
+                                    setTimeout(() => {
+                                        window.location.href = '/dashboard';
+                                    }, 1800);
+                                }}
                                 className="flex flex-col items-center justify-center p-3 rounded-2xl hover:bg-indigo-50 transition-all group border border-transparent hover:border-indigo-100"
                             >
                                 <div className="w-10 h-10 rounded-xl bg-indigo-100 text-indigo-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
