@@ -1,4 +1,4 @@
-export type ProjectStatus = 'AVAILABLE' | 'SOLD' | 'RESERVED' | 'UNDER_CONSTRUCTION' | 'APPROVED';
+export type ProjectStatus = 'AVAILABLE' | 'SOLD' | 'RESERVED' | 'UNDER_CONSTRUCTION' | 'APPROVED' | 'PUBLISHED';
 export type ProjectType = 'APARTMENT' | 'VILLA' | 'PLOT' | 'COMMERCIAL' | 'INDUSTRIAL';
 
 export interface Project {
@@ -37,9 +37,10 @@ export interface Project {
 }
 
 export const projectService = {
-    async getAll(token: string | null, myOnly: boolean = false, city?: string): Promise<Project[]> {
+    async getAll(token: string | null, myOnly: boolean = false, city?: string, status?: ProjectStatus): Promise<Project[]> {
         const params = new URLSearchParams();
         if (city) params.append('city', city);
+        if (status) params.append('status', status);
         const query = params.toString() ? `?${params.toString()}` : '';
         const endpoint = myOnly ? '/api/projects/my' : '/api/projects';
 

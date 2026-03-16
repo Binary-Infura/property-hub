@@ -37,9 +37,10 @@ export class ProjectsController {
     @Public()
     findAll(
         @CurrentUser() user: AuthenticatedUser,
-        @Query('city') city?: string
+        @Query('city') city?: string,
+        @Query('status') status?: string,
     ) {
-        return this.projectsService.findAll(user, false, city);
+        return this.projectsService.findAll(user, false, city, status);
     }
 
     @Get(':id')

@@ -15,7 +15,7 @@ export class ProjectsService {
         private activityLogsService: ActivityLogsService,
     ) { }
 
-    async findAll(user: AuthenticatedUser | undefined, myOnly?: boolean, city?: string): Promise<Project[]> {
+    async findAll(user: AuthenticatedUser | undefined, myOnly?: boolean, city?: string, status?: string): Promise<Project[]> {
         const isCentralAuthority = user?.roles?.includes(UserRole.CENTRAL_AUTHORITY) || false;
         const isPropertyPartner = user?.roles?.includes(UserRole.PROPERTY_PARTNER) || false;
         const allRoles = Object.values(UserRole);
@@ -24,6 +24,13 @@ export class ProjectsService {
 
 
         let where: any = {};
+
+        if (status) {
+            where.status = status;
+        } else if (!myOnly && !isCentralAuthority && !isPropertyPartner) {
+            // For public search/buyers, only show published projects by default
+            where.status = 'PUBLISHED';
+        }
 
         if (city) {
             where.OR = [
