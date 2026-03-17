@@ -7,10 +7,29 @@ import { useAuth } from '../contexts/AuthContext';
 import Navbar from '../components/Navbar';
 
 export default function MyDashboards() {
-    const { currentUser, switchContext } = useUnifiedApp();
-    const { authenticated, initialized } = useAuth();
+    const { currentUser, triggerTransition } = useUnifiedApp();
+    const { authenticated, initialized, switchRole, activeRole: activeRoleId } = useAuth();
     const router = useRouter();
 
+    const handleSwitch = async (roleId: string) => {
+        if (roleId === activeRoleId) {
+            router.push('/dashboard');
+            return;
+        }
+
+        const roleName = currentUser.availableRoles.find(r => r.id === roleId)?.name ?? roleId;
+
+        try {
+            triggerTransition(roleId, roleName);
+            await switchRole(roleId);
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 1800);
+        } catch (err: any) {
+            console.error('Role switch failed:', err);
+            alert(err?.message || 'Failed to switch role');
+        }
+    };
     useEffect(() => {
         if (initialized && !authenticated) {
             router.push('/signin');
@@ -40,7 +59,7 @@ export default function MyDashboards() {
                     <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
                         {currentUser.availableRoles.map(role => (
                             <div key={role.id}
-                                onClick={() => switchContext(role.id)}
+                                onClick={() => handleSwitch(role.id)}
                                 className="cursor-pointer bg-white overflow-hidden shadow-sm rounded-2xl border border-gray-100 hover:border-blue-300 hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 group relative">
                                 <div className="absolute inset-0 bg-gradient-to-br from-blue-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
                                 <div className="relative p-8">

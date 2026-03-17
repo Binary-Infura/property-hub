@@ -206,16 +206,16 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                     title: data.name || '',
                     propertyType: data.propertyType || 'residential',
                     totalArea: data.area?.toString() || '',
-                    totalBuildings: '',
-                    totalUnits: '',
+                    totalBuildings: data.totalBuildings?.toString() || '',
+                    totalUnits: data.totalUnits?.toString() || '',
                     startingPrice: data.price?.toString() || '',
                     description: descPart,
                     amenities: amenities,
                 });
 
                 // Extract city and state, handling both string and object formats from API
-                const cityName = typeof data.city === 'object' && data.city?.name ? data.city.name : (data.city || '');
-                const stateName = typeof data.state === 'object' && data.state?.name ? data.state.name : (data.state || '');
+                const cityName = data.cityName || (typeof data.city === 'object' && data.city?.name ? data.city.name : (data.city || ''));
+                const stateName = data.state || (typeof data.state === 'object' && data.state?.name ? data.state.name : '');
 
                 setAddressData({
                     location: data.location || '',
@@ -346,13 +346,13 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
             category: projectCategory.toUpperCase(),
             location: addressData.location || formData.title,
             address: addressData.address,
-            // city: addressData.city, // Backend expects cityId if link is needed, otherwise string info can go in location/address
-            // state: addressData.state,
-            // country: 'India',
-            // continent: 'Asia',
+            cityName: addressData.city,
+            state: addressData.state,
             status: status.toUpperCase(),
             price: parseFloat(formData.startingPrice) || 0,
             area: parseFloat(formData.totalArea) || 0,
+            totalBuildings: parseInt(formData.totalBuildings) || undefined,
+            totalUnits: parseInt(formData.totalUnits) || undefined,
             projectType: backendProjectType,
             videoUrl: videoUrl || undefined,
             onboardingStep: step,

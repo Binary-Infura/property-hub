@@ -55,6 +55,28 @@ export class CreateProjectDto {
     @IsOptional()
     cityId?: string;
 
+    @IsString()
+    @IsOptional()
+    state?: string;
+
+    @IsString()
+    @IsOptional()
+    cityName?: string;
+
+    @IsString()
+    @IsOptional()
+    pincode?: string;
+
+    @IsNumber()
+    @IsOptional()
+    @Min(0)
+    totalBuildings?: number;
+
+    @IsNumber()
+    @IsOptional()
+    @Min(0)
+    totalUnits?: number;
+
     @IsUUID()
     @IsOptional()
     onboardedById?: string;
@@ -136,6 +158,28 @@ export class UpdateProjectDto {
     @IsUUID()
     @IsOptional()
     cityId?: string;
+
+    @IsString()
+    @IsOptional()
+    state?: string;
+
+    @IsString()
+    @IsOptional()
+    cityName?: string;
+
+    @IsString()
+    @IsOptional()
+    pincode?: string;
+
+    @IsNumber()
+    @IsOptional()
+    @Min(0)
+    totalBuildings?: number;
+
+    @IsNumber()
+    @IsOptional()
+    @Min(0)
+    totalUnits?: number;
 
     @IsString()
     @IsOptional()

@@ -85,9 +85,9 @@ export default function ProjectDetailPage() {
         }
 
         // Handle city object that may come from API relationship
-        const cityName = typeof data.city === 'object' && data.city?.name ? data.city.name : (data.city || '');
+        const cityName = data.cityName || (typeof data.city === 'object' && data.city?.name ? data.city.name : (data.city || ''));
         // Handle state object that may come from API relationship  
-        const stateName = typeof data.state === 'object' && data.state?.name ? data.state.name : (data.state || '');
+        const stateName = data.state || (typeof data.state === 'object' && data.state?.name ? data.state.name : '');
 
         const mapped: Property = {
           id: data.id,
@@ -100,8 +100,8 @@ export default function ProjectDetailPage() {
           state: stateName,
           pincode: data.pincode || '',
           totalArea: parseFloat(data.area) || 0,
-          totalBuildings: 0,
-          totalUnits: 0,
+          totalBuildings: data.totalBuildings || 0,
+          totalUnits: data.totalUnits || 0,
           startingPrice: parseFloat(data.price) || 0,
           description: description,
           amenities: amenities,

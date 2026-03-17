@@ -112,6 +112,11 @@ model Project {
   videoUrl      String?
   onboardingStep Int?          @default(1)
   postalCodeId  String?
+  state         String?
+  cityName      String?
+  pincode       String?
+  totalBuildings Int?
+  totalUnits    Int?
   adsRequests   AdsRequest[]
   commissions   Commission[]
   leads         Lead[]

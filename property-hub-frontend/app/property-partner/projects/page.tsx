@@ -79,8 +79,8 @@ export default function ProjectsPage() {
           }
 
           // Extract city and state, handling both string and object formats from API
-          const cityName = p.locationRel?.city ? (typeof p.locationRel.city === 'object' ? p.locationRel.city.name : p.locationRel.city) : (typeof p.city === 'object' && p.city?.name ? p.city.name : (p.city || ''));
-          const stateName = p.locationRel?.state ? (typeof p.locationRel.state === 'object' ? p.locationRel.state.name : p.locationRel.state) : (typeof p.state === 'object' && p.state?.name ? p.state.name : (p.state || ''));
+          const cityName = p.cityName || (p.locationRel?.city ? (typeof p.locationRel.city === 'object' ? p.locationRel.city.name : p.locationRel.city) : (typeof p.city === 'object' && p.city?.name ? p.city.name : (p.city || '')));
+          const stateName = p.state || (p.locationRel?.state ? (typeof p.locationRel.state === 'object' ? p.locationRel.state.name : p.locationRel.state) : (typeof p.state === 'object' && p.state?.name ? p.state.name : (p.state || '')));
 
           return {
             id: p.id,
@@ -93,8 +93,8 @@ export default function ProjectsPage() {
             state: stateName,
             pincode: p.pincode || '',
             totalArea: parseFloat(p.area) || 0,
-            totalBuildings: 0,
-            totalUnits: 0,
+            totalBuildings: p.totalBuildings || 0,
+            totalUnits: p.totalUnits || 0,
             startingPrice: parseFloat(p.price) || 0,
             description: description,
             amenities: amenities,
