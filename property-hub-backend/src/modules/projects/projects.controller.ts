@@ -62,7 +62,7 @@ export class ProjectsController {
     }
 
     @Patch(':id')
-    @RequireRoles(UserRole.PROPERTY_PARTNER)
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY)
     update(
         @Param('id') id: string,
         @Body() updateProjectDto: UpdateProjectDto,

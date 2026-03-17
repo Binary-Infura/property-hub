@@ -28,7 +28,7 @@ export default function CentralAuthorityListingRequestsPage() {
         if (!token) return;
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/api/projects`, {
+            const res = await fetch(`${API_URL}/api/projects?status=SUBMITTED`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
