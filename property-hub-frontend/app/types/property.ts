@@ -3,7 +3,7 @@
  * Represents a property that contains buildings, blocks, and units
  */
 
-export type PropertyStatus = 'draft' | 'submitted' | 'approved' | 'rejected' | 'published' | 'available' | 'sold' | 'reserved';
+export type PropertyStatus = 'submitted' | 'approved' | 'rejected' | 'published' | 'available' | 'sold' | 'reserved';
 export type PropertyType = 'residential' | 'commercial' | 'mixed-use';
 export type PropertyCategory = 'flat' | 'plot' | 'shop' | 'villa' | 'office' | 'warehouse';
 
@@ -69,4 +69,5 @@ export interface Property {
   buyerPhone?: string;
   salePrice?: number;
   soldAt?: Date;
+  onboardingStep?: number;
 }

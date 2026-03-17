@@ -11,7 +11,6 @@ export const PROPERTY_TYPES: { value: PropertyType; label: string }[] = [
 ];
 
 export const PROPERTY_STATUS_CONFIG: Record<PropertyStatus, { label: string; color: string; bgColor: string; ringColor: string }> = {
-  draft: { label: 'Draft', color: 'text-amber-600', bgColor: 'bg-amber-50', ringColor: 'ring-amber-200' },
   submitted: { label: 'Submitted', color: 'text-blue-600', bgColor: 'bg-blue-50', ringColor: 'ring-blue-200' },
   approved: { label: 'Approved', color: 'text-emerald-600', bgColor: 'bg-emerald-50', ringColor: 'ring-emerald-200' },
   rejected: { label: 'Rejected', color: 'text-red-600', bgColor: 'bg-red-50', ringColor: 'ring-red-200' },

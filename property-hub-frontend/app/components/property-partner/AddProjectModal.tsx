@@ -25,12 +25,11 @@ const PROJECT_CATEGORIES = [
 ];
 
 const STEPS: StepConfig[] = [
-    { number: 1, title: 'Category', description: 'Select project type' },
-    { number: 2, title: 'Basic Info', description: 'Title, type, and location' },
-    { number: 3, title: 'Details', description: 'Area, buildings, and units' },
-    { number: 4, title: 'Address', description: 'Location details' },
-    { number: 5, title: 'Pricing', description: 'Prices & amenities' },
-    { number: 6, title: 'Documents', description: 'Media & brochures' },
+    { number: 1, title: 'Basic Info', description: 'Title, category, and type' },
+    { number: 2, title: 'Details', description: 'Area, buildings, and units' },
+    { number: 3, title: 'Address', description: 'Location details' },
+    { number: 4, title: 'Pricing', description: 'Prices & amenities' },
+    { number: 5, title: 'Documents', description: 'Media & brochures' },
 ];
 
 interface AddProjectModalProps {
@@ -60,6 +59,9 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
     const [projectId, setProjectId] = useState<string | null>(editId);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    // Filter steps: Only 1 step for new project quick-create, all 5 for editing/onboarding
+    const activeSteps = editId ? STEPS : STEPS.slice(0, 1);
 
     const [formData, setFormData] = useState({
         title: '',
@@ -222,6 +224,13 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                     state: stateName,
                 });
 
+                if (data.onboardingStep) {
+                    // Adjust step for editing if it was saved using the old 6-step scheme
+                    // In the new 5-step scheme, we might need a simple map or just use it
+                    const savedStep = data.onboardingStep;
+                    setCurrentStep(savedStep > 1 ? savedStep - 1 : 1);
+                }
+
                 setVideoUrl(data.videoUrl || '');
             }
         } catch (e) {
@@ -237,69 +246,6 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
         setAddressData(prev => ({ ...prev, [name]: value }));
     };
 
-    const saveToApi = async (status: string) => {
-        if (!token) return;
-
-        setLoading(true);
-        setError(null);
-
-        let backendPropertyType = 'APARTMENT';
-        if (formData.propertyType === 'commercial') backendPropertyType = 'COMMERCIAL';
-        else if (formData.propertyType === 'mixed-use') backendPropertyType = 'COMMERCIAL';
-
-        const fullDescription = `${formData.description}\n\nAmenities: ${formData.amenities.join(', ')}`;
-
-        const payload = {
-            name: formData.title,
-            description: fullDescription,
-            category: projectCategory.toUpperCase(),
-            location: addressData.location || formData.title,
-            address: addressData.address,
-            city: addressData.city,
-            state: addressData.state,
-            country: 'India',
-            continent: 'Asia',
-            status: status.toUpperCase(),
-            price: parseFloat(formData.startingPrice) || 0,
-            area: parseFloat(formData.totalArea) || 0,
-            propertyType: backendPropertyType,
-            videoUrl: videoUrl || undefined,
-        };
-
-        const url = projectId
-            ? `${API_URL}/api/projects/${projectId}`
-            : `${API_URL}/api/projects`;
-
-        const method = projectId ? 'PATCH' : 'POST';
-
-        try {
-            const res = await fetch(url, {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(payload)
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                setProjectId(data.id);
-                // Also upload docs here ideally
-                return data.id;
-            } else {
-                const errData = await res.json();
-                setError(errData.message || 'Failed to save project');
-                throw new Error(errData.message || 'Failed to save');
-            }
-        } catch (e: any) {
-            console.error(e);
-            setError(e.message);
-            throw e;
-        } finally {
-            setLoading(false);
-        }
-    };
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
@@ -361,28 +307,118 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
         }
     };
 
-    const handleNext = () => {
-        setCurrentStep(prev => Math.min(STEPS.length, prev + 1));
+    const handleNext = async () => {
+        const nextStep = currentStep + 1;
+        
+        // Save progress if we have the minimum info (after step 1 now)
+        if (currentStep >= 1 || projectId) {
+            try {
+                // In the new scheme, finishing Step 1 allows initial save
+                // Change 'draft' to 'available' as requested
+                await saveToApiWithStep('available', nextStep);
+            } catch (e) {
+                if (currentStep === 1 && !projectId) return;
+            }
+        }
+        
+        setCurrentStep(Math.min(STEPS.length, nextStep));
+    };
+
+    const saveToApiWithStep = async (status: string, step: number) => {
+        if (!token) return;
+
+        setLoading(true);
+        setError(null);
+
+        let backendProjectType = 'APARTMENT';
+        const cat = projectCategory.toLowerCase();
+        if (cat === 'flat') backendProjectType = 'APARTMENT';
+        else if (cat === 'villa') backendProjectType = 'VILLA';
+        else if (cat === 'plot') backendProjectType = 'PLOT';
+        else if (cat === 'shop' || cat === 'office') backendProjectType = 'COMMERCIAL';
+        else if (cat === 'warehouse') backendProjectType = 'INDUSTRIAL';
+
+        const fullDescription = `${formData.description}\n\nAmenities: ${formData.amenities.join(', ')}`;
+
+        const payload = {
+            name: formData.title,
+            description: fullDescription,
+            category: projectCategory.toUpperCase(),
+            location: addressData.location || formData.title,
+            address: addressData.address,
+            // city: addressData.city, // Backend expects cityId if link is needed, otherwise string info can go in location/address
+            // state: addressData.state,
+            // country: 'India',
+            // continent: 'Asia',
+            status: status.toUpperCase(),
+            price: parseFloat(formData.startingPrice) || 0,
+            area: parseFloat(formData.totalArea) || 0,
+            projectType: backendProjectType,
+            videoUrl: videoUrl || undefined,
+            onboardingStep: step,
+        };
+
+        const url = projectId
+            ? `${API_URL}/api/projects/${projectId}`
+            : `${API_URL}/api/projects`;
+
+        const method = projectId ? 'PATCH' : 'POST';
+
+        try {
+            const res = await fetch(url, {
+                method,
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (res.ok) {
+                const data = await res.json();
+                setProjectId(data.id);
+                return data.id;
+            } else {
+                const errData = await res.json();
+                setError(errData.message || 'Failed to save progress');
+                throw new Error(errData.message || 'Failed to save');
+            }
+        } catch (e: any) {
+            console.error(e);
+            setError(e.message);
+            throw e;
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSubmit = async () => {
         try {
-            await saveToApi('available');
+            if (!editId && !projectId) {
+                // Initial quick create - save as available and move to Step 2 for next time
+                await saveToApiWithStep('available', 2);
+            } else {
+                // Completing the setup or updating existing
+                await saveToApiWithStep('available', STEPS.length);
+            }
             onSuccess();
             onClose();
         } catch (e) { }
     };
 
     const isStepValid = () => {
-        if (currentStep === 1) return !!projectCategory;
-        if (currentStep === 2) return !!formData.title && !!formData.propertyType;
-        if (currentStep === 3) return !!formData.totalArea && !!formData.totalBuildings && !!formData.totalUnits;
-        if (currentStep === 4) return !!selectedStateCode && !!addressData.city && !!addressData.location && !!addressData.address;
-        if (currentStep === 5) return !!formData.startingPrice && !!formData.description && formData.amenities.length > 0;
+        if (currentStep === 1) return !!projectCategory && !!formData.title && !!formData.propertyType;
+        if (currentStep === 2) return !!formData.totalArea && !!formData.totalBuildings && !!formData.totalUnits;
+        if (currentStep === 3) return !!selectedStateCode && !!addressData.city && !!addressData.location && !!addressData.address;
+        if (currentStep === 4) return !!formData.startingPrice && !!formData.description && formData.amenities.length > 0;
         return true;
     };
 
     const isFormComplete = () => {
+        // For new project quick-create (only 1 step shown), only step 1 validation is needed
+        if (!editId && !projectId) return isStepValid();
+        
+        // For full onboarding, everything is required
         return !!projectCategory &&
             !!formData.title &&
             !!formData.totalArea &&
@@ -413,7 +449,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
 
                     <div className="p-8">
                         <div className="flex items-center justify-between mb-8 overflow-x-auto pb-4">
-                            {STEPS.map((step, idx) => (
+                            {activeSteps.map((step, idx) => (
                                 <div key={step.number} className="flex-1 min-w-[120px] cursor-pointer group" onClick={() => setCurrentStep(step.number)}>
                                     <div className="flex items-center">
                                         <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm shrink-0 transition ${currentStep >= step.number ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-gray-100 text-gray-400 group-hover:bg-gray-200'}`}>
@@ -423,7 +459,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                                             <p className={`text-xs font-bold ${currentStep >= step.number ? 'text-gray-900' : 'text-gray-400 group-hover:text-gray-600'}`}>{step.title}</p>
                                         </div>
                                     </div>
-                                    {idx < STEPS.length - 1 && <div className={`mt-4 h-1 transition-all duration-500 ${currentStep > step.number ? 'bg-blue-600' : 'bg-gray-100'}`} />}
+                                    {idx < activeSteps.length - 1 && <div className={`mt-4 h-1 transition-all duration-500 ${currentStep > step.number ? 'bg-blue-600' : 'bg-gray-100'}`} />}
                                 </div>
                             ))}
                         </div>
@@ -432,27 +468,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                             {error && <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-xl border border-red-100 text-sm">{error}</div>}
 
                             {currentStep === 1 && (
-                                <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                                    <div className="text-center mb-6">
-                                        <h3 className="text-lg font-bold text-gray-900 mb-2">What type of project are you adding?</h3>
-                                        <p className="text-sm text-gray-600">Select the category that best describes your project</p>
-                                    </div>
-                                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-                                        {PROJECT_CATEGORIES.map(category => (
-                                            <button
-                                                key={category.value} type="button" onClick={() => setProjectCategory(category.value)}
-                                                className={`p-6 rounded-xl border-2 transition-all text-left hover:shadow-lg ${projectCategory === category.value ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-200' : 'border-gray-200 hover:border-blue-300 bg-white'}`}
-                                            >
-                                                <h4 className={`font-bold mb-1 ${projectCategory === category.value ? 'text-blue-700' : 'text-gray-900'}`}>{category.label}</h4>
-                                                <p className="text-xs text-gray-600">{category.description}</p>
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-                            {currentStep === 2 && (
-                                <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
+                                <div className="space-y-8 animate-in slide-in-from-right-4 duration-300">
                                     <div className="grid grid-cols-2 gap-6">
                                         <div className="col-span-2">
                                             <label className="block text-sm font-semibold text-gray-700 mb-1.5">Project Title *</label>
@@ -465,10 +481,25 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                                             </select>
                                         </div>
                                     </div>
+
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-3">Project Category *</label>
+                                        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                            {PROJECT_CATEGORIES.map(category => (
+                                                <button
+                                                    key={category.value} type="button" onClick={() => setProjectCategory(category.value)}
+                                                    className={`p-4 rounded-xl border-2 transition-all text-left hover:shadow-md ${projectCategory === category.value ? 'border-blue-500 bg-blue-50 ring-2 ring-blue-100' : 'border-gray-100 hover:border-blue-200 bg-white'}`}
+                                                >
+                                                    <h4 className={`font-bold text-sm mb-1 ${projectCategory === category.value ? 'text-blue-700' : 'text-gray-900'}`}>{category.label}</h4>
+                                                    <p className="text-[10px] text-gray-500 leading-tight">{category.description}</p>
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
                                 </div>
                             )}
 
-                            {currentStep === 3 && (
+                            {currentStep === 2 && (
                                 <div className="space-y-6">
                                     <div className="grid grid-cols-2 gap-6">
                                         <div>
@@ -487,7 +518,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                                 </div>
                             )}
 
-                            {currentStep === 4 && (
+                            {currentStep === 3 && (
                                 <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
@@ -516,7 +547,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                                 </div>
                             )}
 
-                            {currentStep === 5 && (
+                            {currentStep === 4 && (
                                 <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-1.5">Starting Price (₹) *</label>
@@ -541,7 +572,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                                 </div>
                             )}
 
-                            {currentStep === 6 && (
+                            {currentStep === 5 && (
                                 <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
                                     <div className="p-6 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100/50 transition-colors">
                                         <svg className="w-12 h-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
@@ -592,7 +623,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                             <button type="button" onClick={() => setCurrentStep(prev => Math.max(1, prev - 1))} disabled={currentStep === 1} className="px-6 py-3 border border-gray-200 rounded-xl font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-all">Back</button>
                             <div className="flex-1" />
                             <button type="button" onClick={onClose} className="px-6 py-3 text-gray-500 font-bold hover:text-gray-700">Cancel</button>
-                            {currentStep < STEPS.length ? (
+                            {currentStep < activeSteps.length ? (
                                 <button type="button" onClick={handleNext} disabled={!isStepValid() || loading} className="px-8 py-3 bg-blue-600 text-white rounded-xl font-bold hover:bg-blue-700 shadow-lg shadow-blue-200 disabled:opacity-50 transition-all flex items-center gap-2">
                                     {loading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
                                     Next
@@ -600,7 +631,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                             ) : (
                                 <button type="button" onClick={handleSubmit} disabled={loading || !isFormComplete()} className="px-8 py-3 bg-green-600 text-white rounded-xl font-bold hover:bg-green-700 shadow-lg shadow-green-200 disabled:opacity-50 transition-all flex items-center gap-2">
                                     {loading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>}
-                                    Save Project
+                                    {(!editId && !projectId) ? 'Create Project' : 'Save Project'}
                                 </button>
                             )}
                         </div>

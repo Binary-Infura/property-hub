@@ -70,7 +70,7 @@ export default function ImportReraPropertyModal({ isOpen, onClose, onSuccess }: 
         setImportingId(projectId);
         try {
             await reraService.importProject(token, projectId);
-            toast.success('Project imported successfully as draft');
+            toast.success('Project imported successfully');
             onSuccess();
             onClose();
         } catch (error: any) {

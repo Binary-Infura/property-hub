@@ -110,6 +110,7 @@ model Project {
   category      String?
   cityId        String?
   videoUrl      String?
+  onboardingStep Int?          @default(1)
   postalCodeId  String?
   adsRequests   AdsRequest[]
   commissions   Commission[]
@@ -644,7 +645,6 @@ enum ProjectStatus {
   SOLD
   RESERVED
   UNDER_CONSTRUCTION
-  DRAFT
   SUBMITTED
   APPROVED
   REJECTED

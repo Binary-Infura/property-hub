@@ -74,6 +74,10 @@ export class CreateProjectDto {
     @IsString()
     @IsOptional()
     soldAt?: string;
+
+    @IsNumber()
+    @IsOptional()
+    onboardingStep?: number;
 }
 
 export class UpdateProjectDto {
@@ -148,4 +152,8 @@ export class UpdateProjectDto {
     @IsString()
     @IsOptional()
     soldAt?: string;
+
+    @IsNumber()
+    @IsOptional()
+    onboardingStep?: number;
 }

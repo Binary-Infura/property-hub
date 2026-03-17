@@ -67,8 +67,7 @@ export default function ProjectsPage() {
             case 'APPROVED': frontendStatus = 'approved'; break;
             case 'REJECTED': frontendStatus = 'rejected'; break;
             case 'PUBLISHED': frontendStatus = 'published'; break;
-            case 'DRAFT': frontendStatus = 'draft'; break;
-            default: frontendStatus = p.status?.toLowerCase() as PropertyStatus;
+            default: frontendStatus = 'available';
           }
 
           let description = p.description || '';
@@ -108,6 +107,7 @@ export default function ProjectsPage() {
             buyerPhone: p.buyerPhone,
             salePrice: parseFloat(p.salePrice) || 0,
             soldAt: p.soldAt ? new Date(p.soldAt) : undefined,
+            onboardingStep: p.onboardingStep || 1,
           };
         });
 
@@ -340,8 +340,8 @@ export default function ProjectsPage() {
             <tbody className="divide-y divide-gray-50">
               {filteredProjects.map(project => {
                 const statusConfig = PROPERTY_STATUS_CONFIG[project.status];
-                const isDraft = project.status === 'available' || project.status === 'draft';
-                const canMarkAsSold = project.status === 'available' || project.status === 'draft' || project.status === 'approved' || project.status === 'published';
+                const isAvailable = project.status === 'available';
+                const canMarkAsSold = ['available', 'approved', 'published'].includes(project.status);
                 const hasListingData = ['submitted', 'approved', 'published', 'rejected'].includes(project.status);
 
                 return (
@@ -371,19 +371,36 @@ export default function ProjectsPage() {
                         ) : (
                           <span className="text-xs text-gray-400">Regular</span>
                         )}
+                        {project.onboardingStep && project.onboardingStep < 5 && project.status === 'available' && (
+                          <div className="flex flex-col gap-1 min-w-[100px]">
+                            <div className="flex justify-between text-[9px] font-bold text-amber-600">
+                              <span>PROGRESS</span>
+                              <span>{Math.round((project.onboardingStep / 6) * 100)}%</span>
+                            </div>
+                            <div className="w-full h-1 bg-gray-100 rounded-full overflow-hidden">
+                              <div 
+                                className="h-full bg-amber-400 rounded-full transition-all duration-500"
+                                style={{ width: `${(project.onboardingStep / 5) * 100}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center justify-end gap-2">
-                        {isDraft && (
+                        {isAvailable && (
                           <button
                             onClick={() => handleEditProject(project.id)}
-                            className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all"
-                            title="Edit Basic Info"
+                            className="p-2 text-gray-400 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-all flex items-center gap-1"
+                            title={project.onboardingStep && project.onboardingStep < 5 ? "Resume Onboarding" : "Edit Basic Info"}
                           >
                             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                             </svg>
+                            {project.onboardingStep && project.onboardingStep < 5 && (
+                              <span className="text-[10px] font-bold">Resume</span>
+                            )}
                           </button>
                         )}
                         {hasListingData && (
@@ -427,8 +444,8 @@ export default function ProjectsPage() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map(project => {
             const statusConfig = PROPERTY_STATUS_CONFIG[project.status];
-            const isDraft = project.status === 'available' || project.status === 'draft';
-            const canMarkAsSold = project.status === 'available' || project.status === 'draft' || project.status === 'approved' || project.status === 'published';
+            const isAvailable = project.status === 'available';
+            const canMarkAsSold = ['available', 'approved', 'published'].includes(project.status);
             const hasListingData = ['submitted', 'approved', 'published', 'rejected'].includes(project.status);
 
             return (
@@ -448,7 +465,7 @@ export default function ProjectsPage() {
                       {statusConfig?.label || project.status}
                     </span>
                   </div>
-                  {isDraft && (
+                  {isAvailable && (
                     <button
                       onClick={() => handleEditProject(project.id)}
                       className="absolute top-3 right-3 p-2 bg-white/80 backdrop-blur-md rounded-lg text-gray-600 hover:text-amber-600 shadow-sm opacity-0 group-hover:opacity-100 transition-all"
@@ -482,6 +499,29 @@ export default function ProjectsPage() {
                       </span>
                     )}
                   </div>
+                  {project.onboardingStep && project.onboardingStep < 5 && project.status === 'available' && (
+                    <div className="mb-4 p-3 bg-amber-50/50 rounded-xl border border-amber-100/50">
+                      <div className="flex justify-between items-center mb-1.5">
+                        <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">Onboarding Progress</span>
+                        <span className="text-[10px] font-black text-amber-700">{Math.round((project.onboardingStep / 5) * 100)}%</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-amber-100 rounded-full overflow-hidden">
+                        <div 
+                          className="h-full bg-amber-400 rounded-full transition-all duration-1000"
+                          style={{ width: `${(project.onboardingStep / 5) * 100}%` }}
+                        />
+                      </div>
+                      <button 
+                        onClick={() => handleEditProject(project.id)}
+                        className="w-full mt-3 py-2 bg-amber-400 hover:bg-amber-500 text-white text-[10px] font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5 shadow-sm shadow-amber-200"
+                      >
+                        <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        RESUME SETUP
+                      </button>
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between pt-4 border-t border-gray-50">
                     <div className="flex gap-2">
