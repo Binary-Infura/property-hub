@@ -115,7 +115,7 @@ model Project {
   state         String?
   cityName      String?
   pincode       String?
-  totalBuildings Int?
+  totalTowers    Int?
   totalUnits    Int?
   adsRequests   AdsRequest[]
   commissions   Commission[]
@@ -125,6 +125,7 @@ model Project {
   onboardedBy   User?          @relation("UserOnboardedProjects", fields: [onboardedById], references: [id])
   postalCode    PostalCode?    @relation("ProjectPostalCode", fields: [postalCodeId], references: [id])
   units         PropertyUnit[]
+  towers        Tower[]
   reels         Reel[]
   assignedTo    User[]         @relation("ProjectAssignment")
 
@@ -151,12 +152,29 @@ model PropertyUnit {
   buyerPhone String?
   salePrice  Decimal?   @db.Decimal(15, 2)
   soldAt     DateTime?
+  towerId    String?
   project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tower      Tower?     @relation(fields: [towerId], references: [id])
 
   @@unique([projectId, unitNumber])
   @@index([projectId])
+  @@index([towerId])
   @@index([status])
   @@map("property_units")
+}
+
+model Tower {
+  id           String         @id @default(uuid())
+  name         String
+  projectId    String
+  totalFloors  Int?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+  project      Project        @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  units        PropertyUnit[]
+
+  @@index([projectId])
+  @@map("towers")
 }
 
 model Lead {

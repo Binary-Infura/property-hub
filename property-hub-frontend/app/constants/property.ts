@@ -65,3 +65,21 @@ export const AMENITIES_OPTIONS = [
   'Intercom',
   'CCTV',
 ];
+export const RESIDENTIAL_UNIT_TYPES = [
+  '1BHK',
+  '2BHK',
+  '3BHK',
+  '4BHK',
+  '5BHK',
+  'Studio',
+  'Penthouse',
+  'Duplex',
+  'Villa',
+];
+
+export const PLOT_UNIT_TYPES = [
+  'Residential Plot',
+  'Commercial Plot',
+  'Industrial Plot',
+  'Agricultural Plot',
+];

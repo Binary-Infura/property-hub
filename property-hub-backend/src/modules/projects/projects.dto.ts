@@ -70,7 +70,7 @@ export class CreateProjectDto {
     @IsNumber()
     @IsOptional()
     @Min(0)
-    totalBuildings?: number;
+    totalTowers?: number;
 
     @IsNumber()
     @IsOptional()
@@ -174,7 +174,7 @@ export class UpdateProjectDto {
     @IsNumber()
     @IsOptional()
     @Min(0)
-    totalBuildings?: number;
+    totalTowers?: number;
 
     @IsNumber()
     @IsOptional()

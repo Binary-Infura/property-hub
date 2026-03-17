@@ -1,8 +1,8 @@
-'use client';
-
 import { useState } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
-import { PropertyCategory } from '@/app/types/property';
+import { PropertyCategory, Tower } from '@/app/types/property';
+import { RESIDENTIAL_UNIT_TYPES, PLOT_UNIT_TYPES } from '@/app/constants/property';
+import { useEffect } from 'react';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -23,14 +23,28 @@ export default function BulkAddUnitModal({ isOpen, onClose, projectId, projectCa
         startNumber: 1,
         endNumber: 10,
         floor: '',
-        type: '',
+        type: projectCategory === 'plot' ? PLOT_UNIT_TYPES[0] : '2BHK',
         area: '',
         price: '',
+        towerId: '',
     });
+    const [towers, setTowers] = useState<Tower[]>([]);
+
+    useEffect(() => {
+        if (isOpen && projectId) {
+            fetch(`${API_URL}/api/towers/project/${projectId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            })
+            .then(res => res.json())
+            .then(data => setTowers(data))
+            .catch(err => console.error('Error fetching towers:', err));
+        }
+    }, [isOpen, projectId, token]);
 
     if (!isOpen) return null;
 
     const unitLabel = projectCategory === 'plot' ? 'Plot' : 'Unit';
+    const typeOptions = projectCategory === 'plot' ? PLOT_UNIT_TYPES : RESIDENTIAL_UNIT_TYPES;
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -58,6 +72,7 @@ export default function BulkAddUnitModal({ isOpen, onClose, projectId, projectCa
                 type: formData.type || undefined,
                 area: formData.area ? parseFloat(formData.area) : undefined,
                 price: parseFloat(formData.price),
+                towerId: formData.towerId || undefined,
             });
         }
 
@@ -163,13 +178,16 @@ export default function BulkAddUnitModal({ isOpen, onClose, projectId, projectCa
                         )}
                         <div className={projectCategory === 'plot' ? 'col-span-2' : ''}>
                             <label className="block text-sm font-semibold text-gray-700 mb-1">Type</label>
-                            <input
-                                type="text"
+                            <select
                                 value={formData.type}
                                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                                placeholder={projectCategory === 'plot' ? "e.g. Residential Plot" : "e.g. 2BHK"}
-                            />
+                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium"
+                            >
+                                <option value="" disabled>Select {unitLabel} Type</option>
+                                {typeOptions.map(option => (
+                                    <option key={option} value={option}>{option}</option>
+                                ))}
+                            </select>
                         </div>
                     </div>
 
@@ -198,6 +216,31 @@ export default function BulkAddUnitModal({ isOpen, onClose, projectId, projectCa
                         </div>
                     </div>
 
+                    {towers.length > 0 ? (
+                        <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Select Tower / Building *</label>
+                            <select
+                                required
+                                value={formData.towerId}
+                                onChange={(e) => setFormData({ ...formData, towerId: e.target.value })}
+                                className="w-full border-2 border-blue-100 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium transition-all"
+                            >
+                                <option value="">-- Choose a Tower --</option>
+                                {towers.map(tower => (
+                                    <option key={tower.id} value={tower.id}>{tower.name}</option>
+                                ))}
+                            </select>
+                        </div>
+                    ) : (
+                        <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
+                             <p className="text-xs text-amber-700 font-bold flex items-center gap-2">
+                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
+                                No towers found for this project.
+                             </p>
+                             <p className="text-[10px] text-amber-600 mt-1">Please add at least one tower in the "Towers" tab before adding units.</p>
+                        </div>
+                    )}
+
                     <div className="pt-6 flex gap-3">
                         <button
                             type="button"
@@ -220,3 +263,4 @@ export default function BulkAddUnitModal({ isOpen, onClose, projectId, projectCa
         </div>
     );
 }
+

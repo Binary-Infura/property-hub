@@ -31,12 +31,13 @@ export class UnitsService {
             throw new BadRequestException('You can only add units to projects you have onboarded.');
         }
 
-        const { projectId, ...rest } = createUnitDto;
+        const { projectId, towerId, ...rest } = createUnitDto;
 
         const unit = await this.prisma.propertyUnit.create({
             data: {
                 ...rest,
                 projectId,
+                towerId,
             },
         });
 
@@ -152,6 +153,7 @@ export class UnitsService {
         const data = units.map(unit => ({
             ...unit,
             projectId,
+            towerId: (unit as any).towerId, // Ensure towerId is passed if present in UnitItemDto
         }));
 
         return this.prisma.propertyUnit.createMany({

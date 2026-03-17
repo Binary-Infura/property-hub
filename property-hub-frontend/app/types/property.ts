@@ -1,19 +1,20 @@
 /**
  * Property Data Types for Real Estate Management
- * Represents a property that contains buildings, blocks, and units
+ * Represents a property that contains towers, floors, and units
  */
 
 export type PropertyStatus = 'submitted' | 'approved' | 'rejected' | 'published' | 'available' | 'sold' | 'reserved';
 export type PropertyType = 'residential' | 'commercial' | 'mixed-use';
 export type PropertyCategory = 'flat' | 'plot' | 'shop' | 'villa' | 'office' | 'warehouse';
 
-export interface Building {
+export interface Tower {
   id: string;
-  propertyId: string;
+  projectId: string;
   name: string;
-  code: string;
-  totalFloors: number;
-  description?: string;
+  totalFloors?: number;
+  createdAt: Date;
+  updatedAt: Date;
+  units?: any[];
 }
 
 export interface PropertyFormData {
@@ -26,7 +27,7 @@ export interface PropertyFormData {
   state: string;
   pincode: string;
   totalArea: number; // in sq ft
-  totalBuildings: number;
+  totalTowers: number;
   totalUnits: number;
   startingPrice: number;
   description: string;
@@ -47,7 +48,7 @@ export interface Property {
   state: string;
   pincode: string;
   totalArea: number;
-  totalBuildings: number;
+  totalTowers: number;
   totalUnits: number;
   startingPrice: number;
   description: string;
@@ -60,7 +61,7 @@ export interface Property {
   submittedAt?: Date;
   approvedAt?: Date;
   feedback?: string;
-  buildings: Building[];
+  towers: Tower[];
   country?: string;
   continent?: string;
   cityAllocationId?: string;

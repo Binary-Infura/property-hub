@@ -76,6 +76,7 @@ export class ProjectsService {
                     },
                 },
                 city: true,
+                towers: true,
             },
         });
 

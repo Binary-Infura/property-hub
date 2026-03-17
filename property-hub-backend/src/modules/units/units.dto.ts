@@ -29,6 +29,11 @@ export class CreateUnitDto {
     @ApiProperty()
     @IsNumber()
     price: number;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsUUID()
+    towerId?: string;
 }
 
 export class UpdateUnitDto {
@@ -56,6 +61,11 @@ export class UpdateUnitDto {
     @IsOptional()
     @IsNumber()
     price?: number;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsUUID()
+    towerId?: string;
 }
 
 export class MarkUnitAsSoldDto {
@@ -99,6 +109,11 @@ export class UnitItemDto {
     @ApiProperty()
     @IsNumber()
     price: number;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsUUID()
+    towerId?: string;
 }
 
 export class BulkCreateUnitsDto {
