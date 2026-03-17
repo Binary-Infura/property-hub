@@ -175,25 +175,41 @@ export default function PropertyPartnerDashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <div className="bg-white border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Dashboard</h1>
-            <p className="text-gray-600 mt-1">Overview of your project portfolio</p>
-          </div>
-          <div className="flex gap-3">
-            <Link href="/dashboard/projects" className="px-4 py-2 bg-blue-50 text-blue-700 rounded-lg font-semibold hover:bg-blue-100 transition-colors flex items-center gap-2">
-              <SidebarIcon name="building" className="w-4 h-4" /> My Projects
-            </Link>
-            <Link href="/dashboard/units" className="px-4 py-2 bg-emerald-50 text-emerald-700 rounded-lg font-semibold hover:bg-emerald-100 transition-colors flex items-center gap-2">
-              <SidebarIcon name="home" className="w-4 h-4" /> All Units
-            </Link>
-          </div>
-        </div>
-      </div>
-
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+          <Link href="/dashboard/projects" className="flex items-center gap-6 p-8 bg-gradient-to-br from-blue-600 to-blue-700 rounded-[2.5rem] shadow-xl shadow-blue-200/50 hover:shadow-2xl hover:scale-[1.02] transition-all group relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform duration-500" />
+            <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center text-white shadow-lg group-hover:rotate-12 transition-transform duration-500">
+              <SidebarIcon name="building" className="w-8 h-8" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white tracking-tight">My Projects</h2>
+              <p className="text-blue-100/90 text-sm mt-1">Manage your active property portfolio</p>
+            </div>
+            <div className="ml-auto w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white group-hover:bg-white group-hover:text-blue-600 transition-all duration-300">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </Link>
+
+          <Link href="/dashboard/units" className="flex items-center gap-6 p-8 bg-gradient-to-br from-emerald-600 to-emerald-700 rounded-[2.5rem] shadow-xl shadow-emerald-200/50 hover:shadow-2xl hover:scale-[1.02] transition-all group relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 group-hover:scale-110 transition-transform duration-500" />
+            <div className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center text-white shadow-lg group-hover:rotate-12 transition-transform duration-500">
+              <SidebarIcon name="home" className="w-8 h-8" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-bold text-white tracking-tight">All Units</h2>
+              <p className="text-emerald-100/90 text-sm mt-1">Inventory and real-time availability</p>
+            </div>
+            <div className="ml-auto w-12 h-12 bg-white/10 rounded-full flex items-center justify-center text-white group-hover:bg-white group-hover:text-emerald-600 transition-all duration-300">
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
+          </Link>
+        </div>
         {/* Key Metrics */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
@@ -287,7 +303,6 @@ export default function PropertyPartnerDashboard() {
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {[
-              { name: 'Units Inventory', href: '/dashboard/units', icon: 'home' as const, color: 'purple' },
               { name: 'Leads Management', href: '/dashboard/leads', icon: 'clipboard' as const, color: 'orange' },
               { name: 'Reels Management', href: '/dashboard/reels', icon: 'video' as const, color: 'blue' },
               { name: 'Ads Requests', href: '/dashboard/ads-requests', icon: 'megaphone' as const, color: 'indigo' },

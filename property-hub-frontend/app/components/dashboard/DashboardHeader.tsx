@@ -74,9 +74,9 @@ export default function DashboardHeader({
                             </nav>
                         ) : (
                             title && (
-                                <h2 className="text-xl font-semibold text-gray-800 tracking-tight truncate">
+                                <h1 className="text-xl font-semibold text-gray-800 tracking-tight truncate">
                                     {title}
-                                </h2>
+                                </h1>
                             )
                         )}
                         {children}
