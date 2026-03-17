@@ -5,12 +5,12 @@ import dynamic from "next/dynamic";
 import Navbar from "@/app/components/Navbar";
 import LoanCalculator from "@/app/components/LoanCalculator";
 import DynamicReviews from "@/app/components/DynamicReviews";
-import MouseGlow from "@/app/components/MouseGlow";
 import { motion } from "framer-motion";
 
 const Building3D = dynamic(() => import("@/app/components/Building3D"), { ssr: false });
 const InteractiveIcon3D = dynamic(() => import("@/app/components/InteractiveIcon3D"), { ssr: false });
 const FloatingBackground = dynamic(() => import("@/app/components/FloatingBackground"), { ssr: false });
+const MouseGlow = dynamic(() => import("@/app/components/MouseGlow"), { ssr: false });
 
 const fadeInUp = {
   initial: { opacity: 0, y: 15 }, // Reduced distance
@@ -31,9 +31,8 @@ export default function Home() {
     setHasMounted(true);
   }, []);
 
-  if (!hasMounted) {
-    return <div className="bg-white min-h-screen" />; // Early return for server/first-pass
-  }
+  // No longer using early return to allow SSR of static content
+  // Interactive components are handled via dynamic(ssr: false)
 
   return (
     <div className="bg-white relative">

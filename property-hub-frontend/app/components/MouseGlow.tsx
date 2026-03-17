@@ -27,8 +27,8 @@ const MouseGlow = () => {
         position: "fixed",
         top: 0,
         left: 0,
-        width: "500px", // Reduced from 600px
-        height: "500px",
+        width: "600px",
+        height: "600px",
         borderRadius: "50%",
         background: "radial-gradient(circle, rgba(59, 130, 246, 0.05) 0%, transparent 70%)",
         pointerEvents: "none",
