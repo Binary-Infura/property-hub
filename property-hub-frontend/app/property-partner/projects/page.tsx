@@ -93,7 +93,7 @@ export default function ProjectsPage() {
             state: stateName,
             pincode: p.pincode || '',
             totalArea: parseFloat(p.area) || 0,
-            totalBuildings: p.totalBuildings || 0,
+            totalTowers: p.totalTowers || 0,
             totalUnits: p.totalUnits || 0,
             startingPrice: parseFloat(p.price) || 0,
             description: description,

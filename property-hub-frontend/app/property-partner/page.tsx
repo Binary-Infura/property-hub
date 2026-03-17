@@ -38,7 +38,7 @@ export default function PropertyPartnerDashboard() {
     const fetchData = async () => {
       if (!token) return;
       try {
-        const [consultants, visitExecutives, brokersData, leadsData, projects, units] = await Promise.all([
+        const [consultants, visitExecutives, brokersData, leadsData, projects, unitsData] = await Promise.all([
           userService.getAllByRole('CONSULTANT', token, true, 1, 1),
           userService.getAllByRole('VISIT_EXECUTIVE', token, true, 1, 1),
           fetch(`${API_URL}/api/property-partners/brokers`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
@@ -50,6 +50,8 @@ export default function PropertyPartnerDashboard() {
             }
           }).then(r => r.json())
         ]);
+
+        const units = unitsData?.units || [];
 
         const cCount = consultants.total || 0;
         const vCount = visitExecutives.total || 0;

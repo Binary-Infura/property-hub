@@ -153,8 +153,8 @@ export default function ViewListingModal({ isOpen, onClose, property }: ViewList
                                         <p className="text-base font-bold text-gray-900">{property.totalArea} <small className="text-[10px] font-medium text-gray-400">SQ FT</small></p>
                                     </div>
                                     <div className="text-center p-3 border border-gray-100 rounded-lg">
-                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Buildings</p>
-                                        <p className="text-base font-bold text-gray-900">{property.totalBuildings}</p>
+                                        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Towers</p>
+                                        <p className="text-base font-bold text-gray-900">{property.totalTowers}</p>
                                     </div>
                                     <div className="text-center p-3 border border-gray-100 rounded-lg">
                                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Units</p>

@@ -778,8 +778,8 @@ export default function ProjectDetailPage() {
             <div className="space-y-4">
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">Project Tower</h3>
-                  <p className="text-sm text-gray-500">Manage towers for this project</p>
+                  <h3 className="text-xl font-bold text-gray-900">Tower & Blocks</h3>
+                  <p className="text-sm text-gray-500">Manage towers and blocks for this project</p>
                 </div>
                 <button
                   onClick={() => setIsAddTowerModalOpen(true)}

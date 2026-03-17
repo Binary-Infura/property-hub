@@ -26,7 +26,7 @@ const PROJECT_CATEGORIES = [
 
 const STEPS: StepConfig[] = [
     { number: 1, title: 'Basic Info', description: 'Title, category, and type' },
-    { number: 2, title: 'Details', description: 'Area, buildings, and units' },
+    { number: 2, title: 'Details', description: 'Area, towers, and units' },
     { number: 3, title: 'Address', description: 'Location details' },
     { number: 4, title: 'Pricing', description: 'Prices & amenities' },
     { number: 5, title: 'Documents', description: 'Media & brochures' },
@@ -67,7 +67,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
         title: '',
         propertyType: 'residential' as any,
         totalArea: '',
-        totalBuildings: '',
+        totalTowers: '',
         totalUnits: '',
         startingPrice: '',
         description: '',
@@ -110,7 +110,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                 title: '',
                 propertyType: 'residential' as any,
                 totalArea: '',
-                totalBuildings: '',
+                totalTowers: '',
                 totalUnits: '',
                 startingPrice: '',
                 description: '',
@@ -206,7 +206,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                     title: data.name || '',
                     propertyType: data.propertyType || 'residential',
                     totalArea: data.area?.toString() || '',
-                    totalBuildings: data.totalBuildings?.toString() || '',
+                    totalTowers: data.totalTowers?.toString() || '',
                     totalUnits: data.totalUnits?.toString() || '',
                     startingPrice: data.price?.toString() || '',
                     description: descPart,
@@ -351,7 +351,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
             status: status.toUpperCase(),
             price: parseFloat(formData.startingPrice) || 0,
             area: parseFloat(formData.totalArea) || 0,
-            totalBuildings: parseInt(formData.totalBuildings) || undefined,
+            totalTowers: parseInt(formData.totalTowers) || undefined,
             totalUnits: parseInt(formData.totalUnits) || undefined,
             projectType: backendProjectType,
             videoUrl: videoUrl || undefined,
@@ -408,7 +408,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
 
     const isStepValid = () => {
         if (currentStep === 1) return !!projectCategory && !!formData.title && !!formData.propertyType;
-        if (currentStep === 2) return !!formData.totalArea && !!formData.totalBuildings && !!formData.totalUnits;
+        if (currentStep === 2) return !!formData.totalArea && !!formData.totalTowers && !!formData.totalUnits;
         if (currentStep === 3) return !!selectedStateCode && !!addressData.city && !!addressData.location && !!addressData.address;
         if (currentStep === 4) return !!formData.startingPrice && !!formData.description && formData.amenities.length > 0;
         return true;
@@ -422,7 +422,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
         return !!projectCategory &&
             !!formData.title &&
             !!formData.totalArea &&
-            !!formData.totalBuildings &&
+            !!formData.totalTowers &&
             !!formData.totalUnits &&
             !!selectedStateCode && !!addressData.city && !!addressData.location && !!addressData.address &&
             !!formData.startingPrice && !!formData.description && formData.amenities.length > 0;
@@ -507,8 +507,8 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                                             <input type="number" name="totalArea" value={formData.totalArea} onChange={handleInputChange} placeholder="e.g., 500000" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Total Buildings *</label>
-                                            <input type="number" name="totalBuildings" value={formData.totalBuildings} onChange={handleInputChange} placeholder="e.g., 2" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" />
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Total Towers *</label>
+                                            <input type="number" name="totalTowers" value={formData.totalTowers} onChange={handleInputChange} placeholder="e.g., 2" className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" />
                                         </div>
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-1.5">Total Units *</label>

@@ -26,8 +26,10 @@ export const unitService = {
             throw new Error(`Failed to fetch units for project ${projectId}`);
         }
         const data = await response.json();
+        const unitsArray = Array.isArray(data) ? data : (data?.units || []);
+        
         // Normalize Decimal fields (Prisma returns them as strings)
-        return data.map((u: any) => ({
+        return unitsArray.map((u: any) => ({
             ...u,
             price: Number(u.price),
             area: u.area != null ? Number(u.area) : null,

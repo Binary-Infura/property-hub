@@ -26,7 +26,7 @@ const PROPERTY_CATEGORIES = [
 const STEPS: StepConfig[] = [
     { number: 1, title: 'Category', description: 'Select property type' },
     { number: 2, title: 'Basic Info', description: 'Title, type, and location' },
-    { number: 3, title: 'Details', description: 'Area, buildings, and units' },
+    { number: 3, title: 'Details', description: 'Area, towers, and units' },
 ];
 
 interface AddPropertyModalProps {
@@ -50,7 +50,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
         title: '',
         propertyType: 'residential' as any,
         totalArea: '',
-        totalBuildings: '',
+        totalTowers: '',
         totalUnits: '',
         startingPrice: '', // We keep these for type safety but they won't be filled here
         description: '',
@@ -88,7 +88,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                 title: '',
                 propertyType: 'residential' as any,
                 totalArea: '',
-                totalBuildings: '',
+                totalTowers: '',
                 totalUnits: '',
                 startingPrice: '',
                 description: '',
@@ -122,7 +122,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                     title: data.name || '',
                     propertyType: data.propertyType || 'residential',
                     totalArea: data.area?.toString() || '',
-                    totalBuildings: '',
+                    totalTowers: '',
                     totalUnits: '',
                     startingPrice: data.price?.toString() || '',
                     description: description,
@@ -246,7 +246,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
             return !!formData.title && !!formData.propertyType;
         }
         if (currentStep === 3) {
-            return !!formData.totalArea && !!formData.totalBuildings && !!formData.totalUnits;
+            return !!formData.totalArea && !!formData.totalTowers && !!formData.totalUnits;
         }
         return true;
     };
@@ -255,7 +255,7 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
         return !!propertyCategory &&
             !!formData.title &&
             !!formData.totalArea &&
-            !!formData.totalBuildings &&
+            !!formData.totalTowers &&
             !!formData.totalUnits;
     };
 
@@ -390,11 +390,11 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
                                             />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Total Buildings *</label>
+                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Total Towers *</label>
                                             <input
                                                 type="number"
-                                                name="totalBuildings"
-                                                value={formData.totalBuildings}
+                                                name="totalTowers"
+                                                value={formData.totalTowers}
                                                 onChange={handleInputChange}
                                                 placeholder="e.g., 2"
                                                 className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm"
