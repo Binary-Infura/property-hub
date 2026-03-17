@@ -45,6 +45,13 @@ export default function RootLayout({
         <script
           dangerouslySetInnerHTML={{
             __html: `
+              // Suppress THREE.Clock deprecation warning
+              const originalWarn = console.warn;
+              console.warn = function(...args) {
+                if (typeof args[0] === 'string' && args[0].includes('THREE.Clock: This module has been deprecated')) return;
+                originalWarn.apply(console, args);
+              };
+
               if ('serviceWorker' in navigator) {
                 window.addEventListener('load', function() {
                   navigator.serviceWorker.register('/sw.js').then(

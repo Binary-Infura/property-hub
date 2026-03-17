@@ -5,6 +5,7 @@ import { Canvas, useFrame } from "@react-three/fiber";
 import { Float } from "@react-three/drei";
 import * as THREE from "three";
 
+
 const Particle = ({ color, position }: { color: string, position: [number, number, number] }) => {
   const meshRef = useRef<THREE.Mesh>(null);
   
