@@ -302,7 +302,7 @@ export default function ProjectDetailPage() {
 
   const fetchTowers = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/projects/${projectId}/towers`);
+      const res = await fetch(`${API_URL}/api/towers/project/${projectId}`);
       if (res.ok) {
         const towersData = await res.json();
         setProject(prev => prev ? { ...prev, towers: towersData } : null);
@@ -371,6 +371,27 @@ export default function ProjectDetailPage() {
       }
     } catch (e) {
       console.error(e);
+    }
+  };
+  const removeTower = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to delete tower "${name}"?`)) return;
+    try {
+      const res = await fetch(`${API_URL}/api/towers/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      if (res.ok) {
+        fetchTowers();
+        fetchUnits();
+      } else {
+        const err = await res.json();
+        alert(err.message || 'Failed to delete tower');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error deleting tower');
     }
   };
 
@@ -799,7 +820,10 @@ export default function ProjectDetailPage() {
                       <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
                         <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
                       </div>
-                      <button className="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 italic text-xs font-bold">
+                      <button 
+                        onClick={() => removeTower(tower.id, tower.name)}
+                        className="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 italic text-xs font-bold"
+                      >
                         Delete
                       </button>
                     </div>
@@ -1067,7 +1091,7 @@ export default function ProjectDetailPage() {
         onClose={() => setIsAddUnitModalOpen(false)}
         projectId={projectId}
         projectCategory={project?.propertyCategory}
-        onAdded={fetchUnits}
+        onAdded={() => { fetchUnits(); fetchTowers(); }}
       />
 
       <MarkAsSoldModal
@@ -1083,7 +1107,7 @@ export default function ProjectDetailPage() {
         onClose={() => setIsBulkAddUnitModalOpen(false)}
         projectId={projectId}
         projectCategory={project?.propertyCategory}
-        onAdded={fetchUnits}
+        onAdded={() => { fetchUnits(); fetchTowers(); }}
       />
 
       <AddTowerModal

@@ -10,10 +10,9 @@ export class CreateTowerDto {
     @IsString()
     name: string;
 
-    @ApiProperty({ required: false })
-    @IsOptional()
+    @ApiProperty()
     @IsNumber()
-    totalFloors?: number;
+    totalFloors: number;
 }
 
 export class UpdateTowerDto {

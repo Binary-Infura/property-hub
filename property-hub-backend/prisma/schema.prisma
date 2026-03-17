@@ -154,7 +154,7 @@ model PropertyUnit {
   soldAt     DateTime?
   towerId    String?
   project    Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  tower      Tower?     @relation(fields: [towerId], references: [id])
+  tower      Tower?     @relation(fields: [towerId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, unitNumber])
   @@index([projectId])

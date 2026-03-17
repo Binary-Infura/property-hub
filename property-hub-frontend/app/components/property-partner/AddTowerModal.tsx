@@ -37,7 +37,7 @@ export default function AddTowerModal({ isOpen, onClose, projectId, onAdded }: A
         body: JSON.stringify({
           ...formData,
           projectId,
-          totalFloors: formData.totalFloors ? parseInt(formData.totalFloors) : undefined,
+          totalFloors: parseInt(formData.totalFloors),
         }),
       });
 
@@ -87,9 +87,11 @@ export default function AddTowerModal({ isOpen, onClose, projectId, onAdded }: A
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Total Floors (Optional)</label>
+            <label className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] ml-1">Total Floors *</label>
             <input
+              required
               type="number"
+              min="1"
               placeholder="e.g. 15"
               value={formData.totalFloors}
               onChange={(e) => setFormData(prev => ({ ...prev, totalFloors: e.target.value }))}

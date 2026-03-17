@@ -48,6 +48,7 @@ export class TowersService {
     async findByProject(projectId: string): Promise<Tower[]> {
         return this.prisma.tower.findMany({
             where: { projectId },
+            include: { units: true },
             orderBy: { name: 'asc' },
         });
     }
@@ -86,6 +87,11 @@ export class TowersService {
         await this.findOne(id);
         const internalUser = await this.usersService.ensureUserSynced(user);
         
+        // Delete all units associated with this tower first 
+        await this.prisma.propertyUnit.deleteMany({
+            where: { towerId: id }
+        });
+
         const tower = await this.prisma.tower.delete({
             where: { id },
             include: { project: true }

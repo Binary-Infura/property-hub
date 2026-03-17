@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { PropertyCategory, Tower } from '@/app/types/property';
@@ -22,11 +24,12 @@ export default function BulkAddUnitModal({ isOpen, onClose, projectId, projectCa
         prefix: '',
         startNumber: 1,
         endNumber: 10,
-        floor: '',
+        floor: '', // Becomes a string from the select, then parsed
         type: projectCategory === 'plot' ? PLOT_UNIT_TYPES[0] : '2BHK',
         area: '',
         price: '',
         towerId: '',
+        allFloors: false,
     });
     const [towers, setTowers] = useState<Tower[]>([]);
 
@@ -45,6 +48,7 @@ export default function BulkAddUnitModal({ isOpen, onClose, projectId, projectCa
 
     const unitLabel = projectCategory === 'plot' ? 'Plot' : 'Unit';
     const typeOptions = projectCategory === 'plot' ? PLOT_UNIT_TYPES : RESIDENTIAL_UNIT_TYPES;
+    const selectedTower = towers.find(t => t.id === formData.towerId);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -55,9 +59,26 @@ export default function BulkAddUnitModal({ isOpen, onClose, projectId, projectCa
             return;
         }
 
-        const count = formData.endNumber - formData.startNumber + 1;
-        if (count > 100) {
-            setError('You can only add up to 100 units at a time');
+        if (!formData.towerId) {
+            setError('Please select a tower');
+            return;
+        }
+
+        const towersToProcess = [selectedTower]; // Could potentially support multiple towers if needed, but keeping it simple
+        const floorsToProcess = formData.allFloors && selectedTower 
+            ? Array.from({ length: selectedTower.totalFloors || 0 }, (_, i) => i + 1)
+            : [parseInt(formData.floor)];
+
+        if (!formData.allFloors && isNaN(parseInt(formData.floor))) {
+            setError('Please select a floor');
+            return;
+        }
+
+        const unitsPerFloor = formData.endNumber - formData.startNumber + 1;
+        const totalUnits = unitsPerFloor * floorsToProcess.length;
+
+        if (totalUnits > 500) {
+            setError(`You are trying to create ${totalUnits} units. Please limit to 500 at a time.`);
             return;
         }
 
@@ -65,15 +86,17 @@ export default function BulkAddUnitModal({ isOpen, onClose, projectId, projectCa
         setError(null);
 
         const units = [];
-        for (let i = formData.startNumber; i <= formData.endNumber; i++) {
-            units.push({
-                unitNumber: `${formData.prefix}${i}`,
-                floor: formData.floor ? parseInt(formData.floor) : undefined,
-                type: formData.type || undefined,
-                area: formData.area ? parseFloat(formData.area) : undefined,
-                price: parseFloat(formData.price),
-                towerId: formData.towerId || undefined,
-            });
+        for (const floorNum of floorsToProcess) {
+            for (let i = formData.startNumber; i <= formData.endNumber; i++) {
+                units.push({
+                    unitNumber: `${formData.prefix}${i}`,
+                    floor: floorNum,
+                    type: formData.type || undefined,
+                    area: formData.area ? parseFloat(formData.area) : undefined,
+                    price: parseFloat(formData.price),
+                    towerId: formData.towerId,
+                });
+            }
         }
 
         try {
@@ -126,6 +149,23 @@ export default function BulkAddUnitModal({ isOpen, onClose, projectId, projectCa
                         </div>
                     )}
 
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="col-span-2">
+                            <label className="block text-sm font-semibold text-gray-700 mb-1">Select Tower / Building *</label>
+                            <select
+                                required
+                                value={formData.towerId}
+                                onChange={(e) => setFormData({ ...formData, towerId: e.target.value, floor: '' })}
+                                className="w-full border-2 border-blue-100 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium transition-all"
+                            >
+                                <option value="">-- Choose a Tower --</option>
+                                {towers.map(tower => (
+                                    <option key={tower.id} value={tower.id}>{tower.name} ({tower.totalFloors} Floors)</option>
+                                ))}
+                            </select>
+                        </div>
+                    </div>
+
                     <div className="grid grid-cols-3 gap-4">
                         <div>
                             <label className="block text-sm font-semibold text-gray-700 mb-1">Prefix</label>
@@ -159,21 +199,35 @@ export default function BulkAddUnitModal({ isOpen, onClose, projectId, projectCa
                         </div>
                     </div>
 
-                    <p className="text-[10px] text-gray-400 font-medium italic">
-                        Preview: This will create {unitLabel}s from <b>{formData.prefix}{formData.startNumber}</b> to <b>{formData.prefix}{formData.endNumber}</b>
-                    </p>
-
                     <div className="grid grid-cols-2 gap-4 pt-2">
                         {projectCategory !== 'plot' && (
-                            <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1">Floor</label>
-                                <input
-                                    type="number"
+                            <div className="space-y-2">
+                                <label className="flex items-center justify-between mb-1">
+                                    <span className="text-sm font-semibold text-gray-700">Floor *</span>
+                                    <label className="flex items-center gap-1.5 cursor-pointer bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">
+                                        <input
+                                            type="checkbox"
+                                            className="w-3 h-3 rounded text-blue-600 focus:ring-blue-500"
+                                            checked={formData.allFloors}
+                                            onChange={(e) => setFormData({ ...formData, allFloors: e.target.checked })}
+                                        />
+                                        <span className="text-[10px] font-bold text-blue-700 uppercase tracking-tighter">All Floors</span>
+                                    </label>
+                                </label>
+                                <select
+                                    disabled={formData.allFloors || !formData.towerId}
+                                    required={!formData.allFloors}
                                     value={formData.floor}
                                     onChange={(e) => setFormData({ ...formData, floor: e.target.value })}
-                                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                                    placeholder="e.g. 1"
-                                />
+                                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium disabled:bg-gray-50 disabled:text-gray-400"
+                                >
+                                    <option value="">-- {formData.towerId ? 'Select Floor' : 'Select Tower First'} --</option>
+                                    {selectedTower?.totalFloors && (
+                                        Array.from({ length: selectedTower.totalFloors }, (_, i) => i + 1).map(f => (
+                                            <option key={f} value={f}>Floor {f}</option>
+                                        ))
+                                    )}
+                                </select>
                             </div>
                         )}
                         <div className={projectCategory === 'plot' ? 'col-span-2' : ''}>
@@ -216,31 +270,6 @@ export default function BulkAddUnitModal({ isOpen, onClose, projectId, projectCa
                         </div>
                     </div>
 
-                    {towers.length > 0 ? (
-                        <div>
-                            <label className="block text-sm font-semibold text-gray-700 mb-1">Select Tower / Building *</label>
-                            <select
-                                required
-                                value={formData.towerId}
-                                onChange={(e) => setFormData({ ...formData, towerId: e.target.value })}
-                                className="w-full border-2 border-blue-100 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none bg-white font-medium transition-all"
-                            >
-                                <option value="">-- Choose a Tower --</option>
-                                {towers.map(tower => (
-                                    <option key={tower.id} value={tower.id}>{tower.name}</option>
-                                ))}
-                            </select>
-                        </div>
-                    ) : (
-                        <div className="p-3 bg-amber-50 rounded-lg border border-amber-200">
-                             <p className="text-xs text-amber-700 font-bold flex items-center gap-2">
-                                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                                No towers found for this project.
-                             </p>
-                             <p className="text-[10px] text-amber-600 mt-1">Please add at least one tower in the "Towers" tab before adding units.</p>
-                        </div>
-                    )}
-
                     <div className="pt-6 flex gap-3">
                         <button
                             type="button"
@@ -251,11 +280,11 @@ export default function BulkAddUnitModal({ isOpen, onClose, projectId, projectCa
                         </button>
                         <button
                             type="submit"
-                            disabled={loading}
+                            disabled={loading || !formData.towerId}
                             className="flex-[2] px-4 py-2 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all flex items-center justify-center gap-2 disabled:bg-blue-400"
                         >
                             {loading && <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />}
-                            Create {formData.endNumber - formData.startNumber + 1} {unitLabel}s
+                            Create {((formData.endNumber - formData.startNumber + 1) * (formData.allFloors && selectedTower ? selectedTower.totalFloors || 0 : 1))} {unitLabel}s
                         </button>
                     </div>
                 </form>
@@ -263,4 +292,3 @@ export default function BulkAddUnitModal({ isOpen, onClose, projectId, projectCa
         </div>
     );
 }
-
