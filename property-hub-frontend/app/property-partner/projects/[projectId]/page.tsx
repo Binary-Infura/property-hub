@@ -30,12 +30,12 @@ const TABS: TabType[] = [
   },
   {
     id: 'towers',
-    label: 'Towers',
+    label: 'Tower & Blocks',
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 11l4-4m-4 4l-4-4m9-5l4-4m-4 4l-4-4" /></svg>,
   },
   {
     id: 'blocks',
-    label: 'Blocks & Units',
+    label: 'Units',
     icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m0 0l8 4m-8-4v10l8 4m0-10l8 4m-8-4v10M7 12l8 4m0 0l8-4" /></svg>,
   },
   {
@@ -67,6 +67,10 @@ export default function ProjectDetailPage() {
   const [isBulkAddUnitModalOpen, setIsBulkAddUnitModalOpen] = useState(false);
   const [isAddTowerModalOpen, setIsAddTowerModalOpen] = useState(false);
   const [selectedUnitIds, setSelectedUnitIds] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalUnits, setTotalUnits] = useState(0);
+  const UNITS_PER_PAGE = 12;
+
 
   // Editing States
   const [isEditingDescription, setIsEditingDescription] = useState(false);
@@ -79,11 +83,9 @@ export default function ProjectDetailPage() {
     city: '',
     state: '',
     pincode: '',
+    area: '',
     title: '',
     price: '',
-    area: '',
-    totalTowers: '',
-    units: '',
   });
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -159,7 +161,7 @@ export default function ProjectDetailPage() {
     if (!token || !project) return;
     try {
       setLoading(true);
-      
+
       // Merge with existing data if needed, but usually API handles partial updates
       const res = await fetch(`${API_URL}/api/projects/${projectId}`, {
         method: 'PATCH',
@@ -247,8 +249,6 @@ export default function ProjectDetailPage() {
       title: project?.title || '',
       price: project?.startingPrice.toString() || '',
       area: project?.totalArea.toString() || '',
-      totalTowers: project?.totalTowers.toString() || '',
-      units: (units.length || project?.totalUnits || 0).toString(),
     }));
     setIsEditingStats(true);
   };
@@ -258,8 +258,6 @@ export default function ProjectDetailPage() {
       name: editData.title,
       price: parseFloat(editData.price) || 0,
       area: parseFloat(editData.area) || 0,
-      totalTowers: parseInt(editData.totalTowers) || 0,
-      totalUnits: parseInt(editData.units) || 0,
     });
     if (success) setIsEditingStats(false);
   };
@@ -289,7 +287,7 @@ export default function ProjectDetailPage() {
         if (type === 'video') updates.videoUrl = url;
         // Images and docs might need special handling based on schema
         // For now let's update what we can
-        
+
         await handleUpdateProject(updates);
       }
     } catch (err) {
@@ -315,9 +313,13 @@ export default function ProjectDetailPage() {
   const fetchUnits = async () => {
     if (!token) return;
     try {
-      const res = await fetch(`${API_URL}/api/units/project/${projectId}`);
+      const res = await fetch(`${API_URL}/api/units/project/${projectId}?page=${currentPage}&limit=${UNITS_PER_PAGE}`, {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
       if (res.ok) {
-        setUnits(await res.json());
+        const data = await res.json();
+        setUnits(data.units);
+        setTotalUnits(data.total);
       }
     } catch (e) {
       console.error(e);
@@ -397,9 +399,14 @@ export default function ProjectDetailPage() {
 
   useEffect(() => {
     fetchProject();
-    fetchUnits();
     fetchTowers();
+    setCurrentPage(1);
   }, [projectId, token]);
+
+  useEffect(() => {
+    fetchUnits();
+  }, [projectId, token, currentPage]);
+
 
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this project?')) return;
@@ -459,7 +466,7 @@ export default function ProjectDetailPage() {
     return true;
   }).map(tab => {
     if (tab.id === 'blocks') {
-      return { ...tab, label: isStandalone ? unitLabel : `Blocks & ${unitLabel}` };
+      return { ...tab, label: unitLabel };
     }
     return tab;
   });
@@ -501,7 +508,7 @@ export default function ProjectDetailPage() {
             <p className="text-3xl font-bold text-blue-600">₹{(project.startingPrice / 100000).toFixed(1)}L+</p>
           )}
           <p className="text-sm text-gray-600">Starting Price</p>
-          
+
           <div className="flex gap-2">
             {!isEditingStats ? (
               <button
@@ -554,40 +561,15 @@ export default function ProjectDetailPage() {
 
         {!isStandalone && (
           <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 font-bold text-gray-900">
-            <p className="text-gray-500 text-xs font-black uppercase tracking-widest mb-1">Total Towers</p>
-            {isEditingStats ? (
-              <input
-                type="number"
-                value={editData.totalTowers}
-                onChange={(e) => setEditData(prev => ({ ...prev, totalTowers: e.target.value }))}
-                className="text-2xl mt-1 w-full border-b border-blue-600 focus:outline-none bg-blue-50/30 px-1 rounded"
-              />
-            ) : (
-              <p className="text-2xl mt-1 tracking-tight">{project.totalTowers}</p>
-            )}
+            <p className="text-gray-500 text-xs font-black uppercase tracking-widest mb-1">Tower</p>
+            <p className="text-2xl mt-1 tracking-tight">{project.towers.length}</p>
           </div>
         )}
 
         <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 font-bold text-gray-900">
-          <p className="text-gray-500 text-xs font-black uppercase tracking-widest mb-1">Total {unitLabel}</p>
-          {isEditingStats ? (
-            <input
-              type="number"
-              value={editData.units}
-              onChange={(e) => setEditData(prev => ({ ...prev, units: e.target.value }))}
-              className="text-2xl mt-1 w-full border-b border-blue-600 focus:outline-none bg-blue-50/30 px-1 rounded"
-            />
-          ) : (
-            <p className="text-2xl mt-1 tracking-tight">{units.length || project.totalUnits}</p>
-          )}
+          <p className="text-gray-500 text-xs font-black uppercase tracking-widest mb-1">{unitLabel}</p>
+          <p className="text-2xl mt-1 tracking-tight">{totalUnits}</p>
         </div>
-
-        {!isStandalone && (
-          <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-5 font-bold text-gray-900">
-            <p className="text-gray-500 text-xs font-black uppercase tracking-widest mb-1">Blocks</p>
-            <p className="text-2xl mt-1 tracking-tight">{blocks.length}</p>
-          </div>
-        )}
       </div>
 
       {/* Tabs */}
@@ -796,10 +778,10 @@ export default function ProjectDetailPage() {
             <div className="space-y-4">
               <div className="flex justify-between items-center mb-6">
                 <div>
-                  <h3 className="text-xl font-bold text-gray-900">Project Towers</h3>
-                  <p className="text-sm text-gray-500">Manage towers and blocks for this project</p>
+                  <h3 className="text-xl font-bold text-gray-900">Project Tower</h3>
+                  <p className="text-sm text-gray-500">Manage towers for this project</p>
                 </div>
-                <button 
+                <button
                   onClick={() => setIsAddTowerModalOpen(true)}
                   className="bg-blue-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-blue-700 transition shadow-lg shadow-blue-100 flex items-center gap-2"
                 >
@@ -814,35 +796,35 @@ export default function ProjectDetailPage() {
                 </div>
               ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {project.towers.map(tower => (
-                  <div key={tower.id} className="p-6 bg-white border border-gray-100 rounded-2xl hover:shadow-xl transition-all group">
-                    <div className="flex justify-between items-start mb-4">
-                      <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
-                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                  {project.towers.map(tower => (
+                    <div key={tower.id} className="p-6 bg-white border border-gray-100 rounded-2xl hover:shadow-xl transition-all group">
+                      <div className="flex justify-between items-start mb-4">
+                        <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center text-blue-600">
+                          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>
+                        </div>
+                        <button
+                          onClick={() => removeTower(tower.id, tower.name)}
+                          className="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 italic text-xs font-bold"
+                        >
+                          Delete
+                        </button>
                       </div>
-                      <button 
-                        onClick={() => removeTower(tower.id, tower.name)}
-                        className="text-gray-400 hover:text-red-600 p-2 rounded-lg hover:bg-red-50 transition-all opacity-0 group-hover:opacity-100 italic text-xs font-bold"
-                      >
-                        Delete
-                      </button>
+                      <div>
+                        <h4 className="font-bold text-gray-900 text-lg">{tower.name}</h4>
+                        <p className="text-sm text-gray-500 mt-1 font-medium">{tower.totalFloors || 'N/A'} Floors • {tower.units?.length || 0} Units</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-gray-900 text-lg">{tower.name}</h4>
-                      <p className="text-sm text-gray-500 mt-1 font-medium">{tower.totalFloors || 'N/A'} Floors • {tower.units?.length || 0} Units</p>
-                    </div>
-                  </div>
-                ))}
+                  ))}
                 </div>
               )}
             </div>
           )}
 
-          {/* Blocks & Units Tab */}
+          {/* Units Tab */}
           {activeTab === 'blocks' && (
             <div className="space-y-6">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-gray-900">{isStandalone ? `${unitLabel} Overview` : `Blocks & ${unitLabel} Overview`}</h3>
+                <h3 className="text-lg font-semibold text-gray-900">{isStandalone ? `${unitLabel} Overview` : `${unitLabel} Overview`}</h3>
                 <div className="flex gap-3">
                   <button
                     onClick={() => setIsMarkAsSoldModalOpen(true)}
@@ -890,69 +872,96 @@ export default function ProjectDetailPage() {
                   </button>
                 </div>
               ) : (
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  {units.map((unit: any) => (
-                    <div
-                      key={unit.id}
-                      className={`p-6 border bg-white rounded-xl shadow-sm hover:shadow-md transition relative overflow-hidden ${selectedUnitIds.includes(unit.id) ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-200'}`}
-                      onClick={() => toggleSelectUnit(unit.id)}
-                    >
-                      <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
-                        <input
-                          type="checkbox"
-                          checked={selectedUnitIds.includes(unit.id)}
-                          onChange={() => toggleSelectUnit(unit.id)}
-                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
-                        />
-                      </div>
-                      <div className="flex justify-between items-start mb-4 pl-4">
-                        <div>
-                          <h4 className="font-bold text-gray-900 text-xl">{unit.unitNumber}</h4>
-                          <p className="text-sm text-gray-500">{unit.type || `Standard ${singleUnitLabel}`} {!isStandalone && `• Floor ${unit.floor || 'N/A'}`}</p>
+                <div className="space-y-6">
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {units.map((unit: any) => (
+                      <div
+                        key={unit.id}
+                        className={`p-6 border bg-white rounded-xl shadow-sm hover:shadow-md transition relative overflow-hidden ${selectedUnitIds.includes(unit.id) ? 'border-blue-500 ring-1 ring-blue-500' : 'border-gray-200'}`}
+                        onClick={() => toggleSelectUnit(unit.id)}
+                      >
+                        <div className="absolute top-2 left-2 z-10" onClick={(e) => e.stopPropagation()}>
+                          <input
+                            type="checkbox"
+                            checked={selectedUnitIds.includes(unit.id)}
+                            onChange={() => toggleSelectUnit(unit.id)}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 w-4 h-4"
+                          />
                         </div>
-                        <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
-                          <button
-                            onClick={() => removeUnit(unit.id)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Delete Unit"
-                          >
-                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                          </button>
-                          <span className={`px-2 py-1 rounded-md text-xs font-semibold uppercase tracking-wider ${unit.status === 'SOLD' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
-                            }`}>
-                            {unit.status}
-                          </span>
+                        <div className="flex justify-between items-start mb-4 pl-4">
+                          <div>
+                            <h4 className="font-bold text-gray-900 text-xl">{unit.unitNumber}</h4>
+                            <p className="text-sm text-gray-500">{unit.type || `Standard ${singleUnitLabel}`} {!isStandalone && `• Floor ${unit.floor || 'N/A'}`}</p>
+                          </div>
+                          <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
+                            <button
+                              onClick={() => removeUnit(unit.id)}
+                              className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                              title="Delete Unit"
+                            >
+                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                              </svg>
+                            </button>
+                            <span className={`px-2 py-1 rounded-md text-xs font-semibold uppercase tracking-wider ${unit.status === 'SOLD' ? 'bg-emerald-100 text-emerald-700' : 'bg-blue-100 text-blue-700'
+                              }`}>
+                              {unit.status}
+                            </span>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="space-y-3 pt-4 border-t border-gray-100">
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-500 flex items-center gap-2">
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
-                            Area
-                          </span>
-                          <span className="font-semibold text-gray-900">{unit.area ? `${unit.area} Sq Ft` : 'N/A'}</span>
+                        <div className="space-y-3 pt-4 border-t border-gray-100">
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-500 flex items-center gap-2">
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" /></svg>
+                              Area
+                            </span>
+                            <span className="font-semibold text-gray-900">{unit.area ? `${unit.area} Sq Ft` : 'N/A'}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-sm">
+                            <span className="text-gray-500 flex items-center gap-2">
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                              Price
+                            </span>
+                            <span className="font-semibold text-gray-900">₹{unit.price.toLocaleString()}</span>
+                          </div>
                         </div>
-                        <div className="flex justify-between items-center text-sm">
-                          <span className="text-gray-500 flex items-center gap-2">
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            Price
-                          </span>
-                          <span className="font-semibold text-gray-900">₹{unit.price.toLocaleString()}</span>
-                        </div>
-                      </div>
 
-                      {unit.status === 'SOLD' && (
-                        <div className="mt-4 p-3 bg-emerald-50 rounded-lg border border-emerald-100 text-sm">
-                          <p className="text-emerald-800 font-medium">Sold To: <span className="font-bold">{unit.buyerName}</span></p>
-                          <p className="text-emerald-600 text-xs mt-1">₹{unit.salePrice.toLocaleString()} on {new Date(unit.soldAt).toLocaleDateString()}</p>
-                        </div>
-                      )}
+                        {unit.status === 'SOLD' && (
+                          <div className="mt-4 p-3 bg-emerald-50 rounded-lg border border-emerald-100 text-sm">
+                            <p className="text-emerald-800 font-medium">Sold To: <span className="font-bold">{unit.buyerName}</span></p>
+                            <p className="text-emerald-600 text-xs mt-1">₹{unit.salePrice.toLocaleString()} on {new Date(unit.soldAt).toLocaleDateString()}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+
+                  {totalUnits > UNITS_PER_PAGE && (
+                    <div className="flex items-center justify-between border-t border-gray-100 pt-6">
+                      <p className="text-sm text-gray-500 font-medium">
+                        Showing <span className="text-gray-900">{(currentPage - 1) * UNITS_PER_PAGE + 1}</span> to <span className="text-gray-900">{Math.min(currentPage * UNITS_PER_PAGE, totalUnits)}</span> of <span className="text-gray-900">{totalUnits}</span> units
+                      </p>
+                      <div className="flex gap-2">
+                        <button
+                          disabled={currentPage === 1}
+                          onClick={() => setCurrentPage(prev => prev - 1)}
+                          className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-all font-bold"
+                        >
+                          Previous
+                        </button>
+                        <button
+                          disabled={currentPage * UNITS_PER_PAGE >= totalUnits}
+                          onClick={() => setCurrentPage(prev => prev + 1)}
+                          className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 disabled:opacity-50 transition-all font-bold"
+                        >
+                          Next
+                        </button>
+                      </div>
                     </div>
-                  ))}
+                  )}
                 </div>
+
               )}
             </div>
           )}
@@ -976,7 +985,7 @@ export default function ProjectDetailPage() {
                 {project?.videoUrl ? (
                   <div className="relative aspect-video max-w-2xl mx-auto rounded-xl overflow-hidden shadow-2xl bg-black">
                     <video src={project.videoUrl} controls className="w-full h-full" />
-                    <button 
+                    <button
                       onClick={() => handleUpdateProject({ videoUrl: null })}
                       className="absolute top-4 right-4 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-lg"
                     >
@@ -1040,8 +1049,8 @@ export default function ProjectDetailPage() {
                     <button
                       key={status}
                       onClick={() => handleUpdateProject({ status: status.toUpperCase() })}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ring-1 ring-inset ${project.status === status 
-                        ? `${config.bgColor} ${config.color} ${config.ringColor} shadow-md` 
+                      className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ring-1 ring-inset ${project.status === status
+                        ? `${config.bgColor} ${config.color} ${config.ringColor} shadow-md`
                         : 'bg-gray-50 text-gray-400 ring-gray-100 hover:bg-gray-100'}`}
                     >
                       {config.label}
@@ -1060,8 +1069,8 @@ export default function ProjectDetailPage() {
                     <button
                       key={type.value}
                       onClick={() => handleUpdateProject({ projectType: type.value.toUpperCase() })}
-                      className={`p-4 rounded-xl border-2 transition-all text-left ${project.propertyType === type.value 
-                        ? 'border-blue-600 bg-blue-50/50 ring-2 ring-blue-100' 
+                      className={`p-4 rounded-xl border-2 transition-all text-left ${project.propertyType === type.value
+                        ? 'border-blue-600 bg-blue-50/50 ring-2 ring-blue-100'
                         : 'border-gray-50 hover:border-gray-200 bg-gray-50/30'}`}
                     >
                       <h4 className={`font-bold text-sm ${project.propertyType === type.value ? 'text-blue-700' : 'text-gray-900'}`}>{type.label}</h4>

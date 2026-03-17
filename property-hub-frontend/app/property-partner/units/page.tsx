@@ -36,20 +36,26 @@ export default function UnitsPage() {
     const [selectedUnitIds, setSelectedUnitIds] = useState<string[]>([]);
     const [isMarkAsSoldModalOpen, setIsMarkAsSoldModalOpen] = useState(false);
     const [activeUnitForSale, setActiveUnitForSale] = useState<Unit | null>(null);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [totalUnits, setTotalUnits] = useState(0);
+    const UNITS_PER_PAGE = 12;
+
 
     const fetchUnits = async () => {
         if (!token) return;
         try {
             setLoading(true);
-            // Assuming there's an endpoint to fetch ALL units for the partner
-            const res = await fetch(`${API_URL}/api/units/my`, {
+            const res = await fetch(`${API_URL}/api/units/my?page=${currentPage}&limit=${UNITS_PER_PAGE}&search=${searchQuery}&status=${statusFilter}`, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
             if (res.ok) {
-                setUnits(await res.json());
+                const data = await res.json();
+                setUnits(data.units);
+                setTotalUnits(data.total);
             }
+
         } catch (e) {
             console.error('Failed to fetch units:', e);
         } finally {
@@ -58,25 +64,23 @@ export default function UnitsPage() {
     };
 
     useEffect(() => {
-        fetchUnits();
-    }, [token]);
+        const timer = setTimeout(() => {
+            fetchUnits();
+        }, 300);
+        return () => clearTimeout(timer);
+    }, [token, currentPage, searchQuery, statusFilter]);
 
-    const filteredUnits = units.filter(unit => {
-        const matchesSearch =
-            unit.unitNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            unit.project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            (unit.buyerName?.toLowerCase() || '').includes(searchQuery.toLowerCase());
+    // Reset to page 1 when search or filter changes
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [searchQuery, statusFilter]);
 
-        const matchesStatus = statusFilter === 'all' || unit.status === statusFilter;
-
-        return matchesSearch && matchesStatus;
-    });
 
     const toggleSelectAll = () => {
-        if (selectedUnitIds.length === filteredUnits.length) {
+        if (selectedUnitIds.length === units.length) {
             setSelectedUnitIds([]);
         } else {
-            setSelectedUnitIds(filteredUnits.map(u => u.id));
+            setSelectedUnitIds(units.map(u => u.id));
         }
     };
 
@@ -191,107 +195,134 @@ export default function UnitsPage() {
                     <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
                     <p className="mt-4 text-gray-600 font-medium">Loading units...</p>
                 </div>
-            ) : filteredUnits.length === 0 ? (
+            ) : units.length === 0 ? (
                 <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
                     <svg className="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
-                    <p className="text-gray-500 text-lg font-medium">No units found</p>
+                    <p className="text-gray-500 text-lg font-medium">No units found matching your criteria</p>
                 </div>
             ) : (
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-                    <table className="w-full text-left">
-                        <thead>
-                            <tr className="bg-gray-50 border-b border-gray-100">
-                                <th className="px-6 py-4">
-                                    <input
-                                        type="checkbox"
-                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                        checked={selectedUnitIds.length > 0 && selectedUnitIds.length === filteredUnits.length}
-                                        onChange={toggleSelectAll}
-                                    />
-                                </th>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-[10px]">Unit Detail</th>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-[10px]">Project</th>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-[10px]">Status</th>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-[10px]">Information</th>
-                                <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-[10px]">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody className="divide-y divide-gray-100">
-                            {filteredUnits.map((unit) => (
-                                <tr key={unit.id} className={`hover:bg-gray-50/5 transition-colors ${selectedUnitIds.includes(unit.id) ? 'bg-blue-50/30' : ''}`}>
-                                    <td className="px-6 py-4">
+                <div className="space-y-4">
+                    <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+                        <table className="w-full text-left">
+                            <thead>
+                                <tr className="bg-gray-50 border-b border-gray-100">
+                                    <th className="px-6 py-4">
                                         <input
                                             type="checkbox"
                                             className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                            checked={selectedUnitIds.includes(unit.id)}
-                                            onChange={() => toggleSelectUnit(unit.id)}
+                                            checked={selectedUnitIds.length > 0 && selectedUnitIds.length === units.length}
+                                            onChange={toggleSelectAll}
                                         />
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="font-bold text-gray-900">
-                                            {unit.project.category === 'PLOT' ? 'Plot' :
-                                                unit.project.category === 'VILLA' ? 'Villa' :
-                                                    'Unit'} #{unit.unitNumber}
-                                        </div>
-                                        <div className="text-xs text-gray-500">
-                                            {unit.type} {['PLOT', 'VILLA'].includes(unit.project.category || '') ? '' : `• Floor ${unit.floor}`}
-                                        </div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <div className="font-medium text-gray-900">{unit.project.name}</div>
-                                        <div className="text-xs text-blue-600 font-medium">{unit.project.category || 'PROJECT'}</div>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${unit.status === 'SOLD' ? 'bg-emerald-100 text-emerald-700' :
-                                            unit.status === 'RESERVED' ? 'bg-amber-100 text-amber-700' :
-                                                unit.status === 'AVAILABLE' ? 'bg-blue-100 text-blue-700' :
-                                                    'bg-gray-100 text-gray-700'
-                                            }`}>
-                                            {unit.status}
-                                        </span>
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {unit.status === 'SOLD' ? (
-                                            <div>
-                                                <div className="text-sm font-bold text-gray-900">{unit.buyerName}</div>
-                                                <div className="text-[10px] text-emerald-600 font-bold uppercase">₹{unit.salePrice?.toLocaleString()}</div>
-                                            </div>
-                                        ) : (
-                                            <div>
-                                                <div className="text-sm font-bold text-gray-900">₹{unit.price.toLocaleString()}</div>
-                                                <div className="text-[10px] text-gray-400 font-bold uppercase">{unit.area} Sq Ft</div>
-                                            </div>
-                                        )}
-                                    </td>
-                                    <td className="px-6 py-4 space-x-4">
-                                        <Link
-                                            href={`/dashboard/projects/${unit.projectId}`}
-                                            className="text-blue-600 hover:text-blue-700 text-xs font-bold uppercase tracking-wider"
-                                        >
-                                            View
-                                        </Link>
-                                        {unit.status !== 'SOLD' && (
-                                            <button
-                                                onClick={() => openMarkAsSold(unit)}
-                                                className="text-emerald-600 hover:text-emerald-700 text-xs font-bold uppercase tracking-wider"
-                                            >
-                                                Mark Sold
-                                            </button>
-                                        )}
-                                        <button
-                                            onClick={() => handleSingleDelete(unit.id, unit.unitNumber)}
-                                            className="text-red-600 hover:text-red-700 text-xs font-bold uppercase tracking-wider"
-                                        >
-                                            Delete
-                                        </button>
-                                    </td>
+                                    </th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-[10px]">Unit Detail</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-[10px]">Project</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-[10px]">Status</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-[10px]">Information</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-[10px]">Actions</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody className="divide-y divide-gray-100">
+                                {units.map((unit) => (
+                                    <tr key={unit.id} className={`hover:bg-gray-50/5 transition-colors ${selectedUnitIds.includes(unit.id) ? 'bg-blue-50/30' : ''}`}>
+                                        <td className="px-6 py-4">
+                                            <input
+                                                type="checkbox"
+                                                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                                checked={selectedUnitIds.includes(unit.id)}
+                                                onChange={() => toggleSelectUnit(unit.id)}
+                                            />
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="font-bold text-gray-900">
+                                                {unit.project.category === 'PLOT' ? 'Plot' :
+                                                    unit.project.category === 'VILLA' ? 'Villa' :
+                                                        'Unit'} #{unit.unitNumber}
+                                            </div>
+                                            <div className="text-xs text-gray-500">
+                                                {unit.type} {['PLOT', 'VILLA'].includes(unit.project.category || '') ? '' : `• Floor ${unit.floor}`}
+                                            </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="font-medium text-gray-900">{unit.project.name}</div>
+                                            <div className="text-xs text-blue-600 font-medium">{unit.project.category || 'PROJECT'}</div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <span className={`px-2 py-1 rounded-md text-[10px] font-bold uppercase tracking-wider ${unit.status === 'SOLD' ? 'bg-emerald-100 text-emerald-700' :
+                                                unit.status === 'RESERVED' ? 'bg-amber-100 text-amber-700' :
+                                                    unit.status === 'AVAILABLE' ? 'bg-blue-100 text-blue-700' :
+                                                        'bg-gray-100 text-gray-700'
+                                                }`}>
+                                                {unit.status}
+                                            </span>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {unit.status === 'SOLD' ? (
+                                                <div>
+                                                    <div className="text-sm font-bold text-gray-900">{unit.buyerName}</div>
+                                                    <div className="text-[10px] text-emerald-600 font-bold uppercase">₹{unit.salePrice?.toLocaleString()}</div>
+                                                </div>
+                                            ) : (
+                                                <div>
+                                                    <div className="text-sm font-bold text-gray-900">₹{unit.price.toLocaleString()}</div>
+                                                    <div className="text-[10px] text-gray-400 font-bold uppercase">{unit.area} Sq Ft</div>
+                                                </div>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4 space-x-4">
+                                            <Link
+                                                href={`/dashboard/projects/${unit.projectId}`}
+                                                className="text-blue-600 hover:text-blue-700 text-xs font-bold uppercase tracking-wider"
+                                            >
+                                                View
+                                            </Link>
+                                            {unit.status !== 'SOLD' && (
+                                                <button
+                                                    onClick={() => openMarkAsSold(unit)}
+                                                    className="text-emerald-600 hover:text-emerald-700 text-xs font-bold uppercase tracking-wider"
+                                                >
+                                                    Mark Sold
+                                                </button>
+                                            )}
+                                            <button
+                                                onClick={() => handleSingleDelete(unit.id, unit.unitNumber)}
+                                                className="text-red-600 hover:text-red-700 text-xs font-bold uppercase tracking-wider"
+                                            >
+                                                Delete
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {totalUnits > UNITS_PER_PAGE && (
+                        <div className="flex items-center justify-between bg-white px-6 py-4 rounded-xl border border-gray-100">
+                            <p className="text-sm text-gray-500 font-medium">
+                                Showing <span className="text-gray-900">{(currentPage - 1) * UNITS_PER_PAGE + 1}</span> to <span className="text-gray-900">{Math.min(currentPage * UNITS_PER_PAGE, totalUnits)}</span> of <span className="text-gray-900">{totalUnits}</span> units
+                            </p>
+                            <div className="flex gap-2">
+                                <button
+                                    disabled={currentPage === 1}
+                                    onClick={() => setCurrentPage(prev => prev - 1)}
+                                    className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition-all font-bold"
+                                >
+                                    Previous
+                                </button>
+                                <button
+                                    disabled={currentPage * UNITS_PER_PAGE >= totalUnits}
+                                    onClick={() => setCurrentPage(prev => prev + 1)}
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 disabled:opacity-50 transition-all font-bold"
+                                >
+                                    Next
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
+
             )}
 
             <MarkAsSoldModal

@@ -7,6 +7,7 @@ import {
     Param,
     Delete,
     UseGuards,
+    Query,
 } from '@nestjs/common';
 import { UnitsService } from './units.service';
 import { CreateUnitDto, UpdateUnitDto, MarkUnitAsSoldDto, BulkCreateUnitsDto, BulkDeleteUnitsDto } from './units.dto';
@@ -43,8 +44,12 @@ export class UnitsController {
 
     @Get('project/:projectId')
     @Public()
-    findByProject(@Param('projectId') projectId: string) {
-        return this.unitsService.findByProject(projectId);
+    findByProject(
+        @Param('projectId') projectId: string,
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
+    ) {
+        return this.unitsService.findByProject(projectId, page ? parseInt(page) : 1, limit ? parseInt(limit) : 12);
     }
 
     @Get(':id')
@@ -75,8 +80,20 @@ export class UnitsController {
 
     @Get('my')
     @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY)
-    findMyUnits(@CurrentUser() user: AuthenticatedUser) {
-        return this.unitsService.findMyUnits(user);
+    findMyUnits(
+        @CurrentUser() user: AuthenticatedUser,
+        @Query('page') page?: string,
+        @Query('limit') limit?: string,
+        @Query('search') search?: string,
+        @Query('status') status?: string,
+    ) {
+        return this.unitsService.findMyUnits(
+            user, 
+            page ? parseInt(page) : 1, 
+            limit ? parseInt(limit) : 12,
+            search,
+            status
+        );
     }
 
     @Delete(':id')

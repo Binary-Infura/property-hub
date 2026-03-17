@@ -76,7 +76,11 @@ export class ProjectsService {
                     },
                 },
                 city: true,
-                towers: true,
+                towers: {
+                    include: {
+                        units: true,
+                    },
+                },
             },
         });
 

@@ -52,11 +52,20 @@ export class UnitsService {
         return unit;
     }
 
-    async findByProject(projectId: string): Promise<PropertyUnit[]> {
-        return this.prisma.propertyUnit.findMany({
-            where: { projectId },
-            orderBy: { createdAt: 'desc' },
-        });
+    async findByProject(projectId: string, page = 1, limit = 10): Promise<{ units: PropertyUnit[], total: number }> {
+        const skip = (page - 1) * limit;
+        const [units, total] = await Promise.all([
+            this.prisma.propertyUnit.findMany({
+                where: { projectId },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            this.prisma.propertyUnit.count({
+                where: { projectId },
+            }),
+        ]);
+        return { units, total };
     }
 
     async findOne(id: string): Promise<PropertyUnit> {
@@ -162,27 +171,53 @@ export class UnitsService {
         });
     }
 
-    async findMyUnits(user: AuthenticatedUser): Promise<any[]> {
+    async findMyUnits(user: AuthenticatedUser, page = 1, limit = 10, search?: string, status?: string): Promise<{ units: any[], total: number }> {
         const internalUser = await this.usersService.ensureUserSynced(user);
         const isPropertyPartner = user.roles.includes(UserRole.PROPERTY_PARTNER);
         const isCentralAuthority = user.roles.includes(UserRole.CENTRAL_AUTHORITY);
 
-        const filter = (!isCentralAuthority && isPropertyPartner)
+        const baseFilter = (!isCentralAuthority && isPropertyPartner)
             ? { project: { onboardedById: internalUser.id } }
             : {};
 
-        return this.prisma.propertyUnit.findMany({
-            where: filter,
-            include: {
-                project: {
-                    select: {
-                        name: true,
-                        location: true,
-                        category: true
+        const filter: any = {
+            ...baseFilter,
+        };
+
+        if (status && status !== 'all') {
+            filter.status = status;
+        }
+
+        if (search) {
+            filter.OR = [
+                { unitNumber: { contains: search, mode: 'insensitive' } },
+                { buyerName: { contains: search, mode: 'insensitive' } },
+                { project: { name: { contains: search, mode: 'insensitive' } } }
+            ];
+        }
+
+        const skip = (page - 1) * limit;
+        const [units, total] = await Promise.all([
+            this.prisma.propertyUnit.findMany({
+                where: filter,
+                include: {
+                    project: {
+                        select: {
+                            name: true,
+                            location: true,
+                            category: true
+                        }
                     }
-                }
-            },
-            orderBy: { createdAt: 'desc' }
-        });
+                },
+                orderBy: { createdAt: 'desc' },
+                skip,
+                take: limit,
+            }),
+            this.prisma.propertyUnit.count({
+                where: filter,
+            }),
+        ]);
+
+        return { units, total };
     }
 }

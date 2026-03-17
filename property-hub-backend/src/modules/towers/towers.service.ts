@@ -56,7 +56,7 @@ export class TowersService {
     async findOne(id: string): Promise<Tower> {
         const tower = await this.prisma.tower.findUnique({
             where: { id },
-            include: { project: true },
+            include: { project: true, units: true },
         });
         if (!tower) throw new NotFoundException('Tower not found');
         return tower;

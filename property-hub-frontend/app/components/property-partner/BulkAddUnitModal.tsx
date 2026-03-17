@@ -64,12 +64,14 @@ export default function BulkAddUnitModal({ isOpen, onClose, projectId, projectCa
             return;
         }
 
-        const towersToProcess = [selectedTower]; // Could potentially support multiple towers if needed, but keeping it simple
-        const floorsToProcess = formData.allFloors && selectedTower 
-            ? Array.from({ length: selectedTower.totalFloors || 0 }, (_, i) => i + 1)
-            : [parseInt(formData.floor)];
+        const isPlot = projectCategory === 'plot';
+        const floorsToProcess = isPlot 
+            ? [1] 
+            : (formData.allFloors && selectedTower 
+                ? Array.from({ length: selectedTower.totalFloors || 0 }, (_, i) => i + 1)
+                : [parseInt(formData.floor)]);
 
-        if (!formData.allFloors && isNaN(parseInt(formData.floor))) {
+        if (!isPlot && !formData.allFloors && isNaN(parseInt(formData.floor))) {
             setError('Please select a floor');
             return;
         }
@@ -88,8 +90,13 @@ export default function BulkAddUnitModal({ isOpen, onClose, projectId, projectCa
         const units = [];
         for (const floorNum of floorsToProcess) {
             for (let i = formData.startNumber; i <= formData.endNumber; i++) {
+                // Generate a unique unit number by incorporating the floor number.
+                // This prevents unique constraint violations when creating units across multiple floors.
+                // Standard format: [Prefix][Floor][UnitNumber with padding] (e.g., A-101)
+                const unitNumber = `${formData.prefix}${floorNum}${i.toString().padStart(2, '0')}`;
+
                 units.push({
-                    unitNumber: `${formData.prefix}${i}`,
+                    unitNumber,
                     floor: floorNum,
                     type: formData.type || undefined,
                     area: formData.area ? parseFloat(formData.area) : undefined,
