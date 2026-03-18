@@ -1,6 +1,5 @@
-import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Param } from '@nestjs/common';
 import { SpatialExplorerService } from './spatial-explorer.service';
-import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { Public } from '../../common/decorators/public.decorator';
 
 @Controller('api/spatial-explorer')
@@ -8,8 +7,31 @@ export class SpatialExplorerController {
     constructor(private readonly explorerService: SpatialExplorerService) {}
 
     /**
-     * Endpoint for retrieving the full spatial state of a project.
-     * Publicly accessible for the search/property pages.
+     * Lightweight summary: project + towers + slim unit arrays.
+     * Slim units only carry: id, unitNumber, floor, status, towerId.
+     * Called once on initial page load — fast, minimal payload.
+     */
+    @Public()
+    @Get('project/:projectId/summary')
+    async getProjectSummary(@Param('projectId') projectId: string) {
+        return this.explorerService.getProjectSummary(projectId);
+    }
+
+    /**
+     * On-demand: full details for a single unit.
+     * Called when the user clicks a unit in the 3D explorer.
+     */
+    @Public()
+    @Get('project/:projectId/unit/:unitId')
+    async getUnitDetail(
+        @Param('projectId') projectId: string,
+        @Param('unitId') unitId: string,
+    ) {
+        return this.explorerService.getUnitDetail(projectId, unitId);
+    }
+
+    /**
+     * Full spatial data (legacy — kept for backward compat).
      */
     @Public()
     @Get('project/:projectId')
@@ -18,8 +40,7 @@ export class SpatialExplorerController {
     }
 
     /**
-     * Endpoint specifically for units, ensuring the explorer can fetch 
-     * the entire building inventory without standard pagination.
+     * All units unpaginated (legacy — kept for backward compat).
      */
     @Public()
     @Get('project/:projectId/units')

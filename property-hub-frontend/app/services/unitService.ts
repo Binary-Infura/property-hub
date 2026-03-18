@@ -3,6 +3,7 @@ export type UnitStatus = 'DRAFT' | 'RESERVED' | 'BOOKED' | 'SOLD';
 export interface PropertyUnit {
     id: string;
     projectId: string;
+    towerId: string | null;
     unitNumber: string;
     floor: number | null;
     type: string | null;

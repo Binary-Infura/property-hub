@@ -1,11 +1,12 @@
 'use client';
 
-import React, { useRef, useMemo, useCallback, useState } from 'react';
+import React, { useRef, useMemo, useCallback, useState, useEffect } from 'react';
 import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
-import { OrbitControls, ContactShadows, Environment, Float, Sky, Stars, Html, Text, Clouds, Cloud, Edges } from '@react-three/drei';
+import { OrbitControls, ContactShadows, Environment, Float, Sky, Html, Text, Clouds, Cloud, Edges, Billboard, Instances, Instance } from '@react-three/drei';
 import * as THREE from 'three';
-import { PropertyUnit, UnitStatus } from '@/app/services/unitService';
+import { UnitStatus } from '@/app/services/unitService';
 import { ProjectType } from '@/app/services/propertyService';
+import { Tower, SlimUnit } from '@/app/services/explorerService';
 
 // ─── Status Colors (Vibrant Aura Bloom Palette - Light Mode Optimized) ───────
 const STATUS_COLORS: Record<UnitStatus, { color: string; emissive: string }> = {
@@ -17,18 +18,20 @@ const STATUS_COLORS: Record<UnitStatus, { color: string; emissive: string }> = {
 
 // ─── Unit Item Component ───────────────────────────────────────────────────
 interface UnitInstancesProps {
-    units: PropertyUnit[];
+    units: SlimUnit[];
+    towers: Tower[];
     projectType: ProjectType;
     hoveredId: string | null;
     selectedId: string | null;
     onHover: (id: string | null) => void;
-    onSelect: (unit: PropertyUnit) => void;
+    onSelect: (unitId: string) => void;
     viewMode: 'building' | 'floor';
     selectedFloor: number;
 }
 
 function UnitInstances({
     units,
+    towers,
     projectType,
     hoveredId,
     selectedId,
@@ -37,7 +40,6 @@ function UnitInstances({
     viewMode,
     selectedFloor,
 }: UnitInstancesProps) {
-    const meshRef = useRef<THREE.InstancedMesh>(null);
     const dummy = useMemo(() => new THREE.Object3D(), []);
     const _color = useMemo(() => new THREE.Color(), []);
 
@@ -57,177 +59,190 @@ function UnitInstances({
         return units;
     }, [units, viewMode, selectedFloor]);
 
-    const floorOrder = useMemo(
-        () => [...new Set(units.map(u => u.floor ?? 1))].sort((a, b) => a - b),
-        [units]
-    );
+    const towerIds = useMemo(() => {
+        let ids: string[] = [];
+        if (towers.length > 0) {
+            ids = towers.map(t => t.id);
+        } else {
+            ids = [...new Set(units.map(u => u.towerId).filter(id => !!id))] as string[];
+        }
+        // Sort IDs or use a stable mapping to ensure consistent left-to-right order (Tower A, B, C...)
+        const sortedWithNames = ids.map(id => ({
+            id,
+            name: towers.find(t => t.id === id)?.name || id
+        })).sort((a, b) => a.name.localeCompare(b.name));
+        
+        return sortedWithNames.length > 0 ? sortedWithNames.map(x => x.id) : ['default'];
+    }, [towers, units]);
 
-    const unitsByFloor = useMemo(() => {
-        const map: Record<number, PropertyUnit[]> = {};
+    const unitsByTowerAndFloor = useMemo(() => {
+        const map: Record<string, Record<number, SlimUnit[]>> = {};
         for (const u of units) {
+            const tId = u.towerId || towerIds[0] || 'default';
             const f = u.floor ?? 1;
-            map[f] = map[f] ?? [];
-            map[f].push(u);
+            map[tId] = map[tId] ?? {};
+            map[tId][f] = map[tId][f] ?? [];
+            map[tId][f].push(u);
         }
         return map;
-    }, [units]);
+    }, [units, towerIds]);
 
-    const positions = useMemo((): THREE.Vector3[] => {
-        if (viewMode === 'floor' || projectType === 'PLOT' || projectType === 'VILLA') {
-            const currentUnits = viewMode === 'floor' ? displayed : units;
-            const cols = Math.ceil(Math.sqrt(Math.max(currentUnits.length, 1)));
-            const spacing = projectType === 'VILLA' ? 5 : 3.0;
+    const towerSpacing = 50;
 
-            return (viewMode === 'floor' ? displayed : units).map((_, i) => {
-                const col = i % cols;
-                const row = Math.floor(i / cols);
-                const x = col * spacing - ((cols - 1) / 2) * spacing;
-                const z = row * spacing - (Math.ceil(currentUnits.length / cols) / 2) * spacing;
-                const y = projectType === 'PLOT' ? 0.1 : 1.3;
-                return new THREE.Vector3(x, y, z);
-            });
-        }
+    // Cache base matrices for static positioning
+    const baseMatrices = useMemo(() => {
+        const floorOrder = [...new Set(units.map(u => u.floor ?? 1))].sort((a, b) => a - b);
+        const matrices: THREE.Matrix4[] = [];
 
-        return displayed.map(u => {
+        displayed.forEach(u => {
+            const tId = u.towerId || towerIds[0] || 'default';
+            const towerIdx = Math.max(0, towerIds.indexOf(tId));
+            const towerOffsetX = (towerIdx - (towerIds.length - 1) / 2) * towerSpacing;
             const f = u.floor ?? 1;
-            const fUnits = unitsByFloor[f] || [];
-            const idx = fUnits.indexOf(u);
-            const x = idx * 2.6 - ((fUnits.length - 1) / 2) * 2.6;
-            const y = floorOrder.indexOf(f) * 2.6 + 1.3;
-            return new THREE.Vector3(x, y, 0);
+            const m = new THREE.Matrix4();
+
+            let x = 0, y = 0, z = 0;
+            if (projectType === 'PLOT' || projectType === 'VILLA') {
+                const spacing = projectType === 'VILLA' ? 5 : 3.0;
+                const towerUnits = units.filter(unit => (unit.towerId || 'default') === tId);
+                const idx = towerUnits.indexOf(u);
+                const cols = Math.ceil(Math.sqrt(Math.max(towerUnits.length, 1)));
+                x = (idx % cols) * spacing - ((cols - 1) / 2) * spacing;
+                z = Math.floor(idx / cols) * spacing - (Math.ceil(towerUnits.length / cols) / 2) * spacing;
+                y = projectType === 'PLOT' ? 0.1 : 1.3;
+            } else if (viewMode === 'floor') {
+                const towerFloorUnits = unitsByTowerAndFloor[tId]?.[f] || [];
+                const idx = towerFloorUnits.indexOf(u);
+                const cols = Math.ceil(Math.sqrt(Math.max(towerFloorUnits.length, 1)));
+                x = (idx % cols) * 2.6 - ((cols - 1) / 2) * 2.6;
+                z = Math.floor(idx / cols) * 2.6 - (Math.ceil(towerFloorUnits.length / cols) / 2) * 2.6;
+                y = floorOrder.indexOf(f) * 2.6 + 1.3;
+            } else {
+                const towerFloorUnits = unitsByTowerAndFloor[tId]?.[f] || [];
+                const idx = towerFloorUnits.indexOf(u);
+                x = idx * 2.6 - ((towerFloorUnits.length - 1) / 2) * 2.6;
+                y = floorOrder.indexOf(f) * 2.6 + 1.3;
+                z = 0;
+            }
+            m.setPosition(x + towerOffsetX, y, z);
+            matrices.push(m);
         });
-    }, [displayed, units, viewMode, unitsByFloor, floorOrder, projectType]);
-
-    useFrame((state) => {
-        const mesh = meshRef.current;
-        if (!mesh) return;
-
-        displayed.forEach((unit, i) => {
-            const pos = positions[i];
-            const isHovered = unit.id === hoveredId;
-            const isSelected = unit.id === selectedId;
-
-            mesh.getMatrixAt(i, dummy.matrix);
-            dummy.matrix.decompose(dummy.position, dummy.quaternion, dummy.scale);
-
-            // 1. Smooth Scale Transitions
-            const targetScale = isHovered ? 1.25 : isSelected ? 1.15 : 1.0;
-            const nextScale = THREE.MathUtils.lerp(dummy.scale.x, targetScale, 0.15);
-            dummy.scale.setScalar(nextScale);
-
-            // 2. Smooth Position & Rotation to prevent "snap-flicker"
-            const bobHeight = projectType === 'PLOT' ? 0.3 : 0.08;
-            const targetY = isHovered ? pos.y + Math.sin(state.clock.elapsedTime * 6) * bobHeight : pos.y;
-            const targetRotY = (isHovered && projectType !== 'PLOT') ? state.clock.elapsedTime * 0.5 : 0;
-            const targetRotX = (isHovered && projectType === 'PLOT') ? Math.sin(state.clock.elapsedTime * 2) * 0.1 : 0;
-
-            dummy.position.y = THREE.MathUtils.lerp(dummy.position.y, targetY, 0.1);
-            dummy.position.x = THREE.MathUtils.lerp(dummy.position.x, pos.x, 0.1);
-            dummy.position.z = THREE.MathUtils.lerp(dummy.position.z, pos.z, 0.1);
-            
-            // Use Euler to update quaternion safely
-            const currentEuler = new THREE.Euler().setFromQuaternion(dummy.quaternion);
-            currentEuler.y = THREE.MathUtils.lerp(currentEuler.y, targetRotY, 0.1);
-            currentEuler.x = THREE.MathUtils.lerp(currentEuler.x, targetRotX, 0.1);
-            dummy.quaternion.setFromEuler(currentEuler);
-
-            dummy.updateMatrix();
-            mesh.setMatrixAt(i, dummy.matrix);
-
-            // 3. Color smoothing
-            _color.set(STATUS_COLORS[unit.status].color);
-            if (isHovered) _color.lerp(whiteColor, 0.3);
-            mesh.setColorAt(i, _color);
-        });
-        mesh.instanceMatrix.needsUpdate = true;
-        if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
-    });
-
-    const handlePointerMove = useCallback((e: ThreeEvent<PointerEvent>) => {
-        e.stopPropagation();
-        if (e.instanceId !== undefined && displayed[e.instanceId]) {
-            document.body.style.cursor = 'pointer';
-            onHover(displayed[e.instanceId].id);
-        }
-    }, [displayed, onHover]);
-
-    const handlePointerOut = useCallback((e: ThreeEvent<PointerEvent>) => {
-        e.stopPropagation();
-        document.body.style.cursor = 'default';
-        onHover(null);
-    }, [onHover]);
-
-    const handleClick = useCallback((e: ThreeEvent<MouseEvent>) => {
-        e.stopPropagation();
-        // Check for instanceId and if the user isn't dragging
-        if (e.instanceId !== undefined && displayed[e.instanceId]) {
-            onSelect(displayed[e.instanceId]);
-        }
-    }, [displayed, onSelect]);
+        return matrices;
+    }, [displayed, units, viewMode, unitsByTowerAndFloor, towerIds, projectType]);
 
     return (
-        <instancedMesh
-            ref={meshRef}
-            args={[boxGeo, undefined, displayed.length]}
-            onPointerMove={handlePointerMove}
-            onPointerOut={handlePointerOut}
-            onClick={handleClick}
-            castShadow
-            receiveShadow
-        >
-            <meshPhysicalMaterial
-                metalness={0.9}
-                roughness={0.1}
-                transmission={0.2}
-                thickness={1}
-                envMapIntensity={2}
-                transparent
-                opacity={0.9}
-            />
-        </instancedMesh>
+        <Instances range={displayed.length}>
+            <boxGeometry args={[projectType === 'PLOT' ? 2.4 : 2, projectType === 'PLOT' ? 0.2 : 2, 2]} />
+            <meshStandardMaterial metalness={0.7} roughness={0.3} transparent opacity={0.8} />
+            {displayed.map((unit, i) => (
+                <UnitItem 
+                    key={unit.id}
+                    unit={unit}
+                    index={i}
+                    baseMatrix={baseMatrices[i]}
+                    isHovered={unit.id === hoveredId}
+                    isSelected={unit.id === selectedId}
+                    onHover={onHover}
+                    onSelect={onSelect}
+                    projectType={projectType}
+                />
+            ))}
+        </Instances>
     );
 }
 
-// ─── Building Shell Component ──────────────────────────────────────────────
-function BuildingShell({
+function UnitItem({ unit, index, baseMatrix, isHovered, isSelected, onHover, onSelect, projectType }: {
+    unit: SlimUnit;
+    index: number;
+    baseMatrix: THREE.Matrix4;
+    isHovered: boolean;
+    isSelected: boolean;
+    onHover: (id: string | null) => void;
+    onSelect: (unitId: string) => void;
+    projectType: ProjectType;
+}) {
+    const ref = useRef<any>(null);
+    const pos = useMemo(() => new THREE.Vector3().setFromMatrixPosition(baseMatrix), [baseMatrix]);
+    
+    useFrame((state) => {
+        if (!ref.current) return;
+        
+        const targetScale = isHovered ? 1.25 : isSelected ? 1.15 : 1.0;
+        ref.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.2);
+        
+        const bob = isHovered ? Math.sin(state.clock.elapsedTime * 6) * (projectType === 'PLOT' ? 0.3 : 0.08) : 0;
+        ref.current.position.y = THREE.MathUtils.lerp(ref.current.position.y, pos.y + bob, 0.2);
+        
+        if (isHovered && projectType !== 'PLOT') {
+            ref.current.rotation.y += 0.02;
+        } else {
+            ref.current.rotation.y = THREE.MathUtils.lerp(ref.current.rotation.y, 0, 0.1);
+        }
+        
+        const color = new THREE.Color(STATUS_COLORS[unit.status].color);
+        if (isHovered) color.lerp(new THREE.Color('#ffffff'), 0.3);
+        ref.current.color.lerp(color, 0.2);
+    });
+
+    return (
+        <Instance
+            ref={ref}
+            position={pos}
+            onClick={(e) => { e.stopPropagation(); onSelect(unit.id); }}
+            onPointerOver={(e) => { e.stopPropagation(); onHover(unit.id); }}
+            onPointerOut={(e) => { e.stopPropagation(); onHover(null); }}
+        />
+    );
+}
+
+// ─── Single Tower Shell Component ──────────────────────────────────────────
+function SingleTowerShell({
     units,
     projectType,
     selectedFloor,
     viewMode,
-    projectName
+    name,
+    position = [0, 0, 0],
+    side = 'right'
 }: {
-    units: PropertyUnit[];
+    units: SlimUnit[];
     projectType: ProjectType;
     selectedFloor: number;
     viewMode: 'building' | 'floor';
-    projectName?: string;
+    name?: string;
+    position?: [number, number, number];
+    side?: 'left' | 'right';
 }) {
     const scanRef = useRef<THREE.Mesh>(null);
     
-    // Create a window grid texture for the building shell
+    // Create a realistic window grid texture for the building shell
     const windowTexture = useMemo(() => {
         const canvas = document.createElement('canvas');
-        canvas.width = 512;
-        canvas.height = 512;
+        canvas.width = 256;
+        canvas.height = 256;
         const ctx = canvas.getContext('2d');
         if (!ctx) return null;
         
-        ctx.fillStyle = '#1e293b'; 
-        ctx.fillRect(0, 0, 512, 512);
+        // Dark glass base
+        ctx.fillStyle = '#0f172a';
+        ctx.fillRect(0, 0, 256, 256);
         
-        ctx.strokeStyle = '#334155';
-        ctx.lineWidth = 10;
-        
-        const cols = 8;
-        const rows = 12;
-        const w = 512 / cols;
-        const h = 512 / rows;
+        const cols = 6;
+        const rows = 10;
+        const w = 256 / cols;
+        const h = 256 / rows;
+        const pad = 4;
         
         for (let i = 0; i < cols; i++) {
             for (let j = 0; j < rows; j++) {
-                ctx.fillStyle = '#64748b33';
-                ctx.fillRect(i * w + 5, j * h + 5, w - 10, h - 10);
-                ctx.strokeRect(i * w, j * h, w, h);
+                // Randomize window brightness to give life to the facade
+                const lit = Math.random() > 0.3;
+                ctx.fillStyle = lit ? '#7dd3fc44' : '#1e293b66';
+                ctx.fillRect(i * w + pad, j * h + pad, w - pad * 2, h - pad * 2);
+                // Window frame
+                ctx.strokeStyle = '#334155';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(i * w + pad, j * h + pad, w - pad * 2, h - pad * 2);
             }
         }
         
@@ -243,7 +258,7 @@ function BuildingShell({
             acc[f] = (acc[f] || 0) + 1;
             return acc;
         }, {} as Record<number, number>);
-        return Math.max(...Object.values(counts), 0);
+        return Math.max(...Object.values(counts), 1);
     }, [units]);
 
     const height = floorOrder.length * 2.6 || 5;
@@ -266,7 +281,7 @@ function BuildingShell({
         const color = projectType === 'COMMERCIAL' ? '#60a5fa' : '#ffffff';
 
         return (
-            <group position={[0, height / 2, 0]}>
+            <group position={[position[0], height / 2, position[2]]}>
                 {/* Building Podium / Foundation */}
                 <mesh position={[0, -height / 2 - 0.4, 0]} receiveShadow>
                     <boxGeometry args={[width + 4, 0.8, depth + 4]} />
@@ -274,49 +289,12 @@ function BuildingShell({
                     <Edges threshold={15}><meshBasicMaterial color="#3b82f6" transparent opacity={0.3} /></Edges>
                 </mesh>
 
-                {/* Building Base / Site Area */}
-                <mesh position={[0, -height / 2 - 0.9, 0]} receiveShadow>
-                    <boxGeometry args={[width + 12, 0.2, depth + 12]} />
-                    <meshStandardMaterial color="#f1f5f9" />
-                    <Edges threshold={15}><meshBasicMaterial color="#3b82f6" transparent opacity={0.1} /></Edges>
-                </mesh>
-
-                {/* Landscaping / Trees - Hidden or Faded in Floor Mode */}
-                {!isFloorMode && [...Array(12)].map((_, i) => {
-                    const x = (i % 2 === 0 ? 1 : -1) * (width/2 + THREE.MathUtils.randFloat(2, 6));
-                    const z = THREE.MathUtils.randFloat(-depth/2 - 10, depth/2 + 10);
-                    const scale = THREE.MathUtils.randFloat(0.8, 1.5);
-                    return (
-                        <group key={i} position={[x, -height/2, z]} scale={scale}>
-                            <mesh position={[0, 0.5, 0]}>
-                                <cylinderGeometry args={[0.05, 0.1, 1]} />
-                                <meshStandardMaterial color="#451a03" />
-                            </mesh>
-                            <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
-                                <mesh position={[0, 1.2, 0]}>
-                                    <sphereGeometry args={[0.5, 12, 12]} />
-                                    <meshStandardMaterial color="#065f46" roughness={0.6} />
-                                </mesh>
-                            </Float>
-                        </group>
-                    );
-                })}
-
                 {/* Building Core (Elevator/Stairs) */}
                 <mesh position={[0, 0, -depth / 2 + 0.5]}>
                     <boxGeometry args={[width * 0.4, height, 1]} />
                     <meshStandardMaterial color="#e2e8f0" transparent opacity={isFloorMode ? 0.3 : 1} />
                     <Edges threshold={15}><meshBasicMaterial color="#94a3b8" transparent opacity={isFloorMode ? 0.2 : 0.6} /></Edges>
                 </mesh>
-
-                {/* Rooftop Structure */}
-                {!isFloorMode && (
-                    <mesh position={[0, height / 2 + 0.45, 0]}>
-                        <boxGeometry args={[width * 0.6, 0.8, depth * 0.6]} />
-                        <meshStandardMaterial color="#cbd5e1" />
-                        <Edges threshold={15}><meshBasicMaterial color="#94a3b8" /></Edges>
-                    </mesh>
-                )}
 
                 {/* Horizontal Floor Plates */}
                 {floorOrder.map((f, i) => (
@@ -329,11 +307,11 @@ function BuildingShell({
                                 opacity={isFloorMode ? (f === selectedFloor ? 0.3 : 0.05) : 0.2} 
                             />
                         </mesh>
-                        {/* Floor Level Label */}
+                        {/* Floor Level Label - side-placed based on tower position */}
                         {!isFloorMode && (
-                            <Html position={[width / 2 + 1, 0, depth / 2]} center>
-                                <div className="px-3 py-1 bg-white/50 backdrop-blur-md rounded-full border border-slate-200 shadow-sm pointer-events-none">
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap">LVL {f}</span>
+                            <Html position={[side === 'right' ? width / 2 + 1.5 : -width / 2 - 1.5, 0, 0]} center>
+                                <div className="px-2 py-0.5 bg-white/80 backdrop-blur-md rounded-full border border-blue-200 shadow-md pointer-events-none">
+                                    <span className="text-[9px] font-bold text-blue-600 uppercase tracking-wider whitespace-nowrap">LVL {f}</span>
                                 </div>
                             </Html>
                         )}
@@ -343,61 +321,18 @@ function BuildingShell({
                 {/* Structural Glass Shell with Window Pattern */}
                 <mesh>
                     <boxGeometry args={[width, height, depth]} />
-                    <meshPhysicalMaterial 
+                    <meshStandardMaterial 
                         transparent 
-                        opacity={isFloorMode ? 0.05 : 0.15} 
-                        transmission={0.4} 
-                        thickness={1} 
-                        roughness={0.2} 
-                        color={color}
+                        opacity={isFloorMode ? 0.05 : 0.18} 
+                        roughness={0.05} 
+                        metalness={0.5}
+                        color="#1e3a5f"
                         map={windowTexture}
-                        envMapIntensity={1}
                     />
                     <Edges scale={1.001} threshold={15}>
-                        <meshBasicMaterial color="#3b82f6" transparent opacity={isFloorMode ? 0.1 : 0.4} />
+                        <meshBasicMaterial color="#60a5fa" transparent opacity={isFloorMode ? 0.1 : 0.5} />
                     </Edges>
                 </mesh>
-
-                {/* COMMERCIAL SPECIALIZATION: Helipad & Billboards */}
-                {projectType === 'COMMERCIAL' && !isFloorMode && (
-                    <group>
-                        {/* ROOFTOP HELIPAD */}
-                        <group position={[0, height / 2 + 0.1, 0]}>
-                            <mesh rotation={[-Math.PI / 2, 0, 0]}>
-                                <circleGeometry args={[depth / 3, 32]} />
-                                <meshStandardMaterial color="#334155" />
-                            </mesh>
-                            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]}>
-                                <ringGeometry args={[depth / 3.5, depth / 3.2, 32]} />
-                                <meshBasicMaterial color="#ffffff" />
-                            </mesh>
-                            <Text
-                                position={[0, 0.1, 0]}
-                                fontSize={depth / 6}
-                                color="#ffffff"
-                                rotation={[-Math.PI / 2, 0, 0]}
-                            >
-                                H
-                            </Text>
-                        </group>
-                        
-                        {/* DIGITAL BILLBOARDS */}
-                        <group position={[width / 2 + 0.1, height / 3, 0]} rotation={[0, Math.PI / 2, 0]}>
-                            <mesh>
-                                <planeGeometry args={[depth * 0.8, height / 4]} />
-                                <meshStandardMaterial color="#1e1b4b" emissive="#3b82f6" emissiveIntensity={2} />
-                            </mesh>
-                            <Text
-                                position={[0, 0, 0.05]}
-                                fontSize={0.8}
-                                color="#ffffff"
-                                maxWidth={depth * 0.7}
-                            >
-                                PREMIUM OFFICE SPACE
-                            </Text>
-                        </group>
-                    </group>
-                )}
 
                 {/* Tech Scan Line - Only in full building mode */}
                 {!isFloorMode && (
@@ -407,20 +342,22 @@ function BuildingShell({
                     </mesh>
                 )}
 
-                {/* PROJECT IDENTITY LABEL - Floating 3D Title */}
-                {!isFloorMode && projectName && (
+                {/* TOWER IDENTITY LABEL - Billboarded to fix mirroring and always face camera */}
+                {!isFloorMode && name && (
                     <group position={[0, height / 2 + 3, 0]}>
                          <Float speed={2} rotationIntensity={0.2} floatIntensity={1}>
-                            <Text
-                                fontSize={1.2}
-                                color="#1e293b"
-                                anchorX="center"
-                                anchorY="middle"
-                                maxWidth={width}
-                                textAlign="center"
-                            >
-                                {projectName.toUpperCase()}
-                            </Text>
+                            <Billboard>
+                                <Text
+                                    fontSize={1.2}
+                                    color="#1e293b"
+                                    anchorX="center"
+                                    anchorY="middle"
+                                    maxWidth={width}
+                                    textAlign="center"
+                                >
+                                    {name.toUpperCase()}
+                                </Text>
+                            </Billboard>
                             <mesh position={[0, -1, 0]}>
                                 <boxGeometry args={[width * 0.3, 0.05, 0.1]} />
                                 <meshBasicMaterial color="#3b82f6" />
@@ -440,13 +377,97 @@ function BuildingShell({
                 ))}
 
                 {/* Highlight Selected Floor Interaction Zone */}
-                <mesh position={[0, (floorOrder.indexOf(selectedFloor) * 2.6) - (height / 2) + 1.3, 0]}>
-                    <boxGeometry args={[width + 0.2, 2.6, depth + 0.2]} />
-                    <meshBasicMaterial color="#3b82f6" transparent opacity={isFloorMode ? 0.02 : 0.08} />
-                    <Edges scale={1.002} threshold={15}>
-                        <meshBasicMaterial color="#2563eb" transparent opacity={isFloorMode ? 0.1 : 0.6} />
-                    </Edges>
+                {floorOrder.includes(selectedFloor) && (
+                    <mesh position={[0, (floorOrder.indexOf(selectedFloor) * 2.6) - (height / 2) + 1.3, 0]}>
+                        <boxGeometry args={[width + 0.2, 2.6, depth + 0.2]} />
+                        <meshBasicMaterial color="#3b82f6" transparent opacity={isFloorMode ? 0.02 : 0.08} />
+                        <Edges scale={1.002} threshold={15}>
+                            <meshBasicMaterial color="#2563eb" transparent opacity={isFloorMode ? 0.1 : 0.6} />
+                        </Edges>
+                    </mesh>
+                )}
+            </group>
+        );
+    }
+    return null;
+}
+
+// ─── Building Shell Component ──────────────────────────────────────────────
+function BuildingShell({
+    units,
+    towers,
+    projectType,
+    selectedFloor,
+    viewMode,
+    projectName
+}: {
+    units: SlimUnit[];
+    towers: Tower[];
+    projectType: ProjectType;
+    selectedFloor: number;
+    viewMode: 'building' | 'floor';
+    projectName?: string;
+}) {
+    const isFloorMode = viewMode === 'floor';
+
+    const towerIds = useMemo(() => {
+        if (towers.length > 0) return towers.map(t => t.id);
+        const ids = [...new Set(units.map(u => u.towerId).filter(id => !!id))];
+        return ids.length > 0 ? ids as string[] : ['default'];
+    }, [towers, units]);
+
+    const towerSpacing = 50;
+
+    if (projectType === 'APARTMENT' || projectType === 'COMMERCIAL') {
+        return (
+            <group>
+                {/* Global Site Area with optimized grid */}
+                <mesh position={[0, -0.9, 0]} receiveShadow>
+                    <boxGeometry args={[150, 0.2, 60]} />
+                    <meshStandardMaterial color="#f1f5f9" />
+                    <Edges threshold={15}><meshBasicMaterial color="#3b82f6" transparent opacity={0.1} /></Edges>
                 </mesh>
+
+                {/* Shared Landscaping - Optimized placement */}
+                {!isFloorMode && [...Array(24)].map((_, i) => {
+                    const x = THREE.MathUtils.randFloat(-70, 70);
+                    const z = (i % 2 === 0 ? 1 : -1) * THREE.MathUtils.randFloat(15, 25);
+                    const scale = THREE.MathUtils.randFloat(0.8, 1.5);
+                    return (
+                        <group key={i} position={[x, 0, z]} scale={scale}>
+                            <mesh position={[0, 0.5, 0]}>
+                                <cylinderGeometry args={[0.05, 0.1, 1]} />
+                                <meshStandardMaterial color="#451a03" />
+                            </mesh>
+                            <Float speed={2} rotationIntensity={0.5} floatIntensity={0.5}>
+                                <mesh position={[0, 1.2, 0]}>
+                                    <sphereGeometry args={[0.5, 12, 12]} />
+                                    <meshStandardMaterial color="#065f46" roughness={0.6} />
+                                </mesh>
+                            </Float>
+                        </group>
+                    );
+                })}
+
+                {towerIds.map((tId, idx) => {
+                    const towerUnits = units.filter(u => (u.towerId || towerIds[0] || 'default') === tId);
+                    const towerName = towers.find(t => t.id === tId)?.name || (towerIds.length > 1 ? `Tower ${idx + 1}` : projectName);
+                    const towerOffsetX = (idx - (towerIds.length - 1) / 2) * towerSpacing;
+                    const mid = (towerIds.length - 1) / 2;
+                    
+                    return (
+                        <SingleTowerShell
+                            key={tId}
+                            units={towerUnits}
+                            projectType={projectType}
+                            selectedFloor={selectedFloor}
+                            viewMode={viewMode}
+                            name={towerName}
+                            position={[towerOffsetX, 0, 0]}
+                            side={idx < mid ? 'left' : 'right'}
+                        />
+                    );
+                })}
             </group>
         );
     }
@@ -637,6 +658,7 @@ function CloudLayer() {
 // ─── Main Scene Export ───────────────────────────────────────────────────────
 export default function UnitCanvas3D({
     units,
+    towers,
     projectType,
     projectName,
     selectedId,
@@ -644,11 +666,12 @@ export default function UnitCanvas3D({
     viewMode,
     selectedFloor,
 }: {
-    units: PropertyUnit[];
+    units: SlimUnit[];
+    towers: Tower[];
     projectType: ProjectType;
     projectName?: string;
     selectedId: string | null;
-    onUnitClick: (unit: PropertyUnit) => void;
+    onUnitClick: (unitId: string) => void;
     viewMode: 'building' | 'floor';
     selectedFloor: number;
 }) {
@@ -668,11 +691,11 @@ export default function UnitCanvas3D({
 
     return (
         <Canvas
-            shadows={{ type: THREE.PCFShadowMap }}
-            dpr={[1, 2]}
+            shadows={{ type: THREE.BasicShadowMap }}
+            dpr={[1, 1.5]}
             camera={{ position: [30, camY + 25, 30], fov: 35 }}
-            gl={{ antialias: true, alpha: true }}
-            style={{ pointerEvents: 'auto', background: 'transparent' }}
+            gl={{ antialias: false, alpha: false, stencil: false, depth: true }}
+            style={{ pointerEvents: 'auto', background: '#f8fafc' }}
             onPointerMissed={() => setHoveredId(null)}
         >
             <color attach="background" args={['#f8fafc']} />
@@ -693,14 +716,19 @@ export default function UnitCanvas3D({
             <SceneAtmosphere camY={camY} />
 
             <Environment preset="city" />
-            <Sky distance={450000} sunPosition={[0, 1, 0]} inclination={0} azimuth={0.25} />
-            <Stars radius={100} depth={50} count={5000} factor={4} saturation={0} fade speed={1} />
+            <Sky distance={450000} sunPosition={[100, 100, 20]} inclination={0.49} azimuth={0.25} />
             
-            {/* Moving Clouds */}
-            <CloudLayer />
+            {/* Moving Clouds - Optimized */}
+            <group position={[0, 80, 0]}>
+                <Clouds material={THREE.MeshBasicMaterial}>
+                    <Cloud seed={1} bounds={[100, 20, 100]} color="#ffffff" opacity={0.3} speed={0.2} segments={10}/>
+                    <Cloud seed={2} bounds={[100, 20, 100]} color="#f1f5f9" opacity={0.2} position={[50, -10, -50]} speed={0.3} segments={8}/>
+                </Clouds>
+            </group>
 
             <BuildingShell 
                 units={units} 
+                towers={towers}
                 projectType={projectType} 
                 projectName={projectName}
                 selectedFloor={selectedFloor} 
@@ -729,6 +757,7 @@ export default function UnitCanvas3D({
 
             <UnitInstances
                 units={units}
+                towers={towers}
                 projectType={projectType}
                 hoveredId={hoveredId}
                 selectedId={selectedId}
