@@ -857,7 +857,11 @@ export default function ProjectDetailPage() {
                         <div className="flex justify-between items-start mb-4 pl-4">
                           <div>
                             <h4 className="font-bold text-gray-900 text-xl">{unit.unitNumber}</h4>
-                            <p className="text-sm text-gray-500">{unit.type || `Standard ${singleUnitLabel}`} {!isStandalone && `• Floor ${unit.floor || 'N/A'}`}</p>
+                            <p className="text-sm text-gray-500">
+                              {unit.type || `Standard ${singleUnitLabel}`} 
+                              {!isStandalone && ` • Floor ${unit.floor || 'N/A'}`}
+                              {unit.tower?.name && ` • ${unit.tower.name}`}
+                            </p>
                           </div>
                           <div className="flex items-center gap-2" onClick={(e) => e.stopPropagation()}>
                             <button

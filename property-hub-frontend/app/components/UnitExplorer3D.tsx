@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import { motion, AnimatePresence } from 'framer-motion';
 import { unitService, PropertyUnit, UnitStatus } from '@/app/services/unitService';
 import { propertyService, Project } from '@/app/services/propertyService';
+import { explorerService, SpatialData } from '@/app/services/explorerService';
 
 const UnitCanvas3D = dynamic(() => import('@/app/components/UnitCanvas3D'), { 
     ssr: false,
@@ -81,22 +82,23 @@ export default function UnitExplorer3D({ projectId }: { projectId: string }) {
     const [viewMode, setViewMode] = useState<'building' | 'floor'>('building');
     const [selectedFloor, setSelectedFloor] = useState<number>(1);
     const [selectedUnit, setSelectedUnit] = useState<PropertyUnit | null>(null);
+    const [stats, setStats] = useState({ total: 0, draft: 0 });
     const containerRef = useRef<HTMLDivElement>(null);
     const [isFullscreen, setIsFullscreen] = useState(false);
 
     useEffect(() => {
-        const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
-        
-        Promise.all([
-            unitService.getByProject(projectId),
-            propertyService.getOne(projectId, token)
-        ])
-            .then(([unitData, projectData]) => {
-                setUnits(unitData);
-                setProject(projectData);
-                const floors = [...new Set(unitData.map(u => u.floor ?? 1))].sort((a, b) => a - b);
-                if (floors.length > 0) setSelectedFloor(floors[0]);
-                // Simulate a small delay for local processing to allow animation to show
+        explorerService.getSpatialData(projectId)
+            .then((data: SpatialData) => {
+                setUnits(data.units);
+                setProject(data.project as any);
+                setStats({
+                    total: data.stats.totalUnits,
+                    draft: data.stats.draftUnits
+                });
+                
+                const floors = ([...new Set(data.units.map((u: PropertyUnit) => u.floor ?? 1))] as number[]).sort((a: number, b: number) => a - b);
+                if (floors.length > 0) setSelectedFloor(floors[0] as number);
+                
                 setTimeout(() => setLoading(false), 800);
             })
             .catch((err) => {
@@ -123,11 +125,7 @@ export default function UnitExplorer3D({ projectId }: { projectId: string }) {
         }
     };
 
-    const floors = useMemo(() => [...new Set(units.map(u => u.floor ?? 1))].sort((a, b) => a - b), [units]);
-    const stats = useMemo(() => ({
-        total: units.length,
-        draft: units.filter(u => u.status === 'DRAFT').length,
-    }), [units]);
+    const floors = useMemo(() => [...new Set(units.map(u => u.floor ?? 1))].sort((a: number, b: number) => a - b), [units]);
 
     return (
         <div 

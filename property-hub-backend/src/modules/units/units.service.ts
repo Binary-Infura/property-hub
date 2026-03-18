@@ -57,6 +57,7 @@ export class UnitsService {
         const [units, total] = await Promise.all([
             this.prisma.propertyUnit.findMany({
                 where: { projectId },
+                include: { tower: true },
                 orderBy: { createdAt: 'desc' },
                 skip,
                 take: limit,
@@ -201,6 +202,7 @@ export class UnitsService {
             this.prisma.propertyUnit.findMany({
                 where: filter,
                 include: {
+                    tower: true,
                     project: {
                         select: {
                             name: true,
