@@ -214,7 +214,7 @@ export default function PropertyPartnerDashboard() {
         </div>
         {/* Key Metrics */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+          <Link href="/dashboard/projects" className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-1 transition-all">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Total Projects</p>
@@ -229,9 +229,9 @@ export default function PropertyPartnerDashboard() {
             <p className="text-sm text-green-600 mt-2">
               <span className="font-medium">{analyticsData.activeProjects}</span> active
             </p>
-          </div>
+          </Link>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+          <Link href="/dashboard/units" className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-1 transition-all">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Total Units</p>
@@ -246,7 +246,7 @@ export default function PropertyPartnerDashboard() {
             <p className="text-sm text-gray-600 mt-2">
               <span className="font-medium text-green-600">{analyticsData.bookedUnits}</span> booked ({bookingPercentage}%)
             </p>
-          </div>
+          </Link>
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
             <div className="flex items-center justify-between">
@@ -263,7 +263,7 @@ export default function PropertyPartnerDashboard() {
             <p className="text-sm text-gray-600 mt-2">From all bookings</p>
           </div>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+          <Link href="/dashboard/leads" className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-1 transition-all">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Monthly Leads</p>
@@ -278,7 +278,7 @@ export default function PropertyPartnerDashboard() {
             <p className="text-sm text-gray-600 mt-2">
               <span className="font-medium text-green-600">{analyticsData.conversionRate}%</span> conversion rate
             </p>
-          </div>
+          </Link>
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
             <div className="flex items-center justify-between">
