@@ -1080,16 +1080,18 @@ export default function ProjectDetailPage() {
                 </div>
               </div>
 
-              <div className="bg-red-50 p-6 rounded-2xl border-2 border-red-100/50">
-                <h3 className="text-lg font-bold text-red-700 mb-2">Danger Zone</h3>
-                <p className="text-sm text-red-600 mb-6 font-medium">Permanently delete this project and all its associated data. This action cannot be undone.</p>
-                <button
-                  onClick={handleDelete}
-                  className="px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold transition text-sm shadow-lg shadow-red-100"
-                >
-                  Delete Project Portfolio
-                </button>
-              </div>
+              {['submitted', 'rejected'].includes(project.status) && (
+                <div className="bg-red-50 p-6 rounded-2xl border-2 border-red-100/50">
+                  <h3 className="text-lg font-bold text-red-700 mb-2">Danger Zone</h3>
+                  <p className="text-sm text-red-600 mb-6 font-medium">Permanently delete this project and all its associated data. This action cannot be undone.</p>
+                  <button
+                    onClick={handleDelete}
+                    className="px-6 py-3 bg-red-600 text-white rounded-xl hover:bg-red-700 font-bold transition text-sm shadow-lg shadow-red-100"
+                  >
+                    Delete Project Portfolio
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>
