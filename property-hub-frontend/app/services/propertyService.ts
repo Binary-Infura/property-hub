@@ -1,4 +1,4 @@
-export type ProjectStatus = 'AVAILABLE' | 'SOLD' | 'RESERVED' | 'UNDER_CONSTRUCTION' | 'APPROVED';
+export type ProjectStatus = 'DRAFT' | 'UNDER_CONSTRUCTION' | 'SUBMITTED' | 'APPROVED' | 'REJECTED';
 export type ProjectType = 'APARTMENT' | 'VILLA' | 'PLOT' | 'COMMERCIAL' | 'INDUSTRIAL';
 
 export interface Project {

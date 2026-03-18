@@ -132,7 +132,7 @@ export class ReraService {
                 address: reraProject.address,
                 price: 0,
                 projectType: 'APARTMENT',
-                status: 'AVAILABLE',
+                status: 'DRAFT',
                 onboardedById: internalUser.id,
                 category: 'flat',
             },

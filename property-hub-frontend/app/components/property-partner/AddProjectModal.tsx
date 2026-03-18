@@ -314,8 +314,8 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
         if (currentStep >= 1 || projectId) {
             try {
                 // In the new scheme, finishing Step 1 allows initial save
-                // Change 'draft' to 'available' as requested
-                await saveToApiWithStep('available', nextStep);
+                // Change 'available' to 'draft' as requested
+                await saveToApiWithStep('draft', nextStep);
             } catch (e) {
                 if (currentStep === 1 && !projectId) return;
             }
@@ -395,11 +395,11 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
     const handleSubmit = async () => {
         try {
             if (!editId && !projectId) {
-                // Initial quick create - save as available and move to Step 2 for next time
-                await saveToApiWithStep('available', 2);
+                // Initial quick create - save as draft and move to Step 2 for next time
+                await saveToApiWithStep('draft', 2);
             } else {
                 // Completing the setup or updating existing
-                await saveToApiWithStep('available', STEPS.length);
+                await saveToApiWithStep('draft', STEPS.length);
             }
             onSuccess();
             onClose();

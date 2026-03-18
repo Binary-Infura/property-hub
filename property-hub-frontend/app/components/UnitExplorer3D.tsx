@@ -12,21 +12,21 @@ const UnitCanvas3D = dynamic(() => import('@/app/components/UnitCanvas3D'), {
 });
 
 const STATUS_LABEL: Record<UnitStatus, string> = {
-    AVAILABLE: 'Available',
+    DRAFT: 'Draft',
     RESERVED:  'Reserved',
     BOOKED:    'Booked',
     SOLD:      'Sold',
 };
 
 const STATUS_DOT: Record<UnitStatus, string> = {
-    AVAILABLE: 'bg-[#10b981] shadow-[0_0_10px_rgba(16,185,129,0.5)]',
+    DRAFT: 'bg-[#64748b] shadow-[0_0_10px_rgba(100,116,139,0.5)]',
     RESERVED:  'bg-[#fbbf24] shadow-[0_0_10px_rgba(251,191,36,0.5)]',
     BOOKED:    'bg-[#f97316] shadow-[0_0_10px_rgba(249,115,22,0.5)]',
     SOLD:      'bg-[#f43f5e] shadow-[0_0_10px_rgba(244,63,94,0.5)]',
 };
 
 const STATUS_CHIP_STYLES: Record<UnitStatus, string> = {
-    AVAILABLE: 'bg-emerald-50 text-emerald-700 border-emerald-100',
+    DRAFT: 'bg-slate-50 text-slate-700 border-slate-100',
     RESERVED:  'bg-amber-50 text-amber-700 border-amber-100',
     BOOKED:    'bg-orange-50 text-orange-700 border-orange-100',
     SOLD:      'bg-rose-50 text-rose-700 border-rose-100',
@@ -126,7 +126,7 @@ export default function UnitExplorer3D({ projectId }: { projectId: string }) {
     const floors = useMemo(() => [...new Set(units.map(u => u.floor ?? 1))].sort((a, b) => a - b), [units]);
     const stats = useMemo(() => ({
         total: units.length,
-        available: units.filter(u => u.status === 'AVAILABLE').length,
+        draft: units.filter(u => u.status === 'DRAFT').length,
     }), [units]);
 
     return (
@@ -258,8 +258,8 @@ export default function UnitExplorer3D({ projectId }: { projectId: string }) {
                             </div>
                             <div className="w-px h-12 bg-slate-200 mx-4" />
                             <div className="space-y-1 text-right">
-                                <p className="text-[10px] font-black text-emerald-600 uppercase tracking-[0.4em]">Available</p>
-                                <p className="text-5xl font-black text-emerald-600 tracking-tighter italic leading-none">{stats.available}</p>
+                                <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]">Drafts</p>
+                                <p className="text-5xl font-black text-slate-600 tracking-tighter italic leading-none">{stats.draft}</p>
                             </div>
                        </div>
 

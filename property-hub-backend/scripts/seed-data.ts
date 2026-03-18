@@ -172,7 +172,7 @@ async function main() {
             price: 8000000,
             area: 5000,
             projectType: ProjectType.PLOT,
-            status: ProjectStatus.AVAILABLE,
+            status: ProjectStatus.DRAFT,
             category: 'plot',
             cityId: pune?.id,
             onboardedById: superUser.id

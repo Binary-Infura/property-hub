@@ -31,11 +31,11 @@ export default function SelectProjectModal({ isOpen, onClose, onSuccess }: Selec
             setStep(1);
             setSelectedProject(null);
             setConfirmed(false);
-            fetchAvailableProjects();
+            fetchDraftProjects();
         }
     }, [isOpen]);
 
-    const fetchAvailableProjects = async () => {
+    const fetchDraftProjects = async () => {
         if (!token) return;
         setLoading(true);
         try {
@@ -118,11 +118,11 @@ export default function SelectProjectModal({ isOpen, onClose, onSuccess }: Selec
                             loading ? (
                                 <div className="text-center py-8 text-gray-500">
                                     <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                                    Loading available projects...
+                                    Loading draft projects...
                                 </div>
                             ) : projects.length === 0 ? (
                                 <div className="text-center py-8">
-                                    <p className="text-gray-500 font-medium">No available projects found.</p>
+                                    <p className="text-gray-500 font-medium">No draft projects found.</p>
                                     <p className="text-sm text-gray-400 mt-1">Add projects in "My Projects" first.</p>
                                 </div>
                             ) : (

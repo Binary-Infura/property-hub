@@ -59,14 +59,15 @@ export default function ProjectsPage() {
         const data = await res.json();
         const mapped: Property[] = data.map((p: any) => {
           const backendStatus = p.status?.toUpperCase();
-          let frontendStatus: PropertyStatus = 'available';
+          let frontendStatus: PropertyStatus = 'draft';
 
           switch (backendStatus) {
-            case 'AVAILABLE': frontendStatus = 'available'; break;
+            case 'DRAFT': frontendStatus = 'draft'; break;
             case 'SUBMITTED': frontendStatus = 'submitted'; break;
             case 'APPROVED': frontendStatus = 'approved'; break;
             case 'REJECTED': frontendStatus = 'rejected'; break;
-            default: frontendStatus = 'available';
+            case 'UNDER_CONSTRUCTION': frontendStatus = 'under_construction'; break;
+            default: frontendStatus = 'draft';
           }
 
           let description = p.description || '';
@@ -165,8 +166,9 @@ export default function ProjectsPage() {
 
   const statusCounts = {
     total: projects.length,
-    available: projects.filter(p => p.status === 'available').length,
+    draft: projects.filter(p => p.status === 'draft').length,
     approved: projects.filter(p => p.status === 'approved').length,
+    underConstruction: projects.filter(p => p.status === 'under_construction').length,
   };
 
   return (
@@ -243,8 +245,9 @@ export default function ProjectsPage() {
       <div className="grid grid-cols-3 gap-4">
         {[
           { label: 'Total', count: statusCounts.total, color: 'text-gray-900', bgColor: 'bg-white' },
-          { label: 'Available', count: statusCounts.available, color: 'text-emerald-600', bgColor: 'bg-white' },
+          { label: 'Draft', count: statusCounts.draft, color: 'text-gray-600', bgColor: 'bg-white' },
           { label: 'Approved', count: statusCounts.approved, color: 'text-blue-600', bgColor: 'bg-white' },
+          { label: 'Under Construction', count: statusCounts.underConstruction, color: 'text-amber-600', bgColor: 'bg-white' },
         ].map(stat => (
           <div key={stat.label} className={`${stat.bgColor} rounded-lg shadow-sm border border-gray-100 p-4`}>
             <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">{stat.label}</p>
@@ -272,7 +275,7 @@ export default function ProjectsPage() {
           </div>
 
           <div className="flex gap-1.5 flex-wrap">
-            {['all', 'available', 'approved'].map((status) => (
+            {['all', 'draft', 'approved', 'under_construction'].map((status) => (
               <button
                 key={status}
                 onClick={() => setFilterStatus(status as any)}
@@ -339,8 +342,8 @@ export default function ProjectsPage() {
             <tbody className="divide-y divide-gray-50">
               {filteredProjects.map(project => {
                 const statusConfig = PROPERTY_STATUS_CONFIG[project.status];
-                const isAvailable = project.status === 'available';
-                const canMarkAsSold = ['available', 'approved'].includes(project.status);
+                const isDraft = project.status === 'draft';
+                const canMarkAsSold = ['draft', 'approved'].includes(project.status);
                 const hasListingData = ['submitted', 'approved', 'rejected'].includes(project.status);
 
                 return (
@@ -370,7 +373,7 @@ export default function ProjectsPage() {
                         ) : (
                           <span className="text-xs text-gray-400">Regular</span>
                         )}
-                        {project.onboardingStep && project.onboardingStep < 5 && project.status === 'available' && (
+                        {project.onboardingStep && project.onboardingStep < 5 && project.status === 'draft' && (
                           <div className="flex flex-col gap-1 min-w-[100px]">
                             <div className="flex justify-between text-[9px] font-bold text-amber-600">
                               <span>PROGRESS</span>
@@ -430,8 +433,8 @@ export default function ProjectsPage() {
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredProjects.map(project => {
             const statusConfig = PROPERTY_STATUS_CONFIG[project.status];
-            const isAvailable = project.status === 'available';
-            const canMarkAsSold = ['available', 'approved'].includes(project.status);
+            const isDraft = project.status === 'draft';
+            const canMarkAsSold = ['draft', 'approved'].includes(project.status);
             const hasListingData = ['submitted', 'approved', 'rejected'].includes(project.status);
 
             return (

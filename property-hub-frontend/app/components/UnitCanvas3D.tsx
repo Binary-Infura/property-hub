@@ -9,7 +9,7 @@ import { ProjectType } from '@/app/services/propertyService';
 
 // ─── Status Colors (Vibrant Aura Bloom Palette - Light Mode Optimized) ───────
 const STATUS_COLORS: Record<UnitStatus, { color: string; emissive: string }> = {
-    AVAILABLE: { color: '#10b981', emissive: '#059669' }, // Emerald
+    DRAFT: { color: '#64748b', emissive: '#475569' }, // Gray for draft
     RESERVED: { color: '#fbbf24', emissive: '#d97706' }, // Amber
     BOOKED: { color: '#f97316', emissive: '#ea580c' }, // Orange
     SOLD: { color: '#f43f5e', emissive: '#e11d48' }, // Rose

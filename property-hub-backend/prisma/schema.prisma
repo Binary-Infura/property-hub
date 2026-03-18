@@ -98,7 +98,7 @@ model Project {
   description   String?
   location      String
   address       String?
-  status        ProjectStatus  @default(AVAILABLE)
+  status        ProjectStatus  @default(DRAFT)
   price         Decimal        @db.Decimal(15, 2)
   area          Decimal?       @db.Decimal(10, 2)
   bedrooms      Int?
@@ -145,7 +145,7 @@ model PropertyUnit {
   type       String?
   area       Decimal?   @db.Decimal(10, 2)
   price      Decimal    @db.Decimal(15, 2)
-  status     UnitStatus @default(AVAILABLE)
+  status     UnitStatus @default(DRAFT)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
   buyerName  String?
@@ -664,9 +664,7 @@ enum OrganizationType {
 }
 
 enum ProjectStatus {
-  AVAILABLE
-  SOLD
-  RESERVED
+  DRAFT
   UNDER_CONSTRUCTION
   SUBMITTED
   APPROVED
@@ -691,7 +689,7 @@ enum ProjectType {
 }
 
 enum UnitStatus {
-  AVAILABLE
+  DRAFT
   RESERVED
   BOOKED
   SOLD

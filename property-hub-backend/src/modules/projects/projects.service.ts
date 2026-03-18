@@ -165,21 +165,6 @@ export class ProjectsService {
             },
         });
 
-        if (updateProjectDto.status === 'SOLD' && project.status !== 'SOLD') {
-            const internalUser = await this.usersService.ensureUserSynced(user);
-            await this.activityLogsService.log({
-                userId: internalUser.id,
-                type: 'info',
-                action: 'Project Sold',
-                target: projectAfter.name,
-                details: {
-                    projectId: projectAfter.id,
-                    buyerName: updateProjectDto.buyerName,
-                    salePrice: updateProjectDto.salePrice,
-                }
-            });
-        }
-
         return projectAfter;
     }
 

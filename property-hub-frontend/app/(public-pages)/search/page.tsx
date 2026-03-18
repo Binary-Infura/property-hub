@@ -91,7 +91,7 @@ export default function PropertySearchPage({ hideHeader = false }: { hideHeader?
               p.propertyType === 'PLOT' ? 'Plot' : 'Commercial') as any,
           bhk: `${p.bedrooms || 2} BHK`,
           isNew: true,
-          isReadyToMove: p.status === 'AVAILABLE' || p.status === 'APPROVED',
+          isReadyToMove: p.status === 'DRAFT' || p.status === 'APPROVED',
           highlights: ['Legal Verified', 'Premium Location', 'High ROI'],
           amenities: ['Parking', 'Security', 'Water Supply'],
           legalVerified: p.status === 'APPROVED',
