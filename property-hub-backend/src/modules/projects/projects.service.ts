@@ -28,8 +28,8 @@ export class ProjectsService {
         if (status) {
             where.status = status;
         } else if (!myOnly && !isCentralAuthority && !isPropertyPartner) {
-            // For public search/buyers, only show published projects by default
-            where.status = 'PUBLISHED';
+            // For public search/buyers, only show approved projects by default
+            where.status = 'APPROVED';
         }
 
         if (city) {

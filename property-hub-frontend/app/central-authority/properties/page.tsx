@@ -114,7 +114,6 @@ export default function CentralAuthorityPropertiesPage() {
                         <option value="AVAILABLE">Available</option>
                         <option value="SUBMITTED">Pending Approval</option>
                         <option value="APPROVED">Approved</option>
-                        <option value="PUBLISHED">Published</option>
                         <option value="SOLD">Sold</option>
                     </select>
                 </div>

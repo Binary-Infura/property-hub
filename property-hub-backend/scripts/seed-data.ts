@@ -158,7 +158,7 @@ async function main() {
             price: 45000000,
             area: 1800,
             projectType: ProjectType.APARTMENT,
-            status: ProjectStatus.PUBLISHED,
+            status: ProjectStatus.APPROVED,
             bedrooms: 3,
             bathrooms: 3,
             category: 'flat',

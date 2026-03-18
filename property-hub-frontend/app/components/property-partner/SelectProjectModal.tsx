@@ -128,7 +128,7 @@ export default function SelectProjectModal({ isOpen, onClose, onSuccess }: Selec
                             ) : (
                                 <div className="space-y-3">
                                     {projects.map(project => {
-                                        const isAlreadySubmitted = ['submitted', 'approved', 'published'].includes(project.status);
+                                        const isAlreadySubmitted = ['submitted', 'approved'].includes(project.status);
                                         return (
                                             <div
                                                 key={project.id}

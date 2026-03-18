@@ -671,7 +671,6 @@ enum ProjectStatus {
   SUBMITTED
   APPROVED
   REJECTED
-  PUBLISHED
 }
 
 enum InstagramStatus {

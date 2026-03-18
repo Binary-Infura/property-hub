@@ -77,7 +77,7 @@ export default function PropertySearchPage({ hideHeader = false }: { hideHeader?
     const fetchRealProperties = async () => {
       try {
         setLoading(true);
-        const data = await propertyService.getAll(token || null, false, undefined, 'PUBLISHED');
+        const data = await propertyService.getAll(token || null, false, undefined, 'APPROVED');
 
         const mapped: Property[] = data.map(p => ({
           id: p.id,
@@ -91,10 +91,10 @@ export default function PropertySearchPage({ hideHeader = false }: { hideHeader?
               p.propertyType === 'PLOT' ? 'Plot' : 'Commercial') as any,
           bhk: `${p.bedrooms || 2} BHK`,
           isNew: true,
-          isReadyToMove: p.status === 'AVAILABLE' || p.status === 'APPROVED' || p.status === 'PUBLISHED',
+          isReadyToMove: p.status === 'AVAILABLE' || p.status === 'APPROVED',
           highlights: ['Legal Verified', 'Premium Location', 'High ROI'],
           amenities: ['Parking', 'Security', 'Water Supply'],
-          legalVerified: p.status === 'APPROVED' || p.status === 'PUBLISHED',
+          legalVerified: p.status === 'APPROVED',
           image: undefined,
           consultantNote: "This property offers exceptional value in a high-growth corridor. Ideal for long-term appreciation.",
           consultant: {

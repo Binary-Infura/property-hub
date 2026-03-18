@@ -14,7 +14,6 @@ export const PROPERTY_STATUS_CONFIG: Record<PropertyStatus, { label: string; col
   submitted: { label: 'Submitted', color: 'text-blue-600', bgColor: 'bg-blue-50', ringColor: 'ring-blue-200' },
   approved: { label: 'Approved', color: 'text-emerald-600', bgColor: 'bg-emerald-50', ringColor: 'ring-emerald-200' },
   rejected: { label: 'Rejected', color: 'text-red-600', bgColor: 'bg-red-50', ringColor: 'ring-red-200' },
-  published: { label: 'Published', color: 'text-purple-600', bgColor: 'bg-purple-50', ringColor: 'ring-purple-200' },
   available: { label: 'Available', color: 'text-emerald-600', bgColor: 'bg-emerald-50', ringColor: 'ring-emerald-200' },
   sold: { label: 'Sold', color: 'text-gray-600', bgColor: 'bg-gray-50', ringColor: 'ring-gray-200' },
   reserved: { label: 'Reserved', color: 'text-orange-600', bgColor: 'bg-orange-50', ringColor: 'ring-orange-200' },

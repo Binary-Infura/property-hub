@@ -119,7 +119,7 @@ export default function PropertyPartnerDashboard() {
         });
 
         // Add recently approved projects
-        projects.filter((p: any) => p.status === 'APPROVED' || p.status === 'PUBLISHED').slice(0, 3).forEach((p: any) => {
+        projects.filter((p: any) => p.status === 'APPROVED').slice(0, 3).forEach((p: any) => {
           activities.push({
             type: 'approval',
             message: `Property "${p.name}" ${p.status.toLowerCase()}`,

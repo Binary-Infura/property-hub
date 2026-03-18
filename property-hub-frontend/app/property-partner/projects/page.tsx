@@ -66,7 +66,6 @@ export default function ProjectsPage() {
             case 'SUBMITTED': frontendStatus = 'submitted'; break;
             case 'APPROVED': frontendStatus = 'approved'; break;
             case 'REJECTED': frontendStatus = 'rejected'; break;
-            case 'PUBLISHED': frontendStatus = 'published'; break;
             default: frontendStatus = 'available';
           }
 
@@ -167,7 +166,7 @@ export default function ProjectsPage() {
   const statusCounts = {
     total: projects.length,
     available: projects.filter(p => p.status === 'available').length,
-    published: projects.filter(p => p.status === 'published').length,
+    approved: projects.filter(p => p.status === 'approved').length,
   };
 
   return (
@@ -245,7 +244,7 @@ export default function ProjectsPage() {
         {[
           { label: 'Total', count: statusCounts.total, color: 'text-gray-900', bgColor: 'bg-white' },
           { label: 'Available', count: statusCounts.available, color: 'text-emerald-600', bgColor: 'bg-white' },
-          { label: 'Published', count: statusCounts.published, color: 'text-blue-600', bgColor: 'bg-white' },
+          { label: 'Approved', count: statusCounts.approved, color: 'text-blue-600', bgColor: 'bg-white' },
         ].map(stat => (
           <div key={stat.label} className={`${stat.bgColor} rounded-lg shadow-sm border border-gray-100 p-4`}>
             <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">{stat.label}</p>
@@ -273,7 +272,7 @@ export default function ProjectsPage() {
           </div>
 
           <div className="flex gap-1.5 flex-wrap">
-            {['all', 'available', 'published'].map((status) => (
+            {['all', 'available', 'approved'].map((status) => (
               <button
                 key={status}
                 onClick={() => setFilterStatus(status as any)}
@@ -341,8 +340,8 @@ export default function ProjectsPage() {
               {filteredProjects.map(project => {
                 const statusConfig = PROPERTY_STATUS_CONFIG[project.status];
                 const isAvailable = project.status === 'available';
-                const canMarkAsSold = ['available', 'approved', 'published'].includes(project.status);
-                const hasListingData = ['submitted', 'approved', 'published', 'rejected'].includes(project.status);
+                const canMarkAsSold = ['available', 'approved'].includes(project.status);
+                const hasListingData = ['submitted', 'approved', 'rejected'].includes(project.status);
 
                 return (
                   <tr key={project.id} className="hover:bg-gray-50/80 transition-colors group">
@@ -432,8 +431,8 @@ export default function ProjectsPage() {
           {filteredProjects.map(project => {
             const statusConfig = PROPERTY_STATUS_CONFIG[project.status];
             const isAvailable = project.status === 'available';
-            const canMarkAsSold = ['available', 'approved', 'published'].includes(project.status);
-            const hasListingData = ['submitted', 'approved', 'published', 'rejected'].includes(project.status);
+            const canMarkAsSold = ['available', 'approved'].includes(project.status);
+            const hasListingData = ['submitted', 'approved', 'rejected'].includes(project.status);
 
             return (
               <div key={project.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all group animate-in fade-in slide-in-from-bottom-4 duration-500">
