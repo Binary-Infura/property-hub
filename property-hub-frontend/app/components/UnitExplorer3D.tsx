@@ -88,63 +88,49 @@ function TowerCard({
         <button
             onClick={onClick}
             className={`
-                w-full text-left p-6 rounded-[2.5rem] border transition-all duration-300
+                w-full text-left p-4 rounded-3xl border transition-all duration-300
                 ${isSelected
-                    ? 'bg-blue-600 border-blue-500 text-white shadow-xl shadow-blue-200 scale-[1.02]'
-                    : 'bg-white/80 border-slate-200 text-slate-900 hover:bg-white hover:shadow-lg hover:scale-[1.01]'}
+                    ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-200/50 scale-[1.02]'
+                    : 'bg-white/80 border-slate-200 text-slate-900 hover:bg-white hover:scale-[1.01]'}
                 backdrop-blur-xl ring-1 ${isSelected ? 'ring-blue-400' : 'ring-slate-100'}
             `}
         >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-3">
-                    <div className={`w-10 h-10 rounded-2xl flex items-center justify-center ${isSelected ? 'bg-white/20' : 'bg-blue-50'}`}>
-                        <svg className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-blue-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${isSelected ? 'bg-white/20' : 'bg-blue-50'}`}>
+                        <svg className={`w-4 h-4 ${isSelected ? 'text-white' : 'text-blue-600'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                             <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                         </svg>
                     </div>
                     <div>
-                        <p className={`text-[10px] font-black uppercase tracking-[0.3em] mb-0.5 ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>Tower</p>
-                        <p className="text-base font-black tracking-tight">{tower.name}</p>
+                        <p className={`text-[8px] font-black uppercase tracking-[0.3em] mb-0 ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>Block</p>
+                        <p className="text-sm font-black tracking-tight">{tower.name}</p>
                     </div>
-                </div>
-                {isSelected && (
-                    <div className="w-6 h-6 bg-white/20 rounded-full flex items-center justify-center">
-                        <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                        </svg>
-                    </div>
-                )}
-            </div>
-
-            <div className="flex items-end justify-between mb-4">
-                <div>
-                    <p className={`text-3xl font-black tracking-tighter ${isSelected ? 'text-white' : 'text-slate-900'}`}>{total}</p>
-                    <p className={`text-[9px] font-black uppercase tracking-[0.3em] ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>Total Units</p>
                 </div>
                 {tower.totalFloors && (
-                    <div className={`text-right px-3 py-1.5 rounded-xl ${isSelected ? 'bg-white/20' : 'bg-slate-50 border border-slate-100'}`}>
-                        <p className={`text-sm font-black ${isSelected ? 'text-white' : 'text-slate-700'}`}>{tower.totalFloors}F</p>
-                        <p className={`text-[8px] font-black uppercase tracking-wide ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>Floors</p>
+                    <div className={`px-2 py-1 rounded-lg ${isSelected ? 'bg-white/20' : 'bg-slate-50 border border-slate-100'}`}>
+                        <p className={`text-[10px] font-black ${isSelected ? 'text-white' : 'text-slate-700'}`}>{tower.totalFloors}F</p>
                     </div>
                 )}
             </div>
 
-            {total > 0 && (
-                <div className="space-y-2">
-                    <div className="flex h-2 rounded-full overflow-hidden gap-0.5">
-                        {draft    > 0 && <div style={{ width: `${(draft    / total) * 100}%` }} className="bg-slate-400 rounded-full" />}
-                        {reserved > 0 && <div style={{ width: `${(reserved / total) * 100}%` }} className="bg-amber-400 rounded-full" />}
-                        {booked   > 0 && <div style={{ width: `${(booked   / total) * 100}%` }} className="bg-orange-400 rounded-full" />}
-                        {sold     > 0 && <div style={{ width: `${(sold     / total) * 100}%` }} className="bg-rose-400 rounded-full" />}
-                    </div>
-                    <div className={`flex gap-3 text-[9px] font-black uppercase tracking-wide ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>
-                        {draft    > 0 && <span>{draft} Draft</span>}
-                        {reserved > 0 && <span>{reserved} Reserved</span>}
-                        {booked   > 0 && <span>{booked} Booked</span>}
-                        {sold     > 0 && <span>{sold} Sold</span>}
-                    </div>
+            <div className="flex items-center justify-between">
+                <div className="flex items-baseline gap-2">
+                    <p className={`text-xl font-black tracking-tighter ${isSelected ? 'text-white' : 'text-slate-900'}`}>{total}</p>
+                    <p className={`text-[8px] font-black uppercase tracking-widest ${isSelected ? 'text-blue-100' : 'text-slate-400'}`}>Units</p>
                 </div>
-            )}
+                
+                <div className="flex gap-1">
+                    {[
+                        { val: draft,    color: 'bg-slate-400' },
+                        { val: reserved, color: 'bg-amber-400' },
+                        { val: booked,   color: 'bg-orange-400' },
+                        { val: sold,     color: 'bg-rose-400' }
+                    ].filter(s => s.val > 0).map((s, i) => (
+                        <div key={i} className={`w-1.5 h-1.5 rounded-full ${s.color} ${isSelected ? 'ring-1 ring-white/30' : ''}`} />
+                    ))}
+                </div>
+            </div>
         </button>
     );
 }
@@ -152,7 +138,7 @@ function TowerCard({
 // ─── Main Component ───────────────────────────────────────────────────────────
 export default function UnitExplorer3D({ projectId }: { projectId: string }) {
     const [summary,       setSummary]       = useState<ProjectSummary | null>(null);
-    const [activeTower,   setActiveTower]   = useState<TowerSummary | null>(null);
+    const [selectedTowerIds, setSelectedTowerIds] = useState<string[]>([]);
     const [towers3D,      setTowers3D]      = useState<Tower[]>([]);
     const [loading,       setLoading]       = useState(true);
     const [selectedUnitId, setSelectedUnitId] = useState<string | null>(null);
@@ -170,13 +156,15 @@ export default function UnitExplorer3D({ projectId }: { projectId: string }) {
             .then((data: ProjectSummary) => {
                 setSummary(data);
 
-                // Auto-select first tower
+                // Default: select ALL towers
                 if (data.towers.length > 0) {
-                    const first = data.towers[0];
-                    setActiveTower(first);
-                    setTowers3D([toTower3D(first, projectId)]);
-                    // Set initial floor from slim units
-                    const floors = getFloors(first.units);
+                    const allIds = data.towers.map(t => t.id);
+                    setSelectedTowerIds(allIds);
+                    setTowers3D(data.towers.map(t => toTower3D(t, projectId)));
+                    
+                    // Initial floor from first tower's slim units
+                    const firstT = data.towers[0];
+                    const floors = getFloors(firstT.units);
                     if (floors.length > 0) setSelectedFloor(floors[0]);
                 }
 
@@ -210,14 +198,28 @@ export default function UnitExplorer3D({ projectId }: { projectId: string }) {
     }, [projectId, selectedUnitId]);
 
     const handleTowerSelect = useCallback((tower: TowerSummary) => {
-        if (tower.id === activeTower?.id) return;
-        setActiveTower(tower);
-        setTowers3D([toTower3D(tower, projectId)]);
+        setSelectedTowerIds(prev => {
+            const isAlreadySelected = prev.includes(tower.id);
+            let next: string[];
+            if (isAlreadySelected) {
+                // Remove, but don't allow zero selection (optional, but better for UX)
+                if (prev.length === 1) return prev;
+                next = prev.filter(id => id !== tower.id);
+            } else {
+                next = [...prev, tower.id];
+            }
+            
+            // Sync with 3D towers array
+            if (summary) {
+                setTowers3D(summary.towers.filter(t => next.includes(t.id)).map(t => toTower3D(t, projectId)));
+            }
+            
+            return next;
+        });
+        
         setSelectedUnitId(null);
         setUnitDetail(null);
-        const floors = getFloors(tower.units);
-        if (floors.length > 0) setSelectedFloor(floors[0]);
-    }, [activeTower?.id, projectId]);
+    }, [summary, projectId]);
 
     const toggleFullscreen = () => {
         if (!containerRef.current) return;
@@ -228,13 +230,19 @@ export default function UnitExplorer3D({ projectId }: { projectId: string }) {
         }
     };
 
-    // Slim units currently shown in the 3D canvas
-    const currentUnits: SlimUnit[] = activeTower?.units ?? [];
+    // Slim units currently shown in the 3D canvas (concatenated from all selected towers)
+    const currentUnits: SlimUnit[] = useMemo(() => {
+        if (!summary) return [];
+        return summary.towers
+            .filter(t => selectedTowerIds.includes(t.id))
+            .flatMap(t => t.units);
+    }, [summary, selectedTowerIds]);
 
     const floors = useMemo(
         () => getFloors(currentUnits),
         [currentUnits],
     );
+
 
     const stats = summary?.stats ?? {
         totalUnits: 0, draftUnits: 0, reservedUnits: 0, bookedUnits: 0, soldUnits: 0,
@@ -269,34 +277,34 @@ export default function UnitExplorer3D({ projectId }: { projectId: string }) {
                 initial={{ y: -50, opacity: 0 }}
                 animate={{ y: 0, opacity: 1 }}
                 transition={{ delay: 0.8, duration: 0.8 }}
-                className="absolute top-0 left-0 right-0 z-20 p-12 md:p-16 flex flex-col md:flex-row md:items-start justify-between gap-10 pointer-events-none"
+                className="absolute top-0 left-0 right-0 z-20 p-8 md:p-10 flex flex-col md:flex-row md:items-start justify-between gap-6 pointer-events-none"
             >
                 <div className="pointer-events-auto">
-                    <div className="flex items-center gap-6 mb-4">
-                        <div className="w-16 h-16 bg-white/80 backdrop-blur-3xl border border-slate-200 rounded-[2rem] flex items-center justify-center shadow-xl ring-1 ring-slate-100">
-                            <svg className="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-white/80 backdrop-blur-3xl border border-slate-200 rounded-2xl flex items-center justify-center shadow-lg ring-1 ring-slate-100">
+                            <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
                             </svg>
                         </div>
                         <div>
-                            <h3 className="text-5xl font-black text-slate-900 tracking-tighter leading-none flex items-center gap-3">
+                            <h3 className="text-3xl font-black text-slate-900 tracking-tighter leading-none flex items-center gap-2">
                                 SPATIAL <span className="text-blue-600 italic">EXPLORER</span>
                             </h3>
-                            <p className="text-slate-400 font-black uppercase text-[11px] tracking-[0.5em] mt-3">
+                            <p className="text-slate-400 font-black uppercase text-[9px] tracking-[0.4em] mt-2">
                                 Architectural Precision • Ver 3.2
                             </p>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex items-center gap-4 pointer-events-auto">
+                <div className="flex items-center gap-3 pointer-events-auto">
                     {currentUnits.length > 0 && (
-                        <div className="bg-white/80 backdrop-blur-3xl border border-slate-200 rounded-[2.5rem] p-2 flex gap-2 shadow-xl ring-1 ring-slate-100">
+                        <div className="bg-white/80 backdrop-blur-3xl border border-slate-200 rounded-[1.8rem] p-1.5 flex gap-1 shadow-lg ring-1 ring-slate-100">
                             {(['building', 'floor'] as const).map(mode => (
                                 <button
                                     key={mode}
                                     onClick={() => { setViewMode(mode); setSelectedUnitId(null); setUnitDetail(null); }}
-                                    className={`px-10 py-5 rounded-[2rem] text-[11px] font-black uppercase tracking-[0.2em] transition-all duration-500 ${viewMode === mode ? 'bg-slate-900 text-white shadow-xl scale-105' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
+                                    className={`px-6 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-[0.1em] transition-all duration-500 ${viewMode === mode ? 'bg-slate-900 text-white shadow-md' : 'text-slate-500 hover:text-slate-900 hover:bg-slate-50'}`}
                                 >
                                     {mode}
                                 </button>
@@ -305,14 +313,14 @@ export default function UnitExplorer3D({ projectId }: { projectId: string }) {
                     )}
                     <button
                         onClick={toggleFullscreen}
-                        className="w-16 h-16 bg-white/80 backdrop-blur-3xl border border-slate-200 rounded-[2rem] flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-all ring-1 ring-slate-100 shadow-xl group/fs"
+                        className="w-12 h-12 bg-white/80 backdrop-blur-3xl border border-slate-200 rounded-2xl flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-all ring-1 ring-slate-100 shadow-lg group/fs"
                     >
                         {isFullscreen ? (
-                            <svg className="w-6 h-6 group-hover/fs:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <svg className="w-5 h-5 group-hover/fs:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 9L4.5 4.5M9 9V4.5M9 9H4.5M15 9L19.5 4.5M15 9V4.5M15 9H19.5M9 15L4.5 19.5M9 15V19.5M9 15H4.5M15 15L19.5 19.5M15 15V19.5M15 15H19.5" />
                             </svg>
                         ) : (
-                            <svg className="w-6 h-6 group-hover/fs:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                            <svg className="w-5 h-5 group-hover/fs:scale-110 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
                                 <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
                             </svg>
                         )}
@@ -332,7 +340,7 @@ export default function UnitExplorer3D({ projectId }: { projectId: string }) {
                         units={currentUnits}
                         towers={towers3D}
                         projectType={(summary?.project.projectType as any) || 'APARTMENT'}
-                        projectName={activeTower?.name || summary?.project.name}
+                        projectName={summary?.project.name}
                         selectedId={selectedUnitId}
                         onUnitClick={handleUnitClick}
                         viewMode={viewMode}
@@ -353,18 +361,18 @@ export default function UnitExplorer3D({ projectId }: { projectId: string }) {
                     initial={{ x: -100, opacity: 0 }}
                     animate={{ x: 0, opacity: 1 }}
                     transition={{ delay: 1.0, duration: 0.8 }}
-                    className="absolute left-10 bottom-10 z-20 w-[360px] flex flex-col gap-4 pointer-events-none"
+                    className="absolute left-8 bottom-8 z-20 w-[280px] flex flex-col gap-3 pointer-events-none"
                 >
                     {/* Floor navigation */}
                     {viewMode === 'floor' && floors.length > 0 && (
-                        <div className="pointer-events-auto bg-white/80 backdrop-blur-3xl border border-slate-200 rounded-[3rem] p-6 shadow-2xl ring-1 ring-slate-100">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] mb-5 text-center">Vertical Sync • Level</p>
-                            <div className="flex flex-wrap gap-2 justify-center">
+                        <div className="pointer-events-auto bg-white/80 backdrop-blur-3xl border border-slate-200 rounded-3xl p-4 shadow-xl ring-1 ring-slate-100">
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em] mb-3 text-center">Vertical Engine • Lvl</p>
+                            <div className="flex flex-wrap gap-1.5 justify-center">
                                 {floors.map(f => (
                                     <button
                                         key={f}
                                         onClick={() => { setSelectedFloor(f); setSelectedUnitId(null); setUnitDetail(null); }}
-                                        className={`w-12 h-12 rounded-2xl flex items-center justify-center text-xs font-black transition-all duration-300 border pointer-events-auto ${selectedFloor === f ? 'bg-blue-600 border-blue-500 text-white shadow-lg scale-110' : 'bg-slate-50 border-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}
+                                        className={`w-9 h-9 rounded-xl flex items-center justify-center text-[10px] font-black transition-all duration-300 border pointer-events-auto ${selectedFloor === f ? 'bg-blue-600 border-blue-500 text-white shadow-md scale-105' : 'bg-slate-50 border-slate-100 text-slate-500 hover:text-slate-900 hover:bg-slate-100'}`}
                                     >
                                         {f}
                                     </button>
@@ -374,23 +382,23 @@ export default function UnitExplorer3D({ projectId }: { projectId: string }) {
                     )}
 
                     {/* Project stats */}
-                    <div className="pointer-events-auto bg-white/80 backdrop-blur-3xl border border-slate-200 rounded-[3.5rem] p-10 space-y-8 shadow-2xl ring-1 ring-slate-100 group-hover:bg-white/95 transition-all duration-700">
-                        <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                                <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em]">Total Units</p>
-                                <p className="text-5xl font-black text-slate-900 tracking-tighter italic leading-none">{stats.totalUnits}</p>
+                    <div className="pointer-events-auto bg-white/80 backdrop-blur-3xl border border-slate-200 rounded-3xl p-6 shadow-xl ring-1 ring-slate-100">
+                        <div className="flex items-center justify-between mb-4">
+                            <div className="space-y-0.5">
+                                <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.3em]">Total Units</p>
+                                <p className="text-3xl font-black text-slate-900 tracking-tighter leading-none">{stats.totalUnits}</p>
                             </div>
-                            <div className="w-px h-12 bg-slate-200 mx-4" />
-                            <div className="space-y-1 text-right">
-                                <p className="text-[10px] font-black text-slate-600 uppercase tracking-[0.4em]">Towers</p>
-                                <p className="text-5xl font-black text-slate-600 tracking-tighter italic leading-none">{summary?.towers.length ?? 0}</p>
+                            <div className="w-px h-8 bg-slate-200 mx-2" />
+                            <div className="space-y-0.5 text-right">
+                                <p className="text-[8px] font-black text-slate-600 uppercase tracking-[0.3em]">Blocks</p>
+                                <p className="text-3xl font-black text-slate-600 tracking-tighter leading-none">{summary?.towers.length ?? 0}</p>
                             </div>
                         </div>
-                        <div className="grid grid-cols-2 gap-y-5 gap-x-8 pt-6 border-t border-slate-100">
+                        <div className="grid grid-cols-2 gap-y-3 gap-x-4 pt-4 border-t border-slate-50">
                             {Object.entries(STATUS_LABEL).map(([id, label]) => (
-                                <div key={id} className="flex items-center gap-3 group/item">
-                                    <div className={`w-3 h-3 rounded-full transition-transform duration-500 group-hover/item:scale-125 ${STATUS_DOT[id as UnitStatus]}`} />
-                                    <span className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] group-hover/item:text-slate-900 transition-colors">{label}</span>
+                                <div key={id} className="flex items-center gap-2">
+                                    <div className={`w-2 h-2 rounded-full ${STATUS_DOT[id as UnitStatus]}`} />
+                                    <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.1em]">{label}</span>
                                 </div>
                             ))}
                         </div>
@@ -398,13 +406,27 @@ export default function UnitExplorer3D({ projectId }: { projectId: string }) {
 
                     {/* Tower selector cards */}
                     {summary && summary.towers.length > 0 && (
-                        <div className="pointer-events-auto space-y-3">
-                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.4em] px-2">Select Tower</p>
+                        <div className="pointer-events-auto space-y-2">
+                            <div className="flex items-center justify-between px-2">
+                                <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.3em]">Select Blocks</p>
+                                <button 
+                                    onClick={() => {
+                                        const allIds = summary.towers.map(t => t.id);
+                                        const isAllSelected = selectedTowerIds.length === allIds.length;
+                                        const next = isAllSelected ? [allIds[0]] : allIds;
+                                        setSelectedTowerIds(next);
+                                        setTowers3D(summary.towers.filter(t => next.includes(t.id)).map(t => toTower3D(t, projectId)));
+                                    }}
+                                    className="text-[9px] font-black text-blue-600 uppercase tracking-[0.1em] hover:text-blue-700 transition-colors"
+                                >
+                                    {selectedTowerIds.length === summary.towers.length ? 'Clear All' : 'Select All'}
+                                </button>
+                            </div>
                             {summary.towers.map(tower => (
                                 <TowerCard
                                     key={tower.id}
                                     tower={tower}
-                                    isSelected={activeTower?.id === tower.id}
+                                    isSelected={selectedTowerIds.includes(tower.id)}
                                     onClick={() => handleTowerSelect(tower)}
                                 />
                             ))}
@@ -421,9 +443,9 @@ export default function UnitExplorer3D({ projectId }: { projectId: string }) {
                         animate={{ x: 0, opacity: 1 }}
                         exit={{ x: 500, opacity: 0 }}
                         transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-                        className="absolute right-10 bottom-10 top-10 w-[460px] z-30 pointer-events-none"
+                        className="absolute right-8 bottom-8 top-8 w-[400px] z-30 pointer-events-none"
                     >
-                        <div className="h-full pointer-events-auto bg-white/90 backdrop-blur-[40px] border border-slate-200 rounded-[4rem] shadow-[0_20px_100px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden ring-1 ring-white">
+                        <div className="h-full pointer-events-auto bg-white/95 backdrop-blur-3xl border border-slate-200 rounded-[3rem] shadow-[0_20px_80px_rgba(0,0,0,0.1)] flex flex-col overflow-hidden ring-1 ring-white">
                             {/* Header */}
                             <div className="relative group/header overflow-hidden">
                                 <div className="absolute inset-0 z-0 overflow-hidden">
@@ -432,29 +454,29 @@ export default function UnitExplorer3D({ projectId }: { projectId: string }) {
                                             ? 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800'
                                             : 'https://images.unsplash.com/photo-1545324418-f1d3c5b5a291?auto=format&fit=crop&q=80&w=800'}
                                         alt="Property Preview"
-                                        className="w-full h-full object-cover opacity-30 group-hover/header:scale-110 transition-transform duration-1000"
+                                        className="w-full h-48 object-cover opacity-20 group-hover/header:scale-105 transition-transform duration-1000"
                                     />
-                                    <div className="absolute inset-0 bg-gradient-to-b from-[#f8fafc]/50 to-[#f8fafc]" />
+                                    <div className="absolute inset-0 bg-gradient-to-b from-white/20 to-white" />
                                 </div>
-                                <div className="relative z-10 p-12 pb-10 flex items-start justify-between border-b border-slate-100">
+                                <div className="relative z-10 p-10 pb-6 flex items-start justify-between border-b border-slate-50">
                                     <div>
-                                        <p className="text-[11px] font-black text-blue-600 uppercase tracking-[0.6em] mb-4">Object Identity</p>
+                                        <p className="text-[10px] font-black text-blue-600 uppercase tracking-[0.4em] mb-2 text-shadow-sm">Object Identity</p>
                                         {detailLoading ? (
-                                            <div className="flex items-center gap-4">
-                                                <div className="w-10 h-10 border-4 border-blue-100 border-t-blue-600 rounded-full animate-spin" />
-                                                <p className="text-slate-400 font-black text-sm uppercase tracking-widest">Fetching details…</p>
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-8 h-8 border-[3px] border-blue-100 border-t-blue-600 rounded-full animate-spin" />
+                                                <p className="text-slate-400 font-black text-[10px] uppercase tracking-widest">Loading…</p>
                                             </div>
                                         ) : (
-                                            <h4 className="text-7xl font-black text-slate-900 tracking-tighter italic leading-[0.8]">
+                                            <h4 className="text-5xl font-black text-slate-900 tracking-tighter italic leading-none">
                                                 #{unitDetail?.unitNumber ?? '—'}
                                             </h4>
                                         )}
                                     </div>
                                     <button
                                         onClick={() => { setSelectedUnitId(null); setUnitDetail(null); }}
-                                        className="w-16 h-16 rounded-[1.5rem] bg-white border border-slate-200 text-slate-400 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 hover:border-rose-200 transition-all active:scale-90 shadow-sm group/close"
+                                        className="w-12 h-12 rounded-2xl bg-white border border-slate-200 text-slate-400 flex items-center justify-center hover:bg-rose-50 hover:text-rose-500 hover:border-rose-200 transition-all active:scale-90 shadow-sm group/close"
                                     >
-                                        <svg className="w-6 h-6 group-hover/close:rotate-90 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                        <svg className="w-5 h-5 group-hover/close:rotate-90 transition-transform duration-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
                                             <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                                         </svg>
                                     </button>
@@ -464,36 +486,35 @@ export default function UnitExplorer3D({ projectId }: { projectId: string }) {
                             {/* Content — shown only once detail is loaded */}
                             {unitDetail && !detailLoading && (
                                 <>
-                                    <div className="p-12 pt-10 flex-1 overflow-y-auto space-y-6 no-scrollbar">
-                                        <div className="flex justify-center">
-                                            <div className={`px-10 py-4 rounded-full text-[10px] font-black uppercase tracking-[0.4em] flex items-center gap-4 border ${STATUS_CHIP_STYLES[unitDetail.status]}`}>
-                                                <div className={`w-2.5 h-2.5 rounded-full ${STATUS_DOT[unitDetail.status]}`} />
+                                    <div className="p-10 pt-6 flex-1 overflow-y-auto space-y-4 no-scrollbar">
+                                        <div className="flex justify-start">
+                                            <div className={`px-5 py-2 rounded-full text-[9px] font-black uppercase tracking-[0.2em] flex items-center gap-3 border ${STATUS_CHIP_STYLES[unitDetail.status]}`}>
+                                                <div className={`w-2 h-2 rounded-full ${STATUS_DOT[unitDetail.status]}`} />
                                                 {unitDetail.status} Listing
                                             </div>
                                         </div>
-                                        <div className="grid grid-cols-1 gap-5">
+                                        <div className="space-y-3">
                                             {[
-                                                { k: 'Market Valuation', v: `₹${(unitDetail.price / 100000).toFixed(2)}L`,                                   i: '💰', l: 'Premium Estimate' },
-                                                { k: 'Carpet Area',      v: unitDetail.area      != null ? `${unitDetail.area} SQFT` : 'TBD',                 i: '📐', l: 'Spatial Specs' },
-                                                { k: 'Level & Position', v: unitDetail.floor     != null ? `Floor ${unitDetail.floor}` : 'Base',              i: '📍', l: 'Vertical Identity' },
-                                                { k: 'Design Config',    v: unitDetail.type      || 'Signature',                                              i: '🏢', l: 'Architectural' },
-                                                ...(unitDetail.tower ? [{ k: 'Tower',            v: unitDetail.tower.name,                                     i: '🏗️', l: 'Block Identity' }] : []),
+                                                { k: 'Market Valuation', v: `₹${(unitDetail.price / 100000).toFixed(2)}L`,                                   i: '💰' },
+                                                { k: 'Carpet Area',      v: unitDetail.area      != null ? `${unitDetail.area} SQFT` : 'TBD',                 i: '📐' },
+                                                { k: 'Level & Position', v: unitDetail.floor     != null ? `Floor ${unitDetail.floor}` : 'Base',              i: '📍' },
+                                                { k: 'Design Config',    v: unitDetail.type      || 'Signature',                                              i: '🏢' },
+                                                ...(unitDetail.tower ? [{ k: 'Tower',            v: unitDetail.tower.name,                                     i: '🏗️' }] : []),
                                             ].map((spec, i) => (
-                                                <div key={i} className="group p-6 bg-slate-50/50 rounded-[2.5rem] border border-slate-100 hover:bg-white transition-all duration-300 hover:shadow-lg">
-                                                    <div className="flex items-center gap-6">
-                                                        <div className="w-14 h-14 rounded-2xl bg-white border border-slate-200 flex items-center justify-center text-3xl shadow-sm group-hover:scale-110 transition-transform duration-500">{spec.i}</div>
+                                                <div key={i} className="group p-4 bg-slate-50/50 rounded-2xl border border-slate-100 hover:bg-white transition-all duration-300">
+                                                    <div className="flex items-center gap-4">
+                                                        <div className="w-10 h-10 rounded-xl bg-white border border-slate-100 flex items-center justify-center text-xl shadow-sm group-hover:scale-105 transition-transform">{spec.i}</div>
                                                         <div>
-                                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.3em] mb-1.5">{spec.k}</p>
-                                                            <p className="text-2xl font-black text-slate-900 tracking-tight leading-none mb-1">{spec.v}</p>
-                                                            <p className="text-[9px] font-black text-blue-500/40 uppercase tracking-[0.2em]">{spec.l}</p>
+                                                            <p className="text-[8px] font-black text-slate-400 uppercase tracking-[0.2em] mb-0.5">{spec.k}</p>
+                                                            <p className="text-lg font-black text-slate-900 tracking-tight leading-none">{spec.v}</p>
                                                         </div>
                                                     </div>
                                                 </div>
                                             ))}
                                         </div>
                                     </div>
-                                    <div className="p-12 pt-0">
-                                        <button className="w-full py-8 bg-blue-600 text-white rounded-[2.5rem] font-black text-sm uppercase tracking-[0.4em] hover:bg-blue-700 active:scale-95 transition-all shadow-xl shadow-blue-500/20">
+                                    <div className="p-10 pt-0">
+                                        <button className="w-full py-5 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.3em] hover:bg-blue-700 active:scale-95 transition-all shadow-lg shadow-blue-500/20">
                                             Initiate Acquisition
                                         </button>
                                     </div>

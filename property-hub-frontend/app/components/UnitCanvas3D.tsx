@@ -32,6 +32,7 @@ interface UnitInstancesProps {
 function UnitInstances({
     units,
     towers,
+    towerIds,
     projectType,
     hoveredId,
     selectedId,
@@ -39,7 +40,7 @@ function UnitInstances({
     onSelect,
     viewMode,
     selectedFloor,
-}: UnitInstancesProps) {
+}: UnitInstancesProps & { towerIds: string[] }) {
     const dummy = useMemo(() => new THREE.Object3D(), []);
     const _color = useMemo(() => new THREE.Color(), []);
 
@@ -58,22 +59,6 @@ function UnitInstances({
         }
         return units;
     }, [units, viewMode, selectedFloor]);
-
-    const towerIds = useMemo(() => {
-        let ids: string[] = [];
-        if (towers.length > 0) {
-            ids = towers.map(t => t.id);
-        } else {
-            ids = [...new Set(units.map(u => u.towerId).filter(id => !!id))] as string[];
-        }
-        // Sort IDs or use a stable mapping to ensure consistent left-to-right order (Tower A, B, C...)
-        const sortedWithNames = ids.map(id => ({
-            id,
-            name: towers.find(t => t.id === id)?.name || id
-        })).sort((a, b) => a.name.localeCompare(b.name));
-        
-        return sortedWithNames.length > 0 ? sortedWithNames.map(x => x.id) : ['default'];
-    }, [towers, units]);
 
     const unitsByTowerAndFloor = useMemo(() => {
         const map: Record<string, Record<number, SlimUnit[]>> = {};
@@ -104,7 +89,7 @@ function UnitInstances({
             let x = 0, y = 0, z = 0;
             if (projectType === 'PLOT' || projectType === 'VILLA') {
                 const spacing = projectType === 'VILLA' ? 5 : 3.0;
-                const towerUnits = units.filter(unit => (unit.towerId || 'default') === tId);
+                const towerUnits = units.filter(unit => (unit.towerId || towerIds[0] || 'default') === tId);
                 const idx = towerUnits.indexOf(u);
                 const cols = Math.ceil(Math.sqrt(Math.max(towerUnits.length, 1)));
                 x = (idx % cols) * spacing - ((cols - 1) / 2) * spacing;
@@ -129,6 +114,7 @@ function UnitInstances({
         });
         return matrices;
     }, [displayed, units, viewMode, unitsByTowerAndFloor, towerIds, projectType]);
+
 
     return (
         <Instances range={displayed.length}>
@@ -396,6 +382,7 @@ function SingleTowerShell({
 function BuildingShell({
     units,
     towers,
+    towerIds,
     projectType,
     selectedFloor,
     viewMode,
@@ -403,19 +390,13 @@ function BuildingShell({
 }: {
     units: SlimUnit[];
     towers: Tower[];
+    towerIds: string[];
     projectType: ProjectType;
     selectedFloor: number;
     viewMode: 'building' | 'floor';
     projectName?: string;
 }) {
     const isFloorMode = viewMode === 'floor';
-
-    const towerIds = useMemo(() => {
-        if (towers.length > 0) return towers.map(t => t.id);
-        const ids = [...new Set(units.map(u => u.towerId).filter(id => !!id))];
-        return ids.length > 0 ? ids as string[] : ['default'];
-    }, [towers, units]);
-
     const towerSpacing = 50;
 
     if (projectType === 'APARTMENT' || projectType === 'COMMERCIAL') {
@@ -677,6 +658,15 @@ export default function UnitCanvas3D({
 }) {
     const [hoveredId, setHoveredId] = useState<string | null>(null);
 
+    const towerIds = useMemo(() => {
+        const sortedTowers = [...towers].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        const ids = sortedTowers.length > 0 
+            ? sortedTowers.map(t => t.id) 
+            : [...new Set(units.map(u => u.towerId).filter(id => !!id))].sort() as string[];
+
+        return ids.length > 0 ? ids : ['default'];
+    }, [towers, units]);
+
     const floorOrder = useMemo(
         () => [...new Set(units.map(u => u.floor ?? 1))].sort((a, b) => a - b),
         [units]
@@ -729,6 +719,7 @@ export default function UnitCanvas3D({
             <BuildingShell 
                 units={units} 
                 towers={towers}
+                towerIds={towerIds}
                 projectType={projectType} 
                 projectName={projectName}
                 selectedFloor={selectedFloor} 
@@ -756,8 +747,10 @@ export default function UnitCanvas3D({
             </group>
 
             <UnitInstances
+                key={`${towers.length}-${units.length}-${towerIds.join(',')}`}
                 units={units}
                 towers={towers}
+                towerIds={towerIds}
                 projectType={projectType}
                 hoveredId={hoveredId}
                 selectedId={selectedId}
