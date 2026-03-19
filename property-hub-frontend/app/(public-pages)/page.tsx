@@ -25,23 +25,10 @@ const staggerContainer = {
 };
 
 export default function Home() {
-  const [hasMounted, setHasMounted] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
-  // No longer using early return to allow SSR of static content
-  // Interactive components are handled via dynamic(ssr: false)
-
   return (
     <div className="bg-white relative min-h-screen overflow-x-hidden">
-      {hasMounted && (
-        <>
-          <FloatingBackground />
-          <MouseGlow />
-        </>
-      )}
+      <FloatingBackground />
+      <MouseGlow />
       <Navbar />
 
       {/* Hero Section */}

@@ -21,7 +21,7 @@ const HouseModel = () => {
   });
 
   return (
-    <group ref={group}>
+    <group ref={group} position={[6, 0, -6]} scale={1.6}>
       {/* Main Base / Yard */}
       <mesh position={[0, -0.05, 0]} receiveShadow>
         <boxGeometry args={[10, 0.1, 10]} />
@@ -120,9 +120,9 @@ const Building3D = () => {
         </PresentationControls>
 
         <ContactShadows 
-          position={[0, 0, 0]} 
+          position={[6, 0, -6]} 
           opacity={0.3} 
-          scale={20} 
+          scale={28} 
           blur={3} 
           far={6} 
         />
