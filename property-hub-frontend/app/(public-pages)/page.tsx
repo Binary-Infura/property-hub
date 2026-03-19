@@ -66,13 +66,14 @@ export default function Home() {
               >
                 Start Free Consultation
               </motion.a>
-              <motion.button 
+              <motion.a 
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="bg-white/90 backdrop-blur-xl border border-gray-200 text-gray-900 px-10 py-5 rounded-2xl hover:border-blue-300 font-bold text-lg transition-all shadow-lg"
+                href="/search" 
+                className="bg-white/90 backdrop-blur-xl border border-gray-200 text-gray-900 px-10 py-5 rounded-2xl hover:border-blue-300 font-bold text-lg transition-all shadow-lg text-center"
               >
-                Watch Demo
-              </motion.button>
+                Search Now
+              </motion.a>
             </div>
           </motion.div>
         </div>
