@@ -25,6 +25,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     const [owner, setOwner] = useState<User | null>(null);
     const [reels, setReels] = useState<Reel[]>([]);
     const [activeImageIndex, setActiveImageIndex] = useState(0);
+    const [isFullscreen, setIsFullscreen] = useState(false);
     const [loading, setLoading] = useState(true);
 
     const [isFollowing, setIsFollowing] = useState(false);
@@ -329,7 +330,10 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                                     </div>
                                     <div className="flex gap-3 pointer-events-auto">
 
-                                        <button className="w-16 h-16 bg-white/20 backdrop-blur-2xl border border-white/30 text-white rounded-3xl flex items-center justify-center hover:bg-white hover:text-blue-600 transition-all duration-500">
+                                        <button 
+                                            onClick={() => setIsFullscreen(true)}
+                                            className="w-16 h-16 bg-white/20 backdrop-blur-2xl border border-white/30 text-white rounded-3xl flex items-center justify-center hover:bg-white hover:text-blue-600 transition-all duration-500"
+                                        >
                                             <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                                             </svg>
@@ -626,6 +630,59 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                                 </form>
                             </>
                         )}
+                    </div>
+                </div>
+            )}
+            {/* Fullscreen Image Overlay */}
+            {isFullscreen && (property as any).images && (property as any).images.length > 0 && (
+                <div 
+                    className="fixed inset-0 z-[100] bg-slate-900/95 backdrop-blur-2xl flex flex-col items-center justify-center p-4 sm:p-12 animate-in fade-in duration-300"
+                    onClick={() => setIsFullscreen(false)}
+                >
+                    <button 
+                        onClick={() => setIsFullscreen(false)}
+                        className="absolute top-8 right-8 w-14 h-14 bg-white/10 hover:bg-rose-500 hover:scale-110 text-white rounded-2xl flex items-center justify-center transition-all duration-300 z-[110] border border-white/10 shadow-2xl"
+                    >
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                    
+                    <div className="relative w-full h-full flex items-center justify-center max-w-6xl" onClick={(e) => e.stopPropagation()}>
+                         {/* Navigation arrows in fullscreen */}
+                         {(property as any).images.length > 1 && (
+                            <>
+                                <button
+                                    onClick={() => setActiveImageIndex(i => (i - 1 + (property as any).images.length) % (property as any).images.length)}
+                                    className="absolute -left-4 sm:left-4 top-1/2 -translate-y-1/2 w-16 h-16 sm:w-20 sm:h-20 bg-white/5 hover:bg-white/20 hover:scale-110 text-white rounded-[2rem] flex items-center justify-center transition-all duration-500 z-[110] border border-white/10 backdrop-blur-md shadow-2xl"
+                                >
+                                    <svg className="w-8 h-8 sm:w-10 sm:h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
+                                </button>
+                                <button
+                                    onClick={() => setActiveImageIndex(i => (i + 1) % (property as any).images.length)}
+                                    className="absolute -right-4 sm:right-4 top-1/2 -translate-y-1/2 w-16 h-16 sm:w-20 sm:h-20 bg-white/5 hover:bg-white/20 hover:scale-110 text-white rounded-[2rem] flex items-center justify-center transition-all duration-500 z-[110] border border-white/10 backdrop-blur-md shadow-2xl"
+                                >
+                                    <svg className="w-8 h-8 sm:w-10 sm:h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                                </button>
+                            </>
+                        )}
+                        
+                        <img 
+                            src={(property as any).images[activeImageIndex]} 
+                            alt={property.name}
+                            className="max-w-full max-h-[85vh] object-contain rounded-[2rem] sm:rounded-[4rem] shadow-[0_0_100px_rgba(0,0,0,0.5)] border-4 border-white/5 animate-in zoom-in-95 duration-500"
+                        />
+                        
+                        {/* Index and metadata */}
+                        <div className="absolute -bottom-12 left-0 right-0 flex flex-col items-center gap-4">
+                            <div className="px-8 py-3 bg-white/5 backdrop-blur-xl rounded-2xl text-white border border-white/10 shadow-2xl flex items-center gap-6">
+                                <span className="text-xs font-black uppercase tracking-[0.3em] opacity-50">Gallery View</span>
+                                <div className="w-px h-4 bg-white/20" />
+                                <span className="font-black text-lg tracking-tight">
+                                    {activeImageIndex + 1} <span className="text-white/30 mx-1">/</span> {(property as any).images.length}
+                                </span>
+                            </div>
+                        </div>
                     </div>
                 </div>
             )}
