@@ -18,36 +18,7 @@ export const PROPERTY_STATUS_CONFIG: Record<PropertyStatus, { label: string; col
   under_construction: { label: 'Under Construction', color: 'text-amber-600', bgColor: 'bg-amber-50', ringColor: 'ring-amber-200' },
 };
 
-export const INDIAN_STATES = [
-  'Andhra Pradesh',
-  'Arunachal Pradesh',
-  'Assam',
-  'Bihar',
-  'Chhattisgarh',
-  'Goa',
-  'Gujarat',
-  'Haryana',
-  'Himachal Pradesh',
-  'Jharkhand',
-  'Karnataka',
-  'Kerala',
-  'Madhya Pradesh',
-  'Maharashtra',
-  'Manipur',
-  'Meghalaya',
-  'Mizoram',
-  'Nagaland',
-  'Odisha',
-  'Punjab',
-  'Rajasthan',
-  'Sikkim',
-  'Tamil Nadu',
-  'Telangana',
-  'Tripura',
-  'Uttar Pradesh',
-  'Uttarakhand',
-  'West Bengal',
-];
+
 
 export const RESIDENTIAL_UNIT_TYPES = [
   '1BHK',

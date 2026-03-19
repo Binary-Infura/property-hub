@@ -57,6 +57,12 @@ export default function PropertySearchPage({ hideHeader = false }: { hideHeader?
   const { activeContext } = useUnifiedApp();
   const [loading, setLoading] = useState(true);
   const [allProperties, setAllProperties] = useState<Property[]>([]);
+  const [states, setStates] = useState<{ code: string; name: string }[]>([]);
+
+  const stateMap = states.reduce((acc, s) => {
+    acc[s.code] = s.name;
+    return acc;
+  }, {} as Record<string, string>);
 
   const [filters, setFilters] = useState<FilterState>({
     location: '',
@@ -72,6 +78,18 @@ export default function PropertySearchPage({ hideHeader = false }: { hideHeader?
   const [showComparison, setShowComparison] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
 
+  useEffect(() => {
+    const fetchStates = async () => {
+      try {
+        const data = await propertyService.getStates();
+        setStates(data);
+      } catch (err) {
+        console.error('Failed to fetch states:', err);
+      }
+    };
+    fetchStates();
+  }, []);
+
   // Fetch real properties
   useEffect(() => {
     const fetchRealProperties = async () => {
@@ -79,36 +97,43 @@ export default function PropertySearchPage({ hideHeader = false }: { hideHeader?
         setLoading(true);
         const data = await propertyService.getAll(token || null, false, undefined, 'APPROVED');
 
-        const mapped: Property[] = data.map(p => ({
-          id: p.id,
-          title: p.name,
-          config: `${p.bedrooms || 2} BHK`,
-          location: p.location,
-          area: `${p.area || 1200} sqft`,
-          price: `₹${(Number(p.price) / 100000).toFixed(1)}L`,
-          propertyType: (p.projectType === 'APARTMENT' ? 'Flat' :
-            p.projectType === 'VILLA' ? 'Villa' :
-              p.projectType === 'PLOT' ? 'Plot' : 'Commercial') as any,
-          bhk: `${p.bedrooms || 2} BHK`,
-          isNew: true,
-          isReadyToMove: p.status === 'APPROVED' || p.status === 'UNDER_CONSTRUCTION',
-          highlights: p.highlights || ['Premium Location', 'High ROI'],
-          amenities: p.amenities || [],
-          legalVerified: p.status === 'APPROVED',
-          image: p.images && p.images.length > 0 ? p.images[0] : undefined,
-          consultantNote: p.description?.slice(0, 150) + "..." || "This property offers exceptional value in a high-growth corridor.",
-          consultant: {
-            name: "Rajesh Sharma",
-            initials: "RS",
-            rating: 4.8,
-            deals: 35,
-            role: "Senior Consultant"
-          },
-          partner: p.onboardedBy && p.onboardedById ? {
-            id: p.onboardedById,
-            name: `${p.onboardedBy.firstName || ''} ${p.onboardedBy.lastName || ''}`.trim() || p.onboardedBy.name || 'Partner'
-          } : undefined
-        }));
+        const mapped: Property[] = data.map(p => {
+          const stateCode = p.addressRecord?.city?.state || p.state || '';
+          const fullState = stateMap[stateCode] || stateCode;
+          const cityName = p.addressRecord?.city?.name || p.cityName || '';
+          const displayLocation = cityName && fullState ? `${cityName}, ${fullState}` : (cityName || fullState || p.location);
+
+          return {
+            id: p.id,
+            title: p.name,
+            config: `${p.bedrooms || 2} BHK`,
+            location: displayLocation,
+            area: `${p.area || 1200} sqft`,
+            price: `₹${(Number(p.price) / 100000).toFixed(1)}L`,
+            propertyType: (p.projectType === 'APARTMENT' ? 'Flat' :
+              p.projectType === 'VILLA' ? 'Villa' :
+                p.projectType === 'PLOT' ? 'Plot' : 'Commercial') as any,
+            bhk: `${p.bedrooms || 2} BHK`,
+            isNew: true,
+            isReadyToMove: p.status === 'APPROVED' || p.status === 'UNDER_CONSTRUCTION',
+            highlights: p.highlights || ['Premium Location', 'High ROI'],
+            amenities: p.amenities || [],
+            legalVerified: p.status === 'APPROVED',
+            image: p.images && p.images.length > 0 ? p.images[0] : undefined,
+            consultantNote: p.description?.slice(0, 150) + "..." || "This property offers exceptional value in a high-growth corridor.",
+            consultant: {
+              name: "Rajesh Sharma",
+              initials: "RS",
+              rating: 4.8,
+              deals: 35,
+              role: "Senior Consultant"
+            },
+            partner: p.onboardedBy && p.onboardedById ? {
+              id: p.onboardedById,
+              name: `${p.onboardedBy.firstName || ''} ${p.onboardedBy.lastName || ''}`.trim() || p.onboardedBy.name || 'Partner'
+            } : undefined
+          };
+        });
 
         setAllProperties(mapped);
       } catch (error) {

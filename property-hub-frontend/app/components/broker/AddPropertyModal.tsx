@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Property, PropertyStatus } from '@/app/types/property';
-import { PROPERTY_TYPES, INDIAN_STATES } from '@/app/constants/property';
+import { PROPERTY_TYPES } from '@/app/constants/property';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 

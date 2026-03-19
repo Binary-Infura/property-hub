@@ -167,6 +167,22 @@ export const projectService = {
             throw new Error(error.message || 'Failed bulk assignment');
         }
         return response.json();
+    },
+
+    async getStates(): Promise<{ code: string; name: string }[]> {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/cities/india/states`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch states');
+        }
+        return response.json();
+    },
+
+    async getCitiesOfState(stateCode: string): Promise<{ id: string; name: string; state: string }[]> {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/cities?state=${stateCode}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch cities of state');
+        }
+        return response.json();
     }
 };
 

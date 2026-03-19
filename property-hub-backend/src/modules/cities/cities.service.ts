@@ -67,8 +67,10 @@ export class CitiesService {
         });
     }
 
-    async findAllCities() {
+    async findAllCities(state?: string) {
+        const where = state ? { state: { equals: state, mode: 'insensitive' as const } } : {};
         return this.prisma.city.findMany({
+            where,
             orderBy: { name: 'asc' },
         });
     }

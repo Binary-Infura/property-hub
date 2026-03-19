@@ -48,7 +48,9 @@ export interface Property {
   address: string;
   addressRecord?: {
     line1?: string;
+    line2?: string;
     cityId?: string;
+    pincode?: string;
     city?: {
       name: string;
       state: string;

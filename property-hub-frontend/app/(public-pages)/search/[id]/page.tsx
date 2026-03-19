@@ -27,6 +27,12 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     const [activeImageIndex, setActiveImageIndex] = useState(0);
     const [isFullscreen, setIsFullscreen] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [states, setStates] = useState<{ code: string; name: string }[]>([]);
+
+    const stateMap = states.reduce((acc, s) => {
+        acc[s.code] = s.name;
+        return acc;
+    }, {} as Record<string, string>);
 
     const [isFollowing, setIsFollowing] = useState(false);
     const [followLoading, setFollowLoading] = useState(false);
@@ -116,6 +122,18 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
             setIsSubmitting(false);
         }
     };
+
+    useEffect(() => {
+        const fetchStates = async () => {
+            try {
+                const data = await propertyService.getStates();
+                setStates(data);
+            } catch (err) {
+                console.error('Failed to fetch states:', err);
+            }
+        };
+        fetchStates();
+    }, []);
 
     useEffect(() => {
         const fetchDetails = async () => {
@@ -441,7 +459,9 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                                 </div>
                                 <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-white hover:shadow-lg transition-all">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">State</p>
-                                    <p className="text-lg font-bold text-slate-900">{property.addressRecord?.city?.state || property.state || property.city?.state || 'N/A'}</p>
+                                    <p className="text-lg font-bold text-slate-900">
+                                        {stateMap[property.addressRecord?.city?.state || ''] || property.addressRecord?.city?.state || property.state || property.city?.state || 'N/A'}
+                                    </p>
                                 </div>
                                 <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-white hover:shadow-lg transition-all">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Pincode</p>

@@ -26,8 +26,8 @@ export class CitiesController {
 
     @Get()
     @Public()
-    findAll() {
-        return this.citiesService.findAllCities();
+    findAll(@Query('state') state?: string) {
+        return this.citiesService.findAllCities(state);
     }
 
     @Post()
@@ -49,12 +49,13 @@ export class CitiesController {
     }
 
     @Get('india/states')
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.PROPERTY_PARTNER)
+    @Public()
     getStates() {
         return this.citiesService.getIndianStates();
     }
 
     @Get('india/:stateCode/cities')
+    @Public()
     getCities(@Param('stateCode') stateCode: string) {
         return this.citiesService.getCitiesOfState(stateCode);
     }

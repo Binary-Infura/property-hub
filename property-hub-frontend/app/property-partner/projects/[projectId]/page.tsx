@@ -13,22 +13,12 @@ import AddUnitModal from '@/app/components/property-partner/AddUnitModal';
 import BulkAddUnitModal from '@/app/components/property-partner/BulkAddUnitModal';
 import MarkAsSoldModal from '@/app/components/property-partner/MarkAsSoldModal';
 import AddTowerModal from '@/app/components/property-partner/AddTowerModal';
+import { projectService } from '@/app/services/propertyService';
 import SidebarIcon from '@/app/components/SidebarIcon';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
-const STATE_NAMES: Record<string, string> = {
-  AN: 'Andaman & Nicobar Islands', AP: 'Andhra Pradesh', AR: 'Arunachal Pradesh',
-  AS: 'Assam', BR: 'Bihar', CH: 'Chandigarh', CT: 'Chhattisgarh',
-  DH: 'Dadra & Nagar Haveli', DL: 'Delhi', GA: 'Goa', GJ: 'Gujarat',
-  HP: 'Himachal Pradesh', HR: 'Haryana', JH: 'Jharkhand', JK: 'Jammu & Kashmir',
-  KA: 'Karnataka', KL: 'Kerala', LA: 'Ladakh', LD: 'Lakshadweep',
-  MH: 'Maharashtra', ML: 'Meghalaya', MN: 'Manipur', MP: 'Madhya Pradesh',
-  MZ: 'Mizoram', NL: 'Nagaland', OD: 'Odisha', PB: 'Punjab',
-  PY: 'Puducherry', RJ: 'Rajasthan', SK: 'Sikkim', TG: 'Telangana',
-  TN: 'Tamil Nadu', TR: 'Tripura', UK: 'Uttarakhand', UP: 'Uttar Pradesh',
-  WB: 'West Bengal',
-};
+
 
 interface TabType {
   id: 'overview' | 'towers' | 'blocks' | 'media' | 'settings';
@@ -84,6 +74,7 @@ export default function ProjectDetailPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalUnits, setTotalUnits] = useState(0);
   const [cities, setCities] = useState<any[]>([]);
+  const [states, setStates] = useState<{ code: string; name: string }[]>([]);
   const UNITS_PER_PAGE = 12;
 
 
@@ -109,6 +100,11 @@ export default function ProjectDetailPage() {
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingStats, setIsEditingStats] = useState(false);
   const [isEditingHighlights, setIsEditingHighlights] = useState(false);
+
+  const stateMap = states.reduce((acc, s) => {
+    acc[s.code] = s.name;
+    return acc;
+  }, {} as Record<string, string>);
   const [newAmenity, setNewAmenity] = useState('');
   const [newHighlight, setNewHighlight] = useState('');
 
@@ -150,10 +146,10 @@ export default function ProjectDetailPage() {
           propertyType: data.projectType === 'COMMERCIAL' ? 'commercial' : 'residential',
           propertyCategory: data.category?.toLowerCase() as any,
           location: data.location,
-          address: data.address || '',
-          city: cityName,
-          state: stateName,
-          pincode: data.pincode || '',
+          address: data.addressRecord?.line1 || data.address || '',
+          city: data.addressRecord?.city?.name || cityName,
+          state: data.addressRecord?.city?.state || stateName,
+          pincode: data.addressRecord?.pincode || data.pincode || '',
           totalArea: parseFloat(data.area) || 0,
           totalTowers: data.totalTowers || 0,
           totalUnits: data.totalUnits || 0,
@@ -169,7 +165,7 @@ export default function ProjectDetailPage() {
           buyerPhone: data.buyerPhone,
           salePrice: parseFloat(data.salePrice) || 0,
           soldAt: data.soldAt ? new Date(data.soldAt) : undefined,
-
+          addressRecord: data.addressRecord,
         } as any;
         setProject(mapped);
         // Blocks are not supported yet, keeping empty
@@ -184,17 +180,25 @@ export default function ProjectDetailPage() {
     }
   };
 
-  const fetchCities = async () => {
+  const fetchStates = async () => {
     try {
-      const res = await fetch(`${API_URL}/api/cities`);
-      if (res.ok) {
-        const data = await res.json();
-        // API returns a plain array
-        const list = Array.isArray(data) ? data : (data.cities || data.data || []);
-        setCities(list);
-      }
+      const data = await projectService.getStates();
+      setStates(data);
     } catch (err) {
-      console.error(err);
+      console.error('Failed to fetch states:', err);
+    }
+  };
+
+  const fetchCities = async (stateCode?: string) => {
+    if (!stateCode) {
+      setCities([]);
+      return;
+    }
+    try {
+      const data = await projectService.getCitiesOfState(stateCode);
+      setCities(data);
+    } catch (err) {
+      console.error('Failed to fetch cities:', err);
     }
   };
 
@@ -304,14 +308,19 @@ export default function ProjectDetailPage() {
   const startEditingLocation = () => {
     const addr = (project as any)?.addressRecord;
     const matchingCityId = addr?.cityId || '';
-    const matchingCity = cities.find(c => c.id === matchingCityId) || cities.find(c => c.name === project?.city);
+    const currentState = addr?.city?.state || project?.state || '';
+    
+    if (currentState) {
+      fetchCities(currentState);
+    }
+
     setEditData(prev => ({
       ...prev,
       address: addr?.line1 || project?.address || '',
       line2: addr?.line2 || '',
-      cityId: matchingCity?.id || matchingCityId || '',
-      city: matchingCity?.name || project?.city || '',
-      state: matchingCity?.state || project?.state || '',
+      cityId: matchingCityId || '',
+      city: addr?.city?.name || project?.city || '',
+      state: currentState,
       pincode: addr?.pincode || project?.pincode || '',
     }));
     setIsEditingLocation(true);
@@ -490,7 +499,7 @@ export default function ProjectDetailPage() {
   useEffect(() => {
     fetchProject();
     fetchTowers();
-    fetchCities();
+    fetchStates();
     setCurrentPage(1);
   }, [projectId, token]);
 
@@ -848,12 +857,13 @@ export default function ProjectDetailPage() {
                             cityId: '',
                             city: '',
                           }));
+                          fetchCities(newState);
                         }}
                         className="w-full px-4 py-2 rounded-lg border border-slate-200 text-sm"
                       >
                         <option value="">Select State</option>
-                        {Array.from(new Set(cities.map((c: any) => c.state))).sort().map((s: any) => (
-                          <option key={s} value={s}>{STATE_NAMES[s as keyof typeof STATE_NAMES] || s}</option>
+                        {states.map((s) => (
+                          <option key={s.code} value={s.code}>{s.name}</option>
                         ))}
                       </select>
                     </div>
@@ -890,25 +900,25 @@ export default function ProjectDetailPage() {
                   <dl className="grid grid-cols-2 md:grid-cols-4 gap-6 text-left">
                     <div className="col-span-2">
                       <dt className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Street Address (Line 1)</dt>
-                      <dd className="text-slate-900 font-bold">{(project as any).addressRecord?.line1 || project.address || 'N/A'}</dd>
+                      <dd className="text-slate-900 font-bold">{project.addressRecord?.line1 || project.address || 'N/A'}</dd>
                     </div>
-                    {(project as any).addressRecord?.line2 && (
+                    {project.addressRecord?.line2 && (
                       <div className="col-span-2">
                         <dt className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Line 2</dt>
-                        <dd className="text-slate-900 font-bold">{(project as any).addressRecord.line2}</dd>
+                        <dd className="text-slate-900 font-bold">{project.addressRecord.line2}</dd>
                       </div>
                     )}
                     <div>
                       <dt className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">City</dt>
-                      <dd className="text-slate-900 font-bold">{(project as any).addressRecord?.city?.name || project.city || 'N/A'}</dd>
+                      <dd className="text-slate-900 font-bold">{project.addressRecord?.city?.name || project.city || 'N/A'}</dd>
                     </div>
                     <div>
                       <dt className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">State</dt>
-                      <dd className="text-slate-900 font-bold">{(project as any).addressRecord?.city?.state || project.state || 'N/A'}</dd>
+                      <dd className="text-slate-900 font-bold">{stateMap[project.addressRecord?.city?.state || ''] || project.addressRecord?.city?.state || project.state || 'N/A'}</dd>
                     </div>
                     <div>
                       <dt className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Pincode</dt>
-                      <dd className="text-slate-900 font-bold">{(project as any).addressRecord?.pincode || project.pincode || 'N/A'}</dd>
+                      <dd className="text-slate-900 font-bold">{project.addressRecord?.pincode || project.pincode || 'N/A'}</dd>
                     </div>
                   </dl>
                 )}
