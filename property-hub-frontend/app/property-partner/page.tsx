@@ -71,7 +71,7 @@ export default function PropertyPartnerDashboard() {
 
         setAnalyticsData({
           totalProjects: projects.length,
-          activeProjects: projects.filter((p: Property) => p.status === 'AVAILABLE').length,
+          activeProjects: projects.filter((p: Property) => p.status === 'APPROVED').length,
           totalUnits,
           bookedUnits,
           totalRevenue,
@@ -280,22 +280,44 @@ export default function PropertyPartnerDashboard() {
             </p>
           </Link>
 
-          <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
+          <Link href="/dashboard/consultants" className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-1 transition-all">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm font-medium">Total Agents</p>
-                <p className="text-3xl font-bold text-purple-600 mt-2">{agentCounts.totalAgents}</p>
+                <p className="text-gray-600 text-sm font-medium">Total Consultants</p>
+                <p className="text-3xl font-bold text-blue-600 mt-2">{agentCounts.consultants}</p>
               </div>
-              <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
-                <SidebarIcon name="person" className="w-6 h-6 text-purple-600" />
+              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
+                <SidebarIcon name="person" className="w-6 h-6 text-blue-600" />
               </div>
             </div>
-            <div className="flex gap-2 mt-2">
-              <span className="text-[10px] font-bold bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded">C: {agentCounts.consultants}</span>
-              <span className="text-[10px] font-bold bg-rose-50 text-rose-600 px-1.5 py-0.5 rounded">V: {agentCounts.visitExecutives}</span>
-              <span className="text-[10px] font-bold bg-indigo-50 text-indigo-600 px-1.5 py-0.5 rounded">B: {agentCounts.brokers}</span>
+            <p className="text-sm text-gray-600 mt-2">Active consultants</p>
+          </Link>
+
+          <Link href="/dashboard/visit-executives" className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-1 transition-all">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">Total Visit Executives</p>
+                <p className="text-3xl font-bold text-rose-600 mt-2">{agentCounts.visitExecutives}</p>
+              </div>
+              <div className="w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center">
+                <SidebarIcon name="pin" className="w-6 h-6 text-rose-600" />
+              </div>
             </div>
-          </div>
+            <p className="text-sm text-gray-600 mt-2">On-ground team</p>
+          </Link>
+
+          <Link href="/dashboard/brokers" className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-1 transition-all">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">Total Brokers</p>
+                <p className="text-3xl font-bold text-indigo-600 mt-2">{agentCounts.brokers}</p>
+              </div>
+              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
+                <SidebarIcon name="handshake" className="w-6 h-6 text-indigo-600" />
+              </div>
+            </div>
+            <p className="text-sm text-gray-600 mt-2">External partners</p>
+          </Link>
         </div>
 
         {/* Management Quick Access */}

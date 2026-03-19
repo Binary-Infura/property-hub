@@ -1322,40 +1322,44 @@ export default function ProjectDetailPage() {
           {/* Settings Tab */}
           {activeTab === 'settings' && (
             <div className="space-y-6">
-              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Project Status</h3>
+              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm opacity-75">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-gray-900">Project Status</h3>
+                  <span className="text-[10px] bg-slate-50 text-slate-400 px-2 py-1 rounded-lg font-black uppercase tracking-widest border border-slate-100">Read Only</span>
+                </div>
                 <div className="flex flex-wrap gap-2">
                   {Object.entries(PROPERTY_STATUS_CONFIG).map(([status, config]) => (
-                    <button
+                    <div
                       key={status}
-                      onClick={() => handleUpdateProject({ status: status.toUpperCase() })}
-                      className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest transition-all ring-1 ring-inset ${project.status === status
-                        ? `${config.bgColor} ${config.color} ${config.ringColor} shadow-md`
-                        : 'bg-gray-50 text-gray-400 ring-gray-100 hover:bg-gray-100'}`}
+                      className={`px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-widest ring-1 ring-inset ${project.status === status
+                        ? `${config.bgColor} ${config.color} ${config.ringColor} shadow-sm`
+                        : 'bg-gray-50 text-gray-300 ring-gray-100'}`}
                     >
                       {config.label}
-                    </button>
+                    </div>
                   ))}
                 </div>
-                <p className="text-xs text-gray-500 mt-4 leading-relaxed">
-                  Changing the status affects how this project is displayed in the portfolio and public search results.
+                <p className="text-xs text-gray-400 mt-4 leading-relaxed font-medium italic">
+                  Status is locked and managed by central authority.
                 </p>
               </div>
 
-              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                <h3 className="text-lg font-bold text-gray-900 mb-4">Project Type</h3>
+              <div className="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm opacity-75">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-bold text-gray-900">Project Type</h3>
+                  <span className="text-[10px] bg-slate-50 text-slate-400 px-2 py-1 rounded-lg font-black uppercase tracking-widest border border-slate-100">Read Only</span>
+                </div>
                 <div className="grid grid-cols-3 gap-3">
                   {PROPERTY_TYPES.map(type => (
-                    <button
+                    <div
                       key={type.value}
-                      onClick={() => handleUpdateProject({ projectType: type.value.toUpperCase() })}
                       className={`p-4 rounded-xl border-2 transition-all text-left ${project.propertyType === type.value
-                        ? 'border-blue-600 bg-blue-50/50 ring-2 ring-blue-100'
-                        : 'border-gray-50 hover:border-gray-200 bg-gray-50/30'}`}
+                        ? 'border-blue-200 bg-blue-50/50'
+                        : 'border-gray-50 bg-gray-50/30'}`}
                     >
-                      <h4 className={`font-bold text-sm ${project.propertyType === type.value ? 'text-blue-700' : 'text-gray-900'}`}>{type.label}</h4>
-                      <p className="text-[10px] text-gray-500 mt-1 uppercase font-bold tracking-tighter">Primary Category</p>
-                    </button>
+                      <h4 className={`font-bold text-sm ${project.propertyType === type.value ? 'text-blue-700' : 'text-gray-400'}`}>{type.label}</h4>
+                      <p className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-tighter">Primary Category</p>
+                    </div>
                   ))}
                 </div>
               </div>
