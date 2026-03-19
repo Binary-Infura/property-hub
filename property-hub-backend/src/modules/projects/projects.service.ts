@@ -6,6 +6,7 @@ import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface
 import { UsersService } from '../users/users.service';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { UserRole } from '../../common/enums/role.enum';
+import { StorageService } from '../../common/services/storage.service';
 
 @Injectable()
 export class ProjectsService {
@@ -13,7 +14,48 @@ export class ProjectsService {
         private prisma: PrismaService,
         private usersService: UsersService,
         private activityLogsService: ActivityLogsService,
+        private storageService: StorageService,
     ) { }
+
+    private async applyPresignedUrls(project: any) {
+        if (!project) return project;
+
+        // Process images
+        if (project.images && Array.isArray(project.images)) {
+            project.images = await Promise.all(
+                project.images.map(async (img: string) => {
+                    if (img && !img.startsWith('http')) {
+                        try {
+                            return await this.storageService.getDownloadUrl(img);
+                        } catch (e) {
+                            return img;
+                        }
+                    }
+                    return img;
+                })
+            );
+        }
+
+        // Process brochure
+        if (project.brochure && !project.brochure.startsWith('http')) {
+            try {
+                project.brochure = await this.storageService.getDownloadUrl(project.brochure);
+            } catch (e) { }
+        }
+
+        // Process specification
+        if (project.specification && !project.specification.startsWith('http')) {
+            try {
+                project.specification = await this.storageService.getDownloadUrl(project.specification);
+            } catch (e) { }
+        }
+
+        return project;
+    }
+
+    private extractKey(urlOrKey: string | undefined): string | undefined {
+        return this.storageService.extractKey(urlOrKey) as string | undefined;
+    }
 
     async findAll(user: AuthenticatedUser | undefined, myOnly?: boolean, city?: string, status?: string): Promise<Project[]> {
         const isCentralAuthority = user?.roles?.includes(UserRole.CENTRAL_AUTHORITY) || false;
@@ -67,7 +109,7 @@ export class ProjectsService {
             },
         });
 
-        return results;
+        return Promise.all(results.map(p => this.applyPresignedUrls(p)));
     }
 
     async findOne(id: string, user?: AuthenticatedUser): Promise<Project> {
@@ -106,7 +148,7 @@ export class ProjectsService {
             const isOwner = project.onboardedById === internalUser.id;
         }
 
-        return project;
+        return this.applyPresignedUrls(project);
     }
 
 
@@ -118,11 +160,14 @@ export class ProjectsService {
             onboardedById = internalUser.id;
         }
 
-        const { addressRecord, ...rest } = createProjectDto;
+        const { addressRecord, images, brochure, specification, ...rest } = createProjectDto;
 
         const data: any = {
             ...rest,
             onboardedById,
+            images: images ? images.map(img => this.extractKey(img)) : undefined,
+            brochure: this.extractKey(brochure),
+            specification: this.extractKey(specification),
         };
 
         if (addressRecord) {
@@ -130,8 +175,6 @@ export class ProjectsService {
                 create: addressRecord
             };
         }
-
-
 
         const project = await this.prisma.project.create({
             data,
@@ -160,16 +203,19 @@ export class ProjectsService {
             details: { projectId: project.id }
         });
 
-        return project;
+        return this.applyPresignedUrls(project);
     }
 
     async update(id: string, updateProjectDto: UpdateProjectDto, user: AuthenticatedUser): Promise<Project> {
         const project = await this.findOne(id, user);
 
-        const { addressRecord, ...rest } = updateProjectDto;
+        const { addressRecord, images, brochure, specification, ...rest } = updateProjectDto;
 
         const data: any = {
             ...rest,
+            images: images ? images.map(img => this.extractKey(img)) : undefined,
+            brochure: this.extractKey(brochure),
+            specification: this.extractKey(specification),
         };
 
         if (addressRecord) {
@@ -201,7 +247,7 @@ export class ProjectsService {
             },
         });
 
-        return projectAfter;
+        return this.applyPresignedUrls(projectAfter);
     }
 
     async remove(id: string, user: AuthenticatedUser): Promise<Project> {

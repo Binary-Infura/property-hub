@@ -147,6 +147,14 @@ export class CreateProjectDto {
     @IsOptional()
     images?: string[];
 
+    @IsString()
+    @IsOptional()
+    brochure?: string;
+
+    @IsString()
+    @IsOptional()
+    specification?: string;
+
     @IsOptional()
     @ValidateNested()
     @Type(() => CreateAddressDto)
@@ -237,6 +245,14 @@ export class UpdateProjectDto {
     @IsString({ each: true })
     @IsOptional()
     images?: string[];
+
+    @IsString()
+    @IsOptional()
+    brochure?: string;
+
+    @IsString()
+    @IsOptional()
+    specification?: string;
 
     @IsOptional()
     @ValidateNested()

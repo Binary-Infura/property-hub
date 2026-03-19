@@ -43,6 +43,7 @@ export class UploadsController {
         try {
             const parts = req.parts();
             let uploadedFileUrl = '';
+            let uploadedFileKey = '';
             let category = '';
             let documentName = '';
             let fileBuffer: Buffer | null = null;
@@ -90,13 +91,15 @@ export class UploadsController {
             const fileName = `${randomName}${fileExtension}`;
 
             // Upload to S3/MinIO
-            uploadedFileUrl = await this.storageService.uploadFile(
+            const uploadResult = await this.storageService.uploadFile(
                 fileBuffer,
                 fileName,
                 fileMimeType
             );
+            uploadedFileUrl = uploadResult.url;
+            uploadedFileKey = uploadResult.key;
 
-            this.log(`[UploadDebug] File uploaded to storage: ${uploadedFileUrl}`);
+            this.log(`[UploadDebug] File uploaded to storage: ${uploadedFileUrl} (key: ${uploadedFileKey})`);
 
             // If this is a buyer/consultant document, save to DB
             const isBuyer = user.roles.includes(UserRole.BUYER);
@@ -112,7 +115,7 @@ export class UploadsController {
                             user.userId,
                             category,
                             documentName,
-                            uploadedFileUrl
+                            uploadedFileKey // Store the key, not the presigned URL
                         );
                         this.log(`[UploadDebug] DB persistence SUCCESS.`);
                     } catch (saveError: any) {
@@ -123,7 +126,7 @@ export class UploadsController {
                 }
             }
 
-            return { url: uploadedFileUrl };
+            return { url: uploadedFileUrl, key: uploadedFileKey };
         } catch (error: any) {
             this.log(`[UploadDebug] SERVER_UPLOAD_ERROR: ${error.message}`);
             if (error instanceof BadRequestException || error instanceof InternalServerErrorException) {

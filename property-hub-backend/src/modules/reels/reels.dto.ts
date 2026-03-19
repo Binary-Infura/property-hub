@@ -13,12 +13,12 @@ export class CreateReelDto {
     description?: string;
 
     @ApiProperty()
-    @IsUrl()
+    @IsString()
     @IsNotEmpty()
     videoUrl: string;
 
     @ApiProperty({ required: false })
-    @IsUrl()
+    @IsString()
     @IsOptional()
     thumbnailUrl?: string;
 

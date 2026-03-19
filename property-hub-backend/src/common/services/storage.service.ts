@@ -68,7 +68,7 @@ export class StorageService implements OnModuleInit {
         file: any,
         key: string,
         contentType?: string,
-    ): Promise<string> {
+    ): Promise<{ url: string; key: string }> {
         try {
             const command = new PutObjectCommand({
                 Bucket: this.bucket,
@@ -80,8 +80,9 @@ export class StorageService implements OnModuleInit {
             await this.s3Client.send(command);
             this.logger.log(`Successfully uploaded file to: ${key}`);
 
-            // Return a presigned URL for secure viewing (valid for 1 hour)
-            return this.getDownloadUrl(key, 3600);
+            // Return both the presigned URL and the key
+            const url = await this.getDownloadUrl(key, 3600);
+            return { url, key };
         } catch (error) {
             this.logger.error(`Failed to upload file to S3:`, error);
             throw error;
@@ -115,17 +116,50 @@ export class StorageService implements OnModuleInit {
             throw error;
         }
     }
+    async getPresignedUrl(key: string, expires: number = 3600): Promise<string> {
+        return this.getDownloadUrl(key, expires);
+    }
 
-    async getPresignedUrl(key: string, expiresInSeconds = 3600): Promise<string> {
+    extractKey(urlOrKey: string | undefined | null): string | undefined | null {
+        if (!urlOrKey) return urlOrKey;
+        if (typeof urlOrKey !== 'string') return urlOrKey;
+        if (!urlOrKey.startsWith('http')) return urlOrKey;
+
         try {
-            const command = new PutObjectCommand({
-                Bucket: this.bucket,
-                Key: key,
-            });
-            return await getSignedUrl(this.s3Client, command, { expiresIn: expiresInSeconds });
-        } catch (error) {
-            this.logger.error(`Failed to generate presigned upload URL:`, error);
-            throw error;
+            const url = new URL(urlOrKey);
+            const host = url.hostname;
+            const pathname = url.pathname;
+
+            // Handle path-style: http://localhost:9000/bucket/key
+            // or http://s3.amazonaws.com/bucket/key
+            if (pathname.includes(this.bucket)) {
+                const parts = pathname.split(this.bucket);
+                if (parts.length > 1) {
+                    let key = parts[1];
+                    if (key.startsWith('/')) key = key.substring(1);
+                    return key;
+                }
+            }
+
+            // Handle virtual-host style: http://bucket.s3.amazonaws.com/key
+            if (host.startsWith(`${this.bucket}.`)) {
+                let key = pathname;
+                if (key.startsWith('/')) key = key.substring(1);
+                return key;
+            }
+
+            // Fallback: just take everything after the first slash (if first is bucket)
+            // or return as is if it doesn't match patterns
+            const parts = pathname.split('/').filter(p => p.length > 0);
+            if (parts.length >= 2) {
+                // Assume first part is bucket, rest is key
+                return parts.slice(1).join('/');
+            } else if (parts.length === 1) {
+                return parts[0];
+            }
+        } catch (e) {
+            this.logger.warn(`Failed to extract key from URL: ${urlOrKey}`);
         }
+        return urlOrKey;
     }
 }

@@ -6,6 +6,7 @@ import { Prisma, Reel, InstagramStatus } from '@prisma/client';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 import { UsersService } from '../users/users.service';
 import { InstagramService } from '../instagram/instagram.service';
+import { StorageService } from '../../common/services/storage.service';
 
 @Injectable()
 export class ReelsService {
@@ -13,7 +14,40 @@ export class ReelsService {
         private prisma: PrismaService,
         private usersService: UsersService,
         private instagramService: InstagramService,
+        private storageService: StorageService,
     ) { }
+
+    private async applyPresignedUrls(reel: any) {
+        if (!reel) return reel;
+
+        if (reel.videoUrl && !reel.videoUrl.startsWith('http')) {
+            try {
+                reel.videoUrl = await this.storageService.getDownloadUrl(reel.videoUrl);
+            } catch (e) { }
+        }
+
+        if (reel.thumbnailUrl && !reel.thumbnailUrl.startsWith('http')) {
+            try {
+                reel.thumbnailUrl = await this.storageService.getDownloadUrl(reel.thumbnailUrl);
+            } catch (e) { }
+        }
+
+        return reel;
+    }
+
+    private extractKey(urlOrKey: string | undefined): string | undefined {
+        if (!urlOrKey) return urlOrKey;
+        if (!urlOrKey.startsWith('http')) return urlOrKey;
+
+        try {
+            const url = new URL(urlOrKey);
+            const parts = url.pathname.split('/');
+            if (parts.length > 2) {
+                return parts.slice(2).join('/');
+            }
+        } catch (e) { }
+        return urlOrKey;
+    }
 
     async findAll(page = 1, limit = 8, projectId?: string): Promise<{ data: Reel[]; total: number; hasMore: boolean }> {
         const skip = (page - 1) * limit;
@@ -48,11 +82,12 @@ export class ReelsService {
             this.prisma.reel.count({ where }),
         ]);
 
-        return { data, total, hasMore: skip + data.length < total };
+        const processedData = await Promise.all(data.map(r => this.applyPresignedUrls(r)));
+        return { data: processedData, total, hasMore: skip + data.length < total };
     }
 
     async findByUser(userId: string): Promise<Reel[]> {
-        return this.prisma.reel.findMany({
+        const reels = await this.prisma.reel.findMany({
             where: { userId },
             include: {
                 user: {
@@ -68,6 +103,7 @@ export class ReelsService {
                 createdAt: 'desc',
             },
         });
+        return Promise.all(reels.map(r => this.applyPresignedUrls(r)));
     }
 
     async create(createReelDto: CreateReelDto, user: AuthenticatedUser): Promise<Reel> {
@@ -94,8 +130,8 @@ export class ReelsService {
             data: {
                 title: createReelDto.title,
                 description: createReelDto.description,
-                videoUrl: createReelDto.videoUrl,
-                thumbnailUrl: createReelDto.thumbnailUrl,
+                videoUrl: this.extractKey(createReelDto.videoUrl) as string,
+                thumbnailUrl: this.extractKey(createReelDto.thumbnailUrl),
                 userId: internalUser.id,
                 projectId: createReelDto.projectId,
                 publishToOfficialInstagram: createReelDto.publishToOfficialInstagram || false,
@@ -117,11 +153,13 @@ export class ReelsService {
 
         // Trigger Instagram publishing workflow if enabled for partner's account
         // Trigger Instagram publishing asynchronously if partner Instagram toggle is enabled
+        // Use the presigned URL for external publishing
+        const reelWithUrls = await this.applyPresignedUrls({ ...reel });
         if (reel.publishToPartnerInstagram) {
-            this.publishToPartnerInstagramAsync(reel.id, reel.videoUrl, instagramCaption, internalUser.id);
+            this.publishToPartnerInstagramAsync(reel.id, reelWithUrls.videoUrl, instagramCaption, internalUser.id);
         }
 
-        return reel;
+        return reelWithUrls;
     }
 
     /**
@@ -217,7 +255,7 @@ export class ReelsService {
             throw new NotFoundException(`Reel with ID ${id} not found`);
         }
 
-        return reel;
+        return this.applyPresignedUrls(reel);
     }
 
     async getPendingReelsForModeration(page = 1, limit = 10): Promise<{ data: Reel[]; total: number; hasMore: boolean }> {
@@ -254,7 +292,8 @@ export class ReelsService {
             }),
         ]);
 
-        return { data, total, hasMore: skip + data.length < total };
+        const processedData = await Promise.all(data.map(r => this.applyPresignedUrls(r)));
+        return { data: processedData, total, hasMore: skip + data.length < total };
     }
 
     private generateInstagramCaption(project: any): string {

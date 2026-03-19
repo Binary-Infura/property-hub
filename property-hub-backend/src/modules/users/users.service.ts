@@ -15,12 +15,15 @@ import { UserRole } from '../../common/enums/role.enum';
 import { OrganizationType } from '../../common/enums/organization-type.enum';
 import * as bcrypt from 'bcrypt';
 
+import { StorageService } from '../../common/services/storage.service';
+
 @Injectable()
 export class UsersService {
     constructor(
         private prisma: PrismaService,
         private configService: ConfigService,
         private activityLogsService: ActivityLogsService,
+        private storageService: StorageService,
     ) { }
 
     private async hashPassword(password: string): Promise<string> {
@@ -217,12 +220,24 @@ export class UsersService {
         return { data, total };
     }
 
-    async findOne(id: string): Promise<User> {
+    async findOne(id: string): Promise<any> {
         const user = await this.prisma.user.findUnique({
             where: { id },
             include: { documents: true, organization: true }
         });
         if (!user) throw new NotFoundException('User not found');
+
+        if (user.documents && Array.isArray(user.documents)) {
+            user.documents = await Promise.all(user.documents.map(async (doc: any) => {
+                if (doc.url && !doc.url.startsWith('http')) {
+                    try {
+                        doc.url = await this.storageService.getDownloadUrl(doc.url);
+                    } catch (e) { }
+                }
+                return doc;
+            }));
+        }
+
         return user;
     }
 
@@ -401,22 +416,33 @@ export class UsersService {
     // DOCUMENTS
     // ─────────────────────────────────────────────────────────────
 
-    async saveUserDocument(userId: string, category: string, name: string, url: string) {
+    async saveUserDocument(userId: string, category: string, name: string, urlOrKey: string) {
+        // Extract key if a full URL is provided
+        const key = this.storageService.extractKey(urlOrKey);
+
         const existing = await this.prisma.userDocument.findFirst({ where: { userId, category, name } });
 
         if (existing) {
             return this.prisma.userDocument.update({
                 where: { id: existing.id },
-                data: { url, status: 'uploaded', updatedAt: new Date() }
+                data: { url: key, status: 'uploaded', updatedAt: new Date() }
             });
         }
 
         return this.prisma.userDocument.create({
-            data: { userId, category, name, url, status: 'uploaded' },
+            data: { userId, category, name, url: key, status: 'uploaded' },
         });
     }
 
     async getUserDocuments(userId: string) {
-        return this.prisma.userDocument.findMany({ where: { userId } });
+        const docs = await this.prisma.userDocument.findMany({ where: { userId } });
+        return Promise.all(docs.map(async (doc) => {
+            if (doc.url && !doc.url.startsWith('http')) {
+                try {
+                    doc.url = await this.storageService.getDownloadUrl(doc.url);
+                } catch (e) { }
+            }
+            return doc;
+        }));
     }
 }
