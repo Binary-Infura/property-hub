@@ -35,9 +35,13 @@ export default function Home() {
   // Interactive components are handled via dynamic(ssr: false)
 
   return (
-    <div className="bg-white relative">
-      <FloatingBackground />
-      <MouseGlow />
+    <div className="bg-white relative min-h-screen overflow-x-hidden">
+      {hasMounted && (
+        <>
+          <FloatingBackground />
+          <MouseGlow />
+        </>
+      )}
       <Navbar />
 
       {/* Hero Section */}

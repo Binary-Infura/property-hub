@@ -15,7 +15,8 @@ const HouseModel = () => {
 
   useFrame((state) => {
     if (group.current) {
-      group.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.2) * 0.1;
+      // Gentle oscillation around the front face
+      group.current.rotation.y = Math.sin(state.clock.elapsedTime * 0.15) * 0.05 + Math.PI / 4;
     }
   });
 
@@ -28,15 +29,15 @@ const HouseModel = () => {
       </mesh>
 
       {/* Modern House Body */}
-      <group position={[1, 1.5, 0]}>
+      <group position={[0, 1.5, 0]}>
         {/* Ground Floor */}
         <mesh castShadow receiveShadow>
-          <boxGeometry args={[4, 3, 3]} />
+          <boxGeometry args={[5, 3, 3]} />
           <meshStandardMaterial color="#ffffff" />
         </mesh>
         
-        {/* Large Window */}
-        <mesh position={[2.01, 0, 0]}>
+        {/* Large Window on Front */}
+        <mesh position={[1, 0, 1.51]}>
           <planeGeometry args={[2, 2]} />
           <meshPhysicalMaterial 
             color="#93c5fd" 
@@ -49,21 +50,21 @@ const HouseModel = () => {
           />
         </mesh>
 
-        {/* Second Floor - Offset */}
-        <group position={[-0.5, 3, 0.5]}>
+        {/* Second Floor */}
+        <group position={[-0.5, 3, 0]}>
           <mesh castShadow receiveShadow>
-            <boxGeometry args={[3, 3, 4]} />
+            <boxGeometry args={[4, 3, 3.2]} />
             <meshStandardMaterial color="#1e293b" />
           </mesh>
-          <mesh position={[0, 0, 2.01]}>
-            <planeGeometry args={[2, 2]} />
+          <mesh position={[0, 0, 1.61]}>
+            <planeGeometry args={[2.5, 2]} />
             <meshPhysicalMaterial color="#60a5fa" emissive="#3b82f6" emissiveIntensity={0.5} />
           </mesh>
         </group>
 
         {/* Balcony Railing */}
-        <mesh position={[1, 1.6, 2]} rotation={[0, 0, 0]}>
-          <boxGeometry args={[3, 0.1, 0.1]} />
+        <mesh position={[2, 1.6, 1.5]} rotation={[0, 0, 0]}>
+          <boxGeometry args={[1, 0.1, 0.1]} />
           <meshStandardMaterial color="#94a3b8" />
         </mesh>
       </group>
@@ -110,9 +111,9 @@ const Building3D = () => {
         
         <PresentationControls
           global
-          rotation={[0, -Math.PI / 4, 0]}
-          polar={[-Math.PI / 6, Math.PI / 6]}
-          azimuth={[-Math.PI / 4, Math.PI / 4]}
+          rotation={[0, Math.PI / 8, 0]}
+          polar={[-Math.PI / 12, Math.PI / 12]}
+          azimuth={[-Math.PI / 3, Math.PI / 3]}
           snap
         >
           <HouseModel />
