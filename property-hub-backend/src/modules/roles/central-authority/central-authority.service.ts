@@ -141,8 +141,8 @@ export class CentralAuthorityService {
             this.prisma.organization.count(),
             this.prisma.city.findMany({
                 include: {
-                    _count: {
-                        select: { projects: true }
+                    addresses: {
+                        include: { projects: { select: { id: true } } }
                     }
                 }
             })
@@ -152,7 +152,7 @@ export class CentralAuthorityService {
             id: city.id,
             name: city.name,
             managers: [], // Not implemented yet
-            propertiesCount: city._count?.projects || 0,
+            propertiesCount: city.addresses?.flatMap((a: any) => a.projects).length || 0,
             leadsGenerated: 0 // Not implemented yet
         }));
 

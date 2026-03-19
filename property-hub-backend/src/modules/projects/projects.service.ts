@@ -33,16 +33,13 @@ export class ProjectsService {
         }
 
         if (city) {
-            const cityGeoId = parseInt(city, 10);
-            if (!isNaN(cityGeoId)) {
-                where.cityGeoId = cityGeoId;
-            } else {
-                where.OR = [
+            where.addressRecord = {
+                OR: [
                     { city: { name: { contains: city, mode: 'insensitive' } } },
-                    { location: { contains: city, mode: 'insensitive' } },
-                    { address: { contains: city, mode: 'insensitive' } }
-                ];
-            }
+                    { line1: { contains: city, mode: 'insensitive' } },
+                    { line2: { contains: city, mode: 'insensitive' } }
+                ]
+            };
         }
 
         if (myOnly) {
@@ -53,13 +50,17 @@ export class ProjectsService {
         const results = await this.prisma.project.findMany({
             where,
             include: {
+                addressRecord: {
+                    include: {
+                        city: true
+                    }
+                },
                 onboardedBy: {
                     include: {
                         organization: true,
                     },
                 },
                 assignedTo: true,
-                city: true,
             },
             orderBy: {
                 createdAt: 'desc',
@@ -73,6 +74,11 @@ export class ProjectsService {
         const project = await this.prisma.project.findUnique({
             where: { id },
             include: {
+                addressRecord: {
+                    include: {
+                        city: true
+                    }
+                },
                 commissions: true,
                 assignedTo: true,
                 onboardedBy: {
@@ -80,7 +86,6 @@ export class ProjectsService {
                         organization: true,
                     },
                 },
-                city: true,
                 towers: {
                     include: {
                         units: true,
@@ -113,19 +118,29 @@ export class ProjectsService {
             onboardedById = internalUser.id;
         }
 
-        const { cityGeoId, ...rest } = createProjectDto;
+        const { addressRecord, ...rest } = createProjectDto;
 
         const data: any = {
             ...rest,
-            cityGeoId,
             onboardedById,
         };
+
+        if (addressRecord) {
+            data.addressRecord = {
+                create: addressRecord
+            };
+        }
 
 
 
         const project = await this.prisma.project.create({
             data,
             include: {
+                addressRecord: {
+                    include: {
+                        city: true
+                    }
+                },
                 onboardedBy: {
                     include: {
                         organization: true,
@@ -151,17 +166,33 @@ export class ProjectsService {
     async update(id: string, updateProjectDto: UpdateProjectDto, user: AuthenticatedUser): Promise<Project> {
         const project = await this.findOne(id, user);
 
-        const { cityGeoId, ...rest } = updateProjectDto;
+        const { addressRecord, ...rest } = updateProjectDto;
 
         const data: any = {
             ...rest,
-            cityGeoId,
         };
+
+        if (addressRecord) {
+            if ((project as any).addressId) {
+                data.addressRecord = {
+                    update: addressRecord
+                };
+            } else {
+                data.addressRecord = {
+                    create: addressRecord
+                };
+            }
+        }
 
         const projectAfter = await this.prisma.project.update({
             where: { id },
             data,
             include: {
+                addressRecord: {
+                    include: {
+                        city: true
+                    }
+                },
                 onboardedBy: {
                     include: {
                         organization: true,

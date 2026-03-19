@@ -87,7 +87,7 @@ export default function ViewListingModal({ isOpen, onClose, property }: ViewList
                                     </div>
                                     <div className="col-span-2 bg-gray-50 p-3 rounded-lg border border-gray-100">
                                         <p className="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-1">Street Address</p>
-                                        <p className="text-sm text-gray-900 font-medium">{property.address || '-'}</p>
+                                        <p className="text-sm text-gray-900 font-medium">{property.addressRecord?.line1 || property.address || '-'}</p>
                                     </div>
                                 </div>
                             </div>

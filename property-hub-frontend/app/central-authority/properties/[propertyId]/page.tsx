@@ -16,6 +16,14 @@ interface Property {
     description: string;
     location: string;
     address: string;
+    addressRecord?: {
+        line1?: string;
+        cityId?: string;
+        city?: {
+            name: string;
+            state: string;
+        }
+    };
     city?: {
         name: string;
         state: string;
@@ -150,7 +158,7 @@ export default function CentralAuthorityPropertyDetailPage() {
                                 {statusConfig.label}
                             </span>
                         </div>
-                        <p className="text-gray-600 mt-1">{property.location} • {property.city?.name}, {property.city?.state}</p>
+                        <p className="text-gray-600 mt-1">{property.addressRecord?.city?.name || property.location} • {property.addressRecord?.city?.name || property.city?.name}, {property.addressRecord?.city?.state || property.city?.state}</p>
                     </div>
                 </div>
                 <div className="bg-blue-600 px-6 py-3 rounded-2xl text-white shadow-xl shadow-blue-200 flex flex-col items-end">
@@ -206,8 +214,8 @@ export default function CentralAuthorityPropertyDetailPage() {
                                 </div>
                                 <div>
                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Full Address</p>
-                                    <p className="text-gray-900 mt-1 font-bold text-lg leading-tight">{property.address || property.location}</p>
-                                    <p className="text-sm text-gray-500 mt-1 font-semibold">{property.city?.name}, {property.city?.state}</p>
+                                    <p className="text-gray-900 mt-1 font-bold text-lg leading-tight">{property.addressRecord?.line1 || property.address || property.location}</p>
+                                    <p className="text-sm text-gray-500 mt-1 font-semibold">{property.addressRecord?.city?.name || property.city?.name}, {property.addressRecord?.city?.state || property.city?.state}</p>
                                 </div>
                             </div>
                         </div>

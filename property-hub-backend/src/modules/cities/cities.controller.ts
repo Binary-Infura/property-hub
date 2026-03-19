@@ -25,6 +25,7 @@ export class CitiesController {
     }
 
     @Get()
+    @Public()
     findAll() {
         return this.citiesService.findAllCities();
     }

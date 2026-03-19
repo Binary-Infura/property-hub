@@ -206,8 +206,10 @@ export class UnitsService {
                     project: {
                         select: {
                             name: true,
-                            location: true,
-                            category: true
+                            category: true,
+                            addressRecord: {
+                                select: { line1: true, city: { select: { name: true } } }
+                            }
                         }
                     }
                 },
@@ -220,6 +222,15 @@ export class UnitsService {
             }),
         ]);
 
-        return { units, total };
+        const mapped = units.map((u: any) => ({
+            ...u,
+            project: {
+                name: u.project.name,
+                category: u.project.category,
+                location: u.project.addressRecord?.city?.name || u.project.addressRecord?.line1 || 'Unknown'
+            }
+        }));
+
+        return { units: mapped, total };
     }
 }

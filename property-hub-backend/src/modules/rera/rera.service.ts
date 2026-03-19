@@ -123,17 +123,33 @@ export class ReraService {
             return existing;
         }
 
+        let city = await this.prisma.city.findFirst({
+            where: { name: { equals: reraProject.district || 'Unknown', mode: 'insensitive' } }
+        });
+        if (!city) {
+            city = await this.prisma.city.create({
+                data: {
+                    name: reraProject.district || 'Unknown',
+                    state: reraProject.state || 'Unknown',
+                }
+            });
+        }
+
         // Create project from RERA project
         const project = await this.prisma.project.create({
             data: {
                 name: reraProject.projectName,
                 description: `Imported from RERA. Promoter: ${reraProject.promoterName}. RERA Number: ${reraProject.reraNumber}`,
-                location: reraProject.district || reraProject.state,
-                address: reraProject.address,
+                addressRecord: {
+                    create: {
+                        line1: reraProject.address || reraProject.district || 'Unknown',
+                        cityId: city.id,
+                    }
+                },
                 price: 0,
                 projectType: 'APARTMENT',
                 status: 'DRAFT',
-                onboardedById: internalUser.id,
+                onboardedBy: { connect: { id: internalUser.id } },
                 category: 'flat',
             },
         });

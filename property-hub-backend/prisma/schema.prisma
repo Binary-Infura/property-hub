@@ -93,8 +93,6 @@ model Project {
   id            String        @id @default(uuid())
   name          String
   description   String?
-  location      String
-  address       String?
   status        ProjectStatus @default(DRAFT)
   price         Decimal       @db.Decimal(15, 2)
   area          Decimal?      @db.Decimal(10, 2)
@@ -108,10 +106,6 @@ model Project {
 
   images         String[]       @default([])
   onboardingStep Int?           @default(1)
-  postalCodeId   String?
-  state          String?
-  cityName       String?
-  pincode        String?
   totalTowers    Int?
   totalUnits     Int?
   amenities      String[]       @default(["Parking", "Security", "Lift"])
@@ -120,19 +114,17 @@ model Project {
   commissions    Commission[]
   leads          Lead[]
   loans          Loan[]
-  cityGeoId      Int?
-  city           City?          @relation(fields: [cityGeoId], references: [geoId])
   onboardedBy    User?          @relation("UserOnboardedProjects", fields: [onboardedById], references: [id])
-  postalCode     PostalCode?    @relation("ProjectPostalCode", fields: [postalCodeId], references: [id])
   units          PropertyUnit[]
   towers         Tower[]
   reels          Reel[]
   assignedTo     User[]         @relation("ProjectAssignment")
 
-  @@index([postalCodeId])
+  addressId      String?
+  addressRecord  Address?       @relation(fields: [addressId], references: [id])
+
   @@index([status])
   @@index([onboardedById])
-  @@index([cityGeoId])
   @@index([projectType])
   @@map("projects")
 }
@@ -477,8 +469,9 @@ model City {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   active    Boolean   @default(true)
-  projects  Project[]
+  addresses Address[]
 
+  @@index([name])
   @@map("cities")
 }
 
@@ -501,7 +494,6 @@ model PostalCode {
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
   continent    String?
-  projects     Project[] @relation("ProjectPostalCode")
 
   @@unique([code, officeName])
   @@index([code])
@@ -747,3 +739,25 @@ enum InvitationStatus {
   EXPIRED
   REVOKED
 }
+
+model Address {
+  id            String   @id @default(uuid())
+  line1         String
+  line2         String?
+  pincode       String?
+  latitude      Float?
+  longitude     Float?
+  googlePlaceId String?  @unique
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  cityId        String
+  city          City     @relation(fields: [cityId], references: [id])
+
+  projects      Project[]
+
+  @@index([cityId])
+  @@index([cityId, pincode])
+  @@map("addresses")
+}
+

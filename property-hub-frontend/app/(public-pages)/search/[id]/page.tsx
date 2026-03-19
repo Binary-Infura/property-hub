@@ -428,21 +428,24 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                                 Location Details
                             </h3>
                             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
-                                <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-white hover:shadow-lg transition-all">
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Address</p>
-                                    <p className="text-lg font-bold text-slate-900">{property.address || 'N/A'}</p>
+                                <div className="col-span-1 sm:col-span-2 p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-white hover:shadow-lg transition-all">
+                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Street Address</p>
+                                    <p className="text-lg font-bold text-slate-900">{property.addressRecord?.line1 || property.address || 'N/A'}</p>
+                                    {property.addressRecord?.line2 && (
+                                        <p className="text-sm text-slate-500 font-medium mt-1">{property.addressRecord.line2}</p>
+                                    )}
                                 </div>
                                 <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-white hover:shadow-lg transition-all">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">City</p>
-                                    <p className="text-lg font-bold text-slate-900">{property.cityName || property.city?.name || 'N/A'}</p>
+                                    <p className="text-lg font-bold text-slate-900">{property.addressRecord?.city?.name || property.cityName || property.city?.name || 'N/A'}</p>
                                 </div>
                                 <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-white hover:shadow-lg transition-all">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">State</p>
-                                    <p className="text-lg font-bold text-slate-900">{property.state || property.city?.state || 'N/A'}</p>
+                                    <p className="text-lg font-bold text-slate-900">{property.addressRecord?.city?.state || property.state || property.city?.state || 'N/A'}</p>
                                 </div>
                                 <div className="p-6 bg-slate-50 rounded-3xl border border-slate-100 group hover:bg-white hover:shadow-lg transition-all">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Pincode</p>
-                                    <p className="text-lg font-bold text-slate-900">{property.pincode || 'N/A'}</p>
+                                    <p className="text-lg font-bold text-slate-900">{property.addressRecord?.pincode || property.pincode || 'N/A'}</p>
                                 </div>
                             </div>
                         </div>

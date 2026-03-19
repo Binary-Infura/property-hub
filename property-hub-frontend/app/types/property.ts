@@ -46,6 +46,14 @@ export interface Property {
   propertyCategory?: PropertyCategory;
   location: string;
   address: string;
+  addressRecord?: {
+    line1?: string;
+    cityId?: string;
+    city?: {
+      name: string;
+      state: string;
+    }
+  };
   city: string;
   state: string;
   pincode: string;

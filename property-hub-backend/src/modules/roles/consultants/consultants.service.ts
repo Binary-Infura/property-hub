@@ -51,7 +51,7 @@ export class ConsultantsService {
                 }
             },
             include: {
-                city: true,
+                addressRecord: { include: { city: true } },
                 units: {
                     include: {
                         tower: true

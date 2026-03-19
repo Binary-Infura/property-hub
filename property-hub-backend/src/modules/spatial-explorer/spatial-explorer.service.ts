@@ -18,7 +18,7 @@ export class SpatialExplorerService {
             select: {
                 id: true,
                 name: true,
-                location: true,
+                addressRecord: { select: { line1: true, city: { select: { name: true } } } },
                 projectType: true,
                 status: true,
                 price: true,
@@ -90,7 +90,7 @@ export class SpatialExplorerService {
             project: {
                 id:          project.id,
                 name:        project.name,
-                location:    project.location,
+                location:    (project as any).addressRecord?.city?.name || (project as any).addressRecord?.line1 || 'Unknown',
                 projectType: project.projectType,
                 status:      project.status,
                 price:       project.price,

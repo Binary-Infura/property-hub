@@ -17,6 +17,19 @@ import SidebarIcon from '@/app/components/SidebarIcon';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
+const STATE_NAMES: Record<string, string> = {
+  AN: 'Andaman & Nicobar Islands', AP: 'Andhra Pradesh', AR: 'Arunachal Pradesh',
+  AS: 'Assam', BR: 'Bihar', CH: 'Chandigarh', CT: 'Chhattisgarh',
+  DH: 'Dadra & Nagar Haveli', DL: 'Delhi', GA: 'Goa', GJ: 'Gujarat',
+  HP: 'Himachal Pradesh', HR: 'Haryana', JH: 'Jharkhand', JK: 'Jammu & Kashmir',
+  KA: 'Karnataka', KL: 'Kerala', LA: 'Ladakh', LD: 'Lakshadweep',
+  MH: 'Maharashtra', ML: 'Meghalaya', MN: 'Manipur', MP: 'Madhya Pradesh',
+  MZ: 'Mizoram', NL: 'Nagaland', OD: 'Odisha', PB: 'Punjab',
+  PY: 'Puducherry', RJ: 'Rajasthan', SK: 'Sikkim', TG: 'Telangana',
+  TN: 'Tamil Nadu', TR: 'Tripura', UK: 'Uttarakhand', UP: 'Uttar Pradesh',
+  WB: 'West Bengal',
+};
+
 interface TabType {
   id: 'overview' | 'towers' | 'blocks' | 'media' | 'settings';
   label: string;
@@ -70,6 +83,7 @@ export default function ProjectDetailPage() {
   const [selectedUnitIds, setSelectedUnitIds] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalUnits, setTotalUnits] = useState(0);
+  const [cities, setCities] = useState<any[]>([]);
   const UNITS_PER_PAGE = 12;
 
 
@@ -81,6 +95,8 @@ export default function ProjectDetailPage() {
     description: '',
     amenities: [] as string[],
     address: '',
+    line2: '',
+    cityId: '',
     city: '',
     state: '',
     pincode: '',
@@ -165,6 +181,20 @@ export default function ProjectDetailPage() {
       console.error(err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchCities = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/cities`);
+      if (res.ok) {
+        const data = await res.json();
+        // API returns a plain array
+        const list = Array.isArray(data) ? data : (data.cities || data.data || []);
+        setCities(list);
+      }
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -272,22 +302,33 @@ export default function ProjectDetailPage() {
   };
 
   const startEditingLocation = () => {
+    const addr = (project as any)?.addressRecord;
+    const matchingCityId = addr?.cityId || '';
+    const matchingCity = cities.find(c => c.id === matchingCityId) || cities.find(c => c.name === project?.city);
     setEditData(prev => ({
       ...prev,
-      address: project?.address || '',
-      city: project?.city || '',
-      state: project?.state || '',
-      pincode: project?.pincode || '',
+      address: addr?.line1 || project?.address || '',
+      line2: addr?.line2 || '',
+      cityId: matchingCity?.id || matchingCityId || '',
+      city: matchingCity?.name || project?.city || '',
+      state: matchingCity?.state || project?.state || '',
+      pincode: addr?.pincode || project?.pincode || '',
     }));
     setIsEditingLocation(true);
   };
 
   const saveLocation = async () => {
+    if (!editData.cityId) {
+      alert("Please select a City");
+      return;
+    }
     const success = await handleUpdateProject({
-      address: editData.address,
-      cityName: editData.city,
-      state: editData.state,
-      pincode: editData.pincode,
+      addressRecord: {
+        line1: editData.address,
+        line2: editData.line2 || undefined,
+        pincode: editData.pincode,
+        cityId: editData.cityId,
+      }
     });
     if (success) setIsEditingLocation(false);
   };
@@ -449,6 +490,7 @@ export default function ProjectDetailPage() {
   useEffect(() => {
     fetchProject();
     fetchTowers();
+    fetchCities();
     setCurrentPage(1);
   }, [projectId, token]);
 
@@ -775,31 +817,64 @@ export default function ProjectDetailPage() {
                 {isEditingLocation ? (
                   <div className="grid md:grid-cols-2 gap-4 bg-slate-50 p-6 rounded-xl border border-slate-100">
                     <div className="col-span-2">
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 text-left">Street Address</label>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 text-left">Street Address (Line 1)</label>
                       <textarea
                         value={editData.address}
                         onChange={(e) => setEditData(prev => ({ ...prev, address: e.target.value }))}
                         className="w-full px-4 py-2 rounded-lg border border-slate-200 text-sm"
                         rows={2}
+                        placeholder="e.g. 12, Rose Garden Lane"
                       />
                     </div>
-                    <div className="text-left">
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">City</label>
+                    <div className="col-span-2">
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 text-left">Address Line 2 <span className="normal-case font-normal text-slate-400">(optional)</span></label>
                       <input
                         type="text"
-                        value={editData.city}
-                        onChange={(e) => setEditData(prev => ({ ...prev, city: e.target.value }))}
+                        value={editData.line2}
+                        onChange={(e) => setEditData(prev => ({ ...prev, line2: e.target.value }))}
                         className="w-full px-4 py-2 rounded-lg border border-slate-200 text-sm"
+                        placeholder="e.g. Near City Mall, Sector 12"
                       />
                     </div>
                     <div className="text-left">
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">State</label>
-                      <input
-                        type="text"
+                      <select
                         value={editData.state}
-                        onChange={(e) => setEditData(prev => ({ ...prev, state: e.target.value }))}
+                        onChange={(e) => {
+                          const newState = e.target.value;
+                          setEditData(prev => ({
+                            ...prev,
+                            state: newState,
+                            cityId: '',
+                            city: '',
+                          }));
+                        }}
                         className="w-full px-4 py-2 rounded-lg border border-slate-200 text-sm"
-                      />
+                      >
+                        <option value="">Select State</option>
+                        {Array.from(new Set(cities.map((c: any) => c.state))).sort().map((s: any) => (
+                          <option key={s} value={s}>{STATE_NAMES[s as keyof typeof STATE_NAMES] || s}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="text-left">
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">City</label>
+                      <select
+                        value={editData.cityId}
+                        onChange={(e) => {
+                          const c = cities.find(city => city.id === e.target.value);
+                          if (c) {
+                            setEditData(prev => ({ ...prev, cityId: c.id, city: c.name, state: c.state }));
+                          }
+                        }}
+                        className="w-full px-4 py-2 rounded-lg border border-slate-200 text-sm disabled:bg-slate-100"
+                        disabled={!editData.state}
+                      >
+                        <option value="">Select City</option>
+                        {cities.filter(c => !editData.state || c.state === editData.state).map(c => (
+                          <option key={c.id} value={c.id}>{c.name}</option>
+                        ))}
+                      </select>
                     </div>
                     <div className="text-left">
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Pincode</label>
@@ -813,21 +888,27 @@ export default function ProjectDetailPage() {
                   </div>
                 ) : (
                   <dl className="grid grid-cols-2 md:grid-cols-4 gap-6 text-left">
-                    <div>
-                      <dt className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Address</dt>
-                      <dd className="text-slate-900 font-bold">{project.address || 'N/A'}</dd>
+                    <div className="col-span-2">
+                      <dt className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Street Address (Line 1)</dt>
+                      <dd className="text-slate-900 font-bold">{(project as any).addressRecord?.line1 || project.address || 'N/A'}</dd>
                     </div>
+                    {(project as any).addressRecord?.line2 && (
+                      <div className="col-span-2">
+                        <dt className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Line 2</dt>
+                        <dd className="text-slate-900 font-bold">{(project as any).addressRecord.line2}</dd>
+                      </div>
+                    )}
                     <div>
                       <dt className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">City</dt>
-                      <dd className="text-slate-900 font-bold">{project.city || 'N/A'}</dd>
+                      <dd className="text-slate-900 font-bold">{(project as any).addressRecord?.city?.name || project.city || 'N/A'}</dd>
                     </div>
                     <div>
                       <dt className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">State</dt>
-                      <dd className="text-slate-900 font-bold">{project.state || 'N/A'}</dd>
+                      <dd className="text-slate-900 font-bold">{(project as any).addressRecord?.city?.state || project.state || 'N/A'}</dd>
                     </div>
                     <div>
                       <dt className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Pincode</dt>
-                      <dd className="text-slate-900 font-bold">{project.pincode || 'N/A'}</dd>
+                      <dd className="text-slate-900 font-bold">{(project as any).addressRecord?.pincode || project.pincode || 'N/A'}</dd>
                     </div>
                   </dl>
                 )}

@@ -41,11 +41,12 @@ async function main() {
     ];
 
     for (const city of citiesData) {
-        await prisma.city.upsert({
-            where: { name: city.name },
-            update: { active: true },
-            create: { ...city, active: true },
-        });
+        let existing = await prisma.city.findFirst({ where: { name: city.name } });
+        if (existing) {
+            await prisma.city.update({ where: { id: existing.id }, data: { active: true } });
+        } else {
+            await prisma.city.create({ data: { ...city, active: true } });
+        }
     }
     const allCities = await prisma.city.findMany();
     const mumbai = allCities.find(c => c.name === 'Mumbai');
@@ -182,8 +183,13 @@ async function main() {
         {
             name: 'Prestige Falcon City',
             description: 'Luxury residential project with world-class amenities.',
-            location: 'Kanakapura Road, Bangalore',
-            address: 'Sy No 56/1, Kanakapura Road',
+            addressRecord: {
+                create: {
+                    line1: 'Sy No 56/1, Kanakapura Road',
+                    cityId: allCities.find(c => c.name === 'Bangalore')?.id as string,
+                    pincode: '560062',
+                }
+            },
             price: 12500000.00,
             area: 1600.00,
             bedrooms: 3,
@@ -191,20 +197,22 @@ async function main() {
             projectType: ProjectType.APARTMENT,
             status: ProjectStatus.APPROVED,
             category: 'Premium',
-            cityId: allCities.find(c => c.name === 'Bangalore')?.id,
-            onboardedById: ppUser.id,
+            onboardedBy: { connect: { id: ppUser.id } },
             images: ['https://images.unsplash.com/photo-1545324418-f1d3ac157304?w=800'],
             totalTowers: 5,
             totalUnits: 450,
             amenities: ['Swiming Pool', 'Gym', 'Clubhouse', 'Yoga Deck'],
             highlights: ['Near Metro', 'Premium Finishes', 'Forest View'],
-            pincode: '560062',
         },
         {
             name: 'Prestige High Fields',
             description: 'Modern apartments in the heart of the business district.',
-            location: 'Financial District, Hyderabad',
-            address: 'ISB Road, Gachibowli',
+            addressRecord: {
+                create: {
+                    line1: 'ISB Road, Gachibowli',
+                    cityId: allCities.find(c => c.name === 'Hyderabad')?.id as string,
+                }
+            },
             price: 9500000.00,
             area: 1400.00,
             bedrooms: 2,
@@ -212,8 +220,7 @@ async function main() {
             projectType: ProjectType.APARTMENT,
             status: ProjectStatus.UNDER_CONSTRUCTION,
             category: 'Residential',
-            cityId: allCities.find(c => c.name === 'Hyderabad')?.id,
-            onboardedById: ppUser.id,
+            onboardedBy: { connect: { id: ppUser.id } },
             images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800'],
             totalTowers: 10,
             totalUnits: 1200,
@@ -221,8 +228,13 @@ async function main() {
         {
             name: 'Worli Sky Villa',
             description: 'Ultra-luxurious sea facing villas.',
-            location: 'Worli, Mumbai',
-            address: 'Worli Sea Face',
+            addressRecord: {
+                create: {
+                    line1: 'Worli Sea Face',
+                    cityId: mumbai?.id as string,
+                    pincode: worliPostalCode?.code,
+                }
+            },
             price: 85000000.00,
             area: 4500.00,
             bedrooms: 5,
@@ -230,9 +242,7 @@ async function main() {
             projectType: ProjectType.VILLA,
             status: ProjectStatus.APPROVED,
             category: 'Luxury',
-            cityId: mumbai?.id,
-            postalCodeId: worliPostalCode?.id,
-            onboardedById: superUser.id,
+            onboardedBy: { connect: { id: superUser.id } },
             images: ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800'],
             totalTowers: 1,
             totalUnits: 10,

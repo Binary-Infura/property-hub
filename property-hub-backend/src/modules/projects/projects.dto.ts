@@ -1,5 +1,64 @@
-import { IsString, IsOptional, IsEnum, IsNumber, IsUUID, Min } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsNumber, IsUUID, Min, ValidateNested } from 'class-validator';
 import { ProjectStatus, ProjectType } from '@prisma/client';
+import { Type } from 'class-transformer';
+
+export class CreateAddressDto {
+    @IsString()
+    line1: string;
+
+    @IsString()
+    @IsOptional()
+    line2?: string;
+
+    @IsString()
+    @IsOptional()
+    pincode?: string;
+
+    @IsNumber()
+    @IsOptional()
+    latitude?: number;
+
+    @IsNumber()
+    @IsOptional()
+    longitude?: number;
+
+    @IsString()
+    @IsOptional()
+    googlePlaceId?: string;
+
+    @IsUUID()
+    cityId: string;
+}
+
+export class UpdateAddressDto {
+    @IsString()
+    @IsOptional()
+    line1?: string;
+
+    @IsString()
+    @IsOptional()
+    line2?: string;
+
+    @IsString()
+    @IsOptional()
+    pincode?: string;
+
+    @IsNumber()
+    @IsOptional()
+    latitude?: number;
+
+    @IsNumber()
+    @IsOptional()
+    longitude?: number;
+
+    @IsString()
+    @IsOptional()
+    googlePlaceId?: string;
+
+    @IsUUID()
+    @IsOptional()
+    cityId?: string;
+}
 
 export class CreateProjectDto {
 
@@ -10,13 +69,6 @@ export class CreateProjectDto {
     @IsString()
     @IsOptional()
     description?: string;
-
-    @IsString()
-    location: string;
-
-    @IsString()
-    @IsOptional()
-    address?: string;
 
 
     @IsEnum(ProjectStatus)
@@ -48,22 +100,6 @@ export class CreateProjectDto {
     @IsString()
     @IsOptional()
     category?: string;
-
-    @IsNumber()
-    @IsOptional()
-    cityGeoId?: number;
-
-    @IsString()
-    @IsOptional()
-    state?: string;
-
-    @IsString()
-    @IsOptional()
-    cityName?: string;
-
-    @IsString()
-    @IsOptional()
-    pincode?: string;
 
     @IsNumber()
     @IsOptional()
@@ -110,6 +146,11 @@ export class CreateProjectDto {
     @IsString({ each: true })
     @IsOptional()
     images?: string[];
+
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => CreateAddressDto)
+    addressRecord?: CreateAddressDto;
 }
 
 export class UpdateProjectDto {
@@ -122,14 +163,6 @@ export class UpdateProjectDto {
     @IsString()
     @IsOptional()
     description?: string;
-
-    @IsString()
-    @IsOptional()
-    location?: string;
-
-    @IsString()
-    @IsOptional()
-    address?: string;
 
     @IsEnum(ProjectStatus)
     @IsOptional()
@@ -162,22 +195,6 @@ export class UpdateProjectDto {
     @IsString()
     @IsOptional()
     category?: string;
-
-    @IsNumber()
-    @IsOptional()
-    cityGeoId?: number;
-
-    @IsString()
-    @IsOptional()
-    state?: string;
-
-    @IsString()
-    @IsOptional()
-    cityName?: string;
-
-    @IsString()
-    @IsOptional()
-    pincode?: string;
 
     @IsNumber()
     @IsOptional()
@@ -220,4 +237,9 @@ export class UpdateProjectDto {
     @IsString({ each: true })
     @IsOptional()
     images?: string[];
+
+    @IsOptional()
+    @ValidateNested()
+    @Type(() => UpdateAddressDto)
+    addressRecord?: UpdateAddressDto;
 }

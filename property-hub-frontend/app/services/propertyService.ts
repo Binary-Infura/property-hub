@@ -10,6 +10,15 @@ export interface Project {
     cityName?: string;
     state?: string;
     pincode?: string;
+    addressRecord?: {
+      line1?: string;
+      line2?: string;
+      pincode?: string;
+      city?: {
+        name: string;
+        state: string;
+      };
+    };
     cityGeoId?: number;
     city?: {
         id: string;

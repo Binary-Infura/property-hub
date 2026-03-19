@@ -83,11 +83,12 @@ export class CitiesService {
                 skip,
                 take: limit,
                 include: {
-                    _count: {
-                        select: { projects: true }
-                    },
-                    projects: {
-                        select: { price: true }
+                    addresses: {
+                        include: {
+                            projects: {
+                                select: { price: true }
+                            }
+                        }
                     }
                 },
                 orderBy: { name: 'asc' }
@@ -96,8 +97,9 @@ export class CitiesService {
         ]);
 
         const data = (cities as any[]).map(city => {
-            const projectsCount = city._count?.projects || 0;
-            const revenue = city.projects?.reduce((sum: number, p: any) => sum + Number(p.price || 0), 0) || 0;
+            const projects = city.addresses?.flatMap((a: any) => a.projects) || [];
+            const projectsCount = projects.length;
+            const revenue = projects.reduce((sum: number, p: any) => sum + Number(p.price || 0), 0);
             return {
                 id: city.id,
                 name: city.name,
