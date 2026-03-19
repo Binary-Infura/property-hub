@@ -52,7 +52,11 @@ export class ConsultantsService {
             },
             include: {
                 city: true,
-                units: true,
+                units: {
+                    include: {
+                        tower: true
+                    }
+                },
                 leads: {
                     include: {
                         campaign: true,

@@ -13,6 +13,9 @@ interface Unit {
     price: number | string;
     status: string;
     projectName: string;
+    tower?: {
+        name: string;
+    };
 }
 
 export default function ConsultantUnitsPage() {
@@ -173,6 +176,10 @@ export default function ConsultantUnitsPage() {
                                         <div className="flex justify-between text-sm">
                                             <span className="text-gray-500">Type</span>
                                             <span className="font-medium text-gray-900">{unit.type || 'N/A'}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm">
+                                            <span className="text-gray-500">Tower</span>
+                                            <span className="font-medium text-gray-900">{unit.tower?.name || 'N/A'}</span>
                                         </div>
                                         <div className="flex justify-between text-sm">
                                             <span className="text-gray-500">Floor</span>

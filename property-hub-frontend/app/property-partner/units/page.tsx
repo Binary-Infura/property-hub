@@ -21,6 +21,9 @@ interface Unit {
         location: string;
         category?: string;
     };
+    tower?: {
+        name: string;
+    };
     buyerName?: string;
     buyerPhone?: string;
     salePrice?: number;
@@ -217,6 +220,7 @@ export default function UnitsPage() {
                                         />
                                     </th>
                                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-[10px]">Unit Detail</th>
+                                    <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-[10px]">Tower</th>
                                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-[10px]">Project</th>
                                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-[10px]">Status</th>
                                     <th className="px-6 py-4 text-xs font-bold text-gray-500 uppercase tracking-wider text-[10px]">Information</th>
@@ -243,6 +247,10 @@ export default function UnitsPage() {
                                             <div className="text-xs text-gray-500">
                                                 {unit.type} {['PLOT', 'VILLA'].includes(unit.project.category || '') ? '' : `• Floor ${unit.floor}`}
                                             </div>
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <div className="font-medium text-gray-900">{unit.tower?.name || 'N/A'}</div>
+                                            <div className="text-xs text-gray-400">Tower</div>
                                         </td>
                                         <td className="px-6 py-4">
                                             <div className="font-medium text-gray-900">{unit.project.name}</div>
