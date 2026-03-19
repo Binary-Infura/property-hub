@@ -109,7 +109,8 @@ model Project {
   onboardedById String?
   category      String?
   cityId        String?
-  videoUrl      String?
+
+  images        String[]       @default([])
   onboardingStep Int?          @default(1)
   postalCodeId  String?
   state         String?

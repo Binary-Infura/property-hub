@@ -33,9 +33,10 @@ export interface PropertyFormData {
   description: string;
   amenities: string[];
   highlights: string[];
-  images: File[];
-  brochure?: File;
-  specification?: File;
+  images: File[] | string[];
+
+  brochure?: File | string;
+  specification?: File | string;
 }
 
 export interface Property {
@@ -55,9 +56,9 @@ export interface Property {
   description: string;
   amenities: string[];
   highlights: string[];
-  images: File[];
-  brochure?: File;
-  specification?: File;
+  images: string[];
+  brochure?: string;
+  specification?: string;
   status: PropertyStatus;
   createdAt: Date;
   submittedAt?: Date;
@@ -67,7 +68,7 @@ export interface Property {
   country?: string;
   continent?: string;
   cityAllocationId?: string;
-  videoUrl?: string;
+
   buyerName?: string;
   buyerPhone?: string;
   salePrice?: number;

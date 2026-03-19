@@ -24,6 +24,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     const [property, setProperty] = useState<Property | null>(null);
     const [owner, setOwner] = useState<User | null>(null);
     const [reels, setReels] = useState<Reel[]>([]);
+    const [activeImageIndex, setActiveImageIndex] = useState(0);
     const [loading, setLoading] = useState(true);
 
     const [isFollowing, setIsFollowing] = useState(false);
@@ -234,7 +235,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                             </div>
                             <div className="hidden sm:block">
                                 <p className="text-xs font-black text-slate-800 leading-none">{owner?.firstName} {owner?.lastName}</p>
-                                <p className="text-[10px] font-bold text-slate-400 mt-0.5 truncate max-w-[140px]">{owner?.propertyPartnerProfile?.companyName || 'Elite Property Solutions'}</p>
+                                <p className="text-[10px] font-bold text-slate-400 mt-0.5 truncate max-w-[140px]">{owner?.propertyPartnerProfile?.companyName || ''}</p>
                             </div>
                         </Link>
                         <div className="w-px h-5 bg-slate-200 hidden sm:block" />
@@ -274,32 +275,83 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                     {/* Main Content — full width */}
                     <div className="space-y-12">
                         {/* Hero Section */}
-                        <div className="bg-slate-200 aspect-[16/10] sm:aspect-video rounded-[4rem] overflow-hidden relative shadow-2xl group border-[12px] border-white">
-                            <div className="absolute inset-0 flex items-center justify-center text-slate-300">
-                                <svg className="w-32 h-32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={0.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                                </svg>
-                            </div>
-                            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                        <div className="rounded-[4rem] overflow-hidden relative shadow-2xl border-[12px] border-white" style={{ background: '#e2e8f0' }}>
+                            {/* Main hero image */}
+                            <div className="aspect-[16/10] sm:aspect-video relative overflow-hidden">
+                                {(property as any).images && (property as any).images.length > 0 ? (
+                                    <>
+                                        <img
+                                            key={activeImageIndex}
+                                            src={(property as any).images[activeImageIndex]}
+                                            alt={`${property.name} - image ${activeImageIndex + 1}`}
+                                            className="w-full h-full object-cover transition-opacity duration-500"
+                                        />
+                                        {/* Arrow controls */}
+                                        {(property as any).images.length > 1 && (
+                                            <>
+                                                <button
+                                                    onClick={() => setActiveImageIndex(i => (i - 1 + (property as any).images.length) % (property as any).images.length)}
+                                                    className="absolute left-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/30 backdrop-blur-xl border border-white/20 text-white rounded-2xl flex items-center justify-center hover:bg-white hover:text-slate-900 transition-all duration-300 z-10"
+                                                >
+                                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M15 19l-7-7 7-7" /></svg>
+                                                </button>
+                                                <button
+                                                    onClick={() => setActiveImageIndex(i => (i + 1) % (property as any).images.length)}
+                                                    className="absolute right-4 top-1/2 -translate-y-1/2 w-12 h-12 bg-black/30 backdrop-blur-xl border border-white/20 text-white rounded-2xl flex items-center justify-center hover:bg-white hover:text-slate-900 transition-all duration-300 z-10"
+                                                >
+                                                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 5l7 7-7 7" /></svg>
+                                                </button>
+                                                {/* Dot indicators */}
+                                                <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+                                                    {((property as any).images as string[]).map((_: string, i: number) => (
+                                                        <button
+                                                            key={i}
+                                                            onClick={() => setActiveImageIndex(i)}
+                                                            className={`rounded-full transition-all duration-300 ${i === activeImageIndex ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/50 hover:bg-white/80'}`}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </>
+                                        )}
+                                    </>
+                                ) : (
+                                    <div className="absolute inset-0 flex items-center justify-center text-slate-300">
+                                        <svg className="w-32 h-32" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={0.5} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                                        </svg>
+                                    </div>
+                                )}
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
 
-                            <div className="absolute bottom-12 left-12 right-12 flex items-end justify-between">
-                                <div className="flex gap-4">
-                                    <span className="px-6 py-3 bg-blue-600 text-white text-[11px] font-black uppercase tracking-[0.25em] rounded-2xl shadow-2xl backdrop-blur-md ring-1 ring-white/20">Verified Elite</span>
-                                    {property.status === 'APPROVED' && <span className="px-6 py-3 bg-emerald-500 text-white text-[11px] font-black uppercase tracking-[0.25em] rounded-2xl shadow-2xl backdrop-blur-md ring-1 ring-white/20">Ready to Move</span>}
-                                </div>
-                                <div className="flex gap-3">
-                                    <button className="w-16 h-16 bg-white/20 backdrop-blur-2xl border border-white/30 text-white rounded-3xl flex items-center justify-center hover:bg-white hover:text-blue-600 transition-all duration-500 group">
-                                        <svg className="w-7 h-7 group-hover:scale-125 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
-                                        </svg>
-                                    </button>
-                                    <button className="w-16 h-16 bg-white/20 backdrop-blur-2xl border border-white/30 text-white rounded-3xl flex items-center justify-center hover:bg-white hover:text-blue-600 transition-all duration-500">
-                                        <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                                        </svg>
-                                    </button>
+                                <div className="absolute bottom-12 left-12 right-12 flex items-end justify-between pointer-events-none">
+                                    <div className="flex gap-4 pointer-events-auto">
+                                        {property.status === 'APPROVED' && <span className="px-6 py-3 bg-emerald-500 text-white text-[11px] font-black uppercase tracking-[0.25em] rounded-2xl shadow-2xl backdrop-blur-md ring-1 ring-white/20">Ready to Move</span>}
+                                    </div>
+                                    <div className="flex gap-3 pointer-events-auto">
+
+                                        <button className="w-16 h-16 bg-white/20 backdrop-blur-2xl border border-white/30 text-white rounded-3xl flex items-center justify-center hover:bg-white hover:text-blue-600 transition-all duration-500">
+                                            <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                            </svg>
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
+
+                            {/* Thumbnail strip */}
+                            {(property as any).images && (property as any).images.length > 1 && (
+                                <div className="flex gap-2 p-3 bg-white/10 backdrop-blur-sm overflow-x-auto">
+                                    {((property as any).images as string[]).map((img: string, i: number) => (
+                                        <button
+                                            key={i}
+                                            onClick={() => setActiveImageIndex(i)}
+                                            className={`flex-shrink-0 w-20 h-14 rounded-xl overflow-hidden border-2 transition-all duration-200 ${i === activeImageIndex ? 'border-blue-500 scale-105 shadow-lg' : 'border-transparent opacity-70 hover:opacity-100'}`}
+                                        >
+                                            <img src={img} alt={`thumb-${i}`} className="w-full h-full object-cover" />
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
                         </div>
 
                         {/* Property Details Header */}
@@ -328,10 +380,10 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
                                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 p-4 bg-slate-50 rounded-[3rem] border border-slate-100">
                                     {[
-                                        { label: 'Configuration', val: `${property.bedrooms || 2} BHK`, svgIcon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg> },
-                                        { label: 'Sanitary', val: `${property.bathrooms || 2} Bath`, svgIcon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" /></svg> },
-                                        { label: 'Carpet Area', val: `${property.area || 1200} sqft`, svgIcon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" /></svg> },
-                                        { label: 'Category', val: property.projectType, svgIcon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg> }
+                                        { label: 'Configuration', val: property.bedrooms ? `${property.bedrooms} BHK` : 'N/A', svgIcon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M20.25 7.5l-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5M10 11.25h4M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" /></svg> },
+                                        { label: 'Sanitary', val: property.bathrooms ? `${property.bathrooms} Bath` : 'N/A', svgIcon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M12 3v2.25m6.364.386-1.591 1.591M21 12h-2.25m-.386 6.364-1.591-1.591M12 18.75V21m-4.773-4.227-1.591 1.591M5.25 12H3m4.227-4.773L5.636 5.636M15.75 12a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0Z" /></svg> },
+                                        { label: 'Carpet Area', val: property.area ? `${property.area} sqft` : 'N/A', svgIcon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" /></svg> },
+                                        { label: 'Category', val: property.projectType || 'N/A', svgIcon: <svg className="w-7 h-7" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" /></svg> }
                                     ].map((stat, i) => (
                                         <div key={i} className="bg-white p-8 rounded-[2.5rem] shadow-sm flex flex-col items-center justify-center text-center group hover:shadow-md transition-all">
                                             <span className="mb-4 text-slate-500 group-hover:scale-125 transition-transform duration-300">{stat.svgIcon}</span>
@@ -355,7 +407,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                             </h3>
                             <div className="prose prose-slate max-w-none">
                                 <p className="text-lg text-slate-600 leading-relaxed font-medium">
-                                    {property.description || 'Experience luxury living at its finest in this meticulously designed project, offering premium amenities and strategic location advantage.'}
+                                    {property.description || ''}
                                 </p>
                             </div>
                         </div>
@@ -476,7 +528,10 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
                 {/* Full Width 3D Unit Explorer Section */}
                 <div className="mt-24 -mx-4 sm:-mx-6 lg:-mx-8">
-                    <UnitExplorer3D projectId={id} />
+                    <UnitExplorer3D 
+                        projectId={id} 
+                        mainImage={property.images && property.images.length > 0 ? property.images[0] : undefined} 
+                    />
                 </div>
             </main>
 

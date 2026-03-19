@@ -136,7 +136,7 @@ function TowerCard({
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
-export default function UnitExplorer3D({ projectId }: { projectId: string }) {
+export default function UnitExplorer3D({ projectId, mainImage }: { projectId: string; mainImage?: string }) {
     const [summary,       setSummary]       = useState<ProjectSummary | null>(null);
     const [selectedTowerIds, setSelectedTowerIds] = useState<string[]>([]);
     const [towers3D,      setTowers3D]      = useState<Tower[]>([]);
@@ -291,7 +291,7 @@ export default function UnitExplorer3D({ projectId }: { projectId: string }) {
                                 SPATIAL <span className="text-blue-600 italic">EXPLORER</span>
                             </h3>
                             <p className="text-slate-400 font-black uppercase text-[9px] tracking-[0.4em] mt-2">
-                                Architectural Precision • Ver 3.2
+                                Architectural Precision
                             </p>
                         </div>
                     </div>
@@ -450,9 +450,9 @@ export default function UnitExplorer3D({ projectId }: { projectId: string }) {
                             <div className="relative group/header overflow-hidden">
                                 <div className="absolute inset-0 z-0 overflow-hidden">
                                     <img
-                                        src={summary?.project.projectType === 'VILLA'
+                                        src={mainImage || (summary?.project.projectType === 'VILLA'
                                             ? 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800'
-                                            : 'https://images.unsplash.com/photo-1545324418-f1d3c5b5a291?auto=format&fit=crop&q=80&w=800'}
+                                            : 'https://images.unsplash.com/photo-1545324418-f1d3c5b5a291?auto=format&fit=crop&q=80&w=800')}
                                         alt="Property Preview"
                                         className="w-full h-48 object-cover opacity-20 group-hover/header:scale-105 transition-transform duration-1000"
                                     />
@@ -498,7 +498,7 @@ export default function UnitExplorer3D({ projectId }: { projectId: string }) {
                                                 { k: 'Market Valuation', v: `₹${(unitDetail.price / 100000).toFixed(2)}L`,                                   i: '💰' },
                                                 { k: 'Carpet Area',      v: unitDetail.area      != null ? `${unitDetail.area} SQFT` : 'TBD',                 i: '📐' },
                                                 { k: 'Level & Position', v: unitDetail.floor     != null ? `Floor ${unitDetail.floor}` : 'Base',              i: '📍' },
-                                                { k: 'Design Config',    v: unitDetail.type      || 'Signature',                                              i: '🏢' },
+                                                { k: 'Design Config',    v: unitDetail.type      || 'N/A',                                                     i: '🏢' },
                                                 ...(unitDetail.tower ? [{ k: 'Tower',            v: unitDetail.tower.name,                                     i: '🏗️' }] : []),
                                             ].map((spec, i) => (
                                                 <div key={i} className="group p-4 bg-slate-50/50 rounded-2xl border border-slate-100 hover:bg-white transition-all duration-300">

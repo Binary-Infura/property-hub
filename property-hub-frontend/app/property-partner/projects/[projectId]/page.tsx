@@ -148,12 +148,13 @@ export default function ProjectDetailPage() {
           status: data.status.toLowerCase() as PropertyStatus,
           createdAt: new Date(data.createdAt),
           towers: data.towers || [],
-          images: [],
+          images: data.images || [],
           buyerName: data.buyerName,
           buyerPhone: data.buyerPhone,
           salePrice: parseFloat(data.salePrice) || 0,
           soldAt: data.soldAt ? new Date(data.soldAt) : undefined,
-        };
+
+        } as any;
         setProject(mapped);
         // Blocks are not supported yet, keeping empty
         setBlocks([]);
@@ -332,7 +333,7 @@ export default function ProjectDetailPage() {
         const url = data.url;
 
         let updates: any = {};
-        if (type === 'video') updates.videoUrl = url;
+
         // Images and docs might need special handling based on schema
         // For now let's update what we can
 
@@ -1108,36 +1109,176 @@ export default function ProjectDetailPage() {
           {/* Media Tab */}
           {activeTab === 'media' && (
             <div className="space-y-8">
-              {/* Project Video */}
+
+              {/* Project Images */}
               <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100">
                 <div className="flex justify-between items-center mb-6">
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900">Project Video</h3>
-                    <p className="text-sm text-gray-500">High-quality promotional video for public listing</p>
+                    <h3 className="text-lg font-bold text-gray-900">Project Images</h3>
+                    <p className="text-sm text-gray-500">Upload high-quality photos shown on the public listing page</p>
                   </div>
-                  <label className="cursor-pointer bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-700 transition">
-                    <input type="file" className="hidden" accept="video/*" onChange={(e) => handleFileUpload(e, 'video')} disabled={uploadingFile} />
-                    {uploadingFile ? 'Uploading...' : 'Upload Video'}
+                  <label className={`cursor-pointer px-4 py-2 rounded-lg text-sm font-bold transition ${uploadingFile ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-blue-600 text-white hover:bg-blue-700'}`}>
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      disabled={uploadingFile}
+                      onChange={async (e) => {
+                        const files = Array.from(e.target.files || []);
+                        if (!files.length || !token) return;
+                        setUploadingFile(true);
+                        try {
+                          const urls: string[] = [];
+                          for (const file of files) {
+                            const fd = new FormData();
+                            fd.append('file', file);
+                            const res = await fetch(`${API_URL}/api/uploads`, {
+                              method: 'POST',
+                              headers: { 'Authorization': `Bearer ${token}` },
+                              body: fd,
+                            });
+                            if (res.ok) {
+                              const data = await res.json();
+                              urls.push(data.url);
+                            }
+                          }
+                          if (urls.length > 0) {
+                            const currentImages: string[] = (project as any).images || [];
+                            await handleUpdateProject({ images: [...currentImages, ...urls] });
+                          }
+                        } catch (err) {
+                          console.error(err);
+                          alert('Image upload failed');
+                        } finally {
+                          setUploadingFile(false);
+                          e.target.value = '';
+                        }
+                      }}
+                    />
+                    {uploadingFile ? 'Uploading...' : 'Upload Images'}
                   </label>
                 </div>
 
-                {project?.videoUrl ? (
-                  <div className="relative aspect-video max-w-2xl mx-auto rounded-xl overflow-hidden shadow-2xl bg-black">
-                    <video src={project.videoUrl} controls className="w-full h-full" />
-                    <button
-                      onClick={() => handleUpdateProject({ videoUrl: null })}
-                      className="absolute top-4 right-4 p-2 bg-red-600 text-white rounded-full hover:bg-red-700 shadow-lg"
-                    >
-                      <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                    </button>
+                {(project as any).images && (project as any).images.length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+                    {((project as any).images as string[]).map((imgUrl, idx) => (
+                      <div key={idx} className="relative group aspect-video rounded-xl overflow-hidden bg-gray-200 shadow-sm border border-gray-100">
+                        <img
+                          src={imgUrl}
+                          alt={`Project image ${idx + 1}`}
+                          className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
+                        />
+                        {idx === 0 && (
+                          <span className="absolute top-2 left-2 px-2 py-0.5 bg-blue-600 text-white text-[10px] font-black uppercase tracking-widest rounded-full shadow">
+                            Cover
+                          </span>
+                        )}
+                        <button
+                          onClick={async () => {
+                            const currentImages: string[] = (project as any).images || [];
+                            const updated = currentImages.filter((_, i) => i !== idx);
+                            await handleUpdateProject({ images: updated });
+                          }}
+                          className="absolute top-2 right-2 w-7 h-7 bg-red-600 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg hover:bg-red-700"
+                          title="Remove image"
+                        >
+                          <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                      </div>
+                    ))}
+                    <label className="cursor-pointer aspect-video rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center bg-white hover:border-blue-400 hover:bg-blue-50/30 transition group">
+                      <input
+                        type="file"
+                        className="hidden"
+                        accept="image/jpeg,image/png,image/webp"
+                        multiple
+                        disabled={uploadingFile}
+                        onChange={async (e) => {
+                          const files = Array.from(e.target.files || []);
+                          if (!files.length || !token) return;
+                          setUploadingFile(true);
+                          try {
+                            const urls: string[] = [];
+                            for (const file of files) {
+                              const fd = new FormData();
+                              fd.append('file', file);
+                              const res = await fetch(`${API_URL}/api/uploads`, {
+                                method: 'POST',
+                                headers: { 'Authorization': `Bearer ${token}` },
+                                body: fd,
+                              });
+                              if (res.ok) {
+                                const data = await res.json();
+                                urls.push(data.url);
+                              }
+                            }
+                            if (urls.length > 0) {
+                              const currentImages: string[] = (project as any).images || [];
+                              await handleUpdateProject({ images: [...currentImages, ...urls] });
+                            }
+                          } catch (err) {
+                            console.error(err);
+                            alert('Image upload failed');
+                          } finally {
+                            setUploadingFile(false);
+                            e.target.value = '';
+                          }
+                        }}
+                      />
+                      <svg className="w-6 h-6 text-gray-300 group-hover:text-blue-400 transition mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                      <span className="text-xs text-gray-400 group-hover:text-blue-500 font-bold transition">Add More</span>
+                    </label>
                   </div>
                 ) : (
-                  <div className="aspect-video max-w-2xl mx-auto rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center bg-white">
-                    <svg className="w-12 h-12 text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                    <p className="text-gray-400 font-medium">No video uploaded</p>
-                  </div>
+                  <label className="cursor-pointer block">
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      disabled={uploadingFile}
+                      onChange={async (e) => {
+                        const files = Array.from(e.target.files || []);
+                        if (!files.length || !token) return;
+                        setUploadingFile(true);
+                        try {
+                          const urls: string[] = [];
+                          for (const file of files) {
+                            const fd = new FormData();
+                            fd.append('file', file);
+                            const res = await fetch(`${API_URL}/api/uploads`, {
+                              method: 'POST',
+                              headers: { 'Authorization': `Bearer ${token}` },
+                              body: fd,
+                            });
+                            if (res.ok) {
+                              const data = await res.json();
+                              urls.push(data.url);
+                            }
+                          }
+                          if (urls.length > 0) {
+                            await handleUpdateProject({ images: urls });
+                          }
+                        } catch (err) {
+                          console.error(err);
+                          alert('Image upload failed');
+                        } finally {
+                          setUploadingFile(false);
+                          e.target.value = '';
+                        }
+                      }}
+                    />
+                    <div className="aspect-video max-w-2xl mx-auto rounded-xl border-2 border-dashed border-gray-200 flex flex-col items-center justify-center bg-white hover:border-blue-400 hover:bg-blue-50/30 transition cursor-pointer group">
+                      <svg className="w-14 h-14 text-gray-200 group-hover:text-blue-300 transition mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                      <p className="text-gray-400 font-bold group-hover:text-blue-500 transition">Click to upload images</p>
+                      <p className="text-xs text-gray-300 mt-1">JPG, PNG, WebP supported</p>
+                    </div>
+                  </label>
                 )}
               </div>
+
+
 
               {/* Documents */}
               <div className="grid md:grid-cols-2 gap-6">

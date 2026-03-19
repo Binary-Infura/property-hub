@@ -86,17 +86,17 @@ export default function PropertySearchPage({ hideHeader = false }: { hideHeader?
           location: p.location,
           area: `${p.area || 1200} sqft`,
           price: `₹${(Number(p.price) / 100000).toFixed(1)}L`,
-          propertyType: (p.propertyType === 'APARTMENT' ? 'Flat' :
-            p.propertyType === 'VILLA' ? 'Villa' :
-              p.propertyType === 'PLOT' ? 'Plot' : 'Commercial') as any,
+          propertyType: (p.projectType === 'APARTMENT' ? 'Flat' :
+            p.projectType === 'VILLA' ? 'Villa' :
+              p.projectType === 'PLOT' ? 'Plot' : 'Commercial') as any,
           bhk: `${p.bedrooms || 2} BHK`,
           isNew: true,
-          isReadyToMove: p.status === 'DRAFT' || p.status === 'APPROVED',
-          highlights: ['Legal Verified', 'Premium Location', 'High ROI'],
-          amenities: ['Parking', 'Security', 'Water Supply'],
+          isReadyToMove: p.status === 'APPROVED' || p.status === 'UNDER_CONSTRUCTION',
+          highlights: p.highlights || ['Premium Location', 'High ROI'],
+          amenities: p.amenities || [],
           legalVerified: p.status === 'APPROVED',
-          image: undefined,
-          consultantNote: "This property offers exceptional value in a high-growth corridor. Ideal for long-term appreciation.",
+          image: p.images && p.images.length > 0 ? p.images[0] : undefined,
+          consultantNote: p.description?.slice(0, 150) + "..." || "This property offers exceptional value in a high-growth corridor.",
           consultant: {
             name: "Rajesh Sharma",
             initials: "RS",

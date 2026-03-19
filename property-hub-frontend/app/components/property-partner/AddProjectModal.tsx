@@ -87,8 +87,10 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
         specification: null as File | null,
     });
 
-    const [videoUrl, setVideoUrl] = useState<string>('');
-    const [uploadingVideo, setUploadingVideo] = useState(false);
+
+    const [uploadedImages, setUploadedImages] = useState<string[]>([]);
+
+    const [uploadingImages, setUploadingImages] = useState(false);
 
     const [states, setStates] = useState<State[]>([]);
     const [cities, setCities] = useState<City[]>([]);
@@ -118,7 +120,9 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
             });
             setAddressData({ location: '', address: '', city: '', state: '' });
             setFiles({ images: [], brochure: null, specification: null });
-            setVideoUrl('');
+
+            setUploadedImages([]);
+            setUploadingImages(false);
             setCurrentStep(1);
             setProjectCategory('');
             fetchStates('IN');
@@ -231,7 +235,8 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                     setCurrentStep(savedStep > 1 ? savedStep - 1 : 1);
                 }
 
-                setVideoUrl(data.videoUrl || '');
+
+                setUploadedImages(data.images || []);
             }
         } catch (e) {
             console.error(e);
@@ -264,48 +269,46 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
         }));
     };
 
-    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, type: 'images' | 'brochure' | 'specification') => {
+    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>, type: 'images' | 'brochure' | 'specification') => {
+        if (!token) return;
+        const selectedFiles = e.target.files ? Array.from(e.target.files) : [];
+        if (selectedFiles.length === 0) return;
+
         if (type === 'images') {
-            setFiles(prev => ({
-                ...prev,
-                images: e.target.files ? Array.from(e.target.files) : [],
-            }));
-        } else {
-            setFiles(prev => ({
-                ...prev,
-                [type]: e.target.files?.[0] || null,
-            }));
-        }
-    };
-
-    const handleVideoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
-
-        setUploadingVideo(true);
-        const videoFormData = new FormData();
-        videoFormData.append('file', file);
-
-        try {
-            const res = await fetch(`${API_URL}/api/uploads`, {
-                method: 'POST',
-                headers: { 'Authorization': `Bearer ${token}` },
-                body: videoFormData
-            });
-
-            if (res.ok) {
-                const data = await res.json();
-                setVideoUrl(data.url);
-            } else {
-                throw new Error('Failed to upload video');
+            setUploadingImages(true);
+            try {
+                const newUrls: string[] = [];
+                for (const file of selectedFiles) {
+                    const fd = new FormData();
+                    fd.append('file', file);
+                    const res = await fetch(`${API_URL}/api/uploads`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${token}` },
+                        body: fd
+                    });
+                    if (res.ok) {
+                        const data = await res.json();
+                        newUrls.push(data.url);
+                    }
+                }
+                setUploadedImages(prev => [...prev, ...newUrls]);
+            } catch (err) {
+                console.error(err);
+                alert('Failed to upload images');
+            } finally {
+                setUploadingImages(false);
             }
-        } catch (err) {
-            console.error(err);
-            alert('Failed to upload video');
-        } finally {
-            setUploadingVideo(false);
+        } else {
+            // Handle brochure/spec (single file upload for simplicity or just keep as File if handled later)
+            // For consistency, let's set them as File for now or upload them too
+            setFiles(prev => ({
+                ...prev,
+                [type]: selectedFiles[0] || null,
+            }));
         }
     };
+
+
 
     const handleNext = async () => {
         const nextStep = currentStep + 1;
@@ -354,7 +357,8 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
             totalTowers: parseInt(formData.totalTowers) || undefined,
             totalUnits: parseInt(formData.totalUnits) || undefined,
             projectType: backendProjectType,
-            videoUrl: videoUrl || undefined,
+
+            images: uploadedImages,
             onboardingStep: step,
             amenities: formData.amenities,
         };
@@ -585,12 +589,29 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
 
                             {currentStep === 5 && (
                                 <div className="space-y-6 animate-in slide-in-from-right-4 duration-300">
-                                    <div className="p-6 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100/50 transition-colors">
+                                    <div className="p-6 border-2 border-dashed border-gray-200 rounded-2xl flex flex-col items-center justify-center bg-gray-50 hover:bg-gray-100/50 transition-colors relative">
                                         <svg className="w-12 h-12 text-gray-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                        <p className="text-sm font-bold text-gray-900">Upload Project Media</p>
-                                        <p className="text-xs text-gray-500 mt-1 mb-4">Upload high-quality images and brochures</p>
-                                        <input type="file" multiple accept="image/*" onChange={(e) => handleFileChange(e, 'images')} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-                                        {files.images.length > 0 && <p className="text-sm text-green-600 mt-2">{files.images.length} images selected</p>}
+                                        <p className="text-sm font-bold text-gray-900">Upload Project Images</p>
+                                        <p className="text-xs text-gray-500 mt-1 mb-4">Add high-quality photos for your listing</p>
+                                        <input type="file" multiple accept="image/*" onChange={(e) => handleFileChange(e, 'images')} disabled={uploadingImages} className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-bold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 disabled:opacity-50" />
+                                        
+                                        {uploadedImages.length > 0 && (
+                                            <div className="grid grid-cols-4 gap-2 mt-6 w-full">
+                                                {uploadedImages.map((url, idx) => (
+                                                    <div key={idx} className="relative group aspect-square rounded-lg overflow-hidden border border-gray-200">
+                                                        <img src={url} alt="" className="w-full h-full object-cover" />
+                                                        <button onClick={() => setUploadedImages(prev => prev.filter((_, i) => i !== idx))} className="absolute top-1 right-1 opacity-0 group-hover:opacity-100 bg-red-600 text-white p-1 rounded-full hover:bg-red-700 transition-all shadow-lg">
+                                                            <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" /></svg>
+                                                        </button>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {uploadingImages && (
+                                            <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] flex items-center justify-center rounded-2xl z-10">
+                                                <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                            </div>
+                                        )}
                                     </div>
                                     <div className="grid grid-cols-2 gap-6">
                                         <div>
@@ -602,29 +623,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                                             <input type="file" accept=".pdf" onChange={(e) => handleFileChange(e, 'specification')} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-gray-100 file:text-gray-700" />
                                         </div>
                                     </div>
-                                    <div className="p-6 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50 hover:bg-gray-100/50 transition-colors">
-                                        <h4 className="text-sm font-bold text-gray-900 mb-4">Project Video</h4>
-                                        {videoUrl ? (
-                                            <div className="relative">
-                                                <video src={videoUrl} controls className="w-full max-h-64 rounded-lg bg-black mx-auto" />
-                                                <button type="button" onClick={() => setVideoUrl('')} className="absolute top-2 right-2 bg-red-600 text-white p-2 rounded-full hover:bg-red-700 shadow-lg">
-                                                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <div className="flex flex-col items-center justify-center">
-                                                <div className="mx-auto w-12 h-12 text-gray-400 mb-3"><svg fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg></div>
-                                                <p className="text-sm font-medium text-gray-900 mb-1">Upload Project Video</p>
-                                                <p className="text-xs text-gray-500 mb-4">MP4, WebM up to 50MB</p>
-                                                <label className="inline-block">
-                                                    <input type="file" accept="video/*" onChange={handleVideoUpload} className="hidden" disabled={uploadingVideo} />
-                                                    <span className={`px-4 py-2 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 cursor-pointer shadow-sm ${uploadingVideo ? 'opacity-50 cursor-not-allowed' : ''}`}>
-                                                        {uploadingVideo ? 'Uploading...' : 'Select Video'}
-                                                    </span>
-                                                </label>
-                                            </div>
-                                        )}
-                                    </div>
+
                                 </div>
                             )}
 

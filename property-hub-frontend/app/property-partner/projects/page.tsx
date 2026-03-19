@@ -100,7 +100,7 @@ export default function ProjectsPage() {
             amenities: amenities,
             status: frontendStatus,
             createdAt: new Date(p.createdAt),
-            videoUrl: p.videoUrl || '',
+
             continent: p.locationRel?.continent || p.continent || '',
             country: p.locationRel?.country || p.country || '',
             buyerName: p.buyerName,
@@ -440,15 +440,11 @@ export default function ProjectsPage() {
             return (
               <div key={project.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all group animate-in fade-in slide-in-from-bottom-4 duration-500">
                 <div className="relative aspect-video bg-gray-100">
-                  {project.videoUrl ? (
-                    <video src={project.videoUrl} className="w-full h-full object-cover" />
-                  ) : (
                     <div className="w-full h-full bg-gradient-to-br from-blue-50 to-indigo-50 flex items-center justify-center">
                       <svg className="w-12 h-12 text-blue-100" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 12l2-3m0 0l7-4 7 4M5 9v10a1 1 0 001 1h12a1 1 0 001-1V9m-9 11l4-4m-4 4l-4-4m9-5l4-4m-4 4l-4-4" />
                       </svg>
                     </div>
-                  )}
                   <div className="absolute top-3 left-3">
                     <span className={`px-2 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest shadow-sm ring-1 ring-inset ${statusConfig?.bgColor || 'bg-white'} ${statusConfig?.color || 'text-gray-900'} ${statusConfig?.ringColor || 'ring-gray-200'}`}>
                       {statusConfig?.label || project.status}

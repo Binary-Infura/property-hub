@@ -472,26 +472,7 @@ function BuildingShell({
                             <meshStandardMaterial color="#1e293b" roughness={0.9} />
                         </mesh>
                         
-                        {/* AMENITIES: CRYSTAL POOL & EDEN GARDENS */}
-                        <group position={[45, 0.1, -45]}>
-                            {/* Pool */}
-                            <mesh rotation={[-Math.PI / 2, 0, 0]}>
-                                <boxGeometry args={[25, 15, 0.1]} />
-                                <meshPhysicalMaterial color="#3b82f6" transmission={0.5} thickness={1} roughness={0} />
-                            </mesh>
-                            <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.1, 0]}>
-                                <boxGeometry args={[27, 17, 0.5]} />
-                                <meshStandardMaterial color="#e2e8f0" />
-                            </mesh>
-                        </group>
 
-                        <group position={[-45, 0.1, 45]}>
-                            {/* Garden Patch */}
-                            <mesh rotation={[-Math.PI / 2, 0, 0]}>
-                                <planeGeometry args={[30, 30]} />
-                                <meshStandardMaterial color="#10b981" roughness={0.9} />
-                            </mesh>
-                        </group>
                         
                         {/* Street Lights - Small glowing spheres along the road */}
                         {[...Array(12)].map((_, i) => {
@@ -522,28 +503,7 @@ function BuildingShell({
                             <meshBasicMaterial color="#3b82f6" transparent opacity={0.01} />
                         </mesh>
                         
-                        {/* Site Amenity Callouts */}
-                        <group position={[40, 0, 40]}>
-                            <Html distanceFactor={15}>
-                                <div className="flex flex-col items-center">
-                                    <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg mb-2">
-                                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 12.75L11.25 15L15 9.75M21 12c0 1.25-.2 2.44-.57 3.54 -1.33 4.88-5.62 8.46-10.43 8.46 -4.81 0-9.1-3.58-10.43-8.46C.2 14.44 0 13.25 0 12c0-5.17 3.58-9.46 8.46-10.43C9.56.2 10.75 0 12 0s2.44.2 3.54.57c4.88 1.33 8.46 5.62 8.46 10.43z" /></svg>
-                                    </div>
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap bg-white/50 backdrop-blur-md px-2 py-1 rounded-md">Main Security</span>
-                                </div>
-                            </Html>
-                        </group>
 
-                        <group position={[-40, 0, -40]}>
-                            <Html distanceFactor={15}>
-                                <div className="flex flex-col items-center">
-                                    <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center shadow-lg mb-2">
-                                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A4.833 4.833 0 0118 9a4.833 4.833 0 01-1.5 1.332V21h-9V10.332A4.833 4.833 0 016 9a4.833 4.833 0 01-1.5 1.332V21H3v-3.375c0-.621.504-1.125 1.125-1.125h1.5c.621 0 1.125.504 1.125 1.125V21" /></svg>
-                                    </div>
-                                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest whitespace-nowrap bg-white/50 backdrop-blur-md px-2 py-1 rounded-md">Clubhouse</span>
-                                </div>
-                            </Html>
-                        </group>
                         
                         {/* Decorative Vehicles on Road */}
                         {[...Array(8)].map((_, i) => (

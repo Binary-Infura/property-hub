@@ -121,25 +121,7 @@ export default function ViewListingModal({ isOpen, onClose, property }: ViewList
                                 </div>
                             </div>
 
-                            {/* Video Preview */}
-                            {property.videoUrl && (
-                                <div>
-                                    <h5 className="text-sm font-bold text-gray-900 mb-4 flex items-center gap-2">
-                                        <span className="w-1.5 h-1.5 rounded-full bg-blue-600"></span>
-                                        Video Presentation
-                                    </h5>
-                                    <div className="relative aspect-video rounded-xl overflow-hidden bg-black shadow-lg">
-                                        <video
-                                            className="w-full h-full object-cover"
-                                            controls
-                                            preload="metadata"
-                                        >
-                                            <source src={property.videoUrl} type="video/mp4" />
-                                            Your browser does not support the video tag.
-                                        </video>
-                                    </div>
-                                </div>
-                            )}
+
 
                             {/* Property Stats (Area etc) */}
                             <div>

@@ -2,9 +2,7 @@ import { IsString, IsOptional, IsEnum, IsNumber, IsUUID, Min } from 'class-valid
 import { ProjectStatus, ProjectType } from '@prisma/client';
 
 export class CreateProjectDto {
-    @IsString()
-    @IsOptional()
-    videoUrl?: string;
+
 
     @IsString()
     name: string;
@@ -108,12 +106,14 @@ export class CreateProjectDto {
     @IsString({ each: true })
     @IsOptional()
     highlights?: string[];
+
+    @IsString({ each: true })
+    @IsOptional()
+    images?: string[];
 }
 
 export class UpdateProjectDto {
-    @IsString()
-    @IsOptional()
-    videoUrl?: string;
+
 
     @IsString()
     @IsOptional()
@@ -216,4 +216,8 @@ export class UpdateProjectDto {
     @IsString({ each: true })
     @IsOptional()
     highlights?: string[];
+
+    @IsString({ each: true })
+    @IsOptional()
+    images?: string[];
 }

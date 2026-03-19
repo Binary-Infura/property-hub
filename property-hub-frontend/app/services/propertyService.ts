@@ -38,6 +38,10 @@ export interface Project {
     }[];
     amenities?: string[];
     highlights?: string[];
+    images?: string[];
+
+    brochure?: string;
+    specification?: string;
     createdAt: string;
 }
 
