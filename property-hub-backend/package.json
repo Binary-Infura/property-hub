@@ -32,15 +32,15 @@
     "@fastify/multipart": "^8.2.1",
     "@fastify/static": "^7.0.4",
     "@nestjs/bullmq": "^11.0.4",
-    "@nestjs/common": "^10.3.0",
+    "@nestjs/common": "^10.4.22",
     "@nestjs/config": "^3.1.1",
-    "@nestjs/core": "^10.3.0",
+    "@nestjs/core": "^10.4.22",
     "@nestjs/jwt": "^10.2.0",
     "@nestjs/passport": "^10.0.3",
-    "@nestjs/platform-fastify": "^10.3.0",
+    "@nestjs/platform-fastify": "^10.4.22",
     "@nestjs/schedule": "^6.1.1",
-    "@nestjs/serve-static": "^4.0.0",
-    "@nestjs/swagger": "^7.1.17",
+    "@nestjs/serve-static": "^4.0.2",
+    "@nestjs/swagger": "^7.4.2",
     "@prisma/client": "5.22.0",
     "axios": "^1.13.4",
     "bcrypt": "^6.0.0",
@@ -49,7 +49,7 @@
     "class-transformer": "^0.5.1",
     "class-validator": "^0.14.0",
     "dotenv": "^16.3.1",
-    "fastify": "^4.28.1",
+    "fastify": "^4.29.1",
     "livekit-server-sdk": "^2.15.0",
     "nodemailer": "^8.0.2",
     "passport": "^0.7.0",
@@ -61,7 +61,7 @@
     "uuid": "^13.0.0"
   },
   "devDependencies": {
-    "@nestjs/cli": "^10.2.1",
+    "@nestjs/cli": "^10.4.9",
     "@nestjs/schematics": "^10.0.3",
     "@nestjs/testing": "^10.3.0",
     "@types/bcrypt": "^6.0.0",
@@ -70,7 +70,6 @@
     "@types/node": "^20.10.6",
     "@types/nodemailer": "^7.0.11",
     "@types/passport-jwt": "^4.0.0",
-    "@types/uuid": "^11.0.0",
     "@typescript-eslint/eslint-plugin": "^6.17.0",
     "@typescript-eslint/parser": "^6.17.0",
     "eslint": "^8.56.0",
@@ -102,5 +101,17 @@
     ],
     "coverageDirectory": "../coverage",
     "testEnvironment": "node"
+  },
+  "pnpm": {
+    "overrides": {
+      "minimatch": "^9.0.7",
+      "glob": "^10.5.0",
+      "path-to-regexp": "^1.9.0",
+      "ajv": "^8.18.0",
+      "lodash": "^4.17.23",
+      "js-yaml": "^4.1.1",
+      "fast-xml-parser": "^5.5.6",
+      "@fastify/middie": "^9.2.0"
+    }
   }
 }
