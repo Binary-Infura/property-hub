@@ -117,6 +117,8 @@ model Project {
   pincode       String?
   totalTowers    Int?
   totalUnits    Int?
+  amenities     String[]       @default(["Parking", "Security", "Lift"])
+  highlights    String[]       @default(["Prime Location", "Quality Construction"])
   adsRequests   AdsRequest[]
   commissions   Commission[]
   leads         Lead[]

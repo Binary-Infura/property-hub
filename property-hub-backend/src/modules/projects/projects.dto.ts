@@ -100,6 +100,14 @@ export class CreateProjectDto {
     @IsNumber()
     @IsOptional()
     onboardingStep?: number;
+
+    @IsString({ each: true })
+    @IsOptional()
+    amenities?: string[];
+
+    @IsString({ each: true })
+    @IsOptional()
+    highlights?: string[];
 }
 
 export class UpdateProjectDto {
@@ -200,4 +208,12 @@ export class UpdateProjectDto {
     @IsNumber()
     @IsOptional()
     onboardingStep?: number;
+
+    @IsString({ each: true })
+    @IsOptional()
+    amenities?: string[];
+
+    @IsString({ each: true })
+    @IsOptional()
+    highlights?: string[];
 }

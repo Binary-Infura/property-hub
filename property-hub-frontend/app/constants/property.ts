@@ -49,20 +49,6 @@ export const INDIAN_STATES = [
   'West Bengal',
 ];
 
-export const AMENITIES_OPTIONS = [
-  'Swimming Pool',
-  'Gym',
-  'Playground',
-  'Community Center',
-  'Garden',
-  'Security',
-  '24/7 Power Backup',
-  'Water Treatment',
-  'Parking',
-  'Lift',
-  'Intercom',
-  'CCTV',
-];
 export const RESIDENTIAL_UNIT_TYPES = [
   '1BHK',
   '2BHK',

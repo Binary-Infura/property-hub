@@ -705,7 +705,7 @@ export default function UnitCanvas3D({
 
             <SceneAtmosphere camY={camY} />
 
-            <Environment preset="city" />
+            <Environment preset="warehouse" />
             <Sky distance={450000} sunPosition={[100, 100, 20]} inclination={0.49} azimuth={0.25} />
             
             {/* Moving Clouds - Optimized */}

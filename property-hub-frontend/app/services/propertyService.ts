@@ -7,6 +7,9 @@ export interface Project {
     description?: string;
     location: string;
     address?: string;
+    cityName?: string;
+    state?: string;
+    pincode?: string;
     cityId?: string;
     city?: {
         id: string;
@@ -33,6 +36,8 @@ export interface Project {
         lastName?: string;
         email?: string;
     }[];
+    amenities?: string[];
+    highlights?: string[];
     createdAt: string;
 }
 

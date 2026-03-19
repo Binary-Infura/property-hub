@@ -2,7 +2,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { Property, PropertyStatus } from '@/app/types/property';
-import { PROPERTY_TYPES, AMENITIES_OPTIONS, INDIAN_STATES } from '@/app/constants/property';
+import { PROPERTY_TYPES } from '@/app/constants/property';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import { State, City } from 'country-state-city';
@@ -338,7 +338,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
         else if (cat === 'shop' || cat === 'office') backendProjectType = 'COMMERCIAL';
         else if (cat === 'warehouse') backendProjectType = 'INDUSTRIAL';
 
-        const fullDescription = `${formData.description}\n\nAmenities: ${formData.amenities.join(', ')}`;
+        const fullDescription = formData.description;
 
         const payload = {
             name: formData.title,
@@ -356,6 +356,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
             projectType: backendProjectType,
             videoUrl: videoUrl || undefined,
             onboardingStep: step,
+            amenities: formData.amenities,
         };
 
         const url = projectId
@@ -410,7 +411,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
         if (currentStep === 1) return !!projectCategory && !!formData.title && !!formData.propertyType;
         if (currentStep === 2) return !!formData.totalArea && !!formData.totalTowers && !!formData.totalUnits;
         if (currentStep === 3) return !!selectedStateCode && !!addressData.city && !!addressData.location && !!addressData.address;
-        if (currentStep === 4) return !!formData.startingPrice && !!formData.description && formData.amenities.length > 0;
+        if (currentStep === 4) return !!formData.startingPrice && !!formData.description;
         return true;
     };
 
@@ -425,7 +426,7 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
             !!formData.totalTowers &&
             !!formData.totalUnits &&
             !!selectedStateCode && !!addressData.city && !!addressData.location && !!addressData.address &&
-            !!formData.startingPrice && !!formData.description && formData.amenities.length > 0;
+            !!formData.startingPrice && !!formData.description;
     };
 
     if (!isOpen) return null;
@@ -559,15 +560,25 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                                         <textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Describe your project in detail..." rows={4} className="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-4">Amenities *</label>
-                                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
-                                            {AMENITIES_OPTIONS.map(amenity => (
-                                                <label key={amenity} className={`flex items-center p-3 rounded-xl border cursor-pointer transition-all ${formData.amenities.includes(amenity) ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:bg-gray-50 text-gray-600'}`}>
-                                                    <input type="checkbox" value={amenity} checked={formData.amenities.includes(amenity)} onChange={() => handleAmenityToggle(amenity)} className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-3" />
-                                                    <span className="text-sm font-medium">{amenity}</span>
-                                                </label>
-                                            ))}
-                                        </div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-4">Amenities</label>
+                                        {/* Tag list */}
+                                        {formData.amenities.length > 0 && (
+                                            <div className="flex flex-wrap gap-2 mb-3">
+                                                {formData.amenities.map(amenity => (
+                                                    <span key={amenity} className="flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 border border-blue-200 text-blue-700 rounded-full text-sm font-medium">
+                                                        {amenity}
+                                                        <button type="button" onClick={() => handleAmenityToggle(amenity)} className="text-blue-400 hover:text-red-500 transition-colors">
+                                                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                                                        </button>
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        )}
+                                        {/* Free-text input to add amenity */}
+                                        <form onSubmit={(e) => { e.preventDefault(); const input = (e.currentTarget.elements.namedItem('amenityInput') as HTMLInputElement); if (input.value.trim() && !formData.amenities.includes(input.value.trim())) { handleAmenityToggle(input.value.trim()); input.value = ''; } }} className="flex gap-2">
+                                            <input name="amenityInput" type="text" placeholder="e.g. Swimming Pool, Gym, Garden..." className="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm" />
+                                            <button type="submit" className="px-4 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition">Add</button>
+                                        </form>
                                     </div>
                                 </div>
                             )}

@@ -32,6 +32,7 @@ export interface PropertyFormData {
   startingPrice: number;
   description: string;
   amenities: string[];
+  highlights: string[];
   images: File[];
   brochure?: File;
   specification?: File;
@@ -53,6 +54,7 @@ export interface Property {
   startingPrice: number;
   description: string;
   amenities: string[];
+  highlights: string[];
   images: File[];
   brochure?: File;
   specification?: File;

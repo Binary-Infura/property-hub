@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Property, PropertyStatus } from '@/app/types/property';
 import { Block } from '@/app/types/block';
-import { PROPERTY_STATUS_CONFIG, AMENITIES_OPTIONS, PROPERTY_TYPES } from '@/app/constants/property';
+import { PROPERTY_STATUS_CONFIG, PROPERTY_TYPES } from '@/app/constants/property';
 import { STATUS_CONFIG } from '@/app/constants/block';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
@@ -13,6 +13,7 @@ import AddUnitModal from '@/app/components/property-partner/AddUnitModal';
 import BulkAddUnitModal from '@/app/components/property-partner/BulkAddUnitModal';
 import MarkAsSoldModal from '@/app/components/property-partner/MarkAsSoldModal';
 import AddTowerModal from '@/app/components/property-partner/AddTowerModal';
+import SidebarIcon from '@/app/components/SidebarIcon';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -84,12 +85,16 @@ export default function ProjectDetailPage() {
     state: '',
     pincode: '',
     area: '',
+    highlights: [] as string[],
     title: '',
     price: '',
   });
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const [isEditingStats, setIsEditingStats] = useState(false);
+  const [isEditingHighlights, setIsEditingHighlights] = useState(false);
+  const [newAmenity, setNewAmenity] = useState('');
+  const [newHighlight, setNewHighlight] = useState('');
 
   const fetchProject = async () => {
     if (!token) return;
@@ -105,13 +110,17 @@ export default function ProjectDetailPage() {
       if (res.ok) {
         const data = await res.json();
 
-        // Extract amenities from description
+        // Extract amenities - check dedicated field first, then fallback to description
+        let amenities: string[] = data.amenities || [];
         let description = data.description || '';
-        let amenities: string[] = [];
-        if (description.includes('Amenities:')) {
+        
+        if (amenities.length === 0 && description.includes('Amenities:')) {
           const parts = description.split('Amenities:');
-          description = parts[0].trim(); // Remove amenities string from display description
+          description = parts[0].trim();
           amenities = parts[1].split(',').map((a: string) => a.trim());
+        } else if (description.includes('Amenities:')) {
+          // If we have proper amenities field, just clean up the description
+          description = description.split('Amenities:')[0].trim();
         }
 
         // Handle city object that may come from API relationship
@@ -135,6 +144,7 @@ export default function ProjectDetailPage() {
           startingPrice: parseFloat(data.price) || 0,
           description: description,
           amenities: amenities,
+          highlights: data.highlights || [],
           status: data.status.toLowerCase() as PropertyStatus,
           createdAt: new Date(data.createdAt),
           towers: data.towers || [],
@@ -196,7 +206,7 @@ export default function ProjectDetailPage() {
 
   const saveDescription = async () => {
     const success = await handleUpdateProject({
-      description: `${editData.description}\n\nAmenities: ${project?.amenities.join(', ')}`
+      description: editData.description
     });
     if (success) setIsEditingDescription(false);
   };
@@ -208,7 +218,7 @@ export default function ProjectDetailPage() {
 
   const saveAmenities = async () => {
     const success = await handleUpdateProject({
-      description: `${project?.description}\n\nAmenities: ${editData.amenities.join(', ')}`
+      amenities: editData.amenities
     });
     if (success) setIsEditingAmenities(false);
   };
@@ -220,6 +230,44 @@ export default function ProjectDetailPage() {
         ? prev.amenities.filter(a => a !== amenity)
         : [...prev.amenities, amenity]
     }));
+  };
+
+  const addCustomAmenity = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newAmenity.trim() && !editData.amenities.includes(newAmenity.trim())) {
+      setEditData(prev => ({
+        ...prev,
+        amenities: [...prev.amenities, newAmenity.trim()]
+      }));
+      setNewAmenity('');
+    }
+  };
+
+  const toggleHighlight = (highlight: string) => {
+    setEditData(prev => ({
+      ...prev,
+      highlights: prev.highlights.includes(highlight)
+        ? prev.highlights.filter(h => h !== highlight)
+        : [...prev.highlights, highlight]
+    }));
+  };
+
+  const addCustomHighlight = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newHighlight.trim() && !editData.highlights.includes(newHighlight.trim())) {
+      setEditData(prev => ({
+        ...prev,
+        highlights: [...prev.highlights, newHighlight.trim()]
+      }));
+      setNewHighlight('');
+    }
+  };
+
+  const saveHighlights = async () => {
+    const success = await handleUpdateProject({
+      highlights: editData.highlights
+    });
+    if (success) setIsEditingHighlights(false);
   };
 
   const startEditingLocation = () => {
@@ -592,19 +640,23 @@ export default function ProjectDetailPage() {
 
         <div className="p-6">
           {/* Overview Tab */}
+          {/* Overview Tab */}
           {activeTab === 'overview' && (
-            <div className="space-y-6">
-              <div>
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Project Description</h3>
+            <div className="space-y-8">
+              {/* Project Description Section */}
+              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <SidebarIcon name="clipboard" className="w-4 h-4" />
+                    Project Description
+                  </h3>
                   {!isEditingDescription ? (
                     <button onClick={startEditingDescription} className="text-blue-600 hover:text-blue-700 text-sm font-bold flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                      Edit
+                      <SidebarIcon name="note" className="w-4 h-4" /> Edit
                     </button>
                   ) : (
-                    <div className="flex gap-2">
-                      <button onClick={() => setIsEditingDescription(false)} className="text-gray-500 hover:text-gray-700 text-sm font-bold">Cancel</button>
+                    <div className="flex gap-3">
+                      <button onClick={() => setIsEditingDescription(false)} className="text-slate-400 hover:text-slate-500 text-sm font-bold">Cancel</button>
                       <button onClick={saveDescription} className="text-emerald-600 hover:text-emerald-700 text-sm font-bold">Save</button>
                     </div>
                   )}
@@ -612,126 +664,243 @@ export default function ProjectDetailPage() {
                 {isEditingDescription ? (
                   <textarea
                     value={editData.description}
-                    onChange={(e) => setEditData(prev => ({ ...prev, description: e.target.value }))}
-                    className="w-full p-4 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all text-sm min-h-[150px]"
-                    placeholder="Describe your project..."
+                    onChange={(e) => setEditData({ ...editData, description: e.target.value })}
+                    className="w-full h-32 p-4 bg-slate-50 border border-slate-200 rounded-xl text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
                   />
                 ) : (
-                  <p className="text-gray-700 whitespace-pre-wrap">{project.description}</p>
+                  <p className="text-slate-600 leading-relaxed font-bold italic whitespace-pre-wrap">
+                    &quot;{project?.description || "No description provided."}&quot;
+                  </p>
                 )}
               </div>
 
-              <div>
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Location Details</h3>
-                  {!isEditingLocation ? (
-                    <button onClick={startEditingLocation} className="text-blue-600 hover:text-blue-700 text-sm font-bold flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                      Edit
+              {/* Key Highlights Section */}
+              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <SidebarIcon name="star" className="w-4 h-4" />
+                    Key Highlights
+                  </h3>
+                  {!isEditingHighlights ? (
+                    <button onClick={() => {
+                        setEditData(prev => ({ ...prev, highlights: project?.highlights || [] }));
+                        setIsEditingHighlights(true);
+                      }} className="text-blue-600 hover:text-blue-700 text-sm font-bold flex items-center gap-1">
+                      <SidebarIcon name="note" className="w-4 h-4" /> Edit
                     </button>
                   ) : (
-                    <div className="flex gap-2">
-                      <button onClick={() => setIsEditingLocation(false)} className="text-gray-500 hover:text-gray-700 text-sm font-bold">Cancel</button>
+                    <div className="flex gap-3">
+                      <button onClick={() => {
+                        setIsEditingHighlights(false);
+                        setNewHighlight('');
+                      }} className="text-slate-400 hover:text-slate-500 text-sm font-bold">Cancel</button>
+                      <button onClick={saveHighlights} className="text-emerald-600 hover:text-emerald-700 text-sm font-bold">Save</button>
+                    </div>
+                  )}
+                </div>
+
+                {isEditingHighlights ? (
+                  <div className="space-y-4">
+                    <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
+                      {editData.highlights.length > 0 ? (
+                        editData.highlights.map(h => (
+                          <div key={h} className="flex items-center justify-between p-3 rounded-xl border border-emerald-500 bg-emerald-50 text-emerald-700 font-medium text-sm">
+                            <span className="truncate">{h}</span>
+                            <button
+                              type="button"
+                              onClick={() => toggleHighlight(h)}
+                              className="text-emerald-400 hover:text-red-500 transition-colors ml-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-gray-400 text-xs italic col-span-full text-left">No highlights added yet.</p>
+                      )}
+                    </div>
+                    <form onSubmit={addCustomHighlight} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newHighlight}
+                        onChange={(e) => setNewHighlight(e.target.value)}
+                        placeholder="Add key highlight (e.g. Vastu Compliant)"
+                        className="flex-1 px-4 py-2 border border-blue-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      />
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-bold hover:bg-emerald-700 transition"
+                      >
+                        Add
+                      </button>
+                    </form>
+                  </div>
+                ) : (
+                  <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {project?.highlights && project.highlights.length > 0 ? (
+                      project.highlights.map((h, i) => (
+                        <div key={i} className="flex items-center gap-3 p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100/50">
+                          <div className="w-6 h-6 bg-emerald-500 text-white rounded-full flex items-center justify-center shrink-0">
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" /></svg>
+                          </div>
+                          <span className="text-slate-700 font-bold text-sm">{h}</span>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-slate-400 text-sm italic col-span-full text-left">Define what makes this property unique.</p>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Location Details Section */}
+              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <SidebarIcon name="pin" className="w-4 h-4" />
+                    Location Details
+                  </h3>
+                  {!isEditingLocation ? (
+                    <button onClick={startEditingLocation} className="text-blue-600 hover:text-blue-700 text-sm font-bold flex items-center gap-1">
+                      <SidebarIcon name="note" className="w-4 h-4" /> Edit
+                    </button>
+                  ) : (
+                    <div className="flex gap-3">
+                      <button onClick={() => setIsEditingLocation(false)} className="text-slate-400 hover:text-slate-500 text-sm font-bold">Cancel</button>
                       <button onClick={saveLocation} className="text-emerald-600 hover:text-emerald-700 text-sm font-bold">Save</button>
                     </div>
                   )}
                 </div>
                 {isEditingLocation ? (
-                  <div className="grid md:grid-cols-2 gap-4 bg-gray-50 p-6 rounded-xl border border-gray-100">
+                  <div className="grid md:grid-cols-2 gap-4 bg-slate-50 p-6 rounded-xl border border-slate-100">
                     <div className="col-span-2">
-                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Street Address</label>
+                      <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 text-left">Street Address</label>
                       <textarea
                         value={editData.address}
                         onChange={(e) => setEditData(prev => ({ ...prev, address: e.target.value }))}
-                        className="w-full px-4 py-2 rounded-lg border border-gray-200 text-sm"
+                        className="w-full px-4 py-2 rounded-lg border border-slate-200 text-sm"
                         rows={2}
                       />
                     </div>
-                    <div>
+                    <div className="text-left">
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">City</label>
                       <input
                         type="text"
                         value={editData.city}
                         onChange={(e) => setEditData(prev => ({ ...prev, city: e.target.value }))}
-                        className="w-full px-4 py-2 rounded-lg border border-gray-200 text-sm"
+                        className="w-full px-4 py-2 rounded-lg border border-slate-200 text-sm"
                       />
                     </div>
-                    <div>
+                    <div className="text-left">
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">State</label>
                       <input
                         type="text"
                         value={editData.state}
                         onChange={(e) => setEditData(prev => ({ ...prev, state: e.target.value }))}
-                        className="w-full px-4 py-2 rounded-lg border border-gray-200 text-sm"
+                        className="w-full px-4 py-2 rounded-lg border border-slate-200 text-sm"
                       />
                     </div>
-                    <div>
+                    <div className="text-left">
                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-1">Pincode</label>
                       <input
                         type="text"
                         value={editData.pincode}
                         onChange={(e) => setEditData(prev => ({ ...prev, pincode: e.target.value }))}
-                        className="w-full px-4 py-2 rounded-lg border border-gray-200 text-sm"
+                        className="w-full px-4 py-2 rounded-lg border border-slate-200 text-sm"
                       />
                     </div>
                   </div>
                 ) : (
-                  <dl className="grid md:grid-cols-2 gap-4">
+                  <dl className="grid grid-cols-2 md:grid-cols-4 gap-6 text-left">
                     <div>
-                      <dt className="text-sm text-gray-600">Address</dt>
-                      <dd className="text-gray-900 font-medium">{project.address || 'N/A'}</dd>
+                      <dt className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Address</dt>
+                      <dd className="text-slate-900 font-bold">{project.address || 'N/A'}</dd>
                     </div>
                     <div>
-                      <dt className="text-sm text-gray-600">City</dt>
-                      <dd className="text-gray-900 font-medium">{project.city || 'N/A'}</dd>
+                      <dt className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">City</dt>
+                      <dd className="text-slate-900 font-bold">{project.city || 'N/A'}</dd>
                     </div>
                     <div>
-                      <dt className="text-sm text-gray-600">State</dt>
-                      <dd className="text-gray-900 font-medium">{project.state || 'N/A'}</dd>
+                      <dt className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">State</dt>
+                      <dd className="text-slate-900 font-bold">{project.state || 'N/A'}</dd>
                     </div>
                     <div>
-                      <dt className="text-sm text-gray-600">Pincode</dt>
-                      <dd className="text-gray-900 font-medium">{project.pincode || 'N/A'}</dd>
+                      <dt className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Pincode</dt>
+                      <dd className="text-slate-900 font-bold">{project.pincode || 'N/A'}</dd>
                     </div>
                   </dl>
                 )}
               </div>
 
-              <div>
+              {/* Amenities Section */}
+              <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100">
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900">Amenities</h3>
+                  <h3 className="text-sm font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                    <SidebarIcon name="building" className="w-4 h-4" />
+                    Amenities
+                  </h3>
                   {!isEditingAmenities ? (
                     <button onClick={startEditingAmenities} className="text-blue-600 hover:text-blue-700 text-sm font-bold flex items-center gap-1">
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
-                      Edit
+                      <SidebarIcon name="note" className="w-4 h-4" /> Edit
                     </button>
                   ) : (
                     <div className="flex gap-2">
-                      <button onClick={() => setIsEditingAmenities(false)} className="text-gray-500 hover:text-gray-700 text-sm font-bold">Cancel</button>
+                      <button onClick={() => setIsEditingAmenities(false)} className="text-slate-400 hover:text-slate-500 text-sm font-bold">Cancel</button>
                       <button onClick={saveAmenities} className="text-emerald-600 hover:text-emerald-700 text-sm font-bold">Save</button>
                     </div>
                   )}
                 </div>
                 {isEditingAmenities ? (
-                  <div className="grid md:grid-cols-3 gap-3">
-                    {AMENITIES_OPTIONS.map(amenity => (
-                      <label key={amenity} className={`flex items-center p-3 rounded-xl border cursor-pointer transition-all ${editData.amenities.includes(amenity) ? 'border-blue-500 bg-blue-50 text-blue-700' : 'border-gray-200 hover:bg-gray-50 text-gray-600'}`}>
-                        <input type="checkbox" checked={editData.amenities.includes(amenity)} onChange={() => toggleAmenity(amenity)} className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500 mr-3" />
-                        <span className="text-sm font-medium">{amenity}</span>
-                      </label>
-                    ))}
+                  <div className="space-y-4">
+                    <div className="grid md:grid-cols-3 gap-3">
+                      {editData.amenities.length > 0 ? (
+                        editData.amenities.map(amenity => (
+                          <div key={amenity} className="flex items-center justify-between p-3 rounded-xl border border-blue-500 bg-blue-50 text-blue-700 font-medium text-sm">
+                            <div className="flex items-center truncate">
+                              <svg className="w-4 h-4 text-blue-600 mr-2 shrink-0" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
+                              <span className="truncate">{amenity}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => toggleAmenity(amenity)}
+                              className="text-blue-400 hover:text-red-500 transition-colors ml-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                            </button>
+                          </div>
+                        ))
+                      ) : (
+                        <p className="text-gray-400 text-xs italic col-span-3 text-left">No amenities added yet. Use the field below to add some.</p>
+                      )}
+                    </div>
+
+                    <form onSubmit={addCustomAmenity} className="flex gap-2">
+                      <input
+                        type="text"
+                        value={newAmenity}
+                        onChange={(e) => setNewAmenity(e.target.value)}
+                        placeholder="Add individual custom amenity..."
+                        className="flex-1 px-4 py-2 border border-blue-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+                      />
+                      <button
+                        type="submit"
+                        className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-bold hover:bg-blue-700 transition"
+                      >
+                        Add
+                      </button>
+                    </form>
                   </div>
                 ) : (
                   <div className="grid md:grid-cols-3 gap-3">
                     {project.amenities.length > 0 ? project.amenities.map(amenity => (
-                      <div key={amenity} className="flex items-center gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                      <div key={amenity} className="flex items-center gap-2 p-3 bg-blue-50/50 rounded-xl border border-blue-100/50">
                         <svg className="w-5 h-5 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
                           <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                         </svg>
-                        <span className="text-gray-700">{amenity}</span>
+                        <span className="text-slate-700 font-bold text-sm">{amenity}</span>
                       </div>
                     )) : (
-                      <p className="text-gray-500 text-sm col-span-3">No amenities listed yet.</p>
+                      <p className="text-slate-400 text-sm italic col-span-3 text-left">No amenities listed yet.</p>
                     )}
                   </div>
                 )}
