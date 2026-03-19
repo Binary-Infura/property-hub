@@ -18,9 +18,10 @@ export class CitiesController {
     @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     getManaged(
         @Query('page') page: string = '1',
-        @Query('limit') limit: string = '10'
+        @Query('limit') limit: string = '10',
+        @Query('state') state?: string
     ) {
-        return this.citiesService.getManagedCities(+page, +limit);
+        return this.citiesService.getManagedCities(+page, +limit, state);
     }
 
     @Get()

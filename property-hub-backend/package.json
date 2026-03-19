@@ -111,7 +111,7 @@
       "lodash": "^4.17.23",
       "js-yaml": "^4.1.1",
       "fast-xml-parser": "^5.5.6",
-      "@fastify/middie": "^9.2.0"
+      "@fastify/middie": "^8.3.3"
     }
   }
 }

@@ -24,11 +24,9 @@ interface User {
 
 interface City {
     id: string;
+    geoId: number;
     name: string;
     code: string;
-    continent?: string;
-    country?: string;
-    state?: string;
     city?: string;
 }
 
@@ -36,7 +34,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
     const { token } = useAuth();
     const [role, setRole] = useState<RoleId>(initialRole || 'MARKETING_MANAGER');
     const [selectedUserId, setSelectedUserId] = useState('');
-    const [selectedCityIds, setSelectedCityIds] = useState<string[]>([]);
+    const [selectedCityIds, setSelectedCityIds] = useState<number[]>([]);
     const [users, setUsers] = useState<User[]>([]);
     const [cities, setCitiesList] = useState<City[]>([]);
     const [userSearch, setUserSearch] = useState('');
@@ -175,11 +173,11 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
         }
     };
 
-    const handleCityToggle = (cityId: string) => {
+    const handleCityToggle = (cityGeoId: number) => {
         setSelectedCityIds((prev) =>
-            prev.includes(cityId)
-                ? prev.filter((id) => id !== cityId)
-                : [...prev, cityId]
+            prev.includes(cityGeoId)
+                ? prev.filter((id) => id !== cityGeoId)
+                : [...prev, cityGeoId]
         );
     };
 
@@ -199,7 +197,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
                 },
                 body: JSON.stringify({
                     userId: selectedUserId,
-                    cityIds: selectedCityIds,
+                    cityGeoIds: selectedCityIds,
                 }),
             });
 
@@ -352,24 +350,24 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
                             {cities.map((city) => (
                                 <div
                                     key={city.id}
-                                    onClick={() => handleCityToggle(city.id)}
-                                    className={`p-4 rounded-xl border transition-all cursor-pointer group flex items-start gap-3 ${selectedCityIds.includes(city.id)
+                                    onClick={() => handleCityToggle(city.geoId)}
+                                    className={`p-4 rounded-xl border transition-all cursor-pointer group flex items-start gap-3 ${selectedCityIds.includes(city.geoId)
                                         ? 'bg-blue-50/50 border-blue-500/20 shadow-sm'
                                         : 'bg-white border-gray-100 hover:border-gray-200 hover:bg-gray-50/50'
                                         }`}
                                 >
-                                    <div className={`mt-0.5 w-4 h-4 rounded border flex-shrink-0 transition-all flex items-center justify-center ${selectedCityIds.includes(city.id)
+                                    <div className={`mt-0.5 w-4 h-4 rounded border flex-shrink-0 transition-all flex items-center justify-center ${selectedCityIds.includes(city.geoId)
                                         ? 'bg-blue-600 border-blue-600 shadow-sm shadow-blue-200'
                                         : 'bg-gray-50 border-gray-200 group-hover:border-gray-300'
                                         }`}>
-                                        {selectedCityIds.includes(city.id) && (
+                                        {selectedCityIds.includes(city.geoId) && (
                                             <svg className="w-2.5 h-2.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
                                             </svg>
                                         )}
                                     </div>
                                     <div className="min-w-0">
-                                        <p className={`text-sm font-bold transition-colors ${selectedCityIds.includes(city.id) ? 'text-blue-600' : 'text-gray-900'}`}>{isCityContext ? (city.city || city.name) : city.name}</p>
+                                        <p className={`text-sm font-bold transition-colors ${selectedCityIds.includes(city.geoId) ? 'text-blue-600' : 'text-gray-900'}`}>{isCityContext ? (city.city || city.name) : city.name}</p>
                                         <p className="text-[10px] font-black text-gray-400 uppercase tracking-tighter mt-1">{city.code}</p>
                                     </div>
                                 </div>

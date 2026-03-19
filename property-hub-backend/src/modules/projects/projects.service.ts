@@ -33,11 +33,16 @@ export class ProjectsService {
         }
 
         if (city) {
-            where.OR = [
-                { city: { name: { contains: city, mode: 'insensitive' } } },
-                { location: { contains: city, mode: 'insensitive' } },
-                { address: { contains: city, mode: 'insensitive' } }
-            ];
+            const cityGeoId = parseInt(city, 10);
+            if (!isNaN(cityGeoId)) {
+                where.cityGeoId = cityGeoId;
+            } else {
+                where.OR = [
+                    { city: { name: { contains: city, mode: 'insensitive' } } },
+                    { location: { contains: city, mode: 'insensitive' } },
+                    { address: { contains: city, mode: 'insensitive' } }
+                ];
+            }
         }
 
         if (myOnly) {
@@ -108,11 +113,11 @@ export class ProjectsService {
             onboardedById = internalUser.id;
         }
 
-        const { cityId, ...rest } = createProjectDto;
+        const { cityGeoId, ...rest } = createProjectDto;
 
         const data: any = {
             ...rest,
-            cityId,
+            cityGeoId,
             onboardedById,
         };
 
@@ -146,11 +151,11 @@ export class ProjectsService {
     async update(id: string, updateProjectDto: UpdateProjectDto, user: AuthenticatedUser): Promise<Project> {
         const project = await this.findOne(id, user);
 
-        const { cityId, ...rest } = updateProjectDto;
+        const { cityGeoId, ...rest } = updateProjectDto;
 
         const data: any = {
             ...rest,
-            cityId,
+            cityGeoId,
         };
 
         const projectAfter = await this.prisma.project.update({

@@ -49,9 +49,9 @@ export class CreateProjectDto {
     @IsOptional()
     category?: string;
 
-    @IsUUID()
+    @IsNumber()
     @IsOptional()
-    cityId?: string;
+    cityGeoId?: number;
 
     @IsString()
     @IsOptional()
@@ -163,9 +163,9 @@ export class UpdateProjectDto {
     @IsOptional()
     category?: string;
 
-    @IsUUID()
+    @IsNumber()
     @IsOptional()
-    cityId?: string;
+    cityGeoId?: number;
 
     @IsString()
     @IsOptional()

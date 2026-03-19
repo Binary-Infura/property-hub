@@ -19,6 +19,12 @@ export class CentralAuthorityController {
         return this.centralAuthorityService.getDashboardStats();
     }
 
+    @Post('sync-cities')
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
+    async syncCities() {
+        return this.centralAuthorityService.syncCities();
+    }
+
     @Get('profile')
     async getProfile(@CurrentUser() user: AuthenticatedUser) {
         return this.centralAuthorityService.getProfile(user.userId);

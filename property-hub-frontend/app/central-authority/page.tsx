@@ -93,8 +93,6 @@ export default function CentralAuthorityDashboardPage() {
     const [districtSearch, setDistrictSearch] = useState('');
     const [selectedPayment, setSelectedPayment] = useState<PropertyPartner['latestPayment'] | null>(null);
     const [showReraImport, setShowReraImport] = useState(false);
-
-
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
 
@@ -194,9 +192,11 @@ export default function CentralAuthorityDashboardPage() {
 
     return (
         <div className="space-y-8">
-            <div>
-                <h1 className="text-3xl font-bold text-gray-900">Platform Overview</h1>
-                <p className="text-gray-600 mt-2">Global statistics and performance metrics.</p>
+            <div className="flex justify-between items-center">
+                <div>
+                    <h1 className="text-3xl font-bold text-gray-900">Platform Overview</h1>
+                    <p className="text-gray-600 mt-2">Global statistics and performance metrics.</p>
+                </div>
             </div>
 
             {/* Global Stats Grid */}

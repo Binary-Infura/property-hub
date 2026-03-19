@@ -94,7 +94,7 @@ export interface PlatformPerformance {
 }
 
 export interface CityPerformance {
-    cityId: string;
+    cityGeoId: number;
     cityName: string;
     campaigns: number;
     leads: number;

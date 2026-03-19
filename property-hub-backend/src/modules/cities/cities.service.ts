@@ -44,7 +44,7 @@ export class CitiesService {
     async createCity(dto: CreateCityDto) {
         try {
             return await this.prisma.city.create({
-                data: dto,
+                data: dto as any,
             });
         } catch (error) {
             if (error.code === 'P2002') {
@@ -73,10 +73,13 @@ export class CitiesService {
         });
     }
 
-    async getManagedCities(page: number = 1, limit: number = 10) {
+    async getManagedCities(page: number = 1, limit: number = 10, state?: string) {
         const skip = (page - 1) * limit;
+        const where = state ? { state: { equals: state, mode: 'insensitive' as const } } : {};
+        
         const [cities, total] = await Promise.all([
             this.prisma.city.findMany({
+                where,
                 skip,
                 take: limit,
                 include: {
@@ -89,7 +92,7 @@ export class CitiesService {
                 },
                 orderBy: { name: 'asc' }
             }),
-            this.prisma.city.count()
+            this.prisma.city.count({ where })
         ]);
 
         const data = (cities as any[]).map(city => {

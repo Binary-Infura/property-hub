@@ -6,6 +6,7 @@ import { ActivityLogsService } from '../../activity-logs/activity-logs.service';
 import { UpdateCentralAuthorityProfileDto, CreateCentralAuthorityUserDto, CentralAuthorityUserDto } from './central-authority.dto';
 import { UserRole } from '../../../common/enums/role.enum';
 import { OrganizationType } from '../../../common/enums/organization-type.enum';
+import { getAllCitiesOfCountry } from '@countrystatecity/countries';
 
 @Injectable()
 export class CentralAuthorityService {
@@ -68,6 +69,52 @@ export class CentralAuthorityService {
             this.prisma.user.count({ where })
         ]);
         return { data: data as any, total };
+    }
+
+    async syncCities() {
+        const cities = await getAllCitiesOfCountry('IN');
+        let createdCount = 0;
+        let updatedCount = 0;
+
+        for (const city of cities) {
+            if (!city.id || !city.name) continue;
+            
+            const geoId = parseInt(city.id as any, 10);
+            const lat = city.latitude ? parseFloat(city.latitude) : null;
+            const lng = city.longitude ? parseFloat(city.longitude) : null;
+
+            const existing = await this.prisma.city.findFirst({
+                where: { OR: [{ geoId: geoId }, { name: { equals: city.name, mode: 'insensitive' } }] },
+            });
+
+            if (existing) {
+                await this.prisma.city.update({
+                    where: { id: existing.id },
+                    data: {
+                        geoId: geoId,
+                        name: city.name,
+                        state: city.state_code,
+                        latitude: lat,
+                        longitude: lng,
+                    },
+                });
+                updatedCount++;
+            } else {
+                await this.prisma.city.create({
+                    data: {
+                        geoId: geoId,
+                        name: city.name,
+                        state: city.state_code,
+                        latitude: lat,
+                        longitude: lng,
+                        active: true,
+                    },
+                });
+                createdCount++;
+            }
+        }
+
+        return { success: true, createdCount, updatedCount, totalCount: cities.length };
     }
 
     async getDashboardStats() {
