@@ -23,6 +23,8 @@ All test users share the same common password:
 | **Marketing Manager** | `marketing_manager@propertyhub.com` |
 | **Loan Advisor** | `loan_advisor@propertyhub.com` |
 | **Onboarding Manager** | `onboarding_manager@propertyhub.com` |
+| **Broker** | `broker@propertyhub.com` |
+| **Visit Executive** | `visit_executive@propertyhub.com` |
 
 ## Seeding Command
 If you ever need to reset or recreate these users, you can run the seeding script:

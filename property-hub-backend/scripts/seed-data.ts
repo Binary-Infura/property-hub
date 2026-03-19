@@ -1,341 +1,660 @@
-import { PrismaClient, ProjectStatus, ProjectType, LeadStatus, UserRole, UserStatus, OrganizationType } from '@prisma/client';
+import { 
+    PrismaClient, 
+    ProjectStatus, 
+    ProjectType, 
+    LeadStatus, 
+    UserRole, 
+    UserStatus, 
+    OrganizationType, 
+    UnitStatus,
+    VisitStatus,
+    CommissionStatus,
+    LoanStatus,
+    InstagramStatus,
+    LeadNoteCategory,
+    SubscriptionMode,
+    InvitationStatus
+} from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { v4 as uuidv4 } from 'uuid';
 
 const prisma = new PrismaClient();
 
 async function main() {
-    console.log('🌱 Starting database seed (Single Source of Truth)...');
+    console.log('🌱 Starting comprehensive database seed...');
 
     const passwordHash = await bcrypt.hash('password123', 10);
+    const now = new Date();
+    const future = new Date();
+    future.setMonth(now.getMonth() + 6);
+    const past = new Date();
+    past.setMonth(now.getMonth() - 6);
 
-
-    // 1. Cities
-    console.log('Creating Cities...');
+    // --- 1. Cities ---
+    console.log('   Creating Cities...');
     const citiesData = [
         { name: 'Mumbai', state: 'Maharashtra' },
         { name: 'Pune', state: 'Maharashtra' },
         { name: 'Bangalore', state: 'Karnataka' },
         { name: 'Delhi', state: 'Delhi' },
+        { name: 'Hyderabad', state: 'Telangana' },
     ];
 
     for (const city of citiesData) {
         await prisma.city.upsert({
             where: { name: city.name },
-            update: {},
-            create: city,
+            update: { active: true },
+            create: { ...city, active: true },
         });
     }
+    const allCities = await prisma.city.findMany();
+    const mumbai = allCities.find(c => c.name === 'Mumbai');
+    const pune = allCities.find(c => c.name === 'Pune');
 
-    const mumbai = await prisma.city.findFirst({ where: { name: 'Mumbai' } });
-    const pune = await prisma.city.findFirst({ where: { name: 'Pune' } });
-
-    // 2. Organization
-    console.log('Creating Seed Organization...');
-    let prestigeOrg = await prisma.organization.findFirst({
-        where: { name: 'Prestige Builders' }
-    });
-
-    if (!prestigeOrg) {
-        prestigeOrg = await prisma.organization.create({
-            data: {
-                name: 'Prestige Builders',
-                email: 'contact@prestige.com',
-                phone: '+919876543000',
-                address: '123 Builder Lane, Mumbai',
-                type: (OrganizationType as any).PROPERTY_PARTNER,
-                taxId: 'TAX123456',
-            }
-        });
-    }
-
-    // 3. User & JSON Profile
-    console.log('Creating Super User with JSON profile...');
-
-    // Define the consolidated profile data
-    const superUserProfileData: any = {
-        // Central Authority fields
-        department: 'Operations',
-        accessLevel: 'Admin',
-        // Property Partner fields
-        isPremium: true,
-        // Consultant fields
-        specialization: ['Residential', 'Commercial', 'Investment'],
-        experienceYears: 10,
-        // Marketing Manager fields
-        campaignBudgetLimit: 5000000,
-        // Buyer fields
-        budgetMin: 5000000,
-        budgetMax: 100000000,
-        preferredLocations: ['Mumbai', 'Pune', 'Bangalore', 'Delhi'],
-        // Influencer fields
-        socialMediaLinks: {},
-        reach: 100000,
-        niche: 'Real Estate'
-    };
-
-    const roles: UserRole[] = [
-        UserRole.CENTRAL_AUTHORITY,
-        UserRole.MARKETING_MANAGER,
-        UserRole.CONSULTANT,
-        UserRole.BUYER,
-        UserRole.PROPERTY_PARTNER,
-        UserRole.LOAN_ADVISOR,
-        UserRole.INFLUENCER,
+    // --- 2. Postal Codes ---
+    console.log('   Creating Postal Codes...');
+    const postalCodesData = [
+        { code: '400018', officeName: 'Worli', district: 'Mumbai', state: 'Maharashtra', country: 'India', latitude: '18.9986', longitude: '72.8174' },
+        { code: '411001', officeName: 'Pune H.O', district: 'Pune', state: 'Maharashtra', country: 'India', latitude: '18.5204', longitude: '73.8567' },
+        { code: '560001', officeName: 'Bangalore G.P.O.', district: 'Bangalore', state: 'Karnataka', country: 'India', latitude: '12.9716', longitude: '77.5946' },
     ];
 
+    for (const pc of postalCodesData) {
+        await prisma.postalCode.upsert({
+            where: { code_officeName: { code: pc.code, officeName: pc.officeName } },
+            update: {},
+            create: pc,
+        });
+    }
+    const worliPostalCode = await prisma.postalCode.findFirst({ where: { code: '400018' } });
+
+    // --- 3. Organizations ---
+    console.log('   Creating Organizations...');
+    const platformOrg = await prisma.organization.upsert({
+        where: { id: 'platform-org-id' },
+        update: {},
+        create: {
+            id: 'platform-org-id',
+            name: 'Property Hub Platform',
+            type: OrganizationType.PLATFORM,
+            email: 'admin@propertyhub.com',
+            phone: '+912200001111',
+            address: 'Tech Park, Mumbai',
+            isActive: true,
+            isPremium: true,
+            subscriptionMode: SubscriptionMode.PAID,
+        }
+    });
+
+    const prestigeOrg = await prisma.organization.upsert({
+        where: { id: 'prestige-org-id' },
+        update: {},
+        create: {
+            id: 'prestige-org-id',
+            name: 'Prestige Builders',
+            type: OrganizationType.PROPERTY_PARTNER,
+            email: 'contact@prestige.com',
+            phone: '+919876543000',
+            address: '123 Builder Lane, Mumbai',
+            taxId: 'TAX123456',
+            licenseNumber: 'RERA-MUM-123',
+            isActive: true,
+            isPremium: true,
+            subscriptionMode: SubscriptionMode.PAID,
+        }
+    });
+
+    // --- 4. Users ---
+    console.log('   Creating Users based on test-users-credentials.md...');
+    const users: any[] = [];
+
+    // 4.1. Super User
     const superUser = await prisma.user.upsert({
         where: { email: 'superuser@propertyhub.com' },
-        update: {
-            roles: roles,
-            activeRole: UserRole.CENTRAL_AUTHORITY,
-            profileData: superUserProfileData,
-            organizationId: prestigeOrg.id,
+        update: { 
+            roles: Object.values(UserRole), 
+            activeRole: UserRole.CENTRAL_AUTHORITY, 
+            organizationId: platformOrg.id 
         },
         create: {
             email: 'superuser@propertyhub.com',
             firstName: 'Super',
-            lastName: 'User',
-            roles: roles,
+            lastName: 'Admin',
+            roles: Object.values(UserRole),
             activeRole: UserRole.CENTRAL_AUTHORITY,
             status: UserStatus.ACTIVE,
             passwordHash,
-            phone: '+919876543222',
-            profileData: superUserProfileData,
-            organizationId: prestigeOrg.id,
+            phone: '+919999999999',
+            organizationId: platformOrg.id,
+            onboardingStatus: 'completed',
+            isEmailVerified: true,
+            isPhoneVerified: true,
         },
     });
+    users.push(superUser);
 
-    // 3.5. Individual Role Test Users
-    console.log('Creating Individual Role Test Users...');
-    const individualRoles = [
-        UserRole.CENTRAL_AUTHORITY,
-        UserRole.PROPERTY_PARTNER,
-        UserRole.BUYER,
-        UserRole.CONSULTANT,
-        UserRole.INFLUENCER,
-        UserRole.MARKETING_MANAGER,
-        UserRole.LOAN_ADVISOR,
+    // 4.2. Regular Role Users
+    const rolesToSeed = [
+        { role: UserRole.CENTRAL_AUTHORITY, email: 'central_authority@propertyhub.com', f: 'Central', l: 'Authority' },
+        { role: UserRole.PROPERTY_PARTNER, email: 'property_partner@propertyhub.com', f: 'Property', l: 'Partner', orgId: prestigeOrg.id },
+        { role: UserRole.BUYER, email: 'buyer@propertyhub.com', f: 'Test', l: 'Buyer' },
+        { role: UserRole.CONSULTANT, email: 'consultant@propertyhub.com', f: 'Test', l: 'Consultant' },
+        { role: UserRole.INFLUENCER, email: 'influencer@propertyhub.com', f: 'Test', l: 'Influencer' },
+        { role: UserRole.MARKETING_MANAGER, email: 'marketing_manager@propertyhub.com', f: 'Marketing', l: 'Manager' },
+        { role: UserRole.LOAN_ADVISOR, email: 'loan_advisor@propertyhub.com', f: 'Loan', l: 'Advisor' },
+        { role: UserRole.BROKER, email: 'broker@propertyhub.com', f: 'Test', l: 'Broker' },
+        { role: UserRole.VISIT_EXECUTIVE, email: 'visit_executive@propertyhub.com', f: 'Visit', l: 'Executive' },
+        { role: UserRole.CENTRAL_AUTHORITY, email: 'onboarding_manager@propertyhub.com', f: 'Onboarding', l: 'Manager' },
     ];
 
-    for (const role of individualRoles) {
-        let orgId = undefined;
-        // Optionally assign to organization if role demands it (like PP)
-        if (role === UserRole.PROPERTY_PARTNER) {
-            orgId = prestigeOrg.id;
-        }
-
-        const email = `${role.toLowerCase()}@propertyhub.com`;
-
-        await prisma.user.upsert({
-            where: { email },
-            update: {
-                roles: [role],
-                activeRole: role,
-                organizationId: orgId,
+    for (const r of rolesToSeed) {
+        const user = await prisma.user.upsert({
+            where: { email: r.email },
+            update: { 
+                activeRole: r.role,
+                organizationId: r.orgId || platformOrg.id
             },
             create: {
-                email,
-                firstName: 'Test',
-                lastName: role.replace('_', ' '),
-                roles: [role],
-                activeRole: role,
+                email: r.email,
+                firstName: r.f,
+                lastName: r.l,
+                roles: [r.role],
+                activeRole: r.role,
                 status: UserStatus.ACTIVE,
                 passwordHash,
-                phone: `+91900000000${individualRoles.indexOf(role)}`,
-                organizationId: orgId,
-            },
+                onboardingStatus: 'completed',
+                organizationId: r.orgId || platformOrg.id,
+                isEmailVerified: true,
+            }
         });
+        users.push(user);
     }
 
-    // 4. Properties
-    console.log('Creating Properties...');
+    // Helper references for subsequent seed steps
+    const ppUser = users.find(u => u.activeRole === UserRole.PROPERTY_PARTNER);
+    const consultantUser = users.find(u => u.activeRole === UserRole.CONSULTANT);
+    const visitExecutive = users.find(u => u.activeRole === UserRole.VISIT_EXECUTIVE);
+    const buyerUser = users.find(u => u.activeRole === UserRole.BUYER);
+
+    // --- 5. Projects ---
+    console.log('   Creating Projects...');
     const projectsData = [
         {
-            name: 'Luxury Sea View Apartment',
-            description: 'Beautiful 3BHK facing the sea',
-            location: 'Worli, Mumbai',
-            address: 'Worli Sea Face',
-            price: 45000000,
-            area: 1800,
-            projectType: ProjectType.APARTMENT,
-            status: ProjectStatus.APPROVED,
+            name: 'Prestige Falcon City',
+            description: 'Luxury residential project with world-class amenities.',
+            location: 'Kanakapura Road, Bangalore',
+            address: 'Sy No 56/1, Kanakapura Road',
+            price: 12500000.00,
+            area: 1600.00,
             bedrooms: 3,
             bathrooms: 3,
-            category: 'flat',
-            cityId: mumbai?.id,
-            onboardedById: superUser.id
+            projectType: ProjectType.APARTMENT,
+            status: ProjectStatus.APPROVED,
+            category: 'Premium',
+            cityId: allCities.find(c => c.name === 'Bangalore')?.id,
+            onboardedById: ppUser.id,
+            images: ['https://images.unsplash.com/photo-1545324418-f1d3ac157304?w=800'],
+            totalTowers: 5,
+            totalUnits: 450,
+            amenities: ['Swiming Pool', 'Gym', 'Clubhouse', 'Yoga Deck'],
+            highlights: ['Near Metro', 'Premium Finishes', 'Forest View'],
+            pincode: '560062',
         },
         {
-            name: 'Green Valley Plot',
-            description: 'Lush green plot for villa',
-            location: 'Lonavala, Pune',
-            price: 8000000,
-            area: 5000,
-            projectType: ProjectType.PLOT,
-            status: ProjectStatus.DRAFT,
-            category: 'plot',
-            cityId: pune?.id,
-            onboardedById: superUser.id
+            name: 'Prestige High Fields',
+            description: 'Modern apartments in the heart of the business district.',
+            location: 'Financial District, Hyderabad',
+            address: 'ISB Road, Gachibowli',
+            price: 9500000.00,
+            area: 1400.00,
+            bedrooms: 2,
+            bathrooms: 2,
+            projectType: ProjectType.APARTMENT,
+            status: ProjectStatus.UNDER_CONSTRUCTION,
+            category: 'Residential',
+            cityId: allCities.find(c => c.name === 'Hyderabad')?.id,
+            onboardedById: ppUser.id,
+            images: ['https://images.unsplash.com/photo-1512917774080-9991f1c4c750?w=800'],
+            totalTowers: 10,
+            totalUnits: 1200,
+        },
+        {
+            name: 'Worli Sky Villa',
+            description: 'Ultra-luxurious sea facing villas.',
+            location: 'Worli, Mumbai',
+            address: 'Worli Sea Face',
+            price: 85000000.00,
+            area: 4500.00,
+            bedrooms: 5,
+            bathrooms: 6,
+            projectType: ProjectType.VILLA,
+            status: ProjectStatus.APPROVED,
+            category: 'Luxury',
+            cityId: mumbai?.id,
+            postalCodeId: worliPostalCode?.id,
+            onboardedById: superUser.id,
+            images: ['https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=800'],
+            totalTowers: 1,
+            totalUnits: 10,
         }
     ];
 
+    const projects: any[] = [];
     for (const p of projectsData) {
-        const existing = await prisma.project.findFirst({ where: { name: p.name } });
-        if (!existing) {
-            await prisma.project.create({ data: p });
+        let project = await prisma.project.findFirst({ where: { name: p.name } });
+        if (!project) {
+            project = await prisma.project.create({ data: p });
+        }
+        projects.push(project);
+    }
+
+    // --- 6. Towers & Units ---
+    console.log('   Creating Towers and Units...');
+    for (const project of projects) {
+        if (project.projectType === ProjectType.APARTMENT) {
+            for (let i = 1; i <= 2; i++) {
+                const towerName = `Tower ${String.fromCharCode(64 + i)}`;
+                let tower = await prisma.tower.findFirst({ 
+                    where: { name: towerName, projectId: project.id } 
+                });
+                
+                if (!tower) {
+                    tower = await prisma.tower.create({
+                        data: {
+                            name: towerName,
+                            projectId: project.id,
+                            totalFloors: 20,
+                        }
+                    });
+                }
+
+                for (let floor = 1; floor <= 2; floor++) {
+                    for (let u = 1; u <= 2; u++) {
+                        const unitNumber = `${floor}0${u}`;
+                        const existingUnit = await prisma.propertyUnit.findFirst({
+                            where: { 
+                                projectId: project.id, 
+                                towerId: tower.id, 
+                                unitNumber: unitNumber 
+                            }
+                        });
+
+                        if (!existingUnit) {
+                            await prisma.propertyUnit.create({
+                                data: {
+                                    projectId: project.id,
+                                    towerId: tower.id,
+                                    unitNumber: unitNumber,
+                                    floor: floor,
+                                    type: `${floor+1}BHK`,
+                                    area: 1200 + (floor * 100),
+                                    price: project.price.toNumber() + (floor * 500000),
+                                    status: UnitStatus.DRAFT,
+                                }
+                            });
+                        }
+                    }
+                }
+            }
         }
     }
 
-    const seaViewProj = await prisma.project.findFirst({ where: { name: 'Luxury Sea View Apartment' } });
-    const valleyPlotProj = await prisma.project.findFirst({ where: { name: 'Green Valley Plot' } });
-
-    // 5. Banks
-    console.log('Creating Banks...');
+    // --- 7. Banks & Loans ---
+    console.log('   Creating Banks and Loans...');
     const banksData = [
-        { name: 'HDFC Bank', percentage: 8.4 },
-        { name: 'SBI Bank', percentage: 8.5 },
-        { name: 'ICICI Bank', percentage: 8.75 },
+        { name: 'HDFC Bank', percentage: 8.4, logoUrl: 'https://logo.clearbit.com/hdfcbank.com' },
+        { name: 'SBI Bank', percentage: 8.5, logoUrl: 'https://logo.clearbit.com/sbi.co.in' },
+        { name: 'ICICI Bank', percentage: 8.75, logoUrl: 'https://logo.clearbit.com/icicibank.com' },
     ];
 
+    const banks: any[] = [];
     for (const bank of banksData) {
-        await prisma.bank.upsert({
+        const b = await prisma.bank.upsert({
             where: { name: bank.name },
             update: {},
             create: bank,
         });
+        banks.push(b);
     }
 
-    // 6. Reels
-    console.log('Creating Reels...');
+    // --- 8. Marketing Campaigns ---
+    console.log('   Creating Marketing Campaigns...');
+    let campaign = await prisma.marketingCampaign.findFirst({ where: { name: 'Diwali Premium Dhamaka' } });
+    if (!campaign) {
+        campaign = await prisma.marketingCampaign.create({
+            data: {
+                name: 'Diwali Premium Dhamaka',
+                description: 'Exclusive Diwali offers on premium apartments',
+                status: 'ACTIVE',
+                platform: 'Facebook',
+                budget: 500000,
+                spent: 120000,
+                startDate: past,
+                endDate: future,
+                impressions: 45000,
+                clicks: 3200,
+                leadsCount: 156,
+                assignedTo: { connect: [{ id: superUser.id }] }
+            }
+        });
+    }
 
-    if (seaViewProj && valleyPlotProj) {
-        const reelItems = [
-            {
-                title: 'Luxury Sea View Apartment - Worli, Mumbai',
-                description: 'Step inside this stunning 3BHK sea-facing apartment.',
-                videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-                thumbnailUrl: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?w=400&q=80',
-                projectId: seaViewProj.id
-            },
-            {
-                title: 'Green Valley Villa Plots - Lonavala, Pune',
-                description: 'Build your dream home amidst nature.',
-                videoUrl: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-                thumbnailUrl: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=400&q=80',
-                projectId: valleyPlotProj.id
-            },
-        ];
+    // --- 9. Leads & Activities ---
+    console.log('   Creating Leads, Notes, Visits, and Calls...');
+    const leadNames = ['Rahul Sharma', 'Ananya Singh', 'David Miller', 'Priya Patel'];
+    const leads: any[] = [];
 
-        for (const item of reelItems) {
-            const existing = await prisma.reel.findFirst({ where: { title: item.title } });
-            if (!existing) {
-                const { projectId, ...rest } = item;
-                await prisma.reel.create({
+    for (let i = 0; i < leadNames.length; i++) {
+        const phone = `+91980000000${i}`;
+        let lead = await prisma.lead.findFirst({ where: { phone } });
+        
+        if (!lead) {
+            lead = await prisma.lead.create({
+                data: {
+                    name: leadNames[i],
+                    email: `${leadNames[i].toLowerCase().replace(' ', '.')}@example.com`,
+                    phone,
+                    status: i % 2 === 0 ? LeadStatus.NEW : LeadStatus.QUALIFIED,
+                    source: 'Facebook Ad',
+                    notes: 'Interested in 3BHK high-rise units.',
+                    projectId: projects[i % projects.length].id,
+                    campaignId: campaign.id,
+                    assignedTo: superUser.id,
+                }
+            });
+        }
+        leads.push(lead);
+
+        // Lead Notes
+        const existingNote = await prisma.leadNote.findFirst({ where: { leadId: lead.id, content: 'Expressed strong interest during first call.' } });
+        if (!existingNote) {
+            await prisma.leadNote.create({
+                data: {
+                    leadId: lead.id,
+                    authorId: superUser.id,
+                    content: 'Expressed strong interest during first call.',
+                    category: LeadNoteCategory.GENERAL
+                }
+            });
+        }
+
+        // Visits
+        const existingVisit = await prisma.visit.findFirst({ where: { leadId: lead.id, status: VisitStatus.SCHEDULED } });
+        if (!existingVisit) {
+            await prisma.visit.create({
+                data: {
+                    leadId: lead.id,
+                    scheduledAt: future,
+                    status: VisitStatus.SCHEDULED,
+                    visitExecutiveId: visitExecutive?.id,
+                    notes: 'Pick up requested from Metro station.'
+                }
+            });
+        }
+
+        // Call Logs
+        const existingCall = await prisma.callLog.findFirst({ where: { leadId: lead.id, consultantId: consultantUser?.id } });
+        if (!existingCall) {
+            await prisma.callLog.create({
+                data: {
+                    leadId: lead.id,
+                    consultantId: consultantUser?.id,
+                    status: 'COMPLETED',
+                    duration: 450,
+                    recordingUrl: 'https://storage.provider.com/calls/rec_123.mp3',
+                    startTime: past,
+                    endTime: new Date(past.getTime() + 450000),
+                }
+            });
+        }
+
+        // Loans
+        if (i === 0) {
+            const existingLoan = await prisma.loan.findFirst({ where: { leadId: lead.id, projectId: projects[0].id } });
+            if (!existingLoan) {
+                await prisma.loan.create({
                     data: {
-                        ...rest,
-                        user: { connect: { id: superUser.id } },
-                        project: { connect: { id: projectId } }
-                    },
+                        leadId: lead.id,
+                        projectId: projects[0].id,
+                        bankId: banks[0].id,
+                        amount: 8000000,
+                        tenureYears: 20,
+                        interestRate: 8.4,
+                        status: LoanStatus.APPROVED,
+                        notes: 'Credit check cleared.'
+                    }
                 });
             }
         }
     }
 
-    // 7. Marketing Campaigns
-    console.log('Creating Marketing Campaigns...');
-    const curCampaignData = {
-        name: 'Mumbai Premium Properties Q1',
-        description: 'Upscale properties in South Mumbai',
-        status: 'active',
-        platform: 'Google Ads',
-        budget: 150000,
-        spent: 98500,
-        startDate: new Date('2024-01-01'),
-        endDate: new Date('2024-03-31'),
-        impressions: 125000,
-        clicks: 8500,
-        leadsCount: 420,
-        conversions: 78,
-    };
-
-    const campaign = await prisma.marketingCampaign.findFirst({ where: { name: curCampaignData.name } });
-    let activeCampaign;
-    if (!campaign) {
-        activeCampaign = await prisma.marketingCampaign.create({
+    // --- 10. Commissions ---
+    console.log('   Creating Commissions...');
+    const existingCommission = await prisma.commission.findFirst({ where: { projectId: projects[0].id, agentId: superUser.id } });
+    if (!existingCommission) {
+        await prisma.commission.create({
             data: {
-                ...curCampaignData,
-                assignedTo: { connect: [{ id: superUser.id }] }
+                amount: 150000,
+                percentage: 2.0,
+                agentId: superUser.id,
+                projectId: projects[0].id,
+                status: CommissionStatus.PENDING,
             }
         });
-    } else {
-        activeCampaign = campaign;
     }
 
-    // 8. Leads
-    console.log('Creating Leads...');
-    const leadsData = [
-        {
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            phone: '+919876543210',
-            status: LeadStatus.NEW,
-            source: 'Google Ads',
-            notes: 'Interested in sea view apartments in Worli',
-            projectId: seaViewProj?.id,
-            campaignId: activeCampaign?.id,
-            assignedTo: superUser.id
-        },
-        {
-            name: 'Sarah Smith',
-            email: 'sarah.smith@example.com',
-            phone: '+919876543211',
-            status: LeadStatus.FOLLOW_UP_STARTED,
-            source: 'Facebook',
-            notes: 'Needs info about plot registration in Pune',
-            projectId: valleyPlotProj?.id,
-            assignedTo: superUser.id
-        },
-        {
-            name: 'Michael Brown',
-            phone: '+919876543212',
-            status: LeadStatus.VISITING,
-            source: 'Referral',
-            notes: 'Wants to schedule a site visit next Sunday',
-            projectId: seaViewProj?.id,
-            assignedTo: superUser.id
-        }
-    ];
-
-    for (const l of leadsData) {
-        const existing = await prisma.lead.findFirst({ where: { phone: l.phone, name: l.name } });
-        if (!existing) {
-            await prisma.lead.create({ data: l });
-        }
-    }
-
-    // 9. User Documents
-    console.log('Creating User Documents...');
-    const dummyUrl = 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf';
-    const docsToSeed = [
-        { name: 'Aadhaar Card', category: 'identity', url: dummyUrl, status: 'verified' },
-        { name: 'PAN Card', category: 'identity', url: dummyUrl, status: 'verified' }
-    ];
-
-    for (const d of docsToSeed) {
-        const existing = await prisma.userDocument.findFirst({
-            where: { userId: superUser.id, name: d.name }
+    // --- 11. Ads Requests ---
+    console.log('   Creating Ads Requests...');
+    const existingAdsReq = await prisma.adsRequest.findFirst({ where: { title: 'Holi Weekend Special', requestedById: ppUser.id } });
+    if (!existingAdsReq) {
+        await prisma.adsRequest.create({
+            data: {
+                title: 'Holi Weekend Special',
+                description: 'Requesting 2% extra discount banner for Holi.',
+                status: 'PENDING',
+                priority: 'HIGH',
+                requestedById: ppUser.id,
+                projectId: projects[0].id,
+                budget: 50000,
+                platform: 'Instagram'
+            }
         });
-        if (!existing) {
-            await prisma.userDocument.create({
-                data: {
-                    ...d,
-                    user: { connect: { id: superUser.id } }
-                }
-            });
-        }
     }
 
-    console.log('✅ Seeding completed successfully.');
+    // --- 12. Reels ---
+    console.log('   Creating Reels...');
+    const existingReel = await prisma.reel.findFirst({ where: { title: 'Morning View from Falcon City' } });
+    if (!existingReel) {
+        await prisma.reel.create({
+            data: {
+                title: 'Morning View from Falcon City',
+                description: 'Waking up to this view every day! #LuxuryLiving',
+                videoUrl: 'https://v.videvo.net/video/free/2014-12/small_watermarked/Raindrops_Files_01_preview.mp4',
+                thumbnailUrl: 'https://images.unsplash.com/photo-1545324418-f1d3ac157304?w=400',
+                userId: ppUser.id,
+                projectId: projects[0].id,
+                instagramStatus: InstagramStatus.PUBLISHED,
+                publishToOfficialInstagram: true,
+            }
+        });
+    }
+
+    // --- 13. Reviews ---
+    console.log('   Creating Reviews...');
+    const existingReview = await prisma.review.findFirst({ where: { authorId: buyerUser.id, authorName: 'Rahul Sharma' } });
+    if (!existingReview) {
+        await prisma.review.create({
+            data: {
+                content: 'Prestige Builders always deliver on time. Great experience!',
+                rating: 5,
+                authorId: buyerUser.id,
+                authorName: 'Rahul Sharma',
+                authorRole: 'Happy Homeowner',
+                isApproved: true,
+                showOnHomepage: true,
+            }
+        });
+    }
+
+    // --- 14. User Documents ---
+    console.log('   Creating User Documents...');
+    const existingDoc = await prisma.userDocument.findFirst({ where: { userId: superUser.id, name: 'Corporate License' } });
+    if (!existingDoc) {
+        await prisma.userDocument.create({
+            data: {
+                userId: superUser.id,
+                name: 'Corporate License',
+                category: 'Legal',
+                url: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf',
+                status: 'verified',
+            }
+        });
+    }
+
+    // --- 15. Activity Logs ---
+    console.log('   Creating Activity Logs...');
+    const existingActivity = await prisma.activityLog.findFirst({ where: { userId: superUser.id, action: 'APPROVE', target: projects[0].id } });
+    if (!existingActivity) {
+        await prisma.activityLog.create({
+            data: {
+                userId: superUser.id,
+                type: 'PROJECT',
+                action: 'APPROVE',
+                target: projects[0].id,
+                details: { reason: 'All documents verified' },
+            }
+        });
+    }
+
+    // --- 16. Follows ---
+    console.log('   Creating Follows...');
+    await prisma.follow.upsert({
+        where: { followerId_followingId: { followerId: buyerUser.id, followingId: ppUser.id } },
+        update: {},
+        create: {
+            followerId: buyerUser.id,
+            followingId: ppUser.id,
+        }
+    });
+
+    // --- 17. Chats ---
+    console.log('   Creating Chat Sessions...');
+    const existingChat = await prisma.chatSession.findFirst({
+        where: {
+            participants: {
+                some: { userId: superUser.id }
+            }
+        }
+    });
+    if (!existingChat) {
+        await prisma.chatSession.create({
+            data: {
+                channelType: 'DIRECT',
+                participants: {
+                    create: [
+                        { userId: superUser.id, role: 'ADMIN' },
+                        { userId: buyerUser.id, role: 'MEMBER' },
+                    ]
+                }
+            }
+        });
+    }
+
+    // --- 18. RERA & Sync Logs ---
+    console.log('   Creating RERA and Sync data...');
+    await prisma.reraProject.upsert({
+        where: { reraNumber: 'PRM/KA/RERA/1251/310/PR/170915/000213' },
+        update: {},
+        create: {
+            state: 'Karnataka',
+            reraNumber: 'PRM/KA/RERA/1251/310/PR/170915/000213',
+            projectName: 'Prestige Falcon City',
+            promoterName: 'Prestige Estate Projects Ltd',
+            status: 'Approved',
+            district: 'Bangalore South',
+            registrationDate: past,
+            completionDate: future,
+        }
+    });
+
+    await prisma.reraSyncLog.create({
+        data: {
+            state: 'Karnataka',
+            status: 'COMPLETED',
+            projectsScraped: 120,
+            startedAt: past,
+            completedAt: now,
+        }
+    });
+
+    await prisma.reraDistrictCount.upsert({
+        where: { state_district: { state: 'Karnataka', district: 'Bangalore South' } },
+        update: {},
+        create: {
+            state: 'Karnataka',
+            district: 'Bangalore South',
+            projectCount: 450,
+        }
+    });
+
+    await prisma.postalCodeSyncLog.create({
+        data: {
+            status: 'SUCCESS',
+            recordsImported: 154000,
+            totalRecords: 154782,
+            startedAt: past,
+            completedAt: now,
+        }
+    });
+
+    // --- 19. Payment Orders ---
+    console.log('   Creating Payment Orders...');
+    await prisma.paymentOrder.upsert({
+        where: { razorpayOrderId: 'order_ABC123' },
+        update: {},
+        create: {
+            userId: buyerUser.id,
+            amount: 5000.00,
+            currency: 'INR',
+            status: 'SUCCESS',
+            razorpayOrderId: 'order_ABC123',
+            razorpayPaymentId: 'pay_ABC123',
+            receipt: 'receipt_123',
+        }
+    });
+
+    // --- 20. Invitations ---
+    console.log('   Creating Invitations...');
+    const existingInvite = await prisma.invitation.findFirst({ where: { email: 'newbroker@example.com' } });
+    if (!existingInvite) {
+        await prisma.invitation.create({
+            data: {
+                email: 'newbroker@example.com',
+                roles: [UserRole.BROKER],
+                token: uuidv4(),
+                status: InvitationStatus.PENDING,
+                invitedById: superUser.id,
+                expiresAt: future,
+            }
+        });
+    }
+
+    // --- 21. Webhook Logs ---
+    console.log('   Creating Webhook Logs...');
+    const existingWebhook = await prisma.webhookLog.findFirst({ where: { endpoint: '/v1/payments/razorpay', responseStatus: 200 } });
+    if (!existingWebhook) {
+        await prisma.webhookLog.create({
+            data: {
+                method: 'POST',
+                endpoint: '/v1/payments/razorpay',
+                requestPayload: { event: 'payment.captured', payload: {} },
+                responseStatus: 200,
+                executionTimeMs: 124,
+            }
+        });
+    }
+
+    console.log('✅ Seeding completed successfully. All tables and fields populated.');
 }
 
 main()
@@ -346,3 +665,4 @@ main()
     .finally(async () => {
         await prisma.$disconnect();
     });
+
