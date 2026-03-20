@@ -83,4 +83,40 @@ export const consultantService = {
         });
         return response.data;
     },
+    
+    getVisits: async (token: string) => {
+        const response = await axios.get(`${API_URL}/visits`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.data;
+    },
+
+    getExecutivesForProject: async (token: string, projectId: string) => {
+        const response = await axios.get(`${API_URL}/visits/executives`, {
+            params: { projectId },
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.data;
+    },
+
+    scheduleVisit: async (token: string, visitData: { leadId: string, scheduledAt: string, visitExecutiveId?: string, notes?: string }) => {
+        const response = await axios.post(`${API_URL}/visits`, visitData, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.data;
+    },
+
+    updateVisit: async (token: string, visitId: string, visitData: { scheduledAt?: string, visitExecutiveId?: string, status?: string, notes?: string }) => {
+        const response = await axios.patch(`${API_URL}/visits/${visitId}`, visitData, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.data;
+    },
+
+    deleteVisit: async (token: string, visitId: string) => {
+        const response = await axios.delete(`${API_URL}/visits/${visitId}`, {
+            headers: { Authorization: `Bearer ${token}` }
+        });
+        return response.data;
+    },
 };

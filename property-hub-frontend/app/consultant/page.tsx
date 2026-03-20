@@ -397,10 +397,23 @@ export default function ConsultantDashboard() {
                 siteVisits={siteVisits}
                 properties={properties}
                 clients={clients}
-                onScheduleVisit={(clientId: any, propertyId: any, date: any, visitExecutiveId: any) => {
-                  console.log('Schedule visit:', { clientId, propertyId, date, visitExecutiveId });
-                  // In a real app, this would call an API
-                  alert('Schedule visit functionality is read-only for now.');
+                onScheduleVisit={async (clientId: any, propertyId: any, date: any, visitExecutiveId: any) => {
+                  if (!token) return;
+                  try {
+                    await consultantService.scheduleVisit(token, {
+                      leadId: clientId,
+                      scheduledAt: date.toISOString(),
+                      visitExecutiveId: visitExecutiveId || undefined,
+                      notes: "Scheduled from Dashboard"
+                    });
+                    // Refresh data
+                    const props = await consultantService.getAssignedProjects(token);
+                    setAssignedProjects(props);
+                    alert('Visit scheduled successfully!');
+                  } catch (error) {
+                    console.error('Error scheduling visit:', error);
+                    alert('Failed to schedule visit.');
+                  }
                 }}
               />
             )}

@@ -1,6 +1,8 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { consultantService } from '@/app/services/consultantService';
+import { useAuth } from '@/app/contexts/AuthContext';
 
 interface Client {
   id: string;
@@ -38,14 +40,8 @@ interface SiteVisitSchedulingProps {
   onScheduleVisit: (clientId: string, propertyId: string, date: Date, visitExecutiveId?: string) => void;
 }
 
-// Mock Visit Executives (fallback if not provided props)
-const MOCK_EXECUTIVES: VisitExecutive[] = [
-  { id: 've1', name: 'Suresh Raina', region: 'Mumbai South' },
-  { id: 've2', name: 'Rohit Sharma', region: 'Mumbai North' },
-  { id: 've3', name: 'Virat Kohli', region: 'Mumbai Central' },
-];
-
 export default function SiteVisitScheduling(props: SiteVisitSchedulingProps) {
+  const { token } = useAuth();
   const {
     siteVisits,
     properties,
@@ -57,8 +53,34 @@ export default function SiteVisitScheduling(props: SiteVisitSchedulingProps) {
   const [visitDate, setVisitDate] = useState<string>('');
   const [visitTime, setVisitTime] = useState<string>('');
   const [selectedVisitExecutive, setSelectedVisitExecutive] = useState<string>('');
+  const [executives, setExecutives] = useState<VisitExecutive[]>([]);
+  const [loadingExecs, setLoadingExecs] = useState(false);
 
-  const executives = props.visitExecutives || MOCK_EXECUTIVES;
+  useEffect(() => {
+    if (selectedProperty && token) {
+      fetchExecutives(selectedProperty);
+    } else {
+      setExecutives([]);
+    }
+  }, [selectedProperty, token]);
+
+  const fetchExecutives = async (projectId: string) => {
+    setLoadingExecs(true);
+    try {
+      const data = await consultantService.getExecutivesForProject(token!, projectId);
+      // Map backend data to frontend interface
+      const mapped = data.map((e: any) => ({
+        id: e.id,
+        name: `${e.firstName} ${e.lastName}`,
+        region: e.profileData?.region || 'All'
+      }));
+      setExecutives(mapped);
+    } catch (error) {
+      console.error('Error fetching executives:', error);
+    } finally {
+      setLoadingExecs(false);
+    }
+  };
 
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('en-IN', {
