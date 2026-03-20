@@ -2,7 +2,7 @@
 
 import React, { useRef, useMemo, useCallback, useState, useEffect, Suspense } from 'react';
 import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
-import { OrbitControls, ContactShadows, Environment, Float, Sky, Html, Text, Clouds, Cloud, Edges, Billboard, Instances, Instance } from '@react-three/drei';
+import { OrbitControls, ContactShadows, Environment, Float, Sky, Html, Text, Clouds, Cloud, Edges, Billboard, RoundedBox, Center, Grid } from '@react-three/drei';
 import * as THREE from 'three';
 import { UnitStatus } from '@/app/services/unitService';
 import { ProjectType } from '@/app/services/propertyService';
@@ -16,7 +16,6 @@ const STATUS_COLORS: Record<UnitStatus, { color: string; emissive: string }> = {
     SOLD: { color: '#f43f5e', emissive: '#e11d48' }, // Rose
 };
 
-// ─── Unit Item Component ───────────────────────────────────────────────────
 interface GlobalUnitPoolProps {
     units: SlimUnit[];
     towerIds: string[];
@@ -30,156 +29,141 @@ interface GlobalUnitPoolProps {
     selectedFloor: number;
 }
 
-function GlobalUnitPool({
-    units,
-    towerIds,
-    globalFloorOrder,
-    projectType,
-    hoveredId,
-    selectedId,
-    onHover,
-    onSelect,
-    viewMode,
-    selectedFloor,
-}: GlobalUnitPoolProps) {
-    const towerSpacing = 50;
-
-    const displayed = useMemo(() => {
-        if (viewMode === 'floor') {
-            return units.filter(u => (u.floor ?? 1) === selectedFloor);
-        }
-        return units;
-    }, [units, viewMode, selectedFloor]);
-
-    // Group units for layout calculation within their respective towers
-    const towerUnitMap = useMemo(() => {
-        const map: Record<string, Record<number, SlimUnit[]>> = {};
-        for (const u of units) {
-            const tId = u.towerId || towerIds[0] || 'default';
-            const f = u.floor ?? 1;
-            map[tId] = map[tId] ?? {};
-            map[tId][f] = map[tId][f] ?? [];
-            map[tId][f].push(u);
-        }
-        return map;
-    }, [units, towerIds]);
-
-    const baseMatrices = useMemo(() => {
-        const matrices: THREE.Matrix4[] = [];
-        
-        displayed.forEach(u => {
-            const tId = u.towerId || towerIds[0] || 'default';
-            const f = u.floor ?? 1;
-            
-            // 1. Calculate Tower Offset
-            let towerIdx = towerIds.indexOf(tId);
-            if (towerIdx === -1) towerIdx = 0;
-            const towerOffsetX = (towerIdx - (towerIds.length - 1) / 2) * towerSpacing;
-
-            // 2. Calculate Local Position within Tower
-            let x = 0, y = 0, z = 0;
-            if (projectType === 'PLOT' || projectType === 'VILLA') {
-                const spacing = projectType === 'VILLA' ? 5 : 3.0;
-                // Important: Index relative to units in THIS tower
-                const towerUnits = units.filter(unit => (unit.towerId || towerIds[0] || 'default') === tId);
-                const idxInTower = towerUnits.indexOf(u);
-                const cols = Math.ceil(Math.sqrt(Math.max(towerUnits.length, 1)));
-                x = (idxInTower % cols) * spacing - ((cols - 1) / 2) * spacing;
-                z = Math.floor(idxInTower / cols) * spacing - (Math.ceil(towerUnits.length / cols) / 2) * spacing;
-                y = projectType === 'PLOT' ? 0.1 : 1.3;
-            } else {
-                // Apartment/Commercial mode
-                const towerFloorUnits = towerUnitMap[tId]?.[f] || [];
-                const idxInFloor = towerFloorUnits.indexOf(u);
-                
-                if (viewMode === 'floor') {
-                    const cols = Math.ceil(Math.sqrt(Math.max(towerFloorUnits.length, 1)));
-                    x = (idxInFloor % cols) * 2.6 - ((cols - 1) / 2) * 2.6;
-                    z = Math.floor(idxInFloor / cols) * 2.6 - (Math.ceil(towerFloorUnits.length / cols) / 2) * 2.6;
-                } else {
-                    x = idxInFloor * 2.6 - ((towerFloorUnits.length - 1) / 2) * 2.6;
-                    z = 0;
-                }
-                
-                const floorIdx = globalFloorOrder.indexOf(f);
-                y = (floorIdx === -1 ? 0 : floorIdx) * 2.6 + 1.3;
-            }
-
-            const m = new THREE.Matrix4();
-            m.setPosition(x + towerOffsetX, y, z);
-            matrices.push(m);
-        });
-        return matrices;
-    }, [displayed, units, viewMode, towerUnitMap, towerIds, globalFloorOrder, projectType]);
-
-    if (displayed.length === 0) return null;
-
-    return (
-        <Instances range={displayed.length}>
-            <boxGeometry args={[projectType === 'PLOT' ? 2.4 : 2, projectType === 'PLOT' ? 0.2 : 2, 2]} />
-            <meshStandardMaterial metalness={0.7} roughness={0.3} transparent opacity={0.8} />
-            {displayed.map((unit, i) => (
-                <UnitItem 
-                    key={unit.id}
-                    unit={unit}
-                    index={i}
-                    baseMatrix={baseMatrices[i]}
-                    isHovered={unit.id === hoveredId}
-                    isSelected={unit.id === selectedId}
-                    onHover={onHover}
-                    onSelect={onSelect}
-                    projectType={projectType}
-                />
-            ))}
-        </Instances>
-    );
-}
-
-function UnitItem({ unit, index, baseMatrix, isHovered, isSelected, onHover, onSelect, projectType }: {
+// ─── Individual Unit Component ─────────────────────────────────────────────
+interface UnitBoxProps {
     unit: SlimUnit;
-    index: number;
-    baseMatrix: THREE.Matrix4;
+    position: [number, number, number];
     isHovered: boolean;
     isSelected: boolean;
     onHover: (id: string | null) => void;
-    onSelect: (unitId: string) => void;
+    onSelect: (id: string) => void;
     projectType: ProjectType;
-}) {
-    const ref = useRef<any>(null);
-    const pos = useMemo(() => new THREE.Vector3().setFromMatrixPosition(baseMatrix), [baseMatrix]);
-    
+}
+
+function UnitBox({ unit, position, isHovered, isSelected, onHover, onSelect, projectType }: UnitBoxProps) {
+    const meshRef = useRef<THREE.Mesh>(null);
+    const { color } = STATUS_COLORS[unit.status];
+
     useFrame((state) => {
-        if (!ref.current) return;
-        
-        const targetScale = isHovered ? 1.25 : isSelected ? 1.15 : 1.0;
-        ref.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.2);
-        
-        const bob = isHovered ? Math.sin(state.clock.elapsedTime * 6) * (projectType === 'PLOT' ? 0.3 : 0.08) : 0;
-        ref.current.position.y = THREE.MathUtils.lerp(ref.current.position.y, pos.y + bob, 0.2);
-        
-        if (isHovered && projectType !== 'PLOT') {
-            ref.current.rotation.y += 0.02;
+        if (!meshRef.current) return;
+        const targetScale = isHovered ? 1.2 : isSelected ? 1.1 : 1.0;
+        meshRef.current.scale.lerp(new THREE.Vector3(targetScale, targetScale, targetScale), 0.15);
+        if (isHovered) {
+            meshRef.current.position.y = position[1] + Math.sin(state.clock.elapsedTime * 4) * 0.1;
         } else {
-            ref.current.rotation.y = THREE.MathUtils.lerp(ref.current.rotation.y, 0, 0.1);
+            meshRef.current.position.y = THREE.MathUtils.lerp(meshRef.current.position.y, position[1], 0.15);
         }
-        
-        const color = new THREE.Color(STATUS_COLORS[unit.status].color);
-        if (isHovered) color.lerp(new THREE.Color('#ffffff'), 0.3);
-        ref.current.color.lerp(color, 0.2);
     });
 
+    const isPlot = projectType === 'PLOT';
+
     return (
-        <Instance
-            ref={ref}
-            position={pos}
-            onClick={(e) => { e.stopPropagation(); onSelect(unit.id); }}
-            onPointerOver={(e) => { e.stopPropagation(); onHover(unit.id); }}
-            onPointerOut={(e) => { e.stopPropagation(); onHover(null); }}
-        />
+        <RoundedBox 
+            ref={meshRef}
+            args={[isPlot ? 2.4 : 2, isPlot ? 0.2 : 2, 2]} 
+            radius={0.1} 
+            smoothness={4}
+            position={position}
+            onClick={(e: any) => { e.stopPropagation(); onSelect(unit.id); }}
+            onPointerOver={(e: any) => { e.stopPropagation(); onHover(unit.id); }}
+            onPointerOut={() => onHover(null)}
+            castShadow
+        >
+            <meshStandardMaterial 
+                color={isHovered ? '#ffffff' : color} 
+                metalness={0.6} 
+                roughness={0.4} 
+                transparent 
+                opacity={0.85}
+                emissive={isHovered ? '#60a5fa' : color}
+                emissiveIntensity={isHovered ? 0.5 : 0.1}
+            />
+            {isHovered && <Edges color="#3b82f6" />}
+        </RoundedBox>
     );
 }
 
-// ─── Single Tower Shell Component ──────────────────────────────────────────
+// ─── World Layout Organizer ────────────────────────────────────────────────
+function WorldUnits({ 
+    units, 
+    towerIds, 
+    globalFloorOrder, 
+    projectType, 
+    hoveredId, 
+    selectedId, 
+    onHover, 
+    onSelect, 
+    viewMode, 
+    selectedFloor 
+}: GlobalUnitPoolProps) {
+    const towerSpacing = 50;
+
+    return (
+        <Center top>
+            <group>
+                {towerIds.map((tId, towerIdx) => {
+                    const towerOffsetX = (towerIdx - (towerIds.length - 1) / 2) * towerSpacing;
+                    
+                    // Robust tower filtering: match specific ID or default to the first tower for unassigned units
+                    const towerUnits = units.filter(u => {
+                        const unitTId = u.towerId || towerIds[0] || 'default';
+                        return unitTId === tId;
+                    });
+
+                    // Filter by floor if in floor view
+                    const visibleUnits = viewMode === 'floor' 
+                        ? towerUnits.filter(u => (u.floor ?? 1) === selectedFloor)
+                        : towerUnits;
+
+                    return (
+                        <group key={tId} position={[towerOffsetX, 0, 0]}>
+                            {visibleUnits.map((unit) => {
+                                const f = unit.floor ?? 1;
+                                const floorIdx = globalFloorOrder.indexOf(f);
+                                const y = (floorIdx === -1 ? 0 : floorIdx) * 2.6 + 1.3;
+
+                                let x = 0, z = 0;
+                                // Use ID-based finding to avoid referential equality bugs with indexOf
+                                const floorUnits = towerUnits.filter(u => (u.floor ?? 1) === f);
+                                const idxInFloor = floorUnits.findIndex(u => u.id === unit.id);
+
+                                if (projectType === 'PLOT' || projectType === 'VILLA') {
+                                    const spacing = projectType === 'VILLA' ? 5 : 3.0;
+                                    const cols = Math.ceil(Math.sqrt(towerUnits.length));
+                                    const idxInTower = towerUnits.findIndex(u => u.id === unit.id);
+                                    x = (idxInTower % cols) * spacing - ((cols - 1) / 2) * spacing;
+                                    z = Math.floor(idxInTower / cols) * spacing - (Math.ceil(towerUnits.length / cols) / 2) * spacing;
+                                } else if (viewMode === 'floor') {
+                                    const cols = Math.ceil(Math.sqrt(floorUnits.length));
+                                    x = (idxInFloor % cols) * 2.6 - ((cols - 1) / 2) * 2.6;
+                                    z = Math.floor(idxInFloor / cols) * 2.6 - (Math.ceil(floorUnits.length / cols) / 2) * 2.6;
+                                } else {
+                                    // Default Apartment/Commercial horizontal layout
+                                    x = idxInFloor * 2.6 - ((floorUnits.length - 1) / 2) * 2.6;
+                                    z = 0;
+                                }
+
+                                return (
+                                    <UnitBox
+                                        key={unit.id}
+                                        unit={unit}
+                                        position={[x, y, z]}
+                                        isHovered={unit.id === hoveredId}
+                                        isSelected={unit.id === selectedId}
+                                        onHover={onHover}
+                                        onSelect={onSelect}
+                                        projectType={projectType}
+                                    />
+                                );
+                            })}
+                        </group>
+                    );
+                })}
+            </group>
+        </Center>
+    );
+}
+
 function SingleTowerShell({
     units,
     projectType,
@@ -198,43 +182,6 @@ function SingleTowerShell({
     side?: 'left' | 'right';
 }) {
     const scanRef = useRef<THREE.Mesh>(null);
-    
-    // Create a realistic window grid texture for the building shell
-    const windowTexture = useMemo(() => {
-        const canvas = document.createElement('canvas');
-        canvas.width = 256;
-        canvas.height = 256;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) return null;
-        
-        // Dark glass base
-        ctx.fillStyle = '#0f172a';
-        ctx.fillRect(0, 0, 256, 256);
-        
-        const cols = 6;
-        const rows = 10;
-        const w = 256 / cols;
-        const h = 256 / rows;
-        const pad = 4;
-        
-        for (let i = 0; i < cols; i++) {
-            for (let j = 0; j < rows; j++) {
-                // Randomize window brightness to give life to the facade
-                const lit = Math.random() > 0.3;
-                ctx.fillStyle = lit ? '#7dd3fc44' : '#1e293b66';
-                ctx.fillRect(i * w + pad, j * h + pad, w - pad * 2, h - pad * 2);
-                // Window frame
-                ctx.strokeStyle = '#334155';
-                ctx.lineWidth = 2;
-                ctx.strokeRect(i * w + pad, j * h + pad, w - pad * 2, h - pad * 2);
-            }
-        }
-        
-        const tex = new THREE.CanvasTexture(canvas);
-        tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-        return tex;
-    }, []);
-
     const floorOrder = useMemo(() => [...new Set(units.map(u => u.floor ?? 1))].sort((a, b) => a - b), [units]);
     const maxUnitsInFloor = useMemo(() => {
         const counts = units.reduce((acc, u) => {
@@ -249,10 +196,7 @@ function SingleTowerShell({
 
     useFrame(({ clock }) => {
         if (scanRef.current) {
-            // Animate scan line from bottom to top and back
-            const scanSpeed = 0.5; // Adjust speed as needed
-            const scanRange = height / 2; // Scan from -height/2 to +height/2
-            const scanPosition = Math.sin(clock.elapsedTime * scanSpeed) * scanRange;
+            const scanPosition = Math.sin(clock.elapsedTime * 0.5) * (height / 2);
             scanRef.current.position.y = scanPosition;
         }
     });
@@ -262,23 +206,20 @@ function SingleTowerShell({
     if (projectType === 'APARTMENT' || projectType === 'COMMERCIAL') {
         const width = maxUnitsInFloor * 2.6 + 1;
         const depth = 4;
-        const color = projectType === 'COMMERCIAL' ? '#60a5fa' : '#ffffff';
 
         return (
             <group position={[position[0], height / 2, position[2]]}>
                 {/* Building Podium / Foundation */}
-                <mesh position={[0, -height / 2 - 0.4, 0]} receiveShadow>
-                    <boxGeometry args={[width + 4, 0.8, depth + 4]} />
+                <RoundedBox position={[0, -height / 2 - 0.4, 0]} args={[width + 4, 0.8, depth + 4]} radius={0.2} receiveShadow>
                     <meshStandardMaterial color="#cbd5e1" roughness={0.7} />
                     <Edges threshold={15}><meshBasicMaterial color="#3b82f6" transparent opacity={0.3} /></Edges>
-                </mesh>
+                </RoundedBox>
 
                 {/* Building Core (Elevator/Stairs) */}
-                <mesh position={[0, 0, -depth / 2 + 0.5]}>
-                    <boxGeometry args={[width * 0.4, height, 1]} />
-                    <meshStandardMaterial color="#e2e8f0" transparent opacity={isFloorMode ? 0.3 : 1} />
-                    <Edges threshold={15}><meshBasicMaterial color="#94a3b8" transparent opacity={isFloorMode ? 0.2 : 0.6} /></Edges>
-                </mesh>
+                <RoundedBox position={[0, 0, -depth / 2 + 0.5]} args={[width * 0.4, height, 1]} radius={0.1}>
+                    <meshStandardMaterial color="#e2e8f0" transparent opacity={isFloorMode ? 0.3 : 0.8} />
+                    <Edges threshold={15}><meshBasicMaterial color="#94a3b8" transparent opacity={isFloorMode ? 0.1 : 0.4} /></Edges>
+                </RoundedBox>
 
                 {/* Horizontal Floor Plates */}
                 {floorOrder.map((f, i) => (
@@ -291,7 +232,6 @@ function SingleTowerShell({
                                 opacity={isFloorMode ? (f === selectedFloor ? 0.3 : 0.05) : 0.2} 
                             />
                         </mesh>
-                        {/* Floor Level Label - side-placed based on tower position */}
                         {!isFloorMode && (
                             <Html position={[side === 'right' ? width / 2 + 1.5 : -width / 2 - 1.5, 0, 0]} center>
                                 <div className="px-2 py-0.5 bg-white/80 backdrop-blur-md rounded-full border border-blue-200 shadow-md pointer-events-none">
@@ -302,23 +242,21 @@ function SingleTowerShell({
                     </group>
                 ))}
 
-                {/* Structural Glass Shell with Window Pattern */}
-                <mesh>
-                    <boxGeometry args={[width, height, depth]} />
+                {/* Structural Glass Shell */}
+                <RoundedBox args={[width, height, depth]} radius={0.1}>
                     <meshStandardMaterial 
                         transparent 
-                        opacity={isFloorMode ? 0.05 : 0.18} 
+                        opacity={isFloorMode ? 0.05 : 0.15} 
                         roughness={0.05} 
-                        metalness={0.5}
-                        color="#1e3a5f"
-                        map={windowTexture}
+                        metalness={0.9}
+                        color="#bae6fd"
                     />
                     <Edges scale={1.001} threshold={15}>
                         <meshBasicMaterial color="#60a5fa" transparent opacity={isFloorMode ? 0.1 : 0.5} />
                     </Edges>
-                </mesh>
+                </RoundedBox>
 
-                {/* Tech Scan Line - Only in full building mode */}
+                {/* Tech Scan Line */}
                 {!isFloorMode && (
                     <mesh ref={scanRef}>
                         <boxGeometry args={[width + 0.5, 0.1, depth + 0.5]} />
@@ -326,19 +264,11 @@ function SingleTowerShell({
                     </mesh>
                 )}
 
-                {/* TOWER IDENTITY LABEL - Billboarded to fix mirroring and always face camera */}
                 {!isFloorMode && name && (
                     <group position={[0, height / 2 + 3, 0]}>
                          <Float speed={2} rotationIntensity={0.2} floatIntensity={1}>
                             <Billboard>
-                                <Text
-                                    fontSize={1.2}
-                                    color="#1e293b"
-                                    anchorX="center"
-                                    anchorY="middle"
-                                    maxWidth={width}
-                                    textAlign="center"
-                                >
+                                <Text fontSize={1.2} color="#1e293b" anchorX="center" anchorY="middle" maxWidth={width} textAlign="center">
                                     {name.toUpperCase()}
                                 </Text>
                             </Billboard>
@@ -348,27 +278,6 @@ function SingleTowerShell({
                             </mesh>
                          </Float>
                     </group>
-                )}
-
-                {/* Vertical Support Beams - Persistent Context */}
-                {[-width/2, width/2].map((x, i) => (
-                    [-depth/2, depth/2].map((z, j) => (
-                        <mesh key={`${i}-${j}`} position={[x, 0, z]}>
-                            <boxGeometry args={[0.15, height, 0.15]} />
-                            <meshStandardMaterial color="#94a3b8" transparent opacity={isFloorMode ? 0.05 : 1} />
-                        </mesh>
-                    ))
-                ))}
-
-                {/* Highlight Selected Floor Interaction Zone */}
-                {floorOrder.includes(selectedFloor) && (
-                    <mesh position={[0, (floorOrder.indexOf(selectedFloor) * 2.6) - (height / 2) + 1.3, 0]}>
-                        <boxGeometry args={[width + 0.2, 2.6, depth + 0.2]} />
-                        <meshBasicMaterial color="#3b82f6" transparent opacity={isFloorMode ? 0.02 : 0.08} />
-                        <Edges scale={1.002} threshold={15}>
-                            <meshBasicMaterial color="#2563eb" transparent opacity={isFloorMode ? 0.1 : 0.6} />
-                        </Edges>
-                    </mesh>
                 )}
             </group>
         );
@@ -423,7 +332,10 @@ function BuildingShell({
                 })}
 
                 {towerIds.map((tId, idx) => {
-                    const towerUnits = units.filter(u => (u.towerId || towerIds[0] || 'default') === tId);
+                    const towerUnits = units.filter(u => {
+                        const unitTId = u.towerId || towerIds[0] || 'default';
+                        return unitTId === tId;
+                    });
                     const towerName = towers.find(t => t.id === tId)?.name || (towerIds.length > 1 ? `Tower ${idx + 1}` : projectName);
                     const towerOffsetX = (idx - (towerIds.length - 1) / 2) * towerSpacing;
                     const mid = (towerIds.length - 1) / 2;
@@ -518,13 +430,11 @@ function BuildingShell({
         const height = 10;
         return (
             <group position={[0, height / 2, 0]}>
-                {/* Warehouse Main Body */}
-                <mesh castShadow receiveShadow>
-                    <boxGeometry args={[width, height, depth]} />
+                <RoundedBox args={[width, height, depth]} radius={0.5} castShadow receiveShadow>
                     <meshStandardMaterial color="#64748b" metalness={0.2} roughness={0.8} />
                     <Edges threshold={15}><meshBasicMaterial color="#334155" /></Edges>
-                </mesh>
-                {/* Corrugated Roof Slant */}
+                </RoundedBox>
+                {/* Corrugated Roof */}
                 <group position={[0, height / 2, 0]}>
                     <mesh rotation={[0.1, 0, 0]} position={[0, 1.5, 0]}>
                         <boxGeometry args={[width + 2, 0.5, depth / 2 + 1]} />
@@ -535,9 +445,9 @@ function BuildingShell({
                         <meshStandardMaterial color="#334155" />
                     </mesh>
                 </group>
-                {/* Large Industrial Doors */}
+                {/* Industrial Doors */}
                 {[-10, 0, 10].map((x, i) => (
-                    <mesh key={i} position={[x, -height/2 + 2, depth/2 + 0.1]}>
+                    <mesh key={i} position={[x, -height/2 + 2, depth/2 + 0.01]}>
                         <planeGeometry args={[6, 4]} />
                         <meshStandardMaterial color="#94a3b8" />
                     </mesh>
@@ -560,8 +470,19 @@ function SceneAtmosphere({ camY }: { camY: number }) {
                 <meshStandardMaterial color={groundColor} roughness={0.8} />
             </mesh>
             
-            {/* Grid Helper with matching fade */}
-            <gridHelper args={[800, 80, '#e2e8f0', '#cbd5e1']} position={[0, 0.05, 0]} />
+            {/* Professional Endless Grid from Drei */}
+            <Grid 
+                args={[100, 100]} 
+                sectionSize={12} 
+                sectionColor="#3b82f6" 
+                sectionThickness={1.5} 
+                cellColor="#cbd5e1" 
+                cellThickness={0.6} 
+                fadeDistance={100} 
+                fadeStrength={5} 
+                infiniteGrid 
+                position={[0, 0.05, 0]} 
+            />
 
             {/* Subtle Aura Glows */}
             <mesh position={[40, 0, -40]}>
@@ -706,8 +627,8 @@ export default function UnitCanvas3D({
                 </Text>
             </group>
 
-            {/* GLOBAL UNIT POOL - Optimized for performance and 100+ towers */}
-            <GlobalUnitPool
+            {/* DECLARATIVE WORLD UNITS - Simple and maintainable */}
+            <WorldUnits
                 units={units}
                 towerIds={towerIds}
                 globalFloorOrder={floorOrder}
