@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useMemo, useCallback, useState, useEffect } from 'react';
+import React, { useRef, useMemo, useCallback, useState, useEffect, Suspense } from 'react';
 import { Canvas, useFrame, ThreeEvent } from '@react-three/fiber';
 import { OrbitControls, ContactShadows, Environment, Float, Sky, Html, Text, Clouds, Cloud, Edges, Billboard, Instances, Instance } from '@react-three/drei';
 import * as THREE from 'three';
@@ -17,9 +17,10 @@ const STATUS_COLORS: Record<UnitStatus, { color: string; emissive: string }> = {
 };
 
 // ─── Unit Item Component ───────────────────────────────────────────────────
-interface UnitInstancesProps {
+interface GlobalUnitPoolProps {
     units: SlimUnit[];
-    towers: Tower[];
+    towerIds: string[];
+    globalFloorOrder: number[];
     projectType: ProjectType;
     hoveredId: string | null;
     selectedId: string | null;
@@ -29,10 +30,10 @@ interface UnitInstancesProps {
     selectedFloor: number;
 }
 
-function UnitInstances({
+function GlobalUnitPool({
     units,
-    towers,
     towerIds,
+    globalFloorOrder,
     projectType,
     hoveredId,
     selectedId,
@@ -40,18 +41,8 @@ function UnitInstances({
     onSelect,
     viewMode,
     selectedFloor,
-}: UnitInstancesProps & { towerIds: string[] }) {
-    const dummy = useMemo(() => new THREE.Object3D(), []);
-    const _color = useMemo(() => new THREE.Color(), []);
-
-    // Geometry varies by type
-    const boxGeo = useMemo(() => {
-        if (projectType === 'PLOT') return new THREE.BoxGeometry(2.4, 0.2, 2.4);
-        return new THREE.BoxGeometry(2, 2, 2);
-    }, [projectType]);
-
-    // Memoize White color for lerping to avoid GC
-    const whiteColor = useMemo(() => new THREE.Color('#ffffff'), []);
+}: GlobalUnitPoolProps) {
+    const towerSpacing = 50;
 
     const displayed = useMemo(() => {
         if (viewMode === 'floor') {
@@ -60,7 +51,8 @@ function UnitInstances({
         return units;
     }, [units, viewMode, selectedFloor]);
 
-    const unitsByTowerAndFloor = useMemo(() => {
+    // Group units for layout calculation within their respective towers
+    const towerUnitMap = useMemo(() => {
         const map: Record<string, Record<number, SlimUnit[]>> = {};
         for (const u of units) {
             const tId = u.towerId || towerIds[0] || 'default';
@@ -72,49 +64,55 @@ function UnitInstances({
         return map;
     }, [units, towerIds]);
 
-    const towerSpacing = 50;
-
-    // Cache base matrices for static positioning
     const baseMatrices = useMemo(() => {
-        const floorOrder = [...new Set(units.map(u => u.floor ?? 1))].sort((a, b) => a - b);
         const matrices: THREE.Matrix4[] = [];
-
+        
         displayed.forEach(u => {
             const tId = u.towerId || towerIds[0] || 'default';
-            const towerIdx = Math.max(0, towerIds.indexOf(tId));
-            const towerOffsetX = (towerIdx - (towerIds.length - 1) / 2) * towerSpacing;
             const f = u.floor ?? 1;
-            const m = new THREE.Matrix4();
+            
+            // 1. Calculate Tower Offset
+            let towerIdx = towerIds.indexOf(tId);
+            if (towerIdx === -1) towerIdx = 0;
+            const towerOffsetX = (towerIdx - (towerIds.length - 1) / 2) * towerSpacing;
 
+            // 2. Calculate Local Position within Tower
             let x = 0, y = 0, z = 0;
             if (projectType === 'PLOT' || projectType === 'VILLA') {
                 const spacing = projectType === 'VILLA' ? 5 : 3.0;
+                // Important: Index relative to units in THIS tower
                 const towerUnits = units.filter(unit => (unit.towerId || towerIds[0] || 'default') === tId);
-                const idx = towerUnits.indexOf(u);
+                const idxInTower = towerUnits.indexOf(u);
                 const cols = Math.ceil(Math.sqrt(Math.max(towerUnits.length, 1)));
-                x = (idx % cols) * spacing - ((cols - 1) / 2) * spacing;
-                z = Math.floor(idx / cols) * spacing - (Math.ceil(towerUnits.length / cols) / 2) * spacing;
+                x = (idxInTower % cols) * spacing - ((cols - 1) / 2) * spacing;
+                z = Math.floor(idxInTower / cols) * spacing - (Math.ceil(towerUnits.length / cols) / 2) * spacing;
                 y = projectType === 'PLOT' ? 0.1 : 1.3;
-            } else if (viewMode === 'floor') {
-                const towerFloorUnits = unitsByTowerAndFloor[tId]?.[f] || [];
-                const idx = towerFloorUnits.indexOf(u);
-                const cols = Math.ceil(Math.sqrt(Math.max(towerFloorUnits.length, 1)));
-                x = (idx % cols) * 2.6 - ((cols - 1) / 2) * 2.6;
-                z = Math.floor(idx / cols) * 2.6 - (Math.ceil(towerFloorUnits.length / cols) / 2) * 2.6;
-                y = floorOrder.indexOf(f) * 2.6 + 1.3;
             } else {
-                const towerFloorUnits = unitsByTowerAndFloor[tId]?.[f] || [];
-                const idx = towerFloorUnits.indexOf(u);
-                x = idx * 2.6 - ((towerFloorUnits.length - 1) / 2) * 2.6;
-                y = floorOrder.indexOf(f) * 2.6 + 1.3;
-                z = 0;
+                // Apartment/Commercial mode
+                const towerFloorUnits = towerUnitMap[tId]?.[f] || [];
+                const idxInFloor = towerFloorUnits.indexOf(u);
+                
+                if (viewMode === 'floor') {
+                    const cols = Math.ceil(Math.sqrt(Math.max(towerFloorUnits.length, 1)));
+                    x = (idxInFloor % cols) * 2.6 - ((cols - 1) / 2) * 2.6;
+                    z = Math.floor(idxInFloor / cols) * 2.6 - (Math.ceil(towerFloorUnits.length / cols) / 2) * 2.6;
+                } else {
+                    x = idxInFloor * 2.6 - ((towerFloorUnits.length - 1) / 2) * 2.6;
+                    z = 0;
+                }
+                
+                const floorIdx = globalFloorOrder.indexOf(f);
+                y = (floorIdx === -1 ? 0 : floorIdx) * 2.6 + 1.3;
             }
+
+            const m = new THREE.Matrix4();
             m.setPosition(x + towerOffsetX, y, z);
             matrices.push(m);
         });
         return matrices;
-    }, [displayed, units, viewMode, unitsByTowerAndFloor, towerIds, projectType]);
+    }, [displayed, units, viewMode, towerUnitMap, towerIds, globalFloorOrder, projectType]);
 
+    if (displayed.length === 0) return null;
 
     return (
         <Instances range={displayed.length}>
@@ -402,13 +400,7 @@ function BuildingShell({
     if (projectType === 'APARTMENT' || projectType === 'COMMERCIAL') {
         return (
             <group>
-                {/* Global Site Area with optimized grid */}
-                <mesh position={[0, -0.9, 0]} receiveShadow>
-                    <boxGeometry args={[150, 0.2, 60]} />
-                    <meshStandardMaterial color="#f1f5f9" />
-                    <Edges threshold={15}><meshBasicMaterial color="#3b82f6" transparent opacity={0.1} /></Edges>
-                </mesh>
-
+                {/* GLOBAL GROUND MANAGED BY SceneAtmosphere */}
                 {/* Shared Landscaping - Optimized placement */}
                 {!isFloorMode && [...Array(24)].map((_, i) => {
                     const x = THREE.MathUtils.randFloat(-70, 70);
@@ -457,11 +449,7 @@ function BuildingShell({
         const isFloorMode = viewMode === 'floor';
         return (
             <group>
-                <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.01, 0]} receiveShadow>
-                    <planeGeometry args={[200, 200]} />
-                    <meshStandardMaterial color="#f8fafc" roughness={1} />
-                </mesh>
-                <gridHelper args={[200, 40, '#cbd5e1', '#f1f5f9']} position={[0, 0.02, 0]} />
+                {/* GLOBAL GROUND MANAGED BY SceneAtmosphere */}
                 
                 {/* Site Roads & Boundaries */}
                 {!isFloorMode && (
@@ -563,13 +551,17 @@ function BuildingShell({
 
 // ─── Environment ─────────────────────────────────────────────────────────────
 function SceneAtmosphere({ camY }: { camY: number }) {
+    const groundColor = '#f8fafc';
     return (
-        <group position={[0, -0.1, 0]}>
+        <group position={[0, -0.4, 0]}>
+            {/* Seamless Large Ground */}
             <mesh rotation={[-Math.PI / 2, 0, 0]} receiveShadow>
-                <planeGeometry args={[300, 300]} />
-                <meshStandardMaterial color="#f1f5f9" roughness={0.8} />
+                <circleGeometry args={[800, 64]} />
+                <meshStandardMaterial color={groundColor} roughness={0.8} />
             </mesh>
-            <gridHelper args={[300, 150, '#e2e8f0', '#cbd5e1']} position={[0, 0.05, 0]} />
+            
+            {/* Grid Helper with matching fade */}
+            <gridHelper args={[800, 80, '#e2e8f0', '#cbd5e1']} position={[0, 0.05, 0]} />
 
             {/* Subtle Aura Glows */}
             <mesh position={[40, 0, -40]}>
@@ -649,6 +641,7 @@ export default function UnitCanvas3D({
             onPointerMissed={() => setHoveredId(null)}
         >
             <color attach="background" args={['#f8fafc']} />
+            <fog attach="fog" args={['#f8fafc', 30, 300]} />
 
             {/* Bright, Clear Lighting for Maximum Visibility */}
             <ambientLight intensity={1.2} />
@@ -659,13 +652,20 @@ export default function UnitCanvas3D({
                 intensity={2}
                 castShadow
                 shadow-mapSize={[2048, 2048]}
+                shadow-camera-far={200}
+                shadow-camera-left={-100}
+                shadow-camera-right={100}
+                shadow-camera-top={100}
+                shadow-camera-bottom={-100}
             />
             <pointLight position={[-30, 30, -30]} intensity={0.7} color="#bfdbfe" />
             <pointLight position={[30, 25, 30]} intensity={0.5} color="#fecaca" />
 
             <SceneAtmosphere camY={camY} />
 
-            <Environment preset="warehouse" />
+            <Suspense fallback={null}>
+                <Environment files="/environments/warehouse.hdr" />
+            </Suspense>
             <Sky distance={450000} sunPosition={[100, 100, 20]} inclination={0.49} azimuth={0.25} />
             
             {/* Moving Clouds - Optimized */}
@@ -706,11 +706,11 @@ export default function UnitCanvas3D({
                 </Text>
             </group>
 
-            <UnitInstances
-                key={`${towers.length}-${units.length}-${towerIds.join(',')}`}
+            {/* GLOBAL UNIT POOL - Optimized for performance and 100+ towers */}
+            <GlobalUnitPool
                 units={units}
-                towers={towers}
                 towerIds={towerIds}
+                globalFloorOrder={floorOrder}
                 projectType={projectType}
                 hoveredId={hoveredId}
                 selectedId={selectedId}
