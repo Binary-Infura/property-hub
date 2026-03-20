@@ -9,47 +9,25 @@ interface RoleSwitchTransitionProps {
     roleId: string;
 }
 
-const ROLE_CONFIG: Record<string, { gradient: string; icon: string; accent: string }> = {
-    CENTRAL_AUTHORITY: {
-        gradient: 'from-slate-900 via-slate-800 to-indigo-900',
-        icon: '🏛️',
-        accent: '#6366f1',
-    },
-    MARKETING_MANAGER: {
-        gradient: 'from-violet-900 via-purple-800 to-fuchsia-900',
-        icon: '📣',
-        accent: '#a855f7',
-    },
-    PROPERTY_PARTNER: {
-        gradient: 'from-blue-900 via-blue-800 to-cyan-900',
-        icon: '🏢',
-        accent: '#3b82f6',
-    },
-    CONSULTANT: {
-        gradient: 'from-emerald-900 via-teal-800 to-green-900',
-        icon: '🤝',
-        accent: '#10b981',
-    },
-    LOAN_ADVISOR: {
-        gradient: 'from-amber-900 via-yellow-800 to-orange-900',
-        icon: '💰',
-        accent: '#f59e0b',
-    },
-    BUYER: {
-        gradient: 'from-rose-900 via-pink-800 to-red-900',
-        icon: '🔑',
-        accent: '#f43f5e',
-    },
-    INFLUENCER: {
-        gradient: 'from-orange-900 via-rose-800 to-pink-900',
-        icon: '✨',
-        accent: '#fb923c',
-    },
+const ROLE_ICONS: Record<string, string> = {
+    CENTRAL_AUTHORITY: '🏛️',
+    MARKETING_MANAGER: '📣',
+    PROPERTY_PARTNER: '🏢',
+    CONSULTANT: '🤝',
+    LOAN_ADVISOR: '💰',
+    BUYER: '🔑',
+    INFLUENCER: '✨',
+};
+
+const UNIFIED_CONFIG = {
+    gradient: 'from-blue-900 via-blue-800 to-cyan-900',
+    accent: '#3b82f6',
 };
 
 export default function RoleSwitchTransition({ isVisible, roleName, roleId }: RoleSwitchTransitionProps) {
     const [particles, setParticles] = useState<{ x: number; y: number; size: number; delay: number }[]>([]);
-    const config = ROLE_CONFIG[roleId] || ROLE_CONFIG['CENTRAL_AUTHORITY'];
+    const icon = ROLE_ICONS[roleId] ?? '🏢';
+    const config = UNIFIED_CONFIG;
 
     useEffect(() => {
         if (isVisible) {
@@ -119,7 +97,7 @@ export default function RoleSwitchTransition({ isVisible, roleName, roleId }: Ro
                             animate={{ scale: 1, rotate: 0, opacity: 1 }}
                             transition={{ type: 'spring', stiffness: 260, damping: 18, delay: 0.05 }}
                         >
-                            {config.icon}
+                            {icon}
                         </motion.div>
 
                         {/* "Switching to" label */}
