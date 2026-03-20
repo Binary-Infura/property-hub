@@ -451,8 +451,8 @@ export default function UnitExplorer3D({ projectId, mainImage }: { projectId: st
                                 <div className="absolute inset-0 z-0 overflow-hidden">
                                     <img
                                         src={mainImage || (summary?.project.projectType === 'VILLA'
-                                            ? 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800'
-                                            : 'https://images.unsplash.com/photo-1545324418-f1d3c5b5a291?auto=format&fit=crop&q=80&w=800')}
+                                            ? '/external-assets/worli_sky_villa.png'
+                                            : '/external-assets/prestige_falcon_city.png')}
                                         alt="Property Preview"
                                         className="w-full h-48 object-cover opacity-20 group-hover/header:scale-105 transition-transform duration-1000"
                                     />
