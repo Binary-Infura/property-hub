@@ -93,7 +93,7 @@ export class LeadsController {
     }
 
     @Post()
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.MARKETING_MANAGER)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.MARKETING_MANAGER, UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER)
     create(
         @Body() createLeadDto: CreateLeadDto
     ) {
