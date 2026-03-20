@@ -23,7 +23,7 @@ export interface SlimUnit {
     id: string;
     unitNumber: string;
     floor: number | null;
-    status: 'DRAFT' | 'RESERVED' | 'BOOKED' | 'SOLD';
+    status: 'AVAILABLE' | 'RESERVED' | 'BOOKED' | 'SOLD';
     towerId: string | null;
 }
 
@@ -37,7 +37,7 @@ export interface TowerSummary {
     updatedAt: string;
     unitCounts: {
         total: number;
-        DRAFT: number;
+        AVAILABLE: number;
         RESERVED: number;
         BOOKED: number;
         SOLD: number;
@@ -62,7 +62,7 @@ export interface ProjectSummary {
     towers: TowerSummary[];
     stats: {
         totalUnits: number;
-        draftUnits: number;
+        availableUnits: number;
         reservedUnits: number;
         bookedUnits: number;
         soldUnits: number;
@@ -88,7 +88,7 @@ export interface SpatialData {
     units: PropertyUnit[];
     stats: {
         totalUnits: number;
-        draftUnits: number;
+        availableUnits: number;
         soldUnits: number;
         bookedUnits: number;
         reservedUnits: number;

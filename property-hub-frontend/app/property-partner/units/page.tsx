@@ -14,7 +14,7 @@ interface Unit {
     type: string;
     area: number;
     price: number;
-    status: 'AVAILABLE' | 'SOLD' | 'RESERVED' | 'DRAFT';
+    status: 'AVAILABLE' | 'SOLD' | 'RESERVED' | 'BOOKED';
     projectId: string;
     project: {
         name: string;
@@ -188,8 +188,9 @@ export default function UnitsPage() {
                 >
                     <option value="all">All Statuses</option>
                     <option value="AVAILABLE">Available</option>
-                    <option value="SOLD">Sold</option>
                     <option value="RESERVED">Reserved</option>
+                    <option value="BOOKED">Booked</option>
+                    <option value="SOLD">Sold</option>
                 </select>
             </div>
 

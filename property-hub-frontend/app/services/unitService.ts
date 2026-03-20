@@ -1,4 +1,4 @@
-export type UnitStatus = 'DRAFT' | 'RESERVED' | 'BOOKED' | 'SOLD';
+export type UnitStatus = 'AVAILABLE' | 'RESERVED' | 'BOOKED' | 'SOLD';
 
 export interface PropertyUnit {
     id: string;

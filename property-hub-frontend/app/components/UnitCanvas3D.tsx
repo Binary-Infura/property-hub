@@ -10,7 +10,7 @@ import { Tower, SlimUnit } from '@/app/services/explorerService';
 
 // ─── Status Colors (Vibrant Aura Bloom Palette - Light Mode Optimized) ───────
 const STATUS_COLORS: Record<UnitStatus, { color: string; emissive: string }> = {
-    DRAFT: { color: '#64748b', emissive: '#475569' }, // Gray for draft
+    AVAILABLE: { color: '#64748b', emissive: '#475569' }, // Gray for available status (formerly draft)
     RESERVED: { color: '#fbbf24', emissive: '#d97706' }, // Amber
     BOOKED: { color: '#f97316', emissive: '#ea580c' }, // Orange
     SOLD: { color: '#f43f5e', emissive: '#e11d48' }, // Rose

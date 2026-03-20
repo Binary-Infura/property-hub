@@ -12,21 +12,21 @@ const UnitCanvas3D = dynamic(() => import('@/app/components/UnitCanvas3D'), {
 });
 
 const STATUS_LABEL: Record<UnitStatus, string> = {
-    DRAFT:    'Draft',
+    AVAILABLE: 'Available',
     RESERVED: 'Reserved',
     BOOKED:   'Booked',
     SOLD:     'Sold',
 };
 
 const STATUS_DOT: Record<UnitStatus, string> = {
-    DRAFT:    'bg-[#64748b] shadow-[0_0_10px_rgba(100,116,139,0.5)]',
+    AVAILABLE: 'bg-[#64748b] shadow-[0_0_10px_rgba(100,116,139,0.5)]',
     RESERVED: 'bg-[#fbbf24] shadow-[0_0_10px_rgba(251,191,36,0.5)]',
     BOOKED:   'bg-[#f97316] shadow-[0_0_10px_rgba(249,115,22,0.5)]',
     SOLD:     'bg-[#f43f5e] shadow-[0_0_10px_rgba(244,63,94,0.5)]',
 };
 
 const STATUS_CHIP_STYLES: Record<UnitStatus, string> = {
-    DRAFT:    'bg-slate-50 text-slate-700 border-slate-100',
+    AVAILABLE: 'bg-slate-50 text-slate-700 border-slate-100',
     RESERVED: 'bg-amber-50 text-amber-700 border-amber-100',
     BOOKED:   'bg-orange-50 text-orange-700 border-orange-100',
     SOLD:     'bg-rose-50 text-rose-700 border-rose-100',
@@ -82,7 +82,7 @@ function TowerCard({
     isSelected: boolean;
     onClick: () => void;
 }) {
-    const { total, DRAFT: draft, RESERVED: reserved, BOOKED: booked, SOLD: sold } = tower.unitCounts;
+    const { total, AVAILABLE: available, RESERVED: reserved, BOOKED: booked, SOLD: sold } = tower.unitCounts;
 
     return (
         <button
@@ -122,7 +122,7 @@ function TowerCard({
                 
                 <div className="flex gap-1">
                     {[
-                        { val: draft,    color: 'bg-slate-400' },
+                        { val: available, color: 'bg-slate-400' },
                         { val: reserved, color: 'bg-amber-400' },
                         { val: booked,   color: 'bg-orange-400' },
                         { val: sold,     color: 'bg-rose-400' }
@@ -245,7 +245,7 @@ export default function UnitExplorer3D({ projectId, mainImage }: { projectId: st
 
 
     const stats = summary?.stats ?? {
-        totalUnits: 0, draftUnits: 0, reservedUnits: 0, bookedUnits: 0, soldUnits: 0,
+        totalUnits: 0, availableUnits: 0, reservedUnits: 0, bookedUnits: 0, soldUnits: 0,
     };
 
     return (

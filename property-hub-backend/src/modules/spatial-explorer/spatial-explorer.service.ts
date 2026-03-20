@@ -60,7 +60,7 @@ export class SpatialExplorerService {
             const units = tower.units;
             const counts = {
                 total:    units.length,
-                DRAFT:    units.filter(u => u.status === 'DRAFT').length,
+                AVAILABLE: units.filter(u => u.status === 'AVAILABLE').length,
                 RESERVED: units.filter(u => u.status === 'RESERVED').length,
                 BOOKED:   units.filter(u => u.status === 'BOOKED').length,
                 SOLD:     units.filter(u => u.status === 'SOLD').length,
@@ -80,7 +80,7 @@ export class SpatialExplorerService {
         const allUnits = project.towers.flatMap(t => t.units);
         const totalStats = {
             totalUnits:    allUnits.length,
-            draftUnits:    allUnits.filter(u => u.status === 'DRAFT').length,
+            availableUnits: allUnits.filter(u => u.status === 'AVAILABLE').length,
             reservedUnits: allUnits.filter(u => u.status === 'RESERVED').length,
             bookedUnits:   allUnits.filter(u => u.status === 'BOOKED').length,
             soldUnits:     allUnits.filter(u => u.status === 'SOLD').length,
@@ -151,7 +151,7 @@ export class SpatialExplorerService {
             units:  project.units,
             stats:  {
                 totalUnits:    project.units.length,
-                draftUnits:    project.units.filter(u => u.status === 'DRAFT').length,
+                availableUnits: project.units.filter(u => u.status === 'AVAILABLE').length,
                 soldUnits:     project.units.filter(u => u.status === 'SOLD').length,
                 bookedUnits:   project.units.filter(u => u.status === 'BOOKED').length,
                 reservedUnits: project.units.filter(u => u.status === 'RESERVED').length,

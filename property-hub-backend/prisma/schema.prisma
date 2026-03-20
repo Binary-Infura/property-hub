@@ -137,7 +137,7 @@ model PropertyUnit {
   type       String?
   area       Decimal?   @db.Decimal(10, 2)
   price      Decimal    @db.Decimal(15, 2)
-  status     UnitStatus @default(DRAFT)
+  status     UnitStatus @default(AVAILABLE)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
   buyerName  String?
@@ -681,7 +681,7 @@ enum ProjectType {
 }
 
 enum UnitStatus {
-  DRAFT
+  AVAILABLE
   RESERVED
   BOOKED
   SOLD

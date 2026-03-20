@@ -299,7 +299,7 @@ async function main() {
                                     type: `${floor+1}BHK`,
                                     area: 1200 + (floor * 100),
                                     price: project.price.toNumber() + (floor * 500000),
-                                    status: UnitStatus.DRAFT,
+                                    status: UnitStatus.AVAILABLE,
                                 }
                             });
                         }
