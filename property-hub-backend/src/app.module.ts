@@ -7,7 +7,6 @@ import { UnitsModule } from './modules/units/units.module';
 import { LeadsModule } from './modules/leads/leads.module';
 import { CommissionsModule } from './modules/commissions/commissions.module';
 import { UsersModule } from './modules/users/users.module';
-import { SpatialExplorerModule } from './modules/spatial-explorer/spatial-explorer.module';
 
 import { MarketingManagersModule } from './modules/roles/marketing-managers/marketing-managers.module';
 import { BuyersModule } from './modules/roles/buyers/buyers.module';
@@ -85,7 +84,7 @@ import { join } from 'path';
         PaymentsModule,
         OrganizationsModule,
         TowersModule,
-        SpatialExplorerModule,
+
         VisitsModule,
         /*
         ServeStaticModule.forRoot({

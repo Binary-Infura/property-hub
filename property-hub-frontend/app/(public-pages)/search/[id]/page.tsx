@@ -11,9 +11,6 @@ import { reelService, Reel } from '@/app/services/reelService';
 import { useConsultingBucket } from '@/app/contexts/ConsultingBucketContext';
 import Link from 'next/link';
 import ReelCard from '@/app/components/ReelCard';
-import dynamic from 'next/dynamic';
-
-const UnitExplorer3D = dynamic(() => import('@/app/components/UnitExplorer3D'), { ssr: false });
 
 export default function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
@@ -539,13 +536,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                     </div>
                 </div>
 
-                {/* Full Width 3D Unit Explorer Section */}
-                <div className="mt-24 -mx-4 sm:-mx-6 lg:-mx-8">
-                    <UnitExplorer3D 
-                        projectId={id} 
-                        mainImage={property.images && property.images.length > 0 ? property.images[0] : undefined} 
-                    />
-                </div>
+
             </main>
 
             {/* Inquire Modal */}
