@@ -26,7 +26,7 @@ const staggerContainer = {
 
 export default function Home() {
   return (
-    <div className="bg-white relative min-h-screen overflow-x-hidden">
+    <div className="bg-white relative min-h-screen overflow-x-hidden" suppressHydrationWarning>
       <FloatingBackground />
       <MouseGlow />
       <Navbar />

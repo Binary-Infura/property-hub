@@ -268,7 +268,7 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
                                         propertyType: (property.projectType === 'APARTMENT' ? 'Flat' : property.projectType === 'VILLA' ? 'Villa' : 'Plot') as any,
                                         bhk: `${property.bedrooms || 2} BHK`,
                                         isNew: true,
-                                        isReadyToMove: property.status === 'AVAILABLE' || property.status === 'APPROVED',
+                                        isReadyToMove: (property.status as string) === 'AVAILABLE' || (property.status as string) === 'APPROVED',
                                         highlights: ['Premium Listing', 'Verified Owner'],
                                         legalVerified: true,
                                         partner: partner ? { id: partner.id, name: `${partner.firstName || ''} ${partner.lastName || ''}`.trim() } : undefined
