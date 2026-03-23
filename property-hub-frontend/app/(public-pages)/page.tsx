@@ -13,7 +13,7 @@ const FloatingBackground = dynamic(() => import("@/app/components/FloatingBackgr
 const MouseGlow = dynamic(() => import("@/app/components/MouseGlow"), { ssr: false });
 
 const fadeInUp = {
-  initial: { opacity: 0, y: 15 }, // Reduced distance
+  initial: { opacity: 1, y: 15 }, // Reduced distance
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, margin: "-10%" }, // Trigger slightly earlier
   transition: { duration: 0.5, ease: "easeOut" } // Faster, smoother
@@ -26,7 +26,7 @@ const staggerContainer = {
 
 export default function Home() {
   return (
-    <div className="bg-white relative min-h-screen overflow-x-hidden" suppressHydrationWarning>
+    <div className="bg-white relative min-h-screen" suppressHydrationWarning>
       <FloatingBackground />
       <MouseGlow />
       <Navbar />
@@ -34,13 +34,13 @@ export default function Home() {
       {/* Hero Section */}
       <section className="relative min-h-screen flex items-center overflow-hidden">
         {/* Full-width 3D Background */}
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0 pointer-events-none">
           <Building3D />
         </div>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full pointer-events-none">
           <motion.div 
-            initial={{ opacity: 0, x: -50 }}
+            initial={{ opacity: 1, x: -50 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
             className="max-w-2xl"
@@ -175,7 +175,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid lg:grid-cols-2 gap-24 items-center">
             <motion.div 
-              initial={{ opacity: 0, x: -30 }}
+              initial={{ opacity: 1, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
             >
@@ -192,7 +192,7 @@ export default function Home() {
                 ].map((item, i) => (
                   <motion.div 
                     key={i} 
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 1, y: 10 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     transition={{ delay: i * 0.1 }}
@@ -213,7 +213,7 @@ export default function Home() {
             </motion.div>
             
             <motion.div 
-              initial={{ opacity: 0, scale: 0.9, rotate: -5 }}
+              initial={{ opacity: 1, scale: 0.9, rotate: -5 }}
               whileInView={{ opacity: 1, scale: 1, rotate: 0 }}
               viewport={{ once: true }}
               className="relative h-[600px] w-full bg-white rounded-[3rem] shadow-2xl flex items-center justify-center overflow-hidden border border-gray-100"
@@ -233,7 +233,7 @@ export default function Home() {
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-blue-900/20 via-transparent to-transparent opacity-50" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white relative z-10">
           <motion.h2 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 1, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             className="text-5xl md:text-7xl font-extrabold mb-10 tracking-tight"
@@ -241,7 +241,7 @@ export default function Home() {
             Partner With <span className="text-blue-400">Us</span>
           </motion.h2>
           <motion.p 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 1, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ delay: 0.1 }}
@@ -277,7 +277,7 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-to-br from-blue-700 to-indigo-900" />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center relative z-10">
           <motion.h2 
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 1, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
             className="text-5xl md:text-7xl font-bold text-white mb-10"
