@@ -18,7 +18,8 @@ export default function CentralAuthorityListingRequestsPage() {
 
     const getPartnerName = (onboardedBy: any) => {
         if (!onboardedBy) return 'Unknown Partner';
-        return onboardedBy.propertyPartnerProfile?.companyName ||
+        return onboardedBy.profileData?.companyName ||
+            onboardedBy.propertyPartnerProfile?.companyName ||
             onboardedBy.agencyName ||
             `${onboardedBy.firstName || ''} ${onboardedBy.lastName || ''}`.trim() ||
             'Unknown Partner';

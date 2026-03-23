@@ -40,8 +40,6 @@ export interface UnifiedAppContextType {
         availableRoles: UserRole[];
     };
     activeContext: UserContextData;
-    isProfileOpen: boolean;
-    setIsProfileOpen: (open: boolean) => void;
     transition: { visible: boolean; roleId: string; roleName: string };
     triggerTransition: (roleId: string, roleName: string) => void;
 }
@@ -102,8 +100,6 @@ const FALLBACK_ROLE: UserRole = KNOWN_ROLES['BUYER'];
 const UnifiedAppContext = createContext<UnifiedAppContextType>({
     currentUser: { name: 'Guest', avatar: '', availableRoles: [] },
     activeContext: { activeRole: FALLBACK_ROLE, activeCity: null },
-    isProfileOpen: false,
-    setIsProfileOpen: () => {},
     transition: { visible: false, roleId: '', roleName: '' },
     triggerTransition: () => {},
 });
@@ -113,7 +109,6 @@ const UnifiedAppContext = createContext<UnifiedAppContextType>({
 // ---------------------------------------------------------------------------
 export function UnifiedAppProvider({ children }: { children: ReactNode }) {
     const { user, roles, activeRole: activeRoleId, authenticated } = useAuth();
-    const [isProfileOpen, setIsProfileOpen] = useState(false);
     const [transition, setTransition] = useState({ visible: false, roleId: '', roleName: '' });
 
     const triggerTransition = (roleId: string, roleName: string) => {
@@ -150,11 +145,9 @@ export function UnifiedAppProvider({ children }: { children: ReactNode }) {
     const value = useMemo((): UnifiedAppContextType => ({
         currentUser: { name: displayName, avatar: avatarUrl, availableRoles },
         activeContext: { activeRole: resolvedActiveRole, activeCity: null },
-        isProfileOpen,
-        setIsProfileOpen,
         transition,
         triggerTransition,
-    }), [displayName, avatarUrl, availableRoles, resolvedActiveRole, isProfileOpen, transition]);
+    }), [displayName, avatarUrl, availableRoles, resolvedActiveRole, transition]);
 
     return (
         <UnifiedAppContext.Provider value={value}>

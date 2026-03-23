@@ -6,8 +6,8 @@ import { useAuth } from '../contexts/AuthContext';
 import Link from 'next/link';
 
 export default function UserProfileMenu() {
-    const { currentUser, activeContext, setIsProfileOpen, triggerTransition } = useUnifiedApp();
-    const { user, logout, switchRole, activeRole: activeRoleId } = useAuth();
+    const { currentUser, activeContext, triggerTransition } = useUnifiedApp();
+    const { user, profileStatus, logout, switchRole, activeRole: activeRoleId } = useAuth();
 
     const [isOpen, setIsOpen] = useState(false);
     const [switching, setSwitching] = useState<string | null>(null);
@@ -17,7 +17,13 @@ export default function UserProfileMenu() {
     const firstName = user?.firstName || user?.name?.split(' ')[0] || user?.given_name || 'User';
     const lastName = user?.lastName || user?.name?.split(' ').slice(1).join(' ') || user?.family_name || '';
     const displayName = firstName || lastName ? `${firstName} ${lastName}`.trim() : (user?.email || 'User');
-    const roleLabel = activeRole?.name || 'User';
+    
+    // Prioritize organization name for Property Partners
+    const companyName = (activeRoleId === 'PROPERTY_PARTNER' && profileStatus?.PROPERTY_PARTNER?.profileData?.companyName)
+        ? profileStatus.PROPERTY_PARTNER.profileData.companyName
+        : null;
+
+    const roleLabel = companyName || activeRole?.name || 'User';
 
     const avatarUrl = user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=1d4ed8&color=fff&size=128`;
 
@@ -100,9 +106,10 @@ export default function UserProfileMenu() {
                         </div>
 
                         {/* Quick Actions */}
-                        <div className="p-3 border-b border-gray-100 grid grid-cols-2 gap-2">
-                             <button
-                                onClick={() => { setIsProfileOpen(true); setIsOpen(false); }}
+                        <div className={`p-3 border-b border-gray-100 grid ${activeContext.activeRole.id === 'PROPERTY_PARTNER' ? 'grid-cols-3' : 'grid-cols-2'} gap-2`}>
+                             <Link
+                                href="/dashboard/profile"
+                                onClick={() => setIsOpen(false)}
                                 className="flex flex-col items-center justify-center p-3 rounded-2xl hover:bg-blue-50 transition-all group border border-transparent hover:border-blue-100"
                             >
                                 <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
@@ -111,7 +118,22 @@ export default function UserProfileMenu() {
                                     </svg>
                                 </div>
                                 <span className="text-[11px] font-black text-gray-700 uppercase tracking-wider">Profile</span>
-                            </button>
+                            </Link>
+
+                            {activeContext.activeRole.id === 'PROPERTY_PARTNER' && (
+                                <Link
+                                    href="/dashboard/organization"
+                                    onClick={() => setIsOpen(false)}
+                                    className="flex flex-col items-center justify-center p-3 rounded-2xl hover:bg-emerald-50 transition-all group border border-transparent hover:border-emerald-100"
+                                >
+                                    <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center mb-2 group-hover:scale-110 transition-transform">
+                                        <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                                        </svg>
+                                    </div>
+                                    <span className="text-[11px] font-black text-gray-700 uppercase tracking-wider">Organization</span>
+                                </Link>
+                            )}
 
                             <Link
                                 href="/dashboard"

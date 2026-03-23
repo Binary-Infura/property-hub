@@ -104,10 +104,18 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
                 <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative pb-12">
                     <div className="flex flex-col md:flex-row gap-8 sm:gap-12 -mt-24 sm:-mt-32 items-end">
                         <div className="relative group">
-                            <div className="w-44 h-44 sm:w-56 sm:h-56 rounded-[3rem] bg-white p-3 shadow-2xl relative z-10 ring-1 ring-slate-100">
-                                <div className="w-full h-full rounded-[2.5rem] bg-gradient-to-br from-indigo-600 to-blue-700 flex items-center justify-center text-6xl font-black text-white shadow-inner">
-                                    {partner.firstName.charAt(0)}
-                                </div>
+                            <div className="w-44 h-44 sm:w-56 sm:h-56 rounded-[3rem] bg-white p-3 shadow-2xl relative z-10 ring-1 ring-slate-100 italic">
+                                {partner.avatarUrl ? (
+                                    <img 
+                                        src={partner.avatarUrl} 
+                                        alt={partner.firstName} 
+                                        className="w-full h-full rounded-[2.5rem] object-cover shadow-inner"
+                                    />
+                                ) : (
+                                    <div className="w-full h-full rounded-[2.5rem] bg-gradient-to-br from-indigo-600 to-blue-700 flex items-center justify-center text-6xl font-black text-white shadow-inner">
+                                        {partner.firstName.charAt(0)}
+                                    </div>
+                                )}
                             </div>
                             <div className="absolute -bottom-2 -right-2 w-12 h-12 bg-blue-600 border-[6px] border-white rounded-full flex items-center justify-center shadow-xl z-20">
                                 <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -118,23 +126,25 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
 
                         <div className="flex-1 pb-2">
                             <div className="flex flex-wrap items-center gap-4 mb-3">
-                                <h1 className="text-5xl font-black text-white tracking-tight leading-none">
-                                    {partner.firstName} {partner.lastName}
+                                <h1 className="text-5xl font-black text-white tracking-tight leading-none italic uppercase">
+                                    {(partner.profileData as any)?.companyName || `${partner.firstName} ${partner.lastName}`}
                                 </h1>
                                 <div className="flex items-center gap-2 px-4 py-2 bg-blue-50/10 text-blue-300 text-[10px] font-black uppercase tracking-[0.2em] rounded-full border border-blue-500/30 shadow-sm backdrop-blur-md">
-                                    <span className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></span>
-                                    Verified Platinum Partner
+                                    <span className={`w-2 h-2 ${(partner.profileData as any)?.isPremium ? 'bg-amber-400' : 'bg-blue-400'} rounded-full animate-pulse`}></span>
+                                    {(partner.profileData as any)?.isPremium ? 'Verified Premium Member' : 'Verified Property Partner'}
                                 </div>
                             </div>
                             <p className="text-2xl font-bold text-slate-300 mb-8 tracking-tight">
-                                CEO @ {partner.propertyPartnerProfile?.companyName || 'Elite Property Solutions'}
+                                {(partner.profileData as any)?.tagline || `Top-tier Real Estate Professional`}
+                                { (partner.profileData as any)?.companyName && <span className="text-blue-400 ml-2">by {partner.firstName} {partner.lastName}</span> }
                             </p>
 
                             <div className="flex flex-wrap gap-4 sm:gap-6">
                                 {[
-                                    { label: 'Client Rating', val: '4.9 / 5.0', svgIcon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>, color: 'amber' },
-                                    { label: 'Total Listings', val: `${properties.length}+ Properties`, svgIcon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" /></svg>, color: 'blue' },
-                                    { label: 'Followers', val: `${followerCount}`, svgIcon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>, color: 'indigo' }
+                                    { label: 'Client Rating', val: `${partner.rating ? partner.rating + ' / 5.0' : '4.8 / 5.0'}`, svgIcon: <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" /></svg>, color: 'amber' },
+                                    { label: 'Total Listings', val: `${properties.length} Active`, svgIcon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M2.25 21h19.5m-18-18v18m10.5-18v18m6-13.5V21M6.75 6.75h.75m-.75 3h.75m-.75 3h.75m3-6h.75m-.75 3h.75m-.75 3h.75M6.75 21v-3.375c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21M3 3h12m-.75 4.5H21m-3.75 3.75h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Zm0 3h.008v.008h-.008v-.008Z" /></svg>, color: 'blue' },
+                                    { label: 'Founded Year', val: `${(partner.profileData as any)?.foundedYear || '2015'}`, svgIcon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 3h.008v.008H12V18zm-3-3h.008v.008H9V15zm0 3h.008v.008H9V18zm6-3h.008v.008H15V15zm0 3h.008v.008H15V18z" /></svg>, color: 'indigo' },
+                                    { label: 'Company Size', val: `${(partner.profileData as any)?.companySize || '11-50 employees'}`, svgIcon: <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.771m0 0a5.971 5.971 0 00-.941 3.197m0 0l.001.031c0 .225.012.447.037.666A11.944 11.944 0 0112 21c2.17 0 4.207-.576 5.963-1.584A6.062 6.062 0 0118 18.719m-12 0a5.971 5.971 0 00.941-3.197m0 0A5.995 5.995 0 0112 12.75a5.995 5.995 0 015.058 2.771m0 0a5.971 5.971 0 01.941 3.197M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" /></svg>, color: 'blue' }
                                 ].map((stat, i) => (
                                     <div key={i} className="flex items-center gap-4 px-6 py-4 bg-slate-50 rounded-3xl border border-slate-100 hover:bg-white hover:shadow-lg transition-all cursor-default group">
                                         <div className="text-slate-500 group-hover:scale-125 transition-transform">{stat.svgIcon}</div>
@@ -206,20 +216,55 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
                                 Professional Bio
                             </h2>
                             <p className="text-lg text-slate-500 font-bold leading-relaxed mb-10 italic">
-                                "{partner.firstName} is a highly decorated property specialist with over a decade of experience in the luxury market. His commitment to legal transparency and client-first solutions has earned him a top-tier reputation across the region."
+                                "{(partner.profileData as any)?.about || `${partner.firstName} is a highly decorated property specialist with over a decade of experience in the luxury market. His commitment to legal transparency and client-first solutions has earned him a top-tier reputation across the region.`}"
                             </p>
 
                             <div className="space-y-4">
                                 <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 group hover:border-blue-200 transition-colors">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Corporate HQ</p>
-                                    <p className="text-sm font-black text-slate-900 leading-relaxed">{partner.propertyPartnerProfile?.companyAddress || 'Luxury Towers, Floor 14, Business Bay, Mumbai'}</p>
+                                    <p className="text-sm font-black text-slate-900 leading-relaxed">{(partner.profileData as any)?.companyAddress || 'Luxury Towers, Mumbai'}</p>
                                 </div>
                                 <div className="p-6 bg-slate-50 rounded-[2rem] border border-slate-100 group hover:border-blue-200 transition-colors">
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">RERA Licensing</p>
-                                    <p className="text-sm font-black text-slate-900">{partner.reraId || 'RE-0099-2288-11'}</p>
+                                    <p className="text-sm font-black text-slate-900">{(partner.profileData as any)?.licenseNumber || partner.reraId || 'Verified'}</p>
                                 </div>
+                                {(partner.profileData as any)?.website && (
+                                    <a 
+                                        href={(partner.profileData as any).website.startsWith('http') ? (partner.profileData as any).website : `https://${(partner.profileData as any).website}`}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className="p-6 bg-blue-50/50 rounded-[2rem] border border-blue-100 group hover:bg-blue-600 hover:text-white transition-all block"
+                                    >
+                                        <p className="text-[10px] font-black text-blue-400 group-hover:text-blue-100 uppercase tracking-widest mb-2">Official Website</p>
+                                        <div className="flex items-center justify-between">
+                                            <p className="text-sm font-black truncate max-w-[180px]">{(partner.profileData as any).website.replace(/^https?:\/\//, '')}</p>
+                                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor font-bold">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                            </svg>
+                                        </div>
+                                    </a>
+                                )}
                             </div>
                         </section>
+
+                        {(partner.profileData as any)?.specialties && (
+                            <section className="bg-white rounded-[3rem] p-12 shadow-xl shadow-slate-100/50 border border-slate-50">
+                                <h3 className="text-xl font-black text-slate-900 mb-6 flex items-center gap-3">
+                                    <svg className="w-6 h-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" /></svg>
+                                    Our Specialties
+                                </h3>
+                                <div className="flex flex-wrap gap-3">
+                                    {(Array.isArray((partner.profileData as any).specialties) 
+                                        ? (partner.profileData as any).specialties 
+                                        : (partner.profileData as any).specialties.split(',')
+                                    ).map((s: string, i: number) => (
+                                        <div key={i} className="px-5 py-2.5 bg-slate-50 text-slate-700 text-sm font-black rounded-full border border-slate-100 hover:border-blue-200 hover:bg-blue-50 transition-all cursor-default uppercase tracking-tight">
+                                            # {s.trim()}
+                                        </div>
+                                    ))}
+                                </div>
+                            </section>
+                        )}
 
                         <section className="bg-gradient-to-br from-indigo-900 to-[#0F172A] rounded-[3.5rem] p-12 text-white shadow-2xl relative overflow-hidden group">
                             <div className="absolute bottom-0 right-0 w-64 h-64 bg-blue-600/20 rounded-full blur-[80px] -mb-32 -mr-32 group-hover:scale-125 transition-transform duration-1000"></div>

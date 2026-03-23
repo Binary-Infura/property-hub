@@ -77,7 +77,7 @@ export function middleware(request: NextRequest) {
     const effectiveRole = userRole || 'BUYER';
     
     // Special case for shared pages to avoid 404 and allow cross-role access
-    const sharedPaths = ['/dashboard/search', '/dashboard/loan', '/dashboard/saved', '/dashboard/inquiries', '/dashboard/documents'];
+    const sharedPaths = ['/dashboard/search', '/dashboard/loan', '/dashboard/saved', '/dashboard/inquiries', '/dashboard/documents', '/dashboard/profile', '/dashboard/organization'];
     const isShared = sharedPaths.some(p => pathname === p || pathname.startsWith(p + '/'));
 
     // Determine the role slug for internal routing

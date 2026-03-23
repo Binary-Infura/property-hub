@@ -4,7 +4,6 @@ import "./globals.css";
 import { AuthProvider } from "./contexts/AuthContext";
 import { UnifiedAppProvider } from "./contexts/UnifiedAppContext";
 import { ConsultingBucketProvider } from "./contexts/ConsultingBucketContext";
-import UserProfileDrawer from "./components/UserProfileDrawer";
 import GlobalTransition from "./components/GlobalTransition";
 
 const geistSans = Geist({
@@ -74,7 +73,6 @@ export default function RootLayout({
           <UnifiedAppProvider>
             <ConsultingBucketProvider>
               {children}
-              <UserProfileDrawer />
               <GlobalTransition />
             </ConsultingBucketProvider>
           </UnifiedAppProvider>

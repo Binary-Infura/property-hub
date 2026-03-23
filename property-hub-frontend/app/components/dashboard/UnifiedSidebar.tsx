@@ -16,7 +16,7 @@ interface UnifiedSidebarProps {
 
 export default function UnifiedSidebar({ isOpen, onClose }: UnifiedSidebarProps) {
     const pathname = usePathname();
-    const { activeContext, setIsProfileOpen } = useUnifiedApp();
+    const { activeContext } = useUnifiedApp();
     const { profileStatus } = useAuth();
 
     const { activeRole } = activeContext;

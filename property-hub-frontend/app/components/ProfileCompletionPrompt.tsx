@@ -7,7 +7,6 @@ import { useUnifiedApp } from '../contexts/UnifiedAppContext';
 
 export default function ProfileCompletionPrompt() {
     const { profileStatus, roles } = useAuth();
-    const { setIsProfileOpen } = useUnifiedApp();
 
     if (!profileStatus) return null;
 
@@ -43,12 +42,12 @@ export default function ProfileCompletionPrompt() {
                     </div>
                     <div className="mt-4">
                         <div className="-mx-2 -my-1.5 flex">
-                            <button
-                                onClick={() => setIsProfileOpen(true)}
-                                className="bg-amber-100 px-3 py-2 rounded-md text-sm font-medium text-amber-800 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-colors"
+                            <Link
+                                href="/dashboard/profile"
+                                className="bg-amber-100 px-3 py-2 rounded-md text-sm font-medium text-amber-800 hover:bg-amber-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500 transition-colors inline-block"
                             >
                                 Complete Profile Now
-                            </button>
+                            </Link>
                         </div>
                     </div>
                 </div>

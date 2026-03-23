@@ -36,6 +36,7 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
     'PROPERTY_PARTNER': [
         { name: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
         { name: 'Projects', href: '/dashboard/projects', icon: 'building' },
+        { name: 'My Organization', href: '/dashboard/organization', icon: 'building' },
         { name: 'Units', href: '/dashboard/units', icon: 'home' },
         { name: 'Consultants', href: '/dashboard/consultants', icon: 'person', premium: true },
         { name: 'Visit Executives', href: '/dashboard/visit-executives', icon: 'pin', premium: true },

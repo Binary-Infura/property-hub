@@ -7,6 +7,8 @@ export interface User {
     lastName?: string;
     email: string;
     phone?: string;
+    avatarUrl?: string;
+    profileData?: any;
     role: string;
     status: 'active' | 'inactive';
     agencyName?: string;
@@ -20,6 +22,14 @@ export interface User {
         companyAddress?: string;
         taxId?: string;
         licenseNumber?: string;
+        tagline?: string;
+        about?: string;
+        website?: string;
+        industry?: string;
+        companySize?: string;
+        headquarters?: string;
+        foundedYear?: string;
+        specialties?: string[];
         isPremium: boolean;
         subscriptionMode: 'PAID' | 'FREE';
     };

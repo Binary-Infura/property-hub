@@ -247,11 +247,13 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                             className="flex items-center gap-2.5 group hover:opacity-80 transition-opacity"
                         >
                             <div className="w-8 h-8 rounded-xl bg-indigo-600 flex items-center justify-center font-black text-sm text-white flex-shrink-0 group-hover:scale-105 transition-transform">
-                                {(owner?.firstName || 'P').charAt(0)}
+                                {(owner?.profileData?.companyName || owner?.firstName || 'P').charAt(0)}
                             </div>
                             <div className="hidden sm:block">
-                                <p className="text-xs font-black text-slate-800 leading-none">{owner?.firstName} {owner?.lastName}</p>
-                                <p className="text-[10px] font-bold text-slate-400 mt-0.5 truncate max-w-[140px]">{owner?.propertyPartnerProfile?.companyName || ''}</p>
+                                <p className="text-xs font-black text-slate-800 leading-none">{(owner?.profileData as any)?.companyName || `${owner?.firstName} ${owner?.lastName}`}</p>
+                                {(owner?.profileData as any)?.companyName && (
+                                    <p className="text-[10px] font-bold text-slate-400 mt-0.5 truncate max-w-[140px]">by {owner?.firstName} {owner?.lastName}</p>
+                                )}
                             </div>
                         </Link>
                         <div className="w-px h-5 bg-slate-200 hidden sm:block" />
