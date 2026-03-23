@@ -177,7 +177,7 @@ export default function PropertySearchPage({ hideHeader = false }: { hideHeader?
 
     if (filters.location) {
       filtered = filtered.filter(p =>
-        p.location.toLowerCase().includes(filters.location.toLowerCase()) ||
+        (p.location && p.location.toLowerCase().includes(filters.location.toLowerCase())) ||
         p.title.toLowerCase().includes(filters.location.toLowerCase())
       );
     }

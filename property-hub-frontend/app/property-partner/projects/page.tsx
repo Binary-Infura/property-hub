@@ -160,7 +160,7 @@ export default function ProjectsPage() {
   const filteredProjects = projects.filter(prop => {
     const statusMatch = filterStatus === 'all' || prop.status === filterStatus;
     const searchMatch = prop.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      prop.location.toLowerCase().includes(searchQuery.toLowerCase());
+      (prop.location && prop.location.toLowerCase().includes(searchQuery.toLowerCase()));
     return statusMatch && searchMatch;
   });
 

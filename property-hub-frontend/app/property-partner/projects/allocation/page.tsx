@@ -129,7 +129,7 @@ export default function ProjectPartnerBulkAllocationPage() {
         const selectedStateName = states.find(s => s.code === filterState)?.name;
         return projects.filter(p => {
             const matchesSearch = p.name.toLowerCase().includes(propSearch.toLowerCase()) ||
-                p.location.toLowerCase().includes(propSearch.toLowerCase());
+                (p.location && p.location.toLowerCase().includes(propSearch.toLowerCase()));
             const matchesState = filterState === 'all' || p.city?.state === selectedStateName || p.city?.state === filterState;
             const matchesCity = filterCity === 'all' || p.city?.name === filterCity;
             const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
@@ -350,7 +350,7 @@ export default function ProjectPartnerBulkAllocationPage() {
                                         </div>
                                         <div className="text-right ml-4 shrink-0">
                                             <span className="text-xs font-black text-slate-900 block group-hover:text-blue-600 transition-colors">₹{new Intl.NumberFormat('en-IN').format(p.price)}</span>
-                                            <span className={`text-[9px] font-black uppercase tracking-tighter mt-0.5 block ${p.status === 'AVAILABLE' ? 'text-green-500' : 'text-slate-400'}`}>{p.status}</span>
+                                            <span className={`text-[9px] font-black uppercase tracking-tighter mt-0.5 block ${p.status === 'APPROVED' ? 'text-green-500' : 'text-slate-400'}`}>{p.status}</span>
                                         </div>
                                     </div>
                                 );

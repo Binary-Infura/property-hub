@@ -79,7 +79,7 @@ export default function CentralAuthorityListingRequestsPage() {
         }
     };
 
-    const cities = ['all', ...Array.from(new Set(requests.map(r => r.location.split(',').pop()?.trim() || 'Unknown')))];
+    const cities = ['all', ...Array.from(new Set(requests.map(r => r.location?.split(',').pop()?.trim() || 'Unknown')))];
 
     return (
         <div className="space-y-6">
@@ -127,9 +127,9 @@ export default function CentralAuthorityListingRequestsPage() {
                 </div>
             ) : (() => {
                 const filtered = requests.filter(r => {
-                    const matchesCity = selectedCity === 'all' || r.location.toLowerCase().includes(selectedCity.toLowerCase());
+                    const matchesCity = selectedCity === 'all' || (r.location && r.location.toLowerCase().includes(selectedCity.toLowerCase()));
                     const partnerName = getPartnerName(r.onboardedBy);
-                    const searchStr = `${r.name} ${r.location} ${partnerName}`.toLowerCase();
+                    const searchStr = `${r.name} ${r.location || ''} ${partnerName}`.toLowerCase();
                     const matchesSearch = searchStr.includes(searchQuery.toLowerCase());
                     return matchesCity && matchesSearch;
                 });
@@ -168,7 +168,7 @@ export default function CentralAuthorityListingRequestsPage() {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                                                 </svg>
-                                                {request.location}
+                                                {request.location || 'No location'}
                                             </p>
 
                                             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -178,7 +178,9 @@ export default function CentralAuthorityListingRequestsPage() {
                                                 </div>
                                                 <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
                                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Price</p>
-                                                    <p className="font-bold text-blue-600">₹{(parseFloat(request.price) / 100000).toFixed(1)}L+</p>
+                                                    <p className="font-bold text-blue-600">
+                                                        {request.price ? `₹${(parseFloat(request.price) / 100000).toFixed(1)}L+` : 'Price on Request'}
+                                                    </p>
                                                 </div>
                                                 <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
                                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">Area</p>
@@ -186,7 +188,7 @@ export default function CentralAuthorityListingRequestsPage() {
                                                 </div>
                                                 <div className="p-3 bg-gray-50 rounded-xl border border-gray-100">
                                                     <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1">City</p>
-                                                    <p className="font-bold text-gray-700 truncate">{request.location.split(',').pop()?.trim() || 'Unknown'}</p>
+                                                    <p className="font-bold text-gray-700 truncate">{request.location?.split(',').pop()?.trim() || 'Unknown'}</p>
                                                 </div>
                                             </div>
                                         </div>

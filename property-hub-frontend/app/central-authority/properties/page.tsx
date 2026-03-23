@@ -40,7 +40,7 @@ export default function CentralAuthorityPropertiesPage() {
 
     const filteredProperties = properties.filter(property => {
         const matchesSearch = property.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            property.location.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            (property.location && property.location.toLowerCase().includes(searchQuery.toLowerCase())) ||
             property.city?.name?.toLowerCase().includes(searchQuery.toLowerCase());
 
         const matchesStatus = statusFilter === 'all' || property.status === statusFilter;
