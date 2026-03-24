@@ -46,16 +46,19 @@ export default function ReelsPage() {
             <Navbar />
 
             <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-                <header className="mb-12 text-center">
-                    <div className="inline-block px-4 py-1.5 bg-gradient-to-tr from-blue-50 to-indigo-50 border border-blue-100 rounded-full mb-6 text-blue-700 text-xs font-bold uppercase tracking-widest flex items-center gap-2 mx-auto w-fit">
-                        <div className="w-2 h-2 rounded-full bg-blue-600 animate-pulse"></div>
+                <header className="mb-16 text-center">
+                    <div className="inline-flex items-center gap-2.5 px-4 py-2 bg-blue-50/50 border border-blue-100 rounded-full mb-8 text-blue-600 text-[10px] font-black uppercase tracking-[0.2em] shadow-sm animate-in fade-in slide-in-from-bottom-4 duration-1000">
+                        <span className="relative flex h-2 w-2">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600"></span>
+                        </span>
                         Trending Reels
                     </div>
-                    <h1 className="text-4xl md:text-5xl font-black text-gray-900 tracking-tight mb-4">
+                    <h1 className="text-4xl md:text-6xl font-black text-gray-900 tracking-tight mb-6">
                         Discover Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">Dream Home</span>
                     </h1>
-                    <p className="max-w-2xl mx-auto text-gray-500 text-lg font-medium">
-                        Watch short property showcases and expert tips.
+                    <p className="max-w-2xl mx-auto text-gray-500 text-lg md:text-xl font-medium leading-relaxed">
+                        Watch short property showcases and expert tips from our top partners.
                     </p>
                 </header>
 
@@ -79,9 +82,9 @@ export default function ReelsPage() {
 
                 {/* Initial skeleton */}
                 {initialLoading && !error && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    <div className="flex flex-wrap justify-center gap-10">
                         {Array.from({ length: PAGE_SIZE }).map((_, i) => (
-                            <div key={i} className="aspect-[9/16] bg-gray-100 animate-pulse rounded-2xl border border-gray-200 shadow-sm" />
+                            <div key={i} className="w-full max-w-[320px] aspect-[9/16] bg-gray-100 animate-pulse rounded-2xl border border-gray-200 shadow-sm" />
                         ))}
                     </div>
                 )}
@@ -101,14 +104,15 @@ export default function ReelsPage() {
 
                 {/* Reels grid */}
                 {!initialLoading && !error && reels.length > 0 && (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+                    <div className="flex flex-wrap justify-center gap-10">
                         {reels.map((reel) => (
-                            <ReelCard key={reel.id} reel={reel} />
+                            <div key={reel.id} className="w-full max-w-[320px]">
+                                <ReelCard reel={reel} />
+                            </div>
                         ))}
-
                         {/* Skeleton cards appended while loading more */}
                         {loadingMore && Array.from({ length: 4 }).map((_, i) => (
-                            <div key={`skeleton-${i}`} className="aspect-[9/16] bg-gray-100 animate-pulse rounded-2xl border border-gray-200 shadow-sm" />
+                            <div key={`skeleton-${i}`} className="w-full max-w-[320px] aspect-[9/16] bg-gray-100 animate-pulse rounded-2xl border border-gray-200 shadow-sm" />
                         ))}
                     </div>
                 )}
