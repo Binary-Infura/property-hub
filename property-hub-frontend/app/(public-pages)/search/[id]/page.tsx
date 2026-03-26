@@ -11,6 +11,7 @@ import { reelService, Reel } from '@/app/services/reelService';
 import { useConsultingBucket } from '@/app/contexts/ConsultingBucketContext';
 import Link from 'next/link';
 import ReelCard from '@/app/components/ReelCard';
+import GoogleMap from '@/app/components/GoogleMap';
 
 export default function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
@@ -452,6 +453,18 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                                     <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2">Pincode</p>
                                     <p className="text-lg font-bold text-slate-900">{property.addressRecord?.pincode || property.pincode || 'N/A'}</p>
                                 </div>
+                                {(property.addressRecord?.latitude && property.addressRecord?.longitude) && (
+                                    <div className="col-span-1 sm:col-span-4 mt-8">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Actual Project Map Location</p>
+                                        <GoogleMap 
+                                            latitude={property.addressRecord.latitude}
+                                            longitude={property.addressRecord.longitude}
+                                            mode="view"
+                                            height="450px"
+                                            className="border-[8px] border-white shadow-2xl rounded-[3rem]"
+                                        />
+                                    </div>
+                                )}
                             </div>
                         </div>
 

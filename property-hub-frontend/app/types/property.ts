@@ -51,6 +51,8 @@ export interface Property {
     line2?: string;
     cityId?: string;
     pincode?: string;
+    latitude?: number;
+    longitude?: number;
     city?: {
       name: string;
       state: string;

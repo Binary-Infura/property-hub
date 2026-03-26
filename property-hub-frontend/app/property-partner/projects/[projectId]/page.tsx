@@ -15,6 +15,7 @@ import MarkAsSoldModal from '@/app/components/property-partner/MarkAsSoldModal';
 import AddTowerModal from '@/app/components/property-partner/AddTowerModal';
 import { projectService } from '@/app/services/propertyService';
 import SidebarIcon from '@/app/components/SidebarIcon';
+import GoogleMap from '@/app/components/GoogleMap';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
@@ -95,6 +96,8 @@ export default function ProjectDetailPage() {
     highlights: [] as string[],
     title: '',
     price: '',
+    latitude: 0,
+    longitude: 0,
   });
 
   const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -322,6 +325,8 @@ export default function ProjectDetailPage() {
       city: addr?.city?.name || project?.city || '',
       state: currentState,
       pincode: addr?.pincode || project?.pincode || '',
+      latitude: addr?.latitude || 0,
+      longitude: addr?.longitude || 0,
     }));
     setIsEditingLocation(true);
   };
@@ -337,6 +342,8 @@ export default function ProjectDetailPage() {
         line2: editData.line2 || undefined,
         pincode: editData.pincode,
         cityId: editData.cityId,
+        latitude: editData.latitude,
+        longitude: editData.longitude,
       }
     });
     if (success) setIsEditingLocation(false);
@@ -895,6 +902,17 @@ export default function ProjectDetailPage() {
                         className="w-full px-4 py-2 rounded-lg border border-slate-200 text-sm"
                       />
                     </div>
+                    <div className="col-span-2">
+                       <label className="block text-xs font-bold text-gray-500 uppercase tracking-wider mb-2 text-left">Pin Project Location</label>
+                       <GoogleMap 
+                        latitude={editData.latitude}
+                        longitude={editData.longitude}
+                        mode="picker"
+                        height="300px"
+                        onChange={(lat: number, lng: number) => setEditData(prev => ({ ...prev, latitude: lat, longitude: lng }))}
+                       />
+                       <p className="text-[10px] text-slate-400 mt-2 font-bold italic">Drag the marker or click on the map to pin the exact location.</p>
+                    </div>
                   </div>
                 ) : (
                   <dl className="grid grid-cols-2 md:grid-cols-4 gap-6 text-left">
@@ -920,6 +938,17 @@ export default function ProjectDetailPage() {
                       <dt className="text-xs font-black text-slate-400 uppercase tracking-widest mb-1">Pincode</dt>
                       <dd className="text-slate-900 font-bold">{project.addressRecord?.pincode || project.pincode || 'N/A'}</dd>
                     </div>
+                    {(project.addressRecord?.latitude && project.addressRecord?.longitude) && (
+                      <div className="col-span-2 mt-4">
+                        <dt className="text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Project Location</dt>
+                        <GoogleMap 
+                          latitude={project.addressRecord.latitude}
+                          longitude={project.addressRecord.longitude}
+                          mode="view"
+                          height="200px"
+                        />
+                      </div>
+                    )}
                   </dl>
                 )}
               </div>

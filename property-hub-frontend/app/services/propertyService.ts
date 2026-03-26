@@ -14,6 +14,8 @@ export interface Project {
       line1?: string;
       line2?: string;
       pincode?: string;
+      latitude?: number;
+      longitude?: number;
       city?: {
         name: string;
         state: string;
