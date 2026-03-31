@@ -221,75 +221,20 @@ export default function ConsultantCallPage({ params }: { params: Promise<{ roomN
     }
 
     return (
-        <div className="h-screen w-screen bg-[#0A0C10] flex flex-col overflow-hidden font-sans relative">
-            {/* Ambient Atmosphere */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute top-[-30%] left-[-10%] w-[80%] h-[80%] bg-blue-600/10 blur-[300px] rounded-full animate-pulse" />
-                <div className="absolute bottom-[-20%] right-[-10%] w-[70%] h-[70%] bg-indigo-600/10 blur-[300px] rounded-full" />
-            </div>
-
-            {/* Premium Branding Header */}
-            <header className="relative z-[110] px-16 py-12 flex items-center justify-between border-b border-white/5 bg-[#0A0C10]/20 backdrop-blur-3xl">
-                <div className="flex items-center gap-10">
-                    <div className="relative group">
-                        <div className="h-24 w-24 rounded-[36px] bg-gradient-to-tr from-blue-600 to-indigo-700 flex items-center justify-center text-white font-black text-4xl shadow-3xl shadow-blue-600/40 transform transition-transform group-hover:rotate-12">
-                            {leadName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
-                        </div>
-                        <div className="absolute -bottom-2 -right-2 h-8 w-8 bg-green-500 border-[7px] border-[#0A0C10] rounded-full shadow-2xl" />
-                    </div>
-                    <div>
-                        <h1 className="text-white font-black text-5xl tracking-tighter leading-none mb-4 uppercase tracking-tight">{leadName}</h1>
-                        <div className="flex items-center gap-6">
-                            <div className="px-5 py-2 bg-blue-600/10 border border-blue-600/20 rounded-xl">
-                                <p className="text-blue-400 text-[13px] uppercase font-black tracking-[4px] italic">Expert Specialist</p>
-                            </div>
-                            <span className="h-2 w-2 rounded-full bg-slate-800" />
-                            <p className="text-slate-500 text-xs font-black uppercase tracking-[0.4em]">Proprietary Connection</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="flex items-center gap-10">
-                    <button
-                        onClick={handleCopyLink}
-                        className={`flex items-center gap-4 px-10 py-5 rounded-[24px] transition-all border-2 font-black text-xs uppercase tracking-[0.2em] ${copied
-                            ? 'bg-green-500 border-green-500 text-white shadow-3xl shadow-green-500/40'
-                            : 'bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20'
-                            }`}
-                    >
-                        <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            {copied
-                                ? <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                                : <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />}
-                        </svg>
-                        {copied ? 'Copied' : 'Invite Lead'}
-                    </button>
-
-                    <div className="text-right flex flex-col items-end">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="h-2.5 w-2.5 rounded-full bg-red-500 animate-pulse" />
-                            <p className="text-white font-black text-sm uppercase tracking-widest">Live Workshop</p>
-                        </div>
-                        <p className="text-slate-500 text-[10px] font-black uppercase tracking-[0.4em]">Property Hub Boutique</p>
-                    </div>
-                </div>
-            </header>
-
-            <LiveKitRoom
-                video={true}
-                audio={true}
-                token={lkToken!}
-                connect={true}
-                serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL || 'wss://video-call-app-xbhm65uv.livekit.cloud'}
-                onDisconnected={() => {
-                    window.close();
-                }}
-                onError={(err) => setError(`Session Interrupted: ${err.message}`)}
-                className="flex-1 flex flex-col min-h-0 relative z-50"
-            >
-                <ConsultantCallLayout />
-                <RoomAudioRenderer />
-            </LiveKitRoom>
-        </div>
+        <LiveKitRoom
+            video={true}
+            audio={true}
+            token={lkToken!}
+            connect={true}
+            serverUrl={process.env.NEXT_PUBLIC_LIVEKIT_URL || 'wss://video-call-app-xbhm65uv.livekit.cloud'}
+            onDisconnected={() => {
+                window.close();
+            }}
+            onError={(err) => setError(`Session Interrupted: ${err.message}`)}
+            className="h-screen w-screen bg-[#0A0C10] flex flex-col overflow-hidden font-sans relative z-50"
+        >
+            <ConsultantCallLayout />
+            <RoomAudioRenderer />
+        </LiveKitRoom>
     );
 }
