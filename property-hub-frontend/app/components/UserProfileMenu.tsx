@@ -19,7 +19,9 @@ export default function UserProfileMenu() {
     const displayName = firstName || lastName ? `${firstName} ${lastName}`.trim() : (user?.email || 'User');
     
     // Show both Role and Organization for full mapping
-    const organizationName = profileStatus?.[activeRoleId || '']?.profileData?.organizationName;
+    const organizationName = profileStatus?.[activeRoleId || '']?.profileData?.organizationName || 
+                             user?.organization?.name || 
+                             user?.onboardedBy?.organization?.name;
     const roleName = activeRole?.name || 'User';
     
     const roleLabel = organizationName 

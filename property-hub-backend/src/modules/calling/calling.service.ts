@@ -26,14 +26,18 @@ export class CallingService {
     async initiateCall(params: CallParams): Promise<CallResponse> {
         const { consultantId, leadId, from, to } = params;
 
-        // 1. Check wallet balance
+        // 1. Check organization wallet balance
         const consultant = await this.prisma.user.findUnique({
             where: { id: consultantId },
-            select: { walletBalance: true }
+            include: { organization: true }
         });
 
-        if (!consultant || Number(consultant.walletBalance) < 10) {
-            throw new BadRequestException('Insufficient wallet balance to start a call. Minimum ₹10 required.');
+        if (!consultant?.organizationId) {
+            throw new BadRequestException('Consultant must belong to an organization to initiate calls.');
+        }
+
+        if (Number(consultant.organization?.walletBalance || 0) < 10) {
+            throw new BadRequestException('Insufficient organizational wallet balance to start a call. Minimum ₹10 required.');
         }
 
         // 2. Select Provider
@@ -111,22 +115,30 @@ export class CallingService {
             });
 
             if (log && log.consultantId) {
-                await this.prisma.user.update({
+                const user = await this.prisma.user.findUnique({
                     where: { id: log.consultantId },
-                    data: {
-                        walletBalance: { decrement: totalCost }
-                    }
+                    select: { organizationId: true }
                 });
 
-                await this.prisma.walletTransaction.create({
-                    data: {
-                        userId: log.consultantId,
-                        amount: -totalCost,
-                        type: 'CALL_COST',
-                        description: `Call charge (${provider}): ${durationInMinutes} min (SID: ${sid})`,
-                        referenceId: log.id
-                    }
-                });
+                if (user?.organizationId) {
+                    await this.prisma.organization.update({
+                        where: { id: user.organizationId },
+                        data: {
+                            walletBalance: { decrement: totalCost }
+                        }
+                    });
+
+                    await this.prisma.walletTransaction.create({
+                        data: {
+                            userId: log.consultantId,
+                            organizationId: user.organizationId,
+                            amount: -totalCost,
+                            type: 'CALL_COST',
+                            description: `Call charge (${provider}): ${durationInMinutes} min (SID: ${sid})`,
+                            referenceId: log.id
+                        }
+                    });
+                }
             }
         }
     }

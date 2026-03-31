@@ -21,6 +21,19 @@ export class PaymentsService {
 
   async createOrder(userId: string, amount: number) {
     try {
+      const user = await this.prisma.user.findUnique({
+        where: { id: userId },
+        include: { organization: true }
+      });
+
+      if (!user) {
+        throw new UnauthorizedException('User not found. Please log in again.');
+      }
+
+      if (!user.organizationId) {
+        throw new UnauthorizedException('User must belong to an organization to use wallet features.');
+      }
+
       const receipt = `rcpt_${userId.substring(0, 8)}_${Date.now()}`;
       const options = {
         amount: amount * 100, // amount in the smallest currency unit
@@ -29,19 +42,11 @@ export class PaymentsService {
       };
       const order = await this.razorpay.orders.create(options);
 
-      // Verify user exists first to prevent foreign key constraint failure
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId }
-      });
-
-      if (!user) {
-        throw new UnauthorizedException('User not found. Please log in again.');
-      }
-
       // Create a pending payment record
       await this.prisma.paymentOrder.create({
         data: {
           userId,
+          organizationId: user.organizationId,
           amount,
           currency: 'INR',
           status: 'PENDING',
@@ -53,7 +58,7 @@ export class PaymentsService {
       return order;
     } catch (error) {
       console.error('Error creating order:', error);
-      if (error.status === 401) {
+      if (error instanceof UnauthorizedException) {
         throw error;
       }
       throw new InternalServerErrorException('Error creating Razorpay order');
@@ -90,19 +95,21 @@ export class PaymentsService {
         console.warn('Payment record not found for orderId:', razorpayOrderId);
       }
 
-      // Update User Wallet Balance and create transaction
+      // Update Organization Wallet Balance and create transaction
       const paymentOrder = await this.prisma.paymentOrder.findUnique({
         where: { razorpayOrderId },
       });
 
-      if (paymentOrder && paymentOrder.status === 'SUCCESS') {
-        // Atomic update of user's wallet
-        await this.prisma.user.update({
-          where: { id: userId },
+      if (paymentOrder && paymentOrder.status === 'SUCCESS' && paymentOrder.organizationId) {
+        // Atomic update of organization's wallet
+        await this.prisma.organization.update({
+          where: { id: paymentOrder.organizationId },
           data: {
             walletBalance: {
               increment: paymentOrder.amount,
             },
+            isPremium: Number(paymentOrder.amount) >= 1000 ? true : undefined,
+            subscriptionMode: Number(paymentOrder.amount) >= 1000 ? 'PAID' : undefined,
           },
         });
 
@@ -110,6 +117,7 @@ export class PaymentsService {
         await this.prisma.walletTransaction.create({
           data: {
             userId,
+            organizationId: paymentOrder.organizationId,
             amount: paymentOrder.amount,
             type: 'RECHARGE',
             status: 'COMPLETED',
@@ -117,29 +125,20 @@ export class PaymentsService {
             description: `Recharged ₹${paymentOrder.amount} via Razorpay`,
           },
         });
-      }
 
-      // Update the user's organization to premium if it's a fixed amount (optional logic)
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        include: { organization: true },
-      });
-
-      if (user && user.organizationId && paymentOrder && Number(paymentOrder.amount) >= 1000) {
-        await this.prisma.organization.update({
-          where: { id: user.organizationId },
-          data: {
-            isPremium: true,
-            subscriptionMode: 'PAID',
-          }
+        const org = await this.prisma.organization.findUnique({
+          where: { id: paymentOrder.organizationId },
+          select: { walletBalance: true }
         });
-      }
 
-      return { 
-        status: 'success', 
-        message: 'Payment verified and wallet updated.',
-        newBalance: user?.walletBalance ? Number(user.walletBalance) + Number(paymentOrder?.amount || 0) : 0
-      };
+        return { 
+          status: 'success', 
+          message: 'Payment verified and wallet updated.',
+          newBalance: org?.walletBalance ? Number(org.walletBalance) : 0
+        };
+      }
+      
+      throw new InternalServerErrorException('Payment order not found or invalid');
     } else {
       // Update Payment record to FAILED
       try {
@@ -188,16 +187,51 @@ export class PaymentsService {
   }
 
   async getWalletBalance(userId: string) {
-    const user = await this.prisma.user.findUnique({
+    let user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { walletBalance: true },
+      include: { 
+        organization: true,
+        onboardedBy: { include: { organization: true } }
+      },
     });
-    return { balance: user?.walletBalance || 0 };
+
+    // 1. Direct organization link
+    if (user?.organizationId && user.organization) {
+      return { balance: Number(user.organization.walletBalance || 0) };
+    }
+
+    // 2. Onboarder's organization link (Consultant fallback)
+    if (user?.onboardedBy?.organizationId && user.onboardedBy.organization) {
+      return { balance: Number(user.onboardedBy.organization.walletBalance || 0) };
+    }
+
+    // 3. Recursive lookup if needed (multi-level onboarding)
+    let currentUser = user;
+    let depth = 0;
+    while (currentUser?.onboardedById && !currentUser.organizationId && depth < 3) {
+      currentUser = await this.prisma.user.findUnique({
+        where: { id: currentUser.onboardedById },
+        include: { organization: true }
+      });
+      if (currentUser?.organizationId && currentUser.organization) {
+        return { balance: Number(currentUser.organization.walletBalance || 0) };
+      }
+      depth++;
+    }
+
+    return { balance: 0 };
   }
 
   async getWalletTransactions(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { organizationId: true }
+    });
+
+    if (!user?.organizationId) return [];
+
     return this.prisma.walletTransaction.findMany({
-      where: { userId },
+      where: { organizationId: user.organizationId },
       orderBy: { createdAt: 'desc' },
       take: 20,
     });
@@ -206,16 +240,20 @@ export class PaymentsService {
   async deductFromWallet(userId: string, amount: number, type: string, description: string, referenceId?: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { walletBalance: true },
+      include: { organization: true },
     });
 
-    if (!user || user.walletBalance.toNumber() < amount) {
-      throw new InternalServerErrorException('Insufficient wallet balance');
+    if (!user?.organizationId || !user.organization) {
+      throw new InternalServerErrorException('User does not belong to an organization with a wallet');
     }
 
-    // Atomic deduction
-    const updatedUser = await this.prisma.user.update({
-      where: { id: userId },
+    if (user.organization.walletBalance.toNumber() < amount) {
+      throw new InternalServerErrorException('Insufficient organizational wallet balance');
+    }
+
+    // Atomic deduction from organization
+    const updatedOrg = await this.prisma.organization.update({
+      where: { id: user.organizationId },
       data: {
         walletBalance: {
           decrement: amount,
@@ -227,6 +265,7 @@ export class PaymentsService {
     await this.prisma.walletTransaction.create({
       data: {
         userId,
+        organizationId: user.organizationId,
         amount: -amount,
         type,
         status: 'COMPLETED',
@@ -235,6 +274,6 @@ export class PaymentsService {
       },
     });
 
-    return updatedUser.walletBalance;
+    return updatedOrg.walletBalance;
   }
 }

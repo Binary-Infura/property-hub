@@ -98,9 +98,16 @@ export class UsersService {
         const passwordHash = await this.hashPassword(dto.password || 'password');
 
         let onboardedById: string | null = null;
+        let inheritedOrganizationId: string | null = null;
         if (currentUser) {
-            const internalUser = await this.prisma.user.findUnique({ where: { id: currentUser.userId } });
-            if (internalUser) onboardedById = internalUser.id;
+            const internalUser = await this.prisma.user.findUnique({ 
+                where: { id: currentUser.userId },
+                select: { id: true, organizationId: true }
+            });
+            if (internalUser) {
+                onboardedById = internalUser.id;
+                inheritedOrganizationId = internalUser.organizationId;
+            }
         }
 
         // Check if user already exists
@@ -165,7 +172,7 @@ export class UsersService {
                 roles: dto.roles as any[],
                 activeRole: (dto.activeRole ?? dto.roles[0] ?? undefined) as any,
                 reraId: dto.reraId,
-                organizationId,
+                organizationId: organizationId || inheritedOrganizationId,
                 onboardedById,
                 profileData: (dto.roles.includes(UserRole.BROKER as any)) ? {
                     agencyName: dto.agencyName,
