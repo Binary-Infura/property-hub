@@ -90,13 +90,42 @@ export class PaymentsService {
         console.warn('Payment record not found for orderId:', razorpayOrderId);
       }
 
-      // Update the user's organization to premium
+      // Update User Wallet Balance and create transaction
+      const paymentOrder = await this.prisma.paymentOrder.findUnique({
+        where: { razorpayOrderId },
+      });
+
+      if (paymentOrder && paymentOrder.status === 'SUCCESS') {
+        // Atomic update of user's wallet
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: {
+            walletBalance: {
+              increment: paymentOrder.amount,
+            },
+          },
+        });
+
+        // Log the transaction
+        await this.prisma.walletTransaction.create({
+          data: {
+            userId,
+            amount: paymentOrder.amount,
+            type: 'RECHARGE',
+            status: 'COMPLETED',
+            referenceId: paymentOrder.id,
+            description: `Recharged ₹${paymentOrder.amount} via Razorpay`,
+          },
+        });
+      }
+
+      // Update the user's organization to premium if it's a fixed amount (optional logic)
       const user = await this.prisma.user.findUnique({
         where: { id: userId },
         include: { organization: true },
       });
 
-      if (user && user.organizationId) {
+      if (user && user.organizationId && paymentOrder && Number(paymentOrder.amount) >= 1000) {
         await this.prisma.organization.update({
           where: { id: user.organizationId },
           data: {
@@ -106,7 +135,11 @@ export class PaymentsService {
         });
       }
 
-      return { status: 'success', message: 'Payment verified and subscription activated.' };
+      return { 
+        status: 'success', 
+        message: 'Payment verified and wallet updated.',
+        newBalance: user?.walletBalance ? Number(user.walletBalance) + Number(paymentOrder?.amount || 0) : 0
+      };
     } else {
       // Update Payment record to FAILED
       try {
@@ -152,5 +185,56 @@ export class PaymentsService {
     }
 
     return { status: 'ok' };
+  }
+
+  async getWalletBalance(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { walletBalance: true },
+    });
+    return { balance: user?.walletBalance || 0 };
+  }
+
+  async getWalletTransactions(userId: string) {
+    return this.prisma.walletTransaction.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    });
+  }
+
+  async deductFromWallet(userId: string, amount: number, type: string, description: string, referenceId?: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { walletBalance: true },
+    });
+
+    if (!user || user.walletBalance.toNumber() < amount) {
+      throw new InternalServerErrorException('Insufficient wallet balance');
+    }
+
+    // Atomic deduction
+    const updatedUser = await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        walletBalance: {
+          decrement: amount,
+        },
+      },
+    });
+
+    // Log deduction
+    await this.prisma.walletTransaction.create({
+      data: {
+        userId,
+        amount: -amount,
+        type,
+        status: 'COMPLETED',
+        referenceId,
+        description,
+      },
+    });
+
+    return updatedUser.walletBalance;
   }
 }

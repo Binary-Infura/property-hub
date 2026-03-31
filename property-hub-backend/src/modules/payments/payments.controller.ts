@@ -45,4 +45,20 @@ export class PaymentsController {
     const signature = req.headers['x-razorpay-signature'];
     return this.paymentsService.handleWebhook(body, signature);
   }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('wallet/balance')
+  @ApiOperation({ summary: 'Get user wallet balance' })
+  async getWalletBalance(@Req() req: any) {
+    return this.paymentsService.getWalletBalance(req.user.userId);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Post('wallet/transactions')
+  @ApiOperation({ summary: 'Get user wallet transactions' })
+  async getWalletTransactions(@Req() req: any) {
+    return this.paymentsService.getWalletTransactions(req.user.userId);
+  }
 }

@@ -58,11 +58,13 @@ model User {
   regionPreference  String?
   resetTokenExpiry  DateTime?
   theme             String?             @default("light")
+  walletBalance     Decimal             @default(0.00) @db.Decimal(15, 2)
   status            UserStatus          @default(ACTIVE)
   roles             UserRole[]
   activityLogs      ActivityLog[]
   adsRequests       AdsRequest[]
   callLogs          CallLog[]
+  walletTransactions WalletTransaction[] @relation("UserWalletTransactions")
   following         Follow[]            @relation("UserFollowers")
   followers         Follow[]            @relation("UserFollowing")
   authoredNotes     LeadNote[]          @relation("AuthorNotes")
@@ -761,3 +763,20 @@ model Address {
   @@map("addresses")
 }
 
+
+model WalletTransaction {
+  id              String   @id @default(uuid())
+  userId          String
+  amount          Decimal  @db.Decimal(15, 2)
+  type            String   // RECHARGE, CALL_COST, OTHER
+  status          String   @default("COMPLETED") // COMPLETED, PENDING, FAILED
+  referenceId     String?  // PaymentOrder ID or Call ID
+  description     String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  user            User     @relation("UserWalletTransactions", fields: [userId], references: [id])
+
+  @@index([userId])
+  @@index([status])
+  @@map("wallet_transactions")
+}

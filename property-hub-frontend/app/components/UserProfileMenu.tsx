@@ -18,12 +18,13 @@ export default function UserProfileMenu() {
     const lastName = user?.lastName || user?.name?.split(' ').slice(1).join(' ') || user?.family_name || '';
     const displayName = firstName || lastName ? `${firstName} ${lastName}`.trim() : (user?.email || 'User');
     
-    // Prioritize organization name for Property Partners
-    const companyName = (activeRoleId === 'PROPERTY_PARTNER' && profileStatus?.PROPERTY_PARTNER?.profileData?.companyName)
-        ? profileStatus.PROPERTY_PARTNER.profileData.companyName
-        : null;
-
-    const roleLabel = companyName || activeRole?.name || 'User';
+    // Show both Role and Organization for full mapping
+    const organizationName = profileStatus?.[activeRoleId || '']?.profileData?.organizationName;
+    const roleName = activeRole?.name || 'User';
+    
+    const roleLabel = organizationName 
+        ? `${roleName} • ${organizationName}`
+        : roleName;
 
     const avatarUrl = user?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=1d4ed8&color=fff&size=128`;
 
@@ -75,9 +76,11 @@ export default function UserProfileMenu() {
                         <div className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-white rounded-full shadow-sm"></div>
                     </div>
                     
-                    <div className="hidden sm:flex flex-col items-start leading-tight">
-                        <span className="text-sm font-extrabold text-gray-900 group-hover:text-blue-600 transition-colors">{firstName}</span>
-                        <span className="text-[10px] text-blue-600 font-black uppercase tracking-[0.1em]">
+                    <div className="hidden sm:flex flex-col items-start leading-tight min-w-0">
+                        <span className="text-sm font-extrabold text-gray-900 group-hover:text-blue-600 transition-colors truncate max-w-[150px]">
+                            {displayName}
+                        </span>
+                        <span className="text-[10px] text-blue-600 font-black uppercase tracking-[0.1em] truncate max-w-[180px]">
                             {roleLabel}
                         </span>
                     </div>

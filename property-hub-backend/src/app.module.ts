@@ -29,7 +29,6 @@ import { BanksModule } from './modules/banks/banks.module';
 import { ReelsModule } from './modules/reels/reels.module';
 import { InstagramModule } from './modules/instagram/instagram.module';
 import { LoansModule } from './modules/loans/loans.module';
-import { ExotelModule } from './modules/exotel/exotel.module';
 import { LivekitModule } from './modules/livekit/livekit.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
@@ -39,6 +38,7 @@ import { PaymentsModule } from './modules/payments/payments.module';
 import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { TowersModule } from './modules/towers/towers.module';
 import { VisitsModule } from './modules/visits/visits.module';
+import { CallingModule } from './modules/calling/calling.module';
 import { join } from 'path';
 
 @Module({
@@ -75,7 +75,7 @@ import { join } from 'path';
         ReelsModule,
         InstagramModule,
         LoansModule,
-        ExotelModule,
+        CallingModule,
         LivekitModule,
         ReviewsModule,
         WhatsappModule,

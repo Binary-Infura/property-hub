@@ -4,7 +4,7 @@ import { CreateLeadDto, UpdateLeadDto, SendVideoCallLinkDto } from './leads.dto'
 import { Lead } from '@prisma/client';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 import { UserRole } from '../../common/enums/role.enum';
-import { ExotelService } from '../exotel/exotel.service';
+import { CallingService } from '../calling/calling.service';
 import { ConfigService } from '@nestjs/config';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { MailService } from '../mail/mail.service';
@@ -15,7 +15,7 @@ import axios from 'axios';
 export class LeadsService {
     constructor(
         private prisma: PrismaService,
-        private exotelService: ExotelService,
+        private callingService: CallingService,
         private configService: ConfigService,
         private whatsappService: WhatsappService,
         private mailService: MailService,
@@ -85,7 +85,7 @@ export class LeadsService {
             await Promise.all(incompleteCalls.map(async (call) => {
                 if (!call.sid) return;
                 try {
-                    const details = await this.exotelService.getCallDetails(call.sid);
+                    const details = await this.callingService.syncCallDetails(call.sid);
                     if (details && details.Status !== call.status) {
                         await this.prisma.callLog.update({
                             where: { id: call.id },
@@ -251,9 +251,10 @@ export class LeadsService {
                 throw new BadRequestException('Lead does not have a phone number');
             }
 
-            // Get consultant phone from user profile
+            // Get consultant phone from user profile (fallback to organization phone)
             const consultant = await this.prisma.user.findUnique({
                 where: { id: user.userId },
+                include: { organization: true }
             });
 
             if (!consultant) {
@@ -261,7 +262,7 @@ export class LeadsService {
                 throw new InternalServerErrorException('Consultant profile not found');
             }
 
-            const consultantPhone = consultant.phone;
+            const consultantPhone = consultant.phone || consultant.organization?.phone;
 
             if (!consultantPhone) {
                 console.warn(`No phone number found for consultant ${user.userId}`);
@@ -269,7 +270,12 @@ export class LeadsService {
             }
 
             console.log(`Initiating call for lead ${id} from consultant ${user.userId}`);
-            return await this.exotelService.makeCall(consultantPhone, lead.phone, lead.id, user.userId);
+            return await this.callingService.initiateCall({
+                from: consultantPhone,
+                to: lead.phone,
+                leadId: lead.id,
+                consultantId: user.userId
+            });
         } catch (error) {
             console.error('Call initiation error:', error);
             // Re-throw if it's already an HTTP exception

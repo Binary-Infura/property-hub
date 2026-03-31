@@ -33,6 +33,9 @@ type IconName =
     | 'note'
     | 'video'
     | 'star'
+    | 'chevron-left'
+    | 'chevron-right'
+    | 'minus'
     | 'plus';
 
 interface SidebarIconProps {
@@ -197,6 +200,21 @@ export default function SidebarIcon({ name, className = 'w-5 h-5' }: SidebarIcon
         plus: (
             <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+            </svg>
+        ),
+        minus: (
+            <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M18 12H6" />
+            </svg>
+        ),
+        'chevron-left': (
+            <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5 8.25 12l7.5-7.5" />
+            </svg>
+        ),
+        'chevron-right': (
+            <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
             </svg>
         ),
     };

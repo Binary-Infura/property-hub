@@ -283,7 +283,12 @@ export class UsersService {
     async getProfileStatus(userId: string, roles: string[]) {
         const user = await this.prisma.user.findUnique({
             where: { id: userId },
-            include: { organization: true },
+            include: { 
+                organization: true,
+                onboardedBy: {
+                    include: { organization: true }
+                }
+            },
         });
         if (!user) return {};
 
@@ -313,8 +318,9 @@ export class UsersService {
                 profileData: {
                     ...profileData,
                     // Inject organization data if applicable
-                    isPremium: role === 'PROPERTY_PARTNER' ? (user.organization?.isPremium || false) : false,
-                    subscriptionMode: role === 'PROPERTY_PARTNER' ? (user.organization?.subscriptionMode || 'FREE') : 'FREE',
+                    organizationName: user.organization?.name || user.onboardedBy?.organization?.name || null,
+                    isPremium: user.organization?.isPremium || user.onboardedBy?.organization?.isPremium || false,
+                    subscriptionMode: user.organization?.subscriptionMode || user.onboardedBy?.organization?.subscriptionMode || 'FREE',
                 }
             };
         });
