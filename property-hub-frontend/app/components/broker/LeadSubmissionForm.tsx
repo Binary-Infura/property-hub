@@ -72,9 +72,9 @@ export default function LeadSubmissionForm({ onSubmit }: LeadSubmissionFormProps
             <svg className="w-5 h-5 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
             </svg>
-            Lead submitted successfully!
+            Buyer lead submitted successfully!
           </p>
-          <p className="text-green-700 text-sm mt-1">Your new lead has been added to the system and will be reviewed by the team.</p>
+          <p className="text-green-700 text-sm mt-1">Your new buyer lead has been added to the system and will be reviewed by the team.</p>
         </div>
       )}
 
@@ -84,14 +84,14 @@ export default function LeadSubmissionForm({ onSubmit }: LeadSubmissionFormProps
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Lead Name *
+                Buyer Name *
               </label>
               <input
                 type="text"
                 name="name"
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="Full name of lead"
+                placeholder="Full name of buyer"
                 className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
               />
             </div>
@@ -219,7 +219,7 @@ export default function LeadSubmissionForm({ onSubmit }: LeadSubmissionFormProps
           {/* Source */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Lead Source
+              Buyer Source
             </label>
             <input
               type="text"
@@ -237,7 +237,7 @@ export default function LeadSubmissionForm({ onSubmit }: LeadSubmissionFormProps
               type="submit"
               className="px-6 py-2 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition"
             >
-              Submit Lead
+              Submit Buyer Lead
             </button>
             <button
               type="button"
@@ -263,7 +263,7 @@ export default function LeadSubmissionForm({ onSubmit }: LeadSubmissionFormProps
 
         <div className="mt-6 p-4 bg-blue-50 rounded-lg border border-blue-100">
           <p className="text-blue-900 text-sm">
-            <strong>Note:</strong> Every lead you submit will be verified and quality-checked by our team. Quality leads will earn you higher commissions!
+            <strong>Note:</strong> Every buyer lead you submit will be verified and quality-checked by our team. Quality leads will earn you higher commissions!
           </p>
         </div>
       </form>

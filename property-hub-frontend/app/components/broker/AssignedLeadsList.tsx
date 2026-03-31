@@ -53,7 +53,7 @@ export default function AssignedLeadsList({ leads, onUpdateStatus }: AssignedLea
             onChange={e => setFilterStatus(e.target.value as typeof filterStatus)}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:border-blue-500"
           >
-            <option value="all">All Leads</option>
+            <option value="all">All Buyer Leads</option>
             <option value="new">New</option>
             <option value="qualified">Qualified</option>
             <option value="pending-review">Pending Review</option>
@@ -66,7 +66,7 @@ export default function AssignedLeadsList({ leads, onUpdateStatus }: AssignedLea
       {/* Leads Summary */}
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
         <div className="bg-white border border-gray-200 rounded-lg p-3">
-          <p className="text-xs text-gray-600 font-medium">Total Leads</p>
+          <p className="text-xs text-gray-600 font-medium">Total Buyer Leads</p>
           <p className="text-xl font-bold text-gray-900 mt-1">{leads.length}</p>
         </div>
         <div className="bg-green-50 border border-green-200 rounded-lg p-3">
@@ -90,8 +90,8 @@ export default function AssignedLeadsList({ leads, onUpdateStatus }: AssignedLea
       {/* Leads List */}
       {filteredLeads.length === 0 ? (
         <div className="bg-white rounded-lg border border-gray-200 p-8 text-center">
-          <p className="text-gray-600 font-medium">No leads found</p>
-          <p className="text-gray-500 text-sm mt-1">Try adjusting your filters or submit new leads</p>
+          <p className="text-gray-600 font-medium">No buyer leads found</p>
+          <p className="text-gray-500 text-sm mt-1">Try adjusting your filters or submit new buyer leads</p>
         </div>
       ) : (
         <div className="space-y-3">

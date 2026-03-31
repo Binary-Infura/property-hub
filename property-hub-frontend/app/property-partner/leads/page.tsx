@@ -126,7 +126,7 @@ export default function LeadsPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Leads Central</h1>
+                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Buyer Leads Central</h1>
                     <p className="text-slate-500 mt-2 font-medium">Manage and nurture your property prospects.</p>
                 </div>
                 <div className="flex gap-4">
@@ -135,7 +135,7 @@ export default function LeadsPage() {
                         className="px-8 py-4 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-100 flex items-center gap-2 active:scale-95"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" /></svg>
-                        Add Manual Lead
+                        Add Manual Buyer Lead
                     </button>
                 </div>
             </div>
@@ -157,7 +157,7 @@ export default function LeadsPage() {
                             {leads.length === 0 ? (
                                 <tr>
                                     <td colSpan={5} className="px-8 py-20 text-center text-slate-400 italic">
-                                        No active leads in your hub yet.
+                                        No active buyer leads in your hub yet.
                                     </td>
                                 </tr>
                             ) : leads.map((lead) => (
@@ -210,7 +210,7 @@ export default function LeadsPage() {
                     <div className="bg-white rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl overflow-y-auto max-h-[90vh] animate-in zoom-in-95 duration-300 border border-white/20">
                         <div className="flex justify-between items-center mb-8">
                             <div>
-                                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Add New Lead</h2>
+                                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Add New Buyer Lead</h2>
                                 <p className="text-slate-500 mt-1 font-medium italic">Inject a new prospect into the sales engine</p>
                             </div>
                             <button onClick={() => setShowCreateModal(false)} className="p-3 hover:bg-slate-100 rounded-full transition-all hover:rotate-90">
@@ -327,7 +327,7 @@ export default function LeadsPage() {
                                     disabled={submitting}
                                     className="flex-1 py-5 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-indigo-700 disabled:opacity-50 shadow-2xl shadow-indigo-100 transition-all transform active:scale-95"
                                 >
-                                    {submitting ? 'Creating...' : 'Inject Lead'}
+                                    {submitting ? 'Creating...' : 'Inject Buyer Lead'}
                                 </button>
                             </div>
                         </form>

@@ -42,7 +42,7 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Consultants', href: '/dashboard/consultants', icon: 'person', premium: true },
         { name: 'Visit Executives', href: '/dashboard/visit-executives', icon: 'pin', premium: true },
         { name: 'Project Allocation', href: '/dashboard/projects/allocation', icon: 'building', premium: true },
-        { name: 'Leads', href: '/dashboard/leads', icon: 'clipboard' },
+        { name: 'Buyer Leads', href: '/dashboard/leads', icon: 'clipboard' },
         { name: 'Wallet', href: '/dashboard/wallet', icon: 'money' },
         { name: 'Brokers Network', href: '/dashboard/brokers', icon: 'users', premium: true },
         { name: 'Reels', href: '/dashboard/reels', icon: 'video' },
@@ -51,7 +51,7 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
     ],
     'CONSULTANT': [
         { name: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
-        { name: 'Leads', href: '/dashboard/leads', icon: 'users' },
+        { name: 'Buyer Leads', href: '/dashboard/leads', icon: 'users' },
         { name: 'Wallet', href: '/dashboard/wallet', icon: 'money' },
         { name: 'Call Logs', href: '/dashboard/call-logs', icon: 'phone' },
         { name: 'Calendar', href: '/dashboard/calendar', icon: 'calendar' },

@@ -248,7 +248,7 @@ export default function CentralAuthorityDashboardPage() {
                 </div>
 
                 <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 font-bold group">
-                    <h3 className="text-sm font-medium text-gray-500">Leads Generated</h3>
+                    <h3 className="text-sm font-medium text-gray-500">Buyer Leads Generated</h3>
                     <p className="text-3xl font-bold text-slate-900 mt-2">{stats.leads.monthly}</p>
                     <p className="text-xs text-green-600 mt-1">+12% from last month</p>
                 </div>

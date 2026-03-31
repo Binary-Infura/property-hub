@@ -375,7 +375,7 @@ export default function LeadsPage() {
                 {/* Header Section */}
                 <div className="flex flex-col md:flex-row md:items-end justify-between gap-5">
                     <div>
-                        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Leads Hub</h1>
+                        <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">Buyer Leads Hub</h1>
                         <p className="text-slate-500 mt-2 text-sm max-w-xl leading-relaxed">
                             Manage all your prospect communications, track progress, and close deals faster. Use detailed filters to find exactly who you need to contact.
                         </p>
@@ -387,7 +387,7 @@ export default function LeadsPage() {
                         </span>
                     <div className="flex flex-col">
                             <span className="text-xs text-slate-400 font-semibold uppercase tracking-wider leading-none mb-1">Total Found</span>
-                            <span className="text-sm font-bold text-slate-800 leading-none">{filteredLeads.length} Leads</span>
+                            <span className="text-sm font-bold text-slate-800 leading-none">{filteredLeads.length} Buyer Leads</span>
                         </div>
                     </div>
                     <button
@@ -395,7 +395,7 @@ export default function LeadsPage() {
                         className="px-6 py-3.5 bg-blue-600 text-white rounded-2xl font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-100 flex items-center gap-2 active:scale-95"
                     >
                         <svg className="w-5 h-5 font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M12 4v16m8-8H4" /></svg>
-                        Create Manual Lead
+                        Create Manual Buyer Lead
                     </button>
                 </div>
 
@@ -633,7 +633,7 @@ export default function LeadsPage() {
                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                                 </svg>
                                             </div>
-                                            <p className="text-xl font-bold text-slate-800">No leads discovered</p>
+                                            <p className="text-xl font-bold text-slate-800">No buyer leads discovered</p>
                                             <p className="mt-2 text-sm text-slate-500 max-w-sm mx-auto">We couldn't find any leads matching your current criteria. Try clearing some filters or executing a broader search.</p>
                                             <button 
                                                 onClick={() => {
@@ -657,7 +657,7 @@ export default function LeadsPage() {
                     {/* Pagination Bar */}
                     <div className="bg-slate-50/80 px-6 py-4 border-t border-slate-200/80 flex items-center justify-between">
                         <p className="text-sm font-medium text-slate-600">
-                            Showing <span className="text-slate-900 font-bold">{filteredLeads.length > 0 ? 1 : 0}</span> to <span className="text-slate-900 font-bold">{filteredLeads.length}</span> of <span className="text-slate-900 font-bold">{filteredLeads.length}</span> active leads
+                            Showing <span className="text-slate-900 font-bold">{filteredLeads.length > 0 ? 1 : 0}</span> to <span className="text-slate-900 font-bold">{filteredLeads.length}</span> of <span className="text-slate-900 font-bold">{filteredLeads.length}</span> active buyer leads
                         </p>
                     </div>
                 </div>
@@ -697,7 +697,7 @@ export default function LeadsPage() {
                     <div className="bg-white rounded-[3rem] p-10 max-w-2xl w-full shadow-2xl overflow-y-auto max-h-[90vh] border border-white/20">
                         <div className="flex justify-between items-center mb-8">
                             <div>
-                                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Add New Lead</h2>
+                                <h2 className="text-3xl font-black text-slate-900 tracking-tight">Add New Buyer Lead</h2>
                                 <p className="text-slate-500 mt-1 font-medium italic">Inject a new prospect into the sales engine</p>
                             </div>
                             <button onClick={() => setShowCreateModal(false)} className="p-2 hover:bg-slate-100 rounded-full transition-colors text-slate-400">
@@ -708,7 +708,7 @@ export default function LeadsPage() {
                         <form onSubmit={handleCreateLead} className="space-y-6">
                             <div className="grid grid-cols-1 gap-6">
                                 <div>
-                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Lead Name</label>
+                                    <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2">Buyer Name</label>
                                     <input
                                         type="text"
                                         required

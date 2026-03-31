@@ -136,7 +136,7 @@ export default function LeadDetailsDrawer({ lead, token, onClose, onStatusUpdate
                         {lead.name?.[0] || 'U'}
                     </div>
                     <div>
-                        <h2 className="text-xl font-bold text-gray-900">{lead.name || 'Unknown Lead'}</h2>
+                        <h2 className="text-xl font-bold text-gray-900">{lead.name || 'Unknown Buyer'}</h2>
                         <p className="text-sm text-gray-500">{lead.phone || 'No phone'}</p>
                     </div>
                 </div>
@@ -201,7 +201,7 @@ export default function LeadDetailsDrawer({ lead, token, onClose, onStatusUpdate
                             <textarea
                                 value={newNote}
                                 onChange={(e) => setNewNote(e.target.value)}
-                                placeholder="Write a note about this lead..."
+                                placeholder="Write a note about this buyer..."
                                 className="w-full bg-white px-4 py-3 rounded-xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                                 rows={3}
                             />
@@ -227,7 +227,7 @@ export default function LeadDetailsDrawer({ lead, token, onClose, onStatusUpdate
                             {loading ? (
                                 <div className="text-center py-10 text-gray-400 animate-pulse">Loading notes...</div>
                             ) : notes.length === 0 ? (
-                                <div className="text-center py-10 text-gray-400 italic">No notes added for this lead yet.</div>
+                                <div className="text-center py-10 text-gray-400 italic">No notes added for this buyer yet.</div>
                             ) : (
                                 notes.map(note => (
                                     <div key={note.id} className="relative pl-6 border-l-2 border-blue-100 space-y-2">
@@ -359,7 +359,7 @@ export default function LeadDetailsDrawer({ lead, token, onClose, onStatusUpdate
                                     </>
                                 ) : (
                                     <div className="text-center space-y-3">
-                                        <p className="text-xs text-blue-700 italic">No video room generated yet for this lead.</p>
+                                        <p className="text-xs text-blue-700 italic">No video room generated yet for this buyer.</p>
                                         <button 
                                             onClick={handleGenerateVideoRoom}
                                             disabled={generatingLink}

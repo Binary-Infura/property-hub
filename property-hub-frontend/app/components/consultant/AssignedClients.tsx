@@ -68,7 +68,7 @@ export default function AssignedClients({ clients, onSelectClient, selectedClien
       <div>
         <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
           <span className="inline-block w-3 h-3 bg-green-600 rounded-full"></span>
-          Active Leads ({activeClients.length})
+          Active Buyer Leads ({activeClients.length})
         </h3>
 
         {activeClients.length === 0 ? (
@@ -81,7 +81,7 @@ export default function AssignedClients({ clients, onSelectClient, selectedClien
                 d="M17 20h5v-2a3 3 0 00-5.856-1.487M15 10a3 3 0 11-6 0 3 3 0 016 0z"
               />
             </svg>
-            <p className="text-gray-600 font-medium">No active leads</p>
+            <p className="text-gray-600 font-medium">No active buyer leads</p>
           </div>
         ) : (
           <div className="grid md:grid-cols-2 gap-6">
@@ -204,7 +204,7 @@ export default function AssignedClients({ clients, onSelectClient, selectedClien
         <div>
           <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
             <span className="inline-block w-3 h-3 bg-yellow-600 rounded-full"></span>
-            Pending Leads ({pendingClients.length})
+            Pending Buyer Leads ({pendingClients.length})
           </h3>
 
           <div className="grid md:grid-cols-2 gap-6">

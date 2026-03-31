@@ -177,7 +177,7 @@ export default function CampaignLeadsPage() {
     };
 
     if (loading) {
-        return <div className="p-8 flex items-center justify-center min-h-screen">Loading campaign leads...</div>;
+        return <div className="p-8 flex items-center justify-center min-h-screen">Loading buyer leads...</div>;
     }
 
     return (
@@ -185,7 +185,7 @@ export default function CampaignLeadsPage() {
             {/* Header */}
             <div className="mb-8 flex justify-between items-start">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Campaign Leads</h1>
+                    <h1 className="text-3xl font-bold text-gray-900">Buyer Leads</h1>
                     <p className="text-gray-600 mt-1">View and manage all leads generated from marketing campaigns</p>
                 </div>
                 <div className="flex gap-3">
@@ -193,13 +193,13 @@ export default function CampaignLeadsPage() {
                         onClick={() => setShowUploadModal(true)}
                         className="px-6 py-2 border-2 border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50 transition font-medium"
                     >
-                        Upload Leads (CSV)
+                        Upload Buyer Leads (CSV)
                     </button>
                     <button
                         onClick={() => setShowCreateModal(true)}
                         className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium"
                     >
-                        + Create Manual Lead
+                        + Create Manual Buyer Lead
                     </button>
                 </div>
             </div>
@@ -207,11 +207,11 @@ export default function CampaignLeadsPage() {
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                    <div className="text-gray-600 text-sm font-medium mb-2">Total Leads</div>
+                    <div className="text-gray-600 text-sm font-medium mb-2">Total Buyer Leads</div>
                     <div className="text-3xl font-bold text-gray-900">{leads.length}</div>
                 </div>
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                    <div className="text-gray-600 text-sm font-medium mb-2">New Leads</div>
+                    <div className="text-gray-600 text-sm font-medium mb-2">New Buyer Leads</div>
                     <div className="text-3xl font-bold text-blue-600">
                         {leads.filter(l => l.status?.toLowerCase() === 'new').length}
                     </div>

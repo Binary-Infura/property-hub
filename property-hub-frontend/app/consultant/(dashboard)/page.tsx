@@ -34,12 +34,12 @@ function CallModal({ lead, onClose }: { lead: any; onClose: () => void }) {
         </div>
         <div className="text-center">
           <p className="text-xs font-semibold uppercase tracking-widest text-green-400 mb-1">Call in Progress</p>
-          <h2 className="text-2xl font-bold">{lead.name || 'Lead'}</h2>
+          <h2 className="text-2xl font-bold">{lead.name || 'Buyer'}</h2>
           <p className="text-slate-400 text-sm mt-0.5">{lead.phone || 'No phone'}</p>
         </div>
         <div className="bg-slate-700/50 rounded-2xl px-8 py-3 text-center">
           <p className="text-3xl font-mono font-semibold tracking-widest text-white">{fmt(seconds)}</p>
-          <p className="text-slate-400 text-xs mt-1">Your phone rings first, then connects to the lead</p>
+          <p className="text-slate-400 text-xs mt-1">Your phone rings first, then connects to the buyer</p>
         </div>
         <div className="w-full space-y-2">
           <div className="flex justify-between text-xs text-slate-400">
@@ -274,11 +274,11 @@ export default function ConsultantDashboard() {
             <p className="text-xs text-gray-500 mt-2">Marketing campaigns</p>
           </div>
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-            <p className="text-gray-600 text-sm font-medium">Total Leads</p>
+            <p className="text-gray-600 text-sm font-medium">Total Buyer Leads</p>
             <p className="text-3xl font-bold text-yellow-600 mt-2">
               {assignedProjects.reduce((acc, prop) => acc + (prop.leads?.length || 0), 0)}
             </p>
-            <p className="text-xs text-gray-500 mt-2">Leads from campaigns</p>
+            <p className="text-xs text-gray-500 mt-2">Buyer leads from campaigns</p>
           </div>
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
             <p className="text-gray-600 text-sm font-medium">Active Clients</p>

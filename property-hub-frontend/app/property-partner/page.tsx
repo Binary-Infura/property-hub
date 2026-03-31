@@ -266,7 +266,7 @@ export default function PropertyPartnerDashboard() {
           <Link href="/dashboard/leads" className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-1 transition-all">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-gray-600 text-sm font-medium">Monthly Leads</p>
+                <p className="text-gray-600 text-sm font-medium">Monthly Buyer Leads</p>
                 <p className="text-3xl font-bold text-orange-600 mt-2">{analyticsData.monthlyLeads}</p>
               </div>
               <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
@@ -327,7 +327,7 @@ export default function PropertyPartnerDashboard() {
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
             {[
-              { name: 'Leads Management', href: '/dashboard/leads', icon: 'clipboard' as const, color: 'orange' },
+              { name: 'Buyer Leads Management', href: '/dashboard/leads', icon: 'clipboard' as const, color: 'orange' },
               { name: 'Reels Management', href: '/dashboard/reels', icon: 'video' as const, color: 'blue' },
               { name: 'Ads Requests', href: '/dashboard/ads-requests', icon: 'megaphone' as const, color: 'indigo' },
             ].map((item) => (
@@ -489,7 +489,7 @@ export default function PropertyPartnerDashboard() {
                 <p className="text-2xl font-bold text-purple-900">{analyticsData.activeProjects}</p>
               </div>
               <div className="p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg">
-                <p className="text-sm text-orange-700 font-medium">This Month&apos;s Leads</p>
+                <p className="text-sm text-orange-700 font-medium">This Month&apos;s Buyer Leads</p>
                 <p className="text-2xl font-bold text-orange-900">{analyticsData.monthlyLeads}</p>
               </div>
             </div>
