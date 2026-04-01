@@ -211,7 +211,10 @@ export class PaymentsService {
     while (currentUser?.onboardedById && !currentUser.organizationId && depth < 3) {
       currentUser = await this.prisma.user.findUnique({
         where: { id: currentUser.onboardedById },
-        include: { organization: true }
+        include: { 
+          organization: true,
+          onboardedBy: { include: { organization: true } }
+        }
       });
       if (currentUser?.organizationId && currentUser.organization) {
         return { balance: Number(currentUser.organization.walletBalance || 0) };

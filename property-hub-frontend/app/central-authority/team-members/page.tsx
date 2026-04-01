@@ -75,8 +75,8 @@ export default function GlobalUsersPage() {
             <div className="mb-8">
                 <div className="flex justify-between items-center">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Global Users</h1>
-                        <p className="text-gray-600 mt-1">Manage global users and their roles</p>
+                        <h1 className="text-3xl font-bold text-gray-900">Team Members</h1>
+                        <p className="text-gray-600 mt-1">Manage team members and their roles</p>
                     </div>
                     <button
                         onClick={handleAddUser}
@@ -128,7 +128,7 @@ export default function GlobalUsersPage() {
                                 ) : users.length === 0 ? (
                                     <tr>
                                         <td colSpan={6} className="px-6 py-10 text-center text-gray-400">
-                                            No global users found.
+                                            No team members found.
                                         </td>
                                     </tr>
                                 ) : (

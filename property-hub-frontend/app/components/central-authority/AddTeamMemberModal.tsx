@@ -3,13 +3,13 @@
 import React, { useState } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 
-interface AddGlobalUserModalProps {
+interface AddTeamMemberModalProps {
     isOpen: boolean;
     onClose: () => void;
     onSuccess: () => void;
 }
 
-export default function AddGlobalUserModal({ isOpen, onClose, onSuccess }: AddGlobalUserModalProps) {
+export default function AddTeamMemberModal({ isOpen, onClose, onSuccess }: AddTeamMemberModalProps) {
     const { token } = useAuth();
     const [formData, setFormData] = useState({
         firstName: '',
@@ -44,7 +44,7 @@ export default function AddGlobalUserModal({ isOpen, onClose, onSuccess }: AddGl
 
             if (!res.ok) {
                 const data = await res.json();
-                throw new Error(data.message || 'Failed to create global user');
+                throw new Error(data.message || 'Failed to create team member');
             }
 
             onSuccess();
@@ -61,7 +61,7 @@ export default function AddGlobalUserModal({ isOpen, onClose, onSuccess }: AddGl
         <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-in zoom-in-95 duration-200">
                 <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                    <h2 className="text-xl font-bold text-gray-900">Add Global User</h2>
+                    <h2 className="text-xl font-bold text-gray-900">Add Team Member</h2>
                     <button onClick={onClose} className="p-2 hover:bg-gray-200 rounded-full transition-colors">
                         <svg className="w-5 h-5 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -133,9 +133,9 @@ export default function AddGlobalUserModal({ isOpen, onClose, onSuccess }: AddGl
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                             </svg>
                             <div className="text-[12px] text-blue-800 leading-relaxed">
-                                <p className="font-bold mb-1">Global User Info:</p>
+                                <p className="font-bold mb-1">Team Member Info:</p>
                                 <p className="opacity-90">
-                                    Global users have administrative access to the central authority dashboard and can oversee all cities and managers.
+                                    Team members have administrative access to the central authority dashboard and can oversee all cities and managers.
                                 </p>
                             </div>
                         </div>

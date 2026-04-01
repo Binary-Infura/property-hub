@@ -93,6 +93,11 @@ export default function InviteUserModal({
     }
   };
 
+  const getRoleDisplayName = (role: string) => {
+    if (role === 'CENTRAL_AUTHORITY') return 'TEAM MEMBER';
+    return role.replace('_', ' ');
+  };
+
   return (
     <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 backdrop-blur-md animate-in fade-in duration-300">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden transform transition-all animate-in zoom-in-95 duration-300 border border-white/20">
@@ -179,7 +184,7 @@ export default function InviteUserModal({
                             : 'bg-white border-gray-100 text-gray-400 hover:border-blue-200 hover:text-blue-500'
                         }`}
                       >
-                        {role.replace('_', ' ')}
+                        {getRoleDisplayName(role)}
                       </button>
                     );
                   })}
@@ -190,7 +195,7 @@ export default function InviteUserModal({
           {forcedRole && (
             <div className="bg-blue-50/50 rounded-2xl p-4 border border-blue-100/50">
               <p className="text-sm font-bold text-blue-900 ml-1">
-                Role: <span className="text-blue-600 uppercase tracking-wider">{forcedRole.replace('_', ' ')}</span>
+                Role: <span className="text-blue-600 uppercase tracking-wider">{getRoleDisplayName(forcedRole)}</span>
               </p>
             </div>
           )}
@@ -204,7 +209,7 @@ export default function InviteUserModal({
             <div className="text-sm">
               <p className="font-bold text-slate-900 mb-1">Invitation Logic</p>
               <p className="text-gray-500 leading-relaxed font-medium">
-                The user will receive a link to register. They will automatically be assigned the role {forcedRole ? <strong>{forcedRole.replace('_', ' ')}</strong> : 'you select above'} upon completing their registration. Link expires in 48h.
+                The user will receive a link to register. They will automatically be assigned the role {forcedRole ? <strong>{getRoleDisplayName(forcedRole)}</strong> : 'you select above'} upon completing their registration. Link expires in 48h.
               </p>
             </div>
           </div>
