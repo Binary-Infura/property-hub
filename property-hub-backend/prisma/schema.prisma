@@ -597,6 +597,7 @@ model Invitation {
   phone       String?
   roles       UserRole[]
   token       String           @unique
+  type        InvitationType   @default(PLATFORM)
   status      InvitationStatus @default(PENDING)
   invitedById String
   invitedBy   User             @relation("UserInvites", fields: [invitedById], references: [id])
@@ -609,6 +610,11 @@ model Invitation {
   @@index([phone])
   @@index([status])
   @@map("invitations")
+}
+
+enum InvitationType {
+  PLATFORM
+  THIRD_PARTY
 }
 
 model PaymentOrder {
@@ -639,8 +645,7 @@ enum UserRole {
   BROKER
   BUYER
   CONSULTANT
-  INFLUENCER
-  MARKETING_MANAGER
+  GROWTH_PARTNER
   LOAN_ADVISOR
   VISIT_EXECUTIVE
 }

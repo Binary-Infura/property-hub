@@ -17,8 +17,7 @@ export type UserRole =
   | 'LOAN_ADVISOR'
 
   | 'CENTRAL_AUTHORITY'
-  | 'MARKETING_MANAGER'
-  | 'INFLUENCER';
+  | 'GROWTH_PARTNER';
 
 /**
  * Canary dashboard routes for each role
@@ -32,8 +31,7 @@ export const DASHBOARD_ROUTES: Record<string, string> = {
   LOAN_ADVISOR: '/dashboard',
 
   CENTRAL_AUTHORITY: '/dashboard',
-  MARKETING_MANAGER: '/dashboard',
-  INFLUENCER: '/dashboard',
+  GROWTH_PARTNER: '/dashboard',
 };
 
 /**

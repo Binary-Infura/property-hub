@@ -22,8 +22,7 @@ const ROLE_SLUG_MAP: Record<string, string> = {
   'PROPERTY_PARTNER': 'property-partner',
   'LOAN_ADVISOR': 'loan-adviser',
   'CENTRAL_AUTHORITY': 'central-authority',
-  'MARKETING_MANAGER': 'marketing-manager',
-  'INFLUENCER': 'influencer',
+  'GROWTH_PARTNER': 'growth-partner',
 };
 
 export function middleware(request: NextRequest) {

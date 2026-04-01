@@ -6,6 +6,7 @@ export interface Invitation {
   phone?: string;
   roles: string[];
   token: string;
+  type: 'PLATFORM' | 'THIRD_PARTY';
   status: 'PENDING' | 'ACCEPTED' | 'EXPIRED' | 'REVOKED';
   invitedById: string;
   expiresAt: string;
@@ -13,7 +14,7 @@ export interface Invitation {
 }
 
 export const invitationService = {
-  async invite(data: { email?: string; phone?: string; roles: string[] }, token: string): Promise<Invitation> {
+  async invite(data: { email?: string; phone?: string; roles: string[]; type: 'PLATFORM' | 'THIRD_PARTY' }, token: string): Promise<Invitation> {
     const response = await fetch(`${API_URL}/api/invitations`, {
       method: 'POST',
       headers: {

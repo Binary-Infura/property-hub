@@ -32,7 +32,7 @@ interface City {
 
 export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRole, fixedRole, isCityContext }: AssignRoleModalProps) {
     const { token } = useAuth();
-    const [role, setRole] = useState<RoleId>(initialRole || 'MARKETING_MANAGER');
+    const [role, setRole] = useState<RoleId>(initialRole || 'GROWTH_PARTNER');
     const [selectedUserId, setSelectedUserId] = useState('');
     const [selectedCityIds, setSelectedCityIds] = useState<number[]>([]);
     const [users, setUsers] = useState<User[]>([]);
@@ -50,13 +50,13 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
 
     const ALL_ROLES: RoleId[] = [
-        'MARKETING_MANAGER',
+        'GROWTH_PARTNER',
 
     ];
 
     const ASSIGNABLE_ROLES = isCityContext
-        ? ['MARKETING_MANAGER' as RoleId]
-        : ALL_ROLES.filter(r => r !== 'MARKETING_MANAGER');
+        ? ['GROWTH_PARTNER' as RoleId]
+        : ALL_ROLES.filter(r => r !== 'GROWTH_PARTNER');
 
     useEffect(() => {
         if (isOpen && initialRole) {
@@ -218,7 +218,7 @@ export default function AssignRoleModal({ isOpen, onClose, onSuccess, initialRol
     };
 
     const resetForm = () => {
-        setRole(initialRole || 'MARKETING_MANAGER');
+        setRole(initialRole || 'GROWTH_PARTNER');
         setSelectedUserId('');
         setSelectedCityIds([]);
         setUserSearch('');

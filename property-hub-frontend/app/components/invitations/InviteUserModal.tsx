@@ -16,9 +16,9 @@ const AVAILABLE_ROLES = [
   'CENTRAL_AUTHORITY',
   'PROPERTY_PARTNER',
   'CONSULTANT',
-  'MARKETING_MANAGER',
-  'INFLUENCER',
+  'GROWTH_PARTNER',
   'LOAN_ADVISOR',
+  'VISIT_EXECUTIVE',
   'BUYER',
 ];
 
@@ -29,19 +29,34 @@ export default function InviteUserModal({
   forcedRole,
   allowedRoles
 }: InviteUserModalProps) {
-  const { token } = useAuth();
+  const { token, activeRole } = useAuth();
   const [formData, setFormData] = useState({
     email: '',
     phone: '',
     selectedRole: forcedRole || '' as string,
+    invitationType: 'PLATFORM' as 'PLATFORM' | 'THIRD_PARTY',
   });
 
-  // Reset selected role when modal opens with a new forcedRole
+  // Role-based defaults for invitation types
+  const getDefaultForRole = (role: string): 'PLATFORM' | 'THIRD_PARTY' => {
+    if (activeRole === 'PROPERTY_PARTNER') return 'PLATFORM';
+    // property-partners and loan-advisers are third-party by default
+    if (role === 'PROPERTY_PARTNER' || role === 'LOAN_ADVISOR') return 'THIRD_PARTY';
+    // consultants, growth-partners, team-members (CENTRAL_AUTHORITY), visit-executives, etc. are platform
+    return 'PLATFORM';
+  };
+
+  // Reset selected role and set default invitation type when modal opens
   React.useEffect(() => {
-    if (isOpen && forcedRole) {
-      setFormData(prev => ({ ...prev, selectedRole: forcedRole }));
+    if (isOpen) {
+      const role = forcedRole || formData.selectedRole;
+      setFormData(prev => ({ 
+        ...prev, 
+        selectedRole: role,
+        invitationType: getDefaultForRole(role)
+      }));
     }
-  }, [isOpen, forcedRole]);
+  }, [isOpen, forcedRole, activeRole]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
@@ -77,13 +92,14 @@ export default function InviteUserModal({
         email: formData.email || undefined,
         phone: formData.phone || undefined,
         roles: [formData.selectedRole],
+        type: formData.invitationType,
       }, token);
 
       setSuccess(true);
       setTimeout(() => {
         onSuccess();
         onClose();
-        setFormData({ email: '', phone: '', selectedRole: '' });
+        setFormData({ email: '', phone: '', selectedRole: '', invitationType: 'PLATFORM' });
         setSuccess(false);
       }, 2000);
     } catch (err: any) {
@@ -164,6 +180,41 @@ export default function InviteUserModal({
               </div>
             </div>
           </div>
+
+          {activeRole !== 'PROPERTY_PARTNER' && (
+            <div className="space-y-4">
+              <label className="block text-sm font-bold text-slate-700 ml-1">Invitation Source</label>
+              <div className="flex p-1.5 bg-gray-100 rounded-2xl gap-1">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, invitationType: 'PLATFORM' })}
+                  className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                    formData.invitationType === 'PLATFORM'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                >
+                  Property Hub Platform
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, invitationType: 'THIRD_PARTY' })}
+                  className={`flex-1 py-3 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all ${
+                    formData.invitationType === 'THIRD_PARTY'
+                      ? 'bg-white text-blue-600 shadow-sm'
+                      : 'text-gray-400 hover:text-gray-600'
+                  }`}
+                >
+                  Third Party
+                </button>
+              </div>
+              <p className="text-[10px] text-gray-400 ml-1 font-medium italic">
+                {formData.invitationType === 'PLATFORM' 
+                  ? "* User will NOT need to provide organization details during registration."
+                  : "* User WILL be required to provide organization details during registration."}
+              </p>
+            </div>
+          )}
 
           {!forcedRole && (
             <div className="space-y-4">

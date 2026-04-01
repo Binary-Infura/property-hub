@@ -8,12 +8,11 @@ import { useAuth } from './AuthContext';
 // ---------------------------------------------------------------------------
 export type RoleId =
     | 'CENTRAL_AUTHORITY'
-    | 'MARKETING_MANAGER'
+    | 'GROWTH_PARTNER'
     | 'PROPERTY_PARTNER'
     | 'CONSULTANT'
     | 'LOAN_ADVISOR'
-    | 'BUYER'
-    | 'INFLUENCER';
+    | 'BUYER';
 
 export interface UserRole {
     id: RoleId;
@@ -54,10 +53,10 @@ export const KNOWN_ROLES: Record<RoleId, UserRole> = {
         permissionHint: 'Platform-wide administrator',
         dashboardUrl: '/dashboard',
     },
-    MARKETING_MANAGER: {
-        id: 'MARKETING_MANAGER',
-        name: 'Marketing Manager',
-        permissionHint: 'Manage campaigns & leads platform-wide',
+    GROWTH_PARTNER: {
+        id: 'GROWTH_PARTNER',
+        name: 'Growth Partner',
+        permissionHint: 'Lead generation, campaigns & promotions',
         dashboardUrl: '/dashboard',
     },
     PROPERTY_PARTNER: {
@@ -82,12 +81,6 @@ export const KNOWN_ROLES: Record<RoleId, UserRole> = {
         id: 'BUYER',
         name: 'Buyer',
         permissionHint: 'Property search and purchase',
-        dashboardUrl: '/dashboard',
-    },
-    INFLUENCER: {
-        id: 'INFLUENCER',
-        name: 'Influencer',
-        permissionHint: 'Marketing influencer',
         dashboardUrl: '/dashboard',
     },
 };

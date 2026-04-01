@@ -36,10 +36,11 @@ export class InvitationsService {
           email: dto.email,
           phone: dto.phone,
           roles: dto.roles,
+          type: dto.type || 'PLATFORM',
           token,
           invitedById,
           expiresAt,
-        },
+        } as any,
       });
 
       const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
@@ -94,6 +95,10 @@ export class InvitationsService {
 
   async registerInvitedUser(dto: RegisterInvitationDto) {
     const invitation = await this.verifyInvitation(dto.token);
+
+    if ((invitation as any).type === 'THIRD_PARTY' && !dto.companyName) {
+      throw new BadRequestException('Company name is required for third-party registration');
+    }
 
     const user = await this.usersService.createUser({
       email: invitation.email || '',

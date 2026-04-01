@@ -225,10 +225,10 @@ function RegisterForm() {
             </div>
           </div>
 
-          {/* Property Partner Specific Fields */}
-          {invitation?.roles.includes('PROPERTY_PARTNER') && (
-            <div className="space-y-4 rounded-2xl border border-blue-100 bg-blue-50/40 p-5">
-              <p className="text-xs font-bold text-blue-600 uppercase tracking-wider">🏢 Business Information (Property Partner)</p>
+          {/* Business Information Section - Only for Third Party Invitations */}
+          {invitation?.type === 'THIRD_PARTY' && (
+            <div className="space-y-4 rounded-2xl border border-blue-100 bg-blue-50/40 p-5 animate-in slide-in-from-top-4 duration-500">
+              <p className="text-xs font-bold text-blue-600 uppercase tracking-wider">🏢 Business Information</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">Company Name *</label>

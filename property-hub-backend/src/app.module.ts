@@ -8,7 +8,7 @@ import { LeadsModule } from './modules/leads/leads.module';
 import { CommissionsModule } from './modules/commissions/commissions.module';
 import { UsersModule } from './modules/users/users.module';
 
-import { MarketingManagersModule } from './modules/roles/marketing-managers/marketing-managers.module';
+import { GrowthPartnersModule } from './modules/roles/growth-partners/growth-partners.module';
 import { BuyersModule } from './modules/roles/buyers/buyers.module';
 import { ConsultantsModule } from './modules/roles/consultants/consultants.module';
 import { PropertyPartnersModule } from './modules/roles/property-partners/property-partners.module';
@@ -56,7 +56,7 @@ import { join } from 'path';
         CommissionsModule,
         UsersModule,
 
-        MarketingManagersModule,
+        GrowthPartnersModule,
         BuyersModule,
         ConsultantsModule,
         PropertyPartnersModule,

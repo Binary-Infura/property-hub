@@ -10,14 +10,14 @@ export class VisitsService {
 
     async findAll(user: AuthenticatedUser): Promise<Visit[]> {
         const isCentralAuthority = user.roles.includes('CENTRAL_AUTHORITY');
-        const isMarketingManager = user.roles.includes('MARKETING_MANAGER');
+        const isGrowthPartner = user.roles.includes('GROWTH_PARTNER');
         const isConsultant = user.roles.includes('CONSULTANT');
         const isVisitExecutive = user.roles.includes('VISIT_EXECUTIVE');
         const isPropertyPartner = user.roles.includes('PROPERTY_PARTNER');
 
         let where: any = {};
 
-        if (isCentralAuthority || isMarketingManager) {
+        if (isCentralAuthority || isGrowthPartner) {
             // Can see all visits
             where = {};
         } else if (isVisitExecutive) {

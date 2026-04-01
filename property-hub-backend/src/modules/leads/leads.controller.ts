@@ -40,7 +40,7 @@ export class LeadsController {
     }
 
     @Get(':id/calls')
-    @RequireRoles(UserRole.CONSULTANT, UserRole.CENTRAL_AUTHORITY, UserRole.MARKETING_MANAGER)
+    @RequireRoles(UserRole.CONSULTANT, UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER)
     getLeadCallLogs(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
@@ -50,7 +50,7 @@ export class LeadsController {
 
 
     @Get(':id')
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.MARKETING_MANAGER)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER)
     findOne(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
@@ -85,7 +85,7 @@ export class LeadsController {
     }
 
     @Get()
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.MARKETING_MANAGER, UserRole.PROPERTY_PARTNER, UserRole.CONSULTANT, UserRole.BUYER)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.PROPERTY_PARTNER, UserRole.CONSULTANT, UserRole.BUYER)
     findAll(
         @CurrentUser() user: AuthenticatedUser
     ) {
@@ -93,7 +93,7 @@ export class LeadsController {
     }
 
     @Post()
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.MARKETING_MANAGER, UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER)
     create(
         @Body() createLeadDto: CreateLeadDto
     ) {
@@ -109,7 +109,7 @@ export class LeadsController {
     }
 
     @Post('bulk')
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.MARKETING_MANAGER)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER)
     bulkCreate(
         @Body() bulkCreateLeadsDto: { leads: CreateLeadDto[] }
     ) {
@@ -117,7 +117,7 @@ export class LeadsController {
     }
 
     @Patch(':id')
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.MARKETING_MANAGER, UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER)
     update(
         @Param('id') id: string,
         @Body() updateLeadDto: UpdateLeadDto,
@@ -127,7 +127,7 @@ export class LeadsController {
     }
 
     @Delete(':id')
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.MARKETING_MANAGER)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER)
     remove(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser

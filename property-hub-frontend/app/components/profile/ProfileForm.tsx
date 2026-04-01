@@ -24,12 +24,11 @@ export default function ProfileForm() {
         budgetMin: 0,
         budgetMax: 0,
         preferredLocations: [],
-        // Influencer
+        // Growth Partner
+        campaignBudgetLimit: 0,
         socialMediaLinks: {},
         reach: 0,
         niche: '',
-        // Marketing Manager
-        campaignBudgetLimit: 0,
     });
 
     useEffect(() => {
@@ -39,8 +38,7 @@ export default function ProfileForm() {
 
         const co = profileStatus['CONSULTANT']?.profileData || {};
         const bu = profileStatus['BUYER']?.profileData || {};
-        const inf = profileStatus['INFLUENCER']?.profileData || {};
-        const mm = profileStatus['MARKETING_MANAGER']?.profileData || {};
+        const gp = profileStatus['GROWTH_PARTNER']?.profileData || {};
         const ca = profileStatus['CENTRAL_AUTHORITY']?.profileData || {};
 
         setFormData({
@@ -56,12 +54,11 @@ export default function ProfileForm() {
             budgetMin: bu.budgetMin || 0,
             budgetMax: bu.budgetMax || 0,
             preferredLocations: bu.preferredLocations || [],
-            // Influencer
-            socialMediaLinks: inf.socialMediaLinks || {},
-            reach: inf.reach || 0,
-            niche: inf.niche || '',
-            // Marketing Manager
-            campaignBudgetLimit: mm.campaignBudgetLimit || 0,
+            // Growth Partner
+            socialMediaLinks: gp.socialMediaLinks || {},
+            reach: gp.reach || 0,
+            niche: gp.niche || '',
+            campaignBudgetLimit: gp.campaignBudgetLimit || 0,
         });
     }, [user, profileStatus]);
 
@@ -258,28 +255,38 @@ export default function ProfileForm() {
                     </div>
                 )}
 
-                {/* Section: Influencer */}
-                {userRoles.includes('INFLUENCER') && (
+                {/* Section: Growth Partner */}
+                {userRoles.includes('GROWTH_PARTNER') && (
                     <div>
                         <div className="flex items-center gap-3 mb-6 pt-6 border-t border-gray-100">
-                            <div className="w-10 h-10 rounded-xl bg-pink-50 text-pink-600 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
                                 <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
                                 </svg>
                             </div>
                             <div>
-                                <h3 className="text-lg font-black text-gray-900 tracking-tight">Influencer Profile</h3>
+                                <h3 className="text-lg font-black text-gray-900 tracking-tight">Growth Partner Profile</h3>
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-pink-50/30 p-6 rounded-2xl border border-pink-100/50">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-purple-50/30 p-6 rounded-2xl border border-purple-100/50">
+                            <div className="space-y-2">
+                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Campaign Budget Limit (&#8377;)</label>
+                                <input
+                                    type="number"
+                                    value={formData.campaignBudgetLimit}
+                                    onChange={(e) => setFormData({ ...formData, campaignBudgetLimit: parseFloat(e.target.value) || 0 })}
+                                    className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium shadow-sm"
+                                />
+                            </div>
                             <div className="space-y-2">
                                 <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Niche</label>
                                 <input
                                     type="text"
                                     value={formData.niche}
                                     onChange={(e) => setFormData({ ...formData, niche: e.target.value })}
-                                    className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm font-medium shadow-sm"
+                                    className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium shadow-sm"
                                     placeholder="Lifestyle, Real Estate"
                                 />
                             </div>
@@ -289,36 +296,7 @@ export default function ProfileForm() {
                                     type="number"
                                     value={formData.reach}
                                     onChange={(e) => setFormData({ ...formData, reach: parseInt(e.target.value) || 0 })}
-                                    className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-pink-500/20 focus:border-pink-500 transition-all text-sm font-medium shadow-sm"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                )}
-
-                {/* Section: Marketing Manager */}
-                {userRoles.includes('MARKETING_MANAGER') && (
-                    <div>
-                        <div className="flex items-center gap-3 mb-6 pt-6 border-t border-gray-100">
-                            <div className="w-10 h-10 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center">
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-black text-gray-900 tracking-tight">Marketing Management</h3>
-                            </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 gap-6 bg-cyan-50/30 p-6 rounded-2xl border border-cyan-100/50">
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Campaign Budget Limit (&#8377;)</label>
-                                <input
-                                    type="number"
-                                    value={formData.campaignBudgetLimit}
-                                    onChange={(e) => setFormData({ ...formData, campaignBudgetLimit: parseFloat(e.target.value) || 0 })}
-                                    className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-cyan-500/20 focus:border-cyan-500 transition-all text-sm font-medium shadow-sm"
+                                    className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium shadow-sm"
                                 />
                             </div>
                         </div>

@@ -3,10 +3,8 @@ export type UserRole =
     | 'DSA'
     | 'PROPERTY_PARTNER'
     | 'CONSULTANT'
-    | 'MARKETING_MANAGER'
-    | 'INFLUENCER'
+    | 'GROWTH_PARTNER'
     | 'LOAN_ADVISOR'
-
     | 'BUYER';
 
 
@@ -31,7 +29,7 @@ export const ROLES: Record<UserRole, RoleDefinition> = {
         permissions: [
             { resource: '*', actions: ['create', 'read', 'update', 'delete', 'approve', 'override'] }
         ],
-        canCreateRoles: ['MARKETING_MANAGER', 'INFLUENCER']
+        canCreateRoles: ['GROWTH_PARTNER']
     },
 
     'DSA': {
@@ -69,27 +67,16 @@ export const ROLES: Record<UserRole, RoleDefinition> = {
         description: 'End user looking for properties',
         permissions: []
     },
-    'MARKETING_MANAGER': {
-        role: 'MARKETING_MANAGER',
-        label: 'Marketing Manager',
-        description: 'Head of marketing department with full team and campaign management',
+    'GROWTH_PARTNER': {
+        role: 'GROWTH_PARTNER',
+        label: 'Growth Partner',
+        description: 'Lead generation specialist managing campaigns, social media, and promotions',
         permissions: [
             { resource: 'marketing-campaigns', actions: ['create', 'read', 'update', 'delete', 'approve'] },
-            { resource: 'marketing-team', actions: ['create', 'read', 'update', 'delete'] },
             { resource: 'marketing-budget', actions: ['create', 'read', 'update', 'approve'] },
             { resource: 'marketing-analytics', actions: ['read'] },
-            { resource: 'regions', actions: ['read'] },
-            { resource: 'builders', actions: ['read'] },
+            { resource: 'properties', actions: ['read'] },
             { resource: 'projects', actions: ['read'] }
-        ]
-    },
-    'INFLUENCER': {
-        role: 'INFLUENCER',
-        label: 'Influencer',
-        description: 'Marketing influencer responsible for platform promotion',
-        permissions: [
-            { resource: 'marketing-analytics', actions: ['read'] },
-            { resource: 'properties', actions: ['read'] }
         ]
     },
 };

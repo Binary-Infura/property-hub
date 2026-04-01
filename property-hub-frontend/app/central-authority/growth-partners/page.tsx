@@ -4,11 +4,11 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import InviteUserModal from '@/app/components/invitations/InviteUserModal';
 
-export default function MarketingManagersPage() {
+export default function GrowthPartnersPage() {
     const [isModalOpen, setIsModalOpen] = useState(false);
 
     const { token } = useAuth();
-    const [marketingManagers, setMarketingManagers] = useState<any[]>([]);
+    const [growthPartners, setGrowthPartners] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
     const [totalCount, setTotalCount] = useState(0);
@@ -20,12 +20,12 @@ export default function MarketingManagersPage() {
         if (!token) return;
         setLoading(true);
         try {
-            const res = await fetch(`/api/marketing-managers?page=${currentPage}&limit=${itemsPerPage}`, {
+            const res = await fetch(`/api/growth-partners?page=${currentPage}&limit=${itemsPerPage}`, {
                 headers: { Authorization: `Bearer ${token}` },
             });
             if (res.ok) {
                 const result = await res.json();
-                setMarketingManagers(result.data);
+                setGrowthPartners(result.data);
                 setTotalCount(result.total);
             }
         } catch (err) {
@@ -46,32 +46,32 @@ export default function MarketingManagersPage() {
         <div>
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900">Marketing Managers</h1>
-                <p className="text-gray-600 mt-1">Manage marketing department heads</p>
+                <h1 className="text-3xl font-bold text-gray-900">Growth Partners</h1>
+                <p className="text-gray-600 mt-1">Manage growth partners</p>
             </div>
 
             {/* Stats */}
             <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
-                    <div className="text-gray-600 text-sm font-medium mb-2">Total Marketing Managers</div>
+                    <div className="text-gray-600 text-sm font-medium mb-2">Total Growth Partners</div>
                     <div className="text-3xl font-bold text-gray-900">{totalCount}</div>
                 </div>
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                     <div className="text-gray-600 text-sm font-medium mb-2">Active (Page)</div>
                     <div className="text-3xl font-bold text-green-600">
-                        {marketingManagers.filter((m) => m.status === 'active').length}
+                        {growthPartners.filter((g) => g.status === 'active').length}
                     </div>
                 </div>
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                     <div className="text-gray-600 text-sm font-medium mb-2">Team (Page)</div>
                     <div className="text-3xl font-bold text-purple-600">
-                        {marketingManagers.reduce((sum, m) => sum + (m.teamSize || 0), 0)}
+                        {growthPartners.reduce((sum, g) => sum + (g.teamSize || 0), 0)}
                     </div>
                 </div>
                 <div className="bg-white rounded-xl p-6 shadow-sm border border-gray-200">
                     <div className="text-gray-600 text-sm font-medium mb-2">Campaigns (Page)</div>
                     <div className="text-3xl font-bold text-blue-600">
-                        {marketingManagers.reduce((sum, m) => sum + (m.activeCampaigns || 0), 0)}
+                        {growthPartners.reduce((sum, g) => sum + (g.activeCampaigns || 0), 0)}
                     </div>
                 </div>
             </div>
@@ -81,7 +81,7 @@ export default function MarketingManagersPage() {
                 <div className="flex gap-3">
                     <input
                         type="text"
-                        placeholder="Search marketing managers..."
+                        placeholder="Search growth partners..."
                         className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     />
                     <select className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
@@ -97,11 +97,11 @@ export default function MarketingManagersPage() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
-                    Add Marketing Manager
+                    Add Growth Partner
                 </button>
             </div>
 
-            {/* Marketing Managers List */}
+            {/* Growth Partners List */}
             <div className="bg-white rounded-xl shadow-sm border border-gray-200">
                 <div className="overflow-x-auto">
                     <table className="w-full">
@@ -143,46 +143,46 @@ export default function MarketingManagersPage() {
                                         Loading...
                                     </td>
                                 </tr>
-                            ) : marketingManagers.map((manager) => (
-                                <tr key={manager.id} className="hover:bg-gray-50">
+                            ) : growthPartners.map((partner) => (
+                                <tr key={partner.id} className="hover:bg-gray-50">
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center gap-3">
                                             <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
-                                                {manager.firstName.charAt(0)}
+                                                {partner.firstName.charAt(0)}
                                             </div>
                                             <div>
-                                                <div className="font-medium text-gray-900">{manager.firstName}</div>
-                                                <div className="text-sm text-gray-500">{manager.email}</div>
+                                                <div className="font-medium text-gray-900">{partner.firstName}</div>
+                                                <div className="text-sm text-gray-500">{partner.email}</div>
                                             </div>
                                         </div>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {manager.lastName || '-'}
+                                        {partner.lastName || '-'}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span
-                                            className={`px-3 py-1 rounded-full text-xs font-medium ${manager.status === 'active'
+                                            className={`px-3 py-1 rounded-full text-xs font-medium ${partner.status === 'active'
                                                 ? 'bg-green-100 text-green-800'
                                                 : 'bg-gray-100 text-gray-800'
                                                 }`}
                                         >
-                                            {manager.status}
+                                            {partner.status}
                                         </span>
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        {manager.teamSize || 0} members
+                                        {partner.teamSize || 0} members
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {manager.activeCampaigns || 0}
+                                        {partner.activeCampaigns || 0}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-purple-600">
-                                        {(manager.totalLeads || 0).toLocaleString()}
+                                        {(partner.totalLeads || 0).toLocaleString()}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                        ₹{(manager.budgetAllocated || 0).toLocaleString()}
+                                        ₹{(partner.budgetAllocated || 0).toLocaleString()}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                                        {new Date(manager.createdAt).toLocaleDateString()}
+                                        {new Date(partner.createdAt).toLocaleDateString()}
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                                         <div className="flex gap-2">
@@ -191,12 +191,12 @@ export default function MarketingManagersPage() {
                                             </button>
                                             <button className="text-purple-600 hover:text-purple-800 font-medium">Edit</button>
                                             <button
-                                                className={`font-medium ${manager.status === 'active'
+                                                className={`font-medium ${partner.status === 'active'
                                                     ? 'text-yellow-600 hover:text-yellow-800'
                                                     : 'text-green-600 hover:text-green-800'
                                                     }`}
                                             >
-                                                {manager.status === 'active' ? 'Deactivate' : 'Activate'}
+                                                {partner.status === 'active' ? 'Deactivate' : 'Activate'}
                                             </button>
                                         </div>
                                     </td>
@@ -233,12 +233,12 @@ export default function MarketingManagersPage() {
                 )}
             </div>
 
-            {/* Invite Marketing Manager Modal */}
+            {/* Invite Growth Partner Modal */}
             <InviteUserModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
                 onSuccess={fetchData}
-                forcedRole="MARKETING_MANAGER"
+                forcedRole="GROWTH_PARTNER"
             />
         </div>
     );

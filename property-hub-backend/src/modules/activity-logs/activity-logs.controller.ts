@@ -20,7 +20,7 @@ export class ActivityLogsController {
     }
 
     @Get('lead/:id')
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.MARKETING_MANAGER, UserRole.CONSULTANT)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.CONSULTANT)
     async getByLeadId(@Param('id') id: string) {
         return this.activityLogsService.getLogsByLeadId(id);
     }

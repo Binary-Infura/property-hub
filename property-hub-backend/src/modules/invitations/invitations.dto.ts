@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsOptional, IsString, IsArray, IsEnum, MinLength } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString, IsArray, IsEnum, MinLength, IsIn } from 'class-validator';
 import { UserRole } from '../../common/enums/role.enum';
 
 export class CreateInvitationDto {
@@ -14,6 +14,10 @@ export class CreateInvitationDto {
   @IsEnum(UserRole, { each: true })
   @IsNotEmpty()
   roles: UserRole[];
+
+  @IsIn(['PLATFORM', 'THIRD_PARTY'])
+  @IsOptional()
+  type?: 'PLATFORM' | 'THIRD_PARTY';
 }
 
 export class VerifyInvitationDto {

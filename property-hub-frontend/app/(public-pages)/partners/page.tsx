@@ -17,7 +17,7 @@ export default function PartnersPage() {
         organizationName: '',
         reraRegistration: '',
         experience: '',
-        // Influencer specific
+        // Growth Partner specific
         primaryPlatform: '',
         channelLink: '',
         followerCount: '',
@@ -33,7 +33,7 @@ export default function PartnersPage() {
 
     const partnerTypes = [
         { id: 'PROPERTY_PARTNER', label: 'Property Partner' },
-        { id: 'INFLUENCER', label: 'Influencer' },
+        { id: 'GROWTH_PARTNER', label: 'Growth Partner' },
         { id: 'LOAN_ADVISOR', label: 'Loan Advisor' },
     ];
 
@@ -79,7 +79,7 @@ export default function PartnersPage() {
             if (!formData.experience) newErrors.experience = 'Experience is required';
         }
 
-        if (formData.partnerType === 'INFLUENCER') {
+        if (formData.partnerType === 'GROWTH_PARTNER') {
             if (!formData.primaryPlatform) newErrors.primaryPlatform = 'Primary platform is required';
             if (!formData.channelLink.trim()) newErrors.channelLink = 'Channel link is required';
             if (!formData.followerCount) newErrors.followerCount = 'Follower count is required';
@@ -172,7 +172,7 @@ export default function PartnersPage() {
                             <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center mb-4 text-xl font-bold">
                                 2
                             </div>
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">Influencer</h3>
+                            <h3 className="text-lg font-bold text-gray-900 mb-2">Growth Partner</h3>
                             <p className="text-gray-600 text-sm leading-relaxed">
                                 Spread the word about PropertyHub. Partner with our brand for sponsored campaigns and affiliate rewards.
                             </p>
@@ -358,9 +358,9 @@ export default function PartnersPage() {
                                         </div>
                                     )}
 
-                                    {formData.partnerType === 'INFLUENCER' && (
+                                    {formData.partnerType === 'GROWTH_PARTNER' && (
                                         <div className="bg-purple-50 p-6 rounded-xl border border-purple-100 space-y-6 animate-fade-in">
-                                            <h3 className="text-lg font-bold text-purple-900 border-b border-purple-200 pb-2">Influencer Details</h3>
+                                            <h3 className="text-lg font-bold text-purple-900 border-b border-purple-200 pb-2">Growth Partner Details</h3>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div>
                                                     <label className="block text-sm font-semibold text-gray-700 mb-2">

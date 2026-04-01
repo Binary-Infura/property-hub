@@ -26,7 +26,7 @@ interface Campaign {
     createdAt: string;
 }
 
-export default function MarketingManagerDashboard() {
+export default function GrowthPartnerDashboard() {
     const { token } = useAuth();
     const { activeContext } = useUnifiedApp();
     const [timeRange, setTimeRange] = useState('30d');
@@ -68,7 +68,7 @@ export default function MarketingManagerDashboard() {
         <div className="p-8 bg-gray-50 min-h-screen">
             {/* Header */}
             <div className="mb-8">
-                <h1 className="text-3xl font-bold text-gray-900">Marketing Dashboard</h1>
+                <h1 className="text-3xl font-bold text-gray-900">Growth Partner Dashboard</h1>
                 <p className="text-gray-600 mt-1">Monitor campaigns, leads, and team performance</p>
             </div>
 

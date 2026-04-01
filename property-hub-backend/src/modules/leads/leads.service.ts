@@ -24,11 +24,11 @@ export class LeadsService {
 
     async findAll(user: AuthenticatedUser): Promise<Lead[]> {
         const isCentralAuthority = user.roles.includes(UserRole.CENTRAL_AUTHORITY);
-        const isMarketingManager = user.roles.includes(UserRole.MARKETING_MANAGER);
+        const isGrowthPartner = user.roles.includes(UserRole.GROWTH_PARTNER);
         const isBuyer = user.roles.includes(UserRole.BUYER);
 
         let where: any = {};
-        if (isCentralAuthority || isMarketingManager) {
+        if (isCentralAuthority || isGrowthPartner) {
             // Administrative roles see everything by default
             where = {};
         } else if (isBuyer) {
@@ -146,11 +146,11 @@ export class LeadsService {
 
         // Authorization check: only central-authority, marketing-manager, and the assigned consultant can access the lead
         const isCentralAuthority = user.roles.includes(UserRole.CENTRAL_AUTHORITY);
-        const isMarketingManager = user.roles.includes(UserRole.MARKETING_MANAGER);
+        const isGrowthPartner = user.roles.includes(UserRole.GROWTH_PARTNER);
         const isPropertyPartner = user.roles.includes(UserRole.PROPERTY_PARTNER);
         const isAssignedConsultant = lead.assignedTo === user.userId;
 
-        if (!isCentralAuthority && !isMarketingManager && !isPropertyPartner && !isAssignedConsultant) {
+        if (!isCentralAuthority && !isGrowthPartner && !isPropertyPartner && !isAssignedConsultant) {
             throw new NotFoundException(`Lead with ID ${id} not found`);
         }
 
@@ -231,7 +231,7 @@ export class LeadsService {
 
             // Authorization check specific to calls: consultants can call leads assigned to them or unassigned leads
             const isCentralAuthority = user.roles?.includes(UserRole.CENTRAL_AUTHORITY);
-            const isMarketingManager = user.roles?.includes(UserRole.MARKETING_MANAGER);
+            const isGrowthPartner = user.roles?.includes(UserRole.GROWTH_PARTNER);
             const isConsultant = user.roles?.includes(UserRole.CONSULTANT);
             const isAssignedConsultant = lead.assignedTo === user.userId;
             const isUnassignedLead = !lead.assignedTo;
@@ -242,7 +242,7 @@ export class LeadsService {
             // 1. Central authority or marketing managers (any lead)
             // 2. Assigned consultant (their assigned lead)
             // 3. Any consultant calling an unassigned lead
-            if (!isCentralAuthority && !isMarketingManager && !(isConsultant && (isAssignedConsultant || isUnassignedLead))) {
+            if (!isCentralAuthority && !isGrowthPartner && !(isConsultant && (isAssignedConsultant || isUnassignedLead))) {
                 console.warn(`Authorization failed for user ${user.userId} calling lead ${id}`);
                 throw new NotFoundException(`Lead with ID ${id} not found`);
             }
@@ -304,12 +304,12 @@ export class LeadsService {
 
             // Authorization check
             const isCentralAuthority = user.roles?.includes(UserRole.CENTRAL_AUTHORITY);
-            const isMarketingManager = user.roles?.includes(UserRole.MARKETING_MANAGER);
+            const isGrowthPartner = user.roles?.includes(UserRole.GROWTH_PARTNER);
             const isConsultant = user.roles?.includes(UserRole.CONSULTANT);
             const isAssignedConsultant = lead.assignedTo === user.userId;
             const isUnassignedLead = !lead.assignedTo;
 
-            if (!isCentralAuthority && !isMarketingManager && !(isConsultant && (isAssignedConsultant || isUnassignedLead))) {
+            if (!isCentralAuthority && !isGrowthPartner && !(isConsultant && (isAssignedConsultant || isUnassignedLead))) {
                 throw new NotFoundException(`Lead with ID ${id} not found`);
             }
 

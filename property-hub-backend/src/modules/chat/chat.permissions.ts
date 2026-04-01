@@ -30,7 +30,7 @@ const CHAT_PERMISSION_RULES: Record<string, ChatPermissionRule> = {
         canViewChatsOf: 'self'
     },
 
-    [UserRole.MARKETING_MANAGER]: {
+    [UserRole.GROWTH_PARTNER]: {
         canChatWith: [],
         canViewChatsOf: 'self'
     },

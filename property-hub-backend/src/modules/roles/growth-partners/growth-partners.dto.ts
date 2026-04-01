@@ -1,6 +1,6 @@
 import { IsEmail, IsString, IsNotEmpty, IsOptional } from 'class-validator';
 
-export class CreateMarketingManagerDto {
+export class CreateGrowthPartnerDto {
     @IsEmail()
     email: string;
 
@@ -20,7 +20,7 @@ export class CreateMarketingManagerDto {
     campaignBudgetLimit?: number;
 }
 
-export class MarketingManagerDto {
+export class GrowthPartnerDto {
     id: string;
     firstName: string;
     lastName: string | null;
@@ -30,7 +30,7 @@ export class MarketingManagerDto {
     createdAt: Date;
     updatedAt: Date;
 }
-export class UpdateMarketingManagerProfileDto {
+export class UpdateGrowthPartnerProfileDto {
     @IsOptional()
     campaignBudgetLimit?: number;
 }

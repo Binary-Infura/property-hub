@@ -15,8 +15,8 @@ export default function RemoveAssignmentDialog({ isOpen, user, onClose, onConfir
         switch (role) {
             case 'CITY_MANAGER':
                 return 'City Manager';
-            case 'MARKETING_MANAGER':
-                return 'Marketing Manager';
+            case 'GROWTH_PARTNER':
+                return 'Growth Partner';
 
             default:
                 return role.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');

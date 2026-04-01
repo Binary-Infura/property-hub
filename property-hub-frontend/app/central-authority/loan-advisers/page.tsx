@@ -7,9 +7,9 @@ import { userService, User } from '@/app/services/userService';
 import InviteUserModal from '@/app/components/invitations/InviteUserModal';
 
 export default function LoanAdvisersPage() {
-    const { token } = useAuth();
+    const { token, activeRole } = useAuth();
     const { activeContext } = useUnifiedApp();
-    const canManage = activeContext?.activeRole?.id !== 'CENTRAL_AUTHORITY';
+    const canManage = activeRole === 'CENTRAL_AUTHORITY';
     const [advisers, setAdvisers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

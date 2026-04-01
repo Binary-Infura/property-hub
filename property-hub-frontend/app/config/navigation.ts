@@ -18,13 +18,12 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Cities', href: '/dashboard/cities', icon: 'pin' },
         { name: 'Loan Advisors', href: '/dashboard/loan-advisers', icon: 'bank' },
         { name: 'Visit Executives', href: '/dashboard/visit-executives', icon: 'car' },
-        { name: 'Marketing Managers', href: '/dashboard/marketing-managers', icon: 'megaphone' },
-        { name: 'Influencers', href: '/dashboard/influencers', icon: 'phone' },
+        { name: 'Growth Partners', href: '/dashboard/growth-partners', icon: 'megaphone' },
         { name: 'Reviews', href: '/dashboard/reviews', icon: 'star' },
         { name: 'Team Members', href: '/dashboard/team-members', icon: 'users' },
         { name: 'Wallet', href: '/dashboard/wallet', icon: 'money' },
     ],
-    'MARKETING_MANAGER': [
+    'GROWTH_PARTNER': [
         { name: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
         { name: 'Campaigns', href: '/dashboard/campaigns', icon: 'megaphone' },
         { name: 'Campaign Leads', href: '/dashboard/leads', icon: 'users' },
@@ -73,14 +72,6 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Documents', href: '/dashboard/documents', icon: 'document' },
         { name: 'Saved Properties', href: '/dashboard/saved', icon: 'home' },
         { name: 'Inquiries', href: '/dashboard/inquiries', icon: 'clipboard' },
-        { name: 'Reviews', href: '/dashboard/reviews', icon: 'star' },
-    ],
-    'INFLUENCER': [
-        { name: 'Overview', href: '/dashboard', icon: 'dashboard' },
-        { name: 'My Campaigns', href: '/dashboard/campaigns', icon: 'megaphone' },
-        { name: 'Earnings', href: '/dashboard/earnings', icon: 'money' },
-        { name: 'Resources', href: '/dashboard/resources', icon: 'book' },
-        { name: 'Settings', href: '/dashboard/settings', icon: 'settings' },
         { name: 'Reviews', href: '/dashboard/reviews', icon: 'star' },
     ],
 };

@@ -11,12 +11,11 @@ interface RoleSwitchTransitionProps {
 
 const ROLE_ICONS: Record<string, string> = {
     CENTRAL_AUTHORITY: '🏛️',
-    MARKETING_MANAGER: '📣',
+    GROWTH_PARTNER: '📣',
     PROPERTY_PARTNER: '🏢',
     CONSULTANT: '🤝',
     LOAN_ADVISOR: '💰',
     BUYER: '🔑',
-    INFLUENCER: '✨',
 };
 
 const UNIFIED_CONFIG = {
