@@ -21,7 +21,7 @@ export default function PartnersPage() {
         primaryPlatform: '',
         channelLink: '',
         followerCount: '',
-        // Loan Advisor specific
+        // Loan Partner specific
         lenderName: '',
         loanTypes: '',
         loanExperience: '',
@@ -34,7 +34,7 @@ export default function PartnersPage() {
     const partnerTypes = [
         { id: 'PROPERTY_PARTNER', label: 'Property Partner' },
         { id: 'GROWTH_PARTNER', label: 'Growth Partner' },
-        { id: 'LOAN_ADVISOR', label: 'Loan Advisor' },
+        { id: 'LOAN_PARTNER', label: 'Loan Partner' },
     ];
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -85,7 +85,7 @@ export default function PartnersPage() {
             if (!formData.followerCount) newErrors.followerCount = 'Follower count is required';
         }
 
-        if (formData.partnerType === 'LOAN_ADVISOR') {
+        if (formData.partnerType === 'LOAN_PARTNER') {
             if (!formData.loanTypes.trim()) newErrors.loanTypes = 'Please specify loan types you offer';
             if (!formData.loanExperience) newErrors.loanExperience = 'Experience is required';
         }
@@ -181,7 +181,7 @@ export default function PartnersPage() {
                             <div className="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center mb-4 text-xl font-bold">
                                 3
                             </div>
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">Loan Advisor</h3>
+                            <h3 className="text-lg font-bold text-gray-900 mb-2">Loan Partner</h3>
                             <p className="text-gray-600 text-sm leading-relaxed">
                                 Help our homebuyers secure the best home loan deals. Connect them with top lenders and earn referral commissions.
                             </p>
@@ -419,9 +419,9 @@ export default function PartnersPage() {
                                         </div>
                                     )}
 
-                                    {formData.partnerType === 'LOAN_ADVISOR' && (
+                                    {formData.partnerType === 'LOAN_PARTNER' && (
                                         <div className="bg-green-50 p-6 rounded-xl border border-green-100 space-y-6 animate-fade-in">
-                                            <h3 className="text-lg font-bold text-green-900 border-b border-green-200 pb-2">Loan Advisor Details</h3>
+                                            <h3 className="text-lg font-bold text-green-900 border-b border-green-200 pb-2">Loan Partner Details</h3>
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div>
                                                     <label className="block text-sm font-semibold text-gray-700 mb-2">

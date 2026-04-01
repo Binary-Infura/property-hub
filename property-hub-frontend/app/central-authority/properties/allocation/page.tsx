@@ -37,10 +37,10 @@ export default function PropertyBulkAllocationPage() {
             if (!token) return;
             try {
                 setLoading(true);
-                const [props, consultantsData, loanAdvisersData, visitExecutivesData, statesData] = await Promise.all([
+                const [props, consultantsData, loanPartnersData, visitExecutivesData, statesData] = await Promise.all([
                     propertyService.getAll(token),
                     userService.getAllByRole('CONSULTANT', token),
-                    userService.getAllByRole('LOAN_ADVISOR', token),
+                    userService.getAllByRole('LOAN_PARTNER', token),
                     userService.getAllByRole('VISIT_EXECUTIVE', token),
                     cityService.getStates(token)
                 ]);
@@ -48,7 +48,7 @@ export default function PropertyBulkAllocationPage() {
                 // Combine all eligible roles into one agents list with guaranteed role property
                 const combined = [
                     ...consultantsData.data.map((u: User) => ({ ...u, role: u.role || 'CONSULTANT' })),
-                    ...loanAdvisersData.data.map((u: User) => ({ ...u, role: u.role || 'LOAN_ADVISOR' })),
+                    ...loanPartnersData.data.map((u: User) => ({ ...u, role: u.role || 'LOAN_PARTNER' })),
                     ...visitExecutivesData.data.map((u: User) => ({ ...u, role: u.role || 'VISIT_EXECUTIVE' }))
                 ];
 
@@ -211,7 +211,7 @@ export default function PropertyBulkAllocationPage() {
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
                     <h1 className="text-4xl font-black text-slate-900 tracking-tight">Project Allocation</h1>
-                    <p className="text-slate-500 font-medium mt-1">Centralized management for assigning properties to consultants, loan advisers and visit executives.</p>
+                    <p className="text-slate-500 font-medium mt-1">Centralized management for assigning properties to consultants, loan partners and visit executives.</p>
                 </div>
             </div>
 

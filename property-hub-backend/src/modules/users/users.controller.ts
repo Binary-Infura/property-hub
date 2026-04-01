@@ -92,7 +92,7 @@ export class UsersController {
     }
     @Post(':id/follow')
     @UseGuards(RolesGuard)
-    @RequireRoles(UserRole.BUYER, UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER, UserRole.GROWTH_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.LOAN_ADVISOR)
+    @RequireRoles(UserRole.BUYER, UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER, UserRole.GROWTH_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.LOAN_PARTNER)
     async follow(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
@@ -102,7 +102,7 @@ export class UsersController {
 
     @Post(':id/unfollow')
     @UseGuards(RolesGuard)
-    @RequireRoles(UserRole.BUYER, UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER, UserRole.GROWTH_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.LOAN_ADVISOR)
+    @RequireRoles(UserRole.BUYER, UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER, UserRole.GROWTH_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.LOAN_PARTNER)
     async unfollow(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
@@ -112,7 +112,7 @@ export class UsersController {
 
     @Get(':id/is-following')
     @UseGuards(RolesGuard)
-    @RequireRoles(UserRole.BUYER, UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER, UserRole.GROWTH_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.LOAN_ADVISOR)
+    @RequireRoles(UserRole.BUYER, UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER, UserRole.GROWTH_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.LOAN_PARTNER)
     async isFollowing(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser

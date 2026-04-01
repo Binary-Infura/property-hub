@@ -13,7 +13,7 @@ const ROLE_THEMES: Record<string, { primary: string; secondary: string; glow: st
     GROWTH_PARTNER: { primary: '#a855f7', secondary: '#9333ea', glow: 'rgba(168, 85, 247, 0.15)' },
     PROPERTY_PARTNER: { primary: '#3b82f6', secondary: '#2563eb', glow: 'rgba(59, 130, 246, 0.15)' },
     CONSULTANT: { primary: '#10b981', secondary: '#059669', glow: 'rgba(16, 185, 129, 0.15)' },
-    LOAN_ADVISOR: { primary: '#f59e0b', secondary: '#d97706', glow: 'rgba(245, 158, 11, 0.15)' },
+    LOAN_PARTNER: { primary: '#f59e0b', secondary: '#d97706', glow: 'rgba(245, 158, 11, 0.15)' },
     BUYER: { primary: '#f43f5e', secondary: '#e11d48', glow: 'rgba(244, 63, 94, 0.15)' },
 };
 

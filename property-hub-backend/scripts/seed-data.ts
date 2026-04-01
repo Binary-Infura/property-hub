@@ -142,7 +142,7 @@ async function main() {
         { role: UserRole.CONSULTANT, email: 'consultant@propertyhub.com', f: 'Test', l: 'Consultant' },
         { role: UserRole.INFLUENCER, email: 'influencer@propertyhub.com', f: 'Test', l: 'Influencer' },
         { role: UserRole.MARKETING_MANAGER, email: 'marketing_manager@propertyhub.com', f: 'Marketing', l: 'Manager' },
-        { role: UserRole.LOAN_ADVISOR, email: 'loan_advisor@propertyhub.com', f: 'Loan', l: 'Advisor' },
+        { role: UserRole.LOAN_PARTNER, email: 'loan_partner@propertyhub.com', f: 'Loan', l: 'Partner' },
         { role: UserRole.BROKER, email: 'broker@propertyhub.com', f: 'Test', l: 'Broker' },
         { role: UserRole.VISIT_EXECUTIVE, email: 'visit_executive@propertyhub.com', f: 'Visit', l: 'Executive' },
         { role: UserRole.CENTRAL_AUTHORITY, email: 'onboarding_manager@propertyhub.com', f: 'Onboarding', l: 'Manager' },

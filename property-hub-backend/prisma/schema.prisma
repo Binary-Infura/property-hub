@@ -646,7 +646,7 @@ enum UserRole {
   BUYER
   CONSULTANT
   GROWTH_PARTNER
-  LOAN_ADVISOR
+  LOAN_PARTNER
   VISIT_EXECUTIVE
 }
 
@@ -666,6 +666,7 @@ enum OrganizationType {
   PLATFORM
   PROPERTY_PARTNER
   GROWTH_PARTNER
+  LOAN_PARTNER
 }
 
 enum ProjectStatus {

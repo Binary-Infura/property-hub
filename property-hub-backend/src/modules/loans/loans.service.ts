@@ -45,13 +45,13 @@ export class LoansService {
                     phone: user.phone || '0000000000',
                     projectId: dto.projectId,
                     source: 'Dashboard Loan Application',
-                    assignedTo: dto.advisorId || null,
+                    assignedTo: dto.loanPartnerId || null,
                 }
             });
-        } else if (dto.advisorId && lead.assignedTo !== dto.advisorId) {
+        } else if (dto.loanPartnerId && lead.assignedTo !== dto.loanPartnerId) {
             lead = await this.prisma.lead.update({
                 where: { id: lead.id },
-                data: { assignedTo: dto.advisorId }
+                data: { assignedTo: dto.loanPartnerId }
             });
         }
 

@@ -17,7 +17,7 @@ const AVAILABLE_ROLES = [
   'PROPERTY_PARTNER',
   'CONSULTANT',
   'GROWTH_PARTNER',
-  'LOAN_ADVISOR',
+  'LOAN_PARTNER',
   'VISIT_EXECUTIVE',
   'BUYER',
 ];
@@ -40,8 +40,8 @@ export default function InviteUserModal({
   // Role-based defaults for invitation types
   const getDefaultForRole = (role: string): 'PLATFORM' | 'THIRD_PARTY' => {
     if (activeRole === 'PROPERTY_PARTNER') return 'PLATFORM';
-    // property-partners and loan-advisers are third-party by default
-    if (role === 'PROPERTY_PARTNER' || role === 'LOAN_ADVISOR') return 'THIRD_PARTY';
+    // property-partners and loan-partners are third-party by default
+    if (role === 'PROPERTY_PARTNER' || role === 'LOAN_PARTNER') return 'THIRD_PARTY';
     // consultants, growth-partners, team-members (CENTRAL_AUTHORITY), visit-executives, etc. are platform
     return 'PLATFORM';
   };

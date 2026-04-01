@@ -15,7 +15,7 @@ PropertyHub uses a **buyer-first, role-based routing architecture** where:
 | Consultant | `/consultant/dashboard` | Consultant-only route |
 | Builder / Developer | `/builder/dashboard` | Builder-only route |
 | Admin | `/admin/dashboard` | Admin-only route |
-| Loan Adviser | `/loan-adviser/dashboard` | Loan Adviser-only route |
+| Loan Partner | `/loan-partner/dashboard` | Loan Partner-only route |
 | Channel Partner | `/channel-partner/dashboard` | Channel Partner-only route |
 
 ## Routing Rules
@@ -37,9 +37,9 @@ PropertyHub uses a **buyer-first, role-based routing architecture** where:
 - **Admin-only route**
 - Admins review and approve property submissions
 
-### 5. `/loan-adviser/dashboard`
-- **Loan Adviser-only route**
-- Loan Advisers manage loan applications, guide users through loan journey, validate documents, and coordinate with banks
+### 5. `/loan-partner/dashboard`
+- **Loan Partner-only route**
+- Loan Partners manage loan applications, guide users through loan journey, validate documents, and coordinate with banks
 
 ### 6. `/channel-partner/dashboard`
 - **Channel Partner-only route**
@@ -63,7 +63,7 @@ When authentication is implemented, if a user accesses a dashboard route that do
 - **Consultant** → `/dashboard` → redirect to `/consultant/dashboard`
 - **Builder** → `/admin/dashboard` → redirect to `/builder/dashboard`
 - **Buyer** → `/consultant/dashboard` → redirect to `/dashboard`
-- **Loan Adviser** → `/dashboard` → redirect to `/loan-adviser/dashboard`
+- **Loan Partner** → `/dashboard` → redirect to `/loan-partner/dashboard`
 - **Channel Partner** → `/admin/dashboard` → redirect to `/channel-partner/dashboard`
 
 ## Implementation
@@ -78,7 +78,7 @@ import { getDashboardRoute, getRoleFromPath, getRedirectTarget } from '@/app/lib
 // Get the canonical route for a role
 const buyerRoute = getDashboardRoute('buyer'); // '/dashboard'
 const consultantRoute = getDashboardRoute('consultant'); // '/consultant/dashboard'
-const loanAdviserRoute = getDashboardRoute('loan-adviser'); // '/loan-adviser/dashboard'
+const loanPartnerRoute = getDashboardRoute('loan-partner'); // '/loan-partner/dashboard'
 const channelPartnerRoute = getDashboardRoute('channel-partner'); // '/channel-partner/dashboard'
 
 // Get role from a path
@@ -107,8 +107,8 @@ const redirect = getRedirectTarget('/dashboard', 'channel-partner'); // '/channe
     /dashboard               (admin dashboard)
       /layout.tsx
       /page.tsx
-  /loan-adviser
-    /dashboard               (loan adviser dashboard)
+  /loan-partner
+    /dashboard               (loan partner dashboard)
       /layout.tsx
       /page.tsx
   /channel-partner

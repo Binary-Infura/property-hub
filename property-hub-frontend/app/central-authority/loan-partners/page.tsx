@@ -6,11 +6,11 @@ import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import { userService, User } from '@/app/services/userService';
 import InviteUserModal from '@/app/components/invitations/InviteUserModal';
 
-export default function LoanAdvisersPage() {
+export default function LoanPartnersPage() {
     const { token, activeRole } = useAuth();
     const { activeContext } = useUnifiedApp();
     const canManage = activeRole === 'CENTRAL_AUTHORITY';
-    const [advisers, setAdvisers] = useState<User[]>([]);
+    const [partners, setPartners] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
@@ -25,64 +25,64 @@ export default function LoanAdvisersPage() {
         agencyName: '',
     });
 
-    const fetchAdvisers = async () => {
+    const fetchPartners = async () => {
         if (!token) return;
         try {
             setLoading(true);
             const result = await userService.getAllByRole(
-                'LOAN_ADVISOR',
+                'LOAN_PARTNER',
                 token
             );
-            setAdvisers(result.data);
+            setPartners(result.data);
             setError(null);
         } catch (err: any) {
-            setError(err.message || 'Failed to fetch advisers');
+            setError(err.message || 'Failed to fetch partners');
         } finally {
             setLoading(false);
         }
     };
 
     useEffect(() => {
-        fetchAdvisers();
+        fetchPartners();
     }, [token]);
 
-    const handleAddAdviser = () => {
+    const handleAddPartner = () => {
         setShowAddModal(true);
     };
 
-    const handleEditAdviser = (adviser: User) => {
+    const handleEditPartner = (partner: User) => {
         setFormData({
-            firstName: adviser.firstName,
-            lastName: adviser.lastName || '',
-            email: adviser.email,
-            phone: adviser.phone || '',
-            agencyName: adviser.agencyName || '',
+            firstName: partner.firstName,
+            lastName: partner.lastName || '',
+            email: partner.email,
+            phone: partner.phone || '',
+            agencyName: partner.agencyName || '',
         });
-        setSelectedAdviser(adviser);
+        setSelectedAdviser(partner);
         setShowEditModal(true);
     };
 
-    const handleSaveAdviser = async () => {
+    const handleSavePartner = async () => {
         if (!token) return;
         try {
             if (selectedAdviser) {
                 const updated = await userService.update(selectedAdviser.id, {
                     ...formData,
                 }, token);
-                setAdvisers(advisers.map(a => a.id === selectedAdviser.id ? updated : a));
+                setPartners(partners.map(a => a.id === selectedAdviser.id ? updated : a));
                 setShowEditModal(false);
             } else {
                 const created = await userService.create({
                     ...formData,
-                    role: 'LOAN_ADVISOR',
+                    role: 'LOAN_PARTNER',
                 }, token);
-                setAdvisers([created, ...advisers]);
+                setPartners([created, ...partners]);
                 setShowAddModal(false);
             }
             setFormData({ firstName: '', lastName: '', email: '', phone: '', agencyName: '' });
             setSelectedAdviser(null);
         } catch (err: any) {
-            alert(err.message || 'Failed to save adviser');
+            alert(err.message || 'Failed to save partner');
         }
     };
 
@@ -90,16 +90,16 @@ export default function LoanAdvisersPage() {
         if (!token) return;
         try {
             const updated = await userService.toggleStatus(id, token);
-            setAdvisers(advisers.map(a => a.id === id ? updated : a));
+            setPartners(partners.map(a => a.id === id ? updated : a));
         } catch (err: any) {
             alert(err.message || 'Failed to toggle status');
         }
     };
 
-    const activeCount = advisers.filter(a => a.status === 'active').length;
+    const activeCount = partners.filter(a => a.status === 'active').length;
 
-    if (loading && advisers.length === 0) {
-        return <div className="p-8">Loading loan advisers...</div>;
+    if (loading && partners.length === 0) {
+        return <div className="p-8">Loading loan partners...</div>;
     }
 
     return (
@@ -107,18 +107,18 @@ export default function LoanAdvisersPage() {
             <div className="mb-8">
                 <div className="flex justify-between items-center">
                     <div>
-                        <h1 className="text-3xl font-bold text-gray-900">Loan Advisers</h1>
-                        <p className="text-gray-600 mt-1">Manage loan advisers and their assignments</p>
+                        <h1 className="text-3xl font-bold text-gray-900">Loan Partners</h1>
+                        <p className="text-gray-600 mt-1">Manage loan partners and their assignments</p>
                     </div>
                     {canManage && (
                         <button
-                            onClick={handleAddAdviser}
+                            onClick={handleAddPartner}
                             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 font-semibold transition flex items-center gap-2"
                         >
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                             </svg>
-                            Invite Adviser
+                            Invite Partner
                         </button>
                     )}
                 </div>
@@ -132,8 +132,8 @@ export default function LoanAdvisersPage() {
 
             <div className="grid md:grid-cols-3 gap-6 mb-8">
                 <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
-                    <p className="text-gray-600 text-sm font-medium">Total Advisers</p>
-                    <p className="text-3xl font-bold text-gray-900 mt-2">{advisers.length}</p>
+                    <p className="text-gray-600 text-sm font-medium">Total Partners</p>
+                    <p className="text-3xl font-bold text-gray-900 mt-2">{partners.length}</p>
                 </div>
                 <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
                     <p className="text-gray-600 text-sm font-medium">Active</p>
@@ -159,41 +159,41 @@ export default function LoanAdvisersPage() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {advisers.map((adviser) => (
-                                    <tr key={adviser.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                {partners.map((partner) => (
+                                    <tr key={partner.id} className="border-b border-gray-100 hover:bg-gray-50">
                                         <td className="py-4 px-4">
                                             <div>
-                                                <p className="font-semibold text-gray-900">{adviser.firstName} {adviser.lastName}</p>
-                                                <p className="text-sm text-gray-500">{adviser.email}</p>
+                                                <p className="font-semibold text-gray-900">{partner.firstName} {partner.lastName}</p>
+                                                <p className="text-sm text-gray-500">{partner.email}</p>
                                             </div>
                                         </td>
-                                        <td className="py-4 px-4 text-gray-700">{adviser.agencyName || 'N/A'}</td>
-                                        <td className="py-4 px-4 text-gray-700">{adviser.phone || 'N/A'}</td>
+                                        <td className="py-4 px-4 text-gray-700">{partner.agencyName || 'N/A'}</td>
+                                        <td className="py-4 px-4 text-gray-700">{partner.phone || 'N/A'}</td>
                                         <td className="py-4 px-4">
-                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${adviser.status === 'active'
+                                            <span className={`px-3 py-1 rounded-full text-xs font-medium ${partner.status === 'active'
                                                 ? 'bg-green-100 text-green-700'
                                                 : 'bg-gray-100 text-gray-700'
                                                 }`}>
-                                                {adviser.status === 'active' ? 'Active' : 'Inactive'}
+                                                {partner.status === 'active' ? 'Active' : 'Inactive'}
                                             </span>
                                         </td>
                                         {canManage && (
                                             <td className="py-4 px-4">
                                                 <div className="flex justify-end gap-2">
                                                     <button
-                                                        onClick={() => handleEditAdviser(adviser)}
+                                                        onClick={() => handleEditPartner(partner)}
                                                         className="px-3 py-1 text-blue-600 hover:bg-blue-50 rounded text-sm font-medium"
                                                     >
                                                         Edit
                                                     </button>
                                                     <button
-                                                        onClick={() => handleToggleStatus(adviser.id)}
-                                                        className={`px-3 py-1 rounded text-sm font-medium ${adviser.status === 'active'
+                                                        onClick={() => handleToggleStatus(partner.id)}
+                                                        className={`px-3 py-1 rounded text-sm font-medium ${partner.status === 'active'
                                                             ? 'text-red-600 hover:bg-red-50'
                                                             : 'text-green-600 hover:bg-green-50'
                                                             }`}
                                                     >
-                                                        {adviser.status === 'active' ? 'Deactivate' : 'Activate'}
+                                                        {partner.status === 'active' ? 'Deactivate' : 'Activate'}
                                                     </button>
                                                 </div>
                                             </td>
@@ -209,8 +209,8 @@ export default function LoanAdvisersPage() {
             <InviteUserModal
                 isOpen={showAddModal}
                 onClose={() => setShowAddModal(false)}
-                onSuccess={fetchAdvisers}
-                forcedRole="LOAN_ADVISOR"
+                onSuccess={fetchPartners}
+                forcedRole="LOAN_PARTNER"
             />
 
             {showEditModal && (
@@ -218,7 +218,7 @@ export default function LoanAdvisersPage() {
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all animate-in zoom-in-95 duration-200">
                         <div className="p-6 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
                             <h2 className="text-xl font-bold text-gray-900">
-                                Edit Loan Adviser
+                                Edit Loan Partner
                             </h2>
                             <button
                                 onClick={() => {
@@ -297,7 +297,7 @@ export default function LoanAdvisersPage() {
                                     Cancel
                                 </button>
                                 <button
-                                    onClick={handleSaveAdviser}
+                                    onClick={handleSavePartner}
                                     className="flex-1 px-4 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 transition-all shadow-md shadow-blue-200 text-sm"
                                 >
                                     Save Changes

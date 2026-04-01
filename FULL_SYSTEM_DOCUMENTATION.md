@@ -54,7 +54,7 @@ The system follows a role-based access control (RBAC) model. Each role has a ded
 The system's "Ground Truth" is defined in `prisma/schema.prisma`. Key entities include:
 
 ### 🏢 Entities & Users
-- **Organization**: Can be of type `PLATFORM`, `PROPERTY_PARTNER`, `BROKERAGE`, or `MARKETING_AGENCY`.
+- **Organization**: Can be of type `PLATFORM`, `PROPERTY_PARTNER`, `BROKERAGE`, `MARKETING_AGENCY`, or `LOAN_PARTNER`.
 - **User**: Stores profile data, primary roles, and relationship to organizations.
 - **Invitation**: System for inviting new users with specific roles.
 

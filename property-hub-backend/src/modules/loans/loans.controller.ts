@@ -34,9 +34,9 @@ export class LoansController {
     }
 
     @Get()
-    @RequireRoles(UserRole.CONSULTANT, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_ADVISOR, UserRole.BUYER)
+    @RequireRoles(UserRole.CONSULTANT, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER, UserRole.BUYER)
     findAll(@CurrentUser() user: AuthenticatedUser) {
-        if (user.roles.includes(UserRole.CENTRAL_AUTHORITY) || user.roles.includes(UserRole.LOAN_ADVISOR)) {
+        if (user.roles.includes(UserRole.CENTRAL_AUTHORITY) || user.roles.includes(UserRole.LOAN_PARTNER)) {
             return this.loansService.getALl();
         }
         if (user.roles.includes(UserRole.BUYER)) {
@@ -46,13 +46,13 @@ export class LoansController {
     }
 
     @Get(':id')
-    @RequireRoles(UserRole.CONSULTANT, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_ADVISOR, UserRole.BUYER)
+    @RequireRoles(UserRole.CONSULTANT, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER, UserRole.BUYER)
     findOne(@Param('id') id: string) {
         return this.loansService.findOne(id);
     }
 
     @Patch(':id/status')
-    @RequireRoles(UserRole.LOAN_ADVISOR, UserRole.CENTRAL_AUTHORITY)
+    @RequireRoles(UserRole.LOAN_PARTNER, UserRole.CENTRAL_AUTHORITY)
     updateStatus(
         @Param('id') id: string,
         @Body() dto: UpdateLoanStatusDto

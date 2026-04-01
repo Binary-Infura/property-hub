@@ -24,7 +24,7 @@ export default function LoanAdvisorSelectionPage() {
 
     const [loading, setLoading] = useState(true);
 
-    const [selectedAdvisorId, setSelectedAdvisorId] = useState<string | null>(null);
+    const [selectedLoanPartnerId, setSelectedLoanPartnerId] = useState<string | null>(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -32,7 +32,7 @@ export default function LoanAdvisorSelectionPage() {
             try {
                 setLoading(true);
                 const [usersData, citiesData, loansData] = await Promise.all([
-                    userService.getAllByRole('LOAN_ADVISOR', token, false, 1, 100),
+                    userService.getAllByRole('LOAN_PARTNER', token, false, 1, 100),
                     cityService.getAll(token).catch(() => []),
                     loanService.getLoans(token).catch(() => []) // Active applications
                 ]);
@@ -53,7 +53,7 @@ export default function LoanAdvisorSelectionPage() {
 
     useEffect(() => {
         if (selectedCity) {
-            // If loan-advisers are assigned to cities, we could filter them here.
+            // If loan-partners are assigned to cities, we could filter them here.
             // Right now users might not have direct city assigned, but if they do in cityAllocations:
             setFilteredAdvisors(advisors.filter(a => {
                 const isAssigned = a.cityAllocations?.some((alloc: any) => alloc.city.name === selectedCity || alloc.city.id === selectedCity);
@@ -65,12 +65,12 @@ export default function LoanAdvisorSelectionPage() {
         }
     }, [selectedCity, advisors]);
 
-    const handleApplyClick = (advisorId: string) => {
-        setSelectedAdvisorId(advisorId);
+    const handleApplyClick = (loanPartnerId: string) => {
+        setSelectedLoanPartnerId(loanPartnerId);
     };
 
     const handleLoanSuccess = async () => {
-        setSelectedAdvisorId(null);
+        setSelectedLoanPartnerId(null);
         if (!token) return;
         try {
             const data = await loanService.getLoans(token);
@@ -92,7 +92,7 @@ export default function LoanAdvisorSelectionPage() {
                 <div>
                     <h1 className="text-3xl font-black text-gray-900 tracking-tight">Financial Experts</h1>
                     <p className="text-gray-500 mt-2 font-medium max-w-2xl">
-                        Connect with top-rated loan advisors in your area to get the best interest rates, quick approvals, and hassle-free documentation.
+                        Connect with top-rated loan partners in your area to get the best interest rates, quick approvals, and hassle-free documentation.
                     </p>
                 </div>
 
@@ -142,7 +142,7 @@ export default function LoanAdvisorSelectionPage() {
             ) : (
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {filteredAdvisors.map(advisor => {
-                        const name = `${advisor.firstName || ''} ${advisor.lastName || ''}`.trim() || 'Loan Advisor';
+                        const name = `${advisor.firstName || ''} ${advisor.lastName || ''}`.trim() || 'Loan Partner';
                         const initials = (advisor.firstName?.[0] || '') + (advisor.lastName?.[0] || '');
 
                         return (
@@ -183,11 +183,11 @@ export default function LoanAdvisorSelectionPage() {
                 </div>
             )}
 
-            {selectedAdvisorId && (
+            {selectedLoanPartnerId && (
                 <BuyerLoanSubmitModal
                     isOpen={true}
-                    onClose={() => setSelectedAdvisorId(null)}
-                    advisorId={selectedAdvisorId}
+                    onClose={() => setSelectedLoanPartnerId(null)}
+                    loanPartnerId={selectedLoanPartnerId}
                     projectId={propertyId || undefined}
                     onSuccess={handleLoanSuccess}
                 />

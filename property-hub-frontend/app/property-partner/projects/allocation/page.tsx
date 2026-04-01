@@ -39,10 +39,10 @@ export default function ProjectPartnerBulkAllocationPage() {
             try {
                 setLoading(true);
                 // Fetch only "my" properties and agents
-                const [props, consultantsData, loanAdvisersData, visitExecutivesData, brokersData, statesData] = await Promise.all([
+                const [props, consultantsData, loanPartnersData, visitExecutivesData, brokersData, statesData] = await Promise.all([
                     propertyService.getAll(token, true),
                     userService.getAllByRole('CONSULTANT', token, true, 1, 100),
-                    userService.getAllByRole('LOAN_ADVISOR', token, true, 1, 100),
+                    userService.getAllByRole('LOAN_PARTNER', token, true, 1, 100),
                     userService.getAllByRole('VISIT_EXECUTIVE', token, true, 1, 100),
                     userService.getAllByRole('BROKER', token, true, 1, 100),
                     cityService.getStates(token)
@@ -51,7 +51,7 @@ export default function ProjectPartnerBulkAllocationPage() {
                 // Combine all eligible roles into one agents list
                 const combined = [
                     ...consultantsData.data.map((u: User) => ({ ...u, role: u.role || 'CONSULTANT' })),
-                    ...loanAdvisersData.data.map((u: User) => ({ ...u, role: u.role || 'LOAN_ADVISOR' })),
+                    ...loanPartnersData.data.map((u: User) => ({ ...u, role: u.role || 'LOAN_PARTNER' })),
                     ...visitExecutivesData.data.map((u: User) => ({ ...u, role: u.role || 'VISIT_EXECUTIVE' })),
                     ...brokersData.data.map((u: User) => ({ ...u, role: u.role || 'BROKER' }))
                 ];

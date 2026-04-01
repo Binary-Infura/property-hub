@@ -4,7 +4,7 @@ export type UserRole =
     | 'PROPERTY_PARTNER'
     | 'CONSULTANT'
     | 'GROWTH_PARTNER'
-    | 'LOAN_ADVISOR'
+    | 'LOAN_PARTNER'
     | 'BUYER';
 
 
@@ -53,10 +53,10 @@ export const ROLES: Record<UserRole, RoleDefinition> = {
         description: 'Property consultant',
         permissions: []
     },
-    'LOAN_ADVISOR': {
-        role: 'LOAN_ADVISOR',
-        label: 'Loan Advisor',
-        description: 'Advisor for loans',
+    'LOAN_PARTNER': {
+        role: 'LOAN_PARTNER',
+        label: 'Loan Partner',
+        description: 'Partner for loans',
         permissions: []
     },
 

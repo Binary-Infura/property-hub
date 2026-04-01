@@ -59,16 +59,16 @@ export default function CentralAuthorityPropertyDetailPage() {
         if (!token) return;
         try {
             setLoading(true);
-            const [propertyData, consultantsData, loanAdvisersData, visitExecutivesData] = await Promise.all([
+            const [propertyData, consultantsData, loanPartnersData, visitExecutivesData] = await Promise.all([
                 propertyService.getOne(propertyId, token),
                 userService.getAllByRole('CONSULTANT', token),
-                userService.getAllByRole('LOAN_ADVISOR', token),
+                userService.getAllByRole('LOAN_PARTNER', token),
                 userService.getAllByRole('VISIT_EXECUTIVE', token)
             ]);
 
             const combined = [
                 ...consultantsData.data.map((u: User) => ({ ...u, role: u.role || 'CONSULTANT' })),
-                ...loanAdvisersData.data.map((u: User) => ({ ...u, role: u.role || 'LOAN_ADVISOR' })),
+                ...loanPartnersData.data.map((u: User) => ({ ...u, role: u.role || 'LOAN_PARTNER' })),
                 ...visitExecutivesData.data.map((u: User) => ({ ...u, role: u.role || 'VISIT_EXECUTIVE' }))
             ];
 
@@ -350,7 +350,7 @@ export default function CentralAuthorityPropertyDetailPage() {
                         <div className="p-8 border-b border-gray-50 flex justify-between items-center bg-gray-50/30">
                             <div>
                                 <h2 className="text-2xl font-black text-gray-900 tracking-tight">Assign Agents</h2>
-                                <p className="text-sm text-gray-500 font-medium mt-1">Select consultants, loan advisers, or visit executives.</p>
+                                <p className="text-sm text-gray-500 font-medium mt-1">Select consultants, loan partners, or visit executives.</p>
                             </div>
                             <button
                                 onClick={() => setAssignmentModalOpen(false)}

@@ -16,7 +16,7 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Listing Requests', href: '/dashboard/listing-requests', icon: 'clipboard' },
         { name: 'Consultants', href: '/dashboard/consultants', icon: 'users' },
         { name: 'Cities', href: '/dashboard/cities', icon: 'pin' },
-        { name: 'Loan Advisors', href: '/dashboard/loan-advisers', icon: 'bank' },
+        { name: 'Loan Partners', href: '/dashboard/loan-partners', icon: 'bank' },
         { name: 'Visit Executives', href: '/dashboard/visit-executives', icon: 'car' },
         { name: 'Growth Partners', href: '/dashboard/growth-partners', icon: 'megaphone' },
         { name: 'Reviews', href: '/dashboard/reviews', icon: 'star' },
@@ -59,7 +59,7 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Reels', href: '/dashboard/reels', icon: 'video' },
         { name: 'Reviews', href: '/dashboard/reviews', icon: 'star' },
     ],
-    'LOAN_ADVISOR': [
+    'LOAN_PARTNER': [
         { name: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
         { name: 'Active Loans', href: '/dashboard/loans', icon: 'money' },
         { name: 'Documents', href: '/dashboard/documents', icon: 'document' },

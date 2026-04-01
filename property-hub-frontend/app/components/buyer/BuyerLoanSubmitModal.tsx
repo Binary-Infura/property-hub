@@ -10,12 +10,12 @@ import { propertyService, Property } from '@/app/services/propertyService';
 interface BuyerLoanSubmitModalProps {
     isOpen: boolean;
     onClose: () => void;
-    advisorId: string;
+    loanPartnerId: string;
     projectId?: string;
     onSuccess?: () => void;
 }
 
-export default function BuyerLoanSubmitModal({ isOpen, onClose, advisorId, projectId, onSuccess }: BuyerLoanSubmitModalProps) {
+export default function BuyerLoanSubmitModal({ isOpen, onClose, loanPartnerId, projectId, onSuccess }: BuyerLoanSubmitModalProps) {
     const { token } = useAuth();
     const [banks, setBanks] = useState<Bank[]>([]);
     const [properties, setProperties] = useState<Property[]>([]);
@@ -93,7 +93,7 @@ export default function BuyerLoanSubmitModal({ isOpen, onClose, advisorId, proje
         try {
             const attachedDocs = documents.filter(d => selectedDocs.includes(d.id));
             await loanService.applyLoan(token, {
-                advisorId,
+                loanPartnerId,
                 projectId: formData.projectId,
                 bankId: formData.bankId,
                 amount: parseFloat(formData.amount),

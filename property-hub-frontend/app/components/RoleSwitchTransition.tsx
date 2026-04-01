@@ -14,7 +14,7 @@ const ROLE_ICONS: Record<string, string> = {
     GROWTH_PARTNER: '📣',
     PROPERTY_PARTNER: '🏢',
     CONSULTANT: '🤝',
-    LOAN_ADVISOR: '💰',
+    LOAN_PARTNER: '💰',
     BUYER: '🔑',
 };
 

@@ -60,7 +60,7 @@ export class LeadsController {
 
     // Lead Notes
     @Post(':id/notes')
-    @RequireRoles(UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_ADVISOR)
+    @RequireRoles(UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER)
     addNote(
         @Param('id') id: string,
         @Body() dto: CreateLeadNoteDto,
@@ -70,13 +70,13 @@ export class LeadsController {
     }
 
     @Get(':id/notes')
-    @RequireRoles(UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_ADVISOR)
+    @RequireRoles(UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER)
     getNotes(@Param('id') id: string) {
         return this.leadNotesService.findByLead(id);
     }
 
     @Delete(':id/notes/:noteId')
-    @RequireRoles(UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_ADVISOR)
+    @RequireRoles(UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER)
     removeNote(
         @Param('noteId') noteId: string,
         @CurrentUser() user: AuthenticatedUser,

@@ -35,7 +35,7 @@ export class UpdateLoanStatusDto {
 export class ApplyLoanDto {
     @IsUUID()
     @IsOptional()
-    advisorId?: string;
+    loanPartnerId?: string;
 
     @IsUUID()
     projectId: string;

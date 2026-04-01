@@ -11,7 +11,7 @@ export type RoleId =
     | 'GROWTH_PARTNER'
     | 'PROPERTY_PARTNER'
     | 'CONSULTANT'
-    | 'LOAN_ADVISOR'
+    | 'LOAN_PARTNER'
     | 'BUYER';
 
 export interface UserRole {
@@ -71,9 +71,9 @@ export const KNOWN_ROLES: Record<RoleId, UserRole> = {
         permissionHint: 'Direct sales and client guidance',
         dashboardUrl: '/dashboard',
     },
-    LOAN_ADVISOR: {
-        id: 'LOAN_ADVISOR',
-        name: 'Loan Advisor',
+    LOAN_PARTNER: {
+        id: 'LOAN_PARTNER',
+        name: 'Loan Partner',
         permissionHint: 'Financial and loan facilitation',
         dashboardUrl: '/dashboard',
     },
