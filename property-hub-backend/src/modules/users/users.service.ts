@@ -176,11 +176,17 @@ export class UsersService {
                 reraId: dto.reraId,
                 organizationId: organizationId || inheritedOrganizationId,
                 onboardedById,
-                profileData: (dto.roles.includes(UserRole.BROKER as any)) ? {
+                profileData: (dto.roles.includes(UserRole.BROKER as any) || 
+                             dto.roles.includes(UserRole.PROPERTY_PARTNER) || 
+                             dto.roles.includes(UserRole.GROWTH_PARTNER as UserRole) || 
+                             dto.roles.includes(UserRole.LOAN_PARTNER as UserRole)) ? {
                     agencyName: dto.agencyName,
                     officeAddress: dto.officeAddress,
-                    reraNumber: dto.reraNumber || dto.reraId,
-                    brokerType: dto.brokerType,
+                    reraNumber: dto.reraNumber || dto.licenseNumber,
+                    companyName: dto.companyName,
+                    companyAddress: dto.companyAddress,
+                    taxId: dto.taxId,
+                    licenseNumber: dto.licenseNumber,
                 } : undefined,
             },
         });

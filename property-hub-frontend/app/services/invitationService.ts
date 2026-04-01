@@ -59,4 +59,32 @@ export const invitationService = {
 
     return response.json();
   },
+
+  async publicSignup(data: any): Promise<any> {
+    const response = await fetch(`${API_URL}/api/invitations/signup`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Failed to complete signup');
+    }
+
+    return response.json();
+  },
+
+  async verifySignup(token: string): Promise<any> {
+    const response = await fetch(`${API_URL}/api/invitations/verify-signup?token=${token}`);
+
+    if (!response.ok) {
+      const error = await response.json();
+      throw new Error(error.message || 'Verification failed or link expired');
+    }
+
+    return response.json();
+  },
 };

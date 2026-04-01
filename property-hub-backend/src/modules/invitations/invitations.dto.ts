@@ -27,9 +27,66 @@ export class VerifyInvitationDto {
 }
 
 export class RegisterInvitationDto {
+  /* ... existing fields ... */
   @IsString()
   @IsNotEmpty()
   token: string;
+
+  @IsString()
+  @IsNotEmpty()
+  firstName: string;
+
+  @IsString()
+  @IsOptional()
+  lastName?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  @MinLength(6)
+  password: string;
+
+  @IsString()
+  @IsOptional()
+  phone?: string;
+
+  @IsString()
+  @IsOptional()
+  companyName?: string;
+
+  @IsString()
+  @IsOptional()
+  companyAddress?: string;
+
+  @IsString()
+  @IsOptional()
+  taxId?: string;
+
+  @IsString()
+  @IsOptional()
+  licenseNumber?: string;
+
+  @IsString()
+  @IsOptional()
+  agencyName?: string;
+
+  @IsString()
+  @IsOptional()
+  officeAddress?: string;
+
+  @IsString()
+  @IsOptional()
+  reraNumber?: string;
+}
+
+export class PublicPartnerSignupDto {
+  @IsEmail()
+  @IsNotEmpty()
+  email: string;
+
+  @IsArray()
+  @IsEnum(UserRole, { each: true })
+  @IsNotEmpty()
+  roles: UserRole[];
 
   @IsString()
   @IsNotEmpty()

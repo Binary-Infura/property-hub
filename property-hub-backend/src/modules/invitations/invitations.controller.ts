@@ -1,6 +1,6 @@
 import { Controller, Post, Body, Get, Query, UseGuards } from '@nestjs/common';
 import { InvitationsService } from './invitations.service';
-import { CreateInvitationDto, VerifyInvitationDto, RegisterInvitationDto } from './invitations.dto';
+import { CreateInvitationDto, VerifyInvitationDto, RegisterInvitationDto, PublicPartnerSignupDto } from './invitations.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { RequireRoles } from '../../common/decorators/require-roles.decorator';
@@ -20,6 +20,18 @@ export class InvitationsController {
     @CurrentUser() user: any,
   ) {
     return this.invitationsService.createInvitation(dto, user.userId);
+  }
+
+  @Public()
+  @Post('signup')
+  async publicSignup(@Body() dto: PublicPartnerSignupDto) {
+    return this.invitationsService.publicSignup(dto);
+  }
+
+  @Public()
+  @Get('verify-signup')
+  async verifyPublicSignup(@Query('token') token: string) {
+    return this.invitationsService.verifyPublicSignup(token);
   }
 
   @Public()

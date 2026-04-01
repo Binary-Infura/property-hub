@@ -85,4 +85,26 @@ export class MailService {
 
     return this.sendMail(to, subject, html);
   }
+
+  async sendVerificationEmail(to: string, verifyLink: string) {
+    const subject = 'Verify your Property Hub account';
+    const html = `
+      <div style="font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; max-width: 600px; margin: 0 auto; padding: 40px; border: 1px solid #f0f0f0; border-radius: 16px; background-color: #ffffff; box-shadow: 0 4px 6px rgba(0,0,0,0.02);">
+        <h2 style="color: #1a1a1a; margin-top: 0;">Welcome to Property Hub!</h2>
+        <p style="font-size: 16px; line-height: 1.6; color: #4b5563;">Thank you for registering. Please verify your email address to activate your account.</p>
+        
+        <div style="text-align: center; margin: 35px 0;">
+          <a href="${verifyLink}" style="background-color: #2563eb; color: #ffffff; padding: 14px 32px; text-decoration: none; border-radius: 12px; font-weight: 700; font-size: 16px; display: inline-block;">Verify Account</a>
+        </div>
+        
+        <p style="font-size: 13px; line-height: 1.5; color: #9ca3af; margin-top: 30px;">If you didn't register for an account, you can safely ignore this email.</p>
+        <p style="font-size: 12px; color: #2563eb; word-break: break-all; background-color: #f8fafc; padding: 12px; border-radius: 8px; border: 1px dashed #e2e8f0;">${verifyLink}</p>
+        
+        <hr style="border: 0; border-top: 1px solid #f3f4f6; margin: 30px 0;">
+        <p style="font-size: 12px; color: #9ca3af; text-align: center;">&copy; ${new Date().getFullYear()} Property Hub. All rights reserved.</p>
+      </div>
+    `;
+
+    return this.sendMail(to, subject, html);
+  }
 }

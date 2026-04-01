@@ -3,9 +3,9 @@ import { PrismaService } from '../../database/prisma.service';
 import { MailService } from '../mail/mail.service';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { ConfigService } from '@nestjs/config';
-import { CreateInvitationDto, RegisterInvitationDto } from './invitations.dto';
+import { CreateInvitationDto, RegisterInvitationDto, PublicPartnerSignupDto } from './invitations.dto';
 import * as crypto from 'crypto';
-import { InvitationStatus } from '@prisma/client';
+import { InvitationStatus, UserStatus } from '@prisma/client';
 import { UsersService } from '../users/users.service';
 import { UserRole } from '../../common/enums/role.enum';
 
@@ -35,7 +35,7 @@ export class InvitationsService {
         data: {
           email: dto.email,
           phone: dto.phone,
-          roles: dto.roles,
+          roles: dto.roles as any[],
           type: dto.type || 'PLATFORM',
           token,
           invitedById,
@@ -60,6 +60,122 @@ export class InvitationsService {
       if (error instanceof HttpException) throw error;
       throw new InternalServerErrorException(error.message || 'Failed to create invitation');
     }
+  }
+
+  async publicSignup(dto: PublicPartnerSignupDto) {
+    try {
+      // 1. Check for existing user
+      const existingUser = await this.prisma.user.findUnique({ where: { email: dto.email } });
+      if (existingUser) {
+        throw new BadRequestException('Email is already registered. Please sign in or use a different email.');
+      }
+
+      // 2. Find a system admin to be the "inviter"
+      const systemAdmin = await this.prisma.user.findFirst({
+        where: { roles: { has: UserRole.CENTRAL_AUTHORITY } },
+        select: { id: true }
+      });
+
+      if (!systemAdmin) {
+        throw new InternalServerErrorException('System administrator not found. Please contact support.');
+      }
+
+      // 3. Create a self-signed invitation
+      const token = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 48);
+
+      const invitation = await this.prisma.invitation.create({
+        data: {
+          email: dto.email,
+          phone: dto.phone,
+          roles: dto.roles as any[],
+          type: 'THIRD_PARTY',
+          token,
+          invitedById: systemAdmin.id,
+          expiresAt,
+          status: InvitationStatus.PENDING,
+        } as any,
+      });
+
+      // 4. Create the User in PENDING_VERIFICATION status
+      // We reuse UsersService logic for consistency (Org creation, password hashing, etc)
+      const user = await this.usersService.createUser({
+        email: dto.email,
+        firstName: dto.firstName,
+        lastName: dto.lastName,
+        password: dto.password,
+        phone: dto.phone,
+        roles: dto.roles,
+        activeRole: dto.roles[0],
+        companyName: dto.companyName,
+        companyAddress: dto.companyAddress,
+        taxId: dto.taxId,
+        licenseNumber: dto.licenseNumber,
+        agencyName: dto.agencyName,
+        officeAddress: dto.officeAddress,
+        reraNumber: dto.reraNumber,
+      });
+
+      // Override status to PENDING_VERIFICATION
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { status: UserStatus.PENDING_VERIFICATION }
+      });
+
+      // 5. Send Verification Email
+      const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+      const verifyLink = `${frontendUrl}/verify?token=${token}`;
+
+      if (dto.email) {
+        await this.mailService.sendVerificationEmail(dto.email, verifyLink);
+      }
+
+      return { success: true, message: 'Signup successful. Please check your email for verification link.' };
+    } catch (error: any) {
+      if (error instanceof HttpException) throw error;
+      this.logger.error(`Failed public signup: ${error.message}`, error.stack);
+      throw new InternalServerErrorException(error.message || 'Signup failed');
+    }
+  }
+
+  async verifyPublicSignup(token: string) {
+    const invitation = await this.prisma.invitation.findUnique({
+      where: { token },
+    });
+
+    if (!invitation || !invitation.email) {
+      throw new NotFoundException('Invalid or expired verification token');
+    }
+
+    if (invitation.status !== InvitationStatus.PENDING) {
+      throw new BadRequestException(`Verification already completed or token is ${invitation.status.toLowerCase()}`);
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { email: invitation.email }
+    });
+
+    if (!user) {
+      throw new NotFoundException('User associated with this token not found');
+    }
+
+    // Activate User
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { 
+        status: UserStatus.ACTIVE,
+        isEmailVerified: true 
+      }
+    });
+
+    // Mark Invitation as Accepted
+    await this.prisma.invitation.update({
+      where: { id: invitation.id },
+      data: { status: InvitationStatus.ACCEPTED }
+    });
+
+    return { success: true, message: 'Account verified successfully!' };
   }
 
   async verifyInvitation(token: string) {

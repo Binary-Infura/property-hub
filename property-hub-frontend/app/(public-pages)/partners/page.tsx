@@ -1,514 +1,224 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Navbar from '@/app/components/Navbar';
+import Link from 'next/link';
 
 export default function PartnersPage() {
-    const router = useRouter();
-    const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        partnerType: '',
-        details: '',
-        // Property Partner specific
-        organizationName: '',
-        reraRegistration: '',
-        experience: '',
-        // Growth Partner specific
-        primaryPlatform: '',
-        channelLink: '',
-        followerCount: '',
-        // Loan Partner specific
-        lenderName: '',
-        loanTypes: '',
-        loanExperience: '',
-    });
-
-    const [errors, setErrors] = useState<Record<string, string>>({});
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isSuccess, setIsSuccess] = useState(false);
-
-    const partnerTypes = [
-        { id: 'PROPERTY_PARTNER', label: 'Property Partner' },
-        { id: 'GROWTH_PARTNER', label: 'Growth Partner' },
-        { id: 'LOAN_PARTNER', label: 'Loan Partner' },
+    const partnerRoles = [
+        {
+            id: 'PROPERTY_PARTNER',
+            title: 'Property Partner',
+            subtitle: 'For Builders & Developers',
+            description: 'List your inventory on India\'s most advanced real estate ecosystem and connect with thousands of pre-verified buyers.',
+            icon: '🏢',
+            color: 'from-blue-600 to-indigo-600',
+            benefits: [
+                'Bulk Inventory Management',
+                'Advanced CRM for Lead Tracking',
+                'Pre-verified Buyer Leads',
+                'Direct-to-Buyer Communication',
+                'Market Insights & Analytics'
+            ]
+        },
+        {
+            id: 'GROWTH_PARTNER',
+            title: 'Growth Partner',
+            subtitle: 'For Influencers & Marketers',
+            description: 'Monetize your network by promoting premium properties and collaborating on high-impact marketing campaigns.',
+            icon: '📈',
+            color: 'from-purple-600 to-pink-600',
+            benefits: [
+                'High Affiliate Commissions',
+                'Sponsored Content Opportunities',
+                'Exclusive Early Project Access',
+                'Dedicated Support Team',
+                'Real-time Earnings Dashboard'
+            ]
+        },
+        {
+            id: 'LOAN_PARTNER',
+            title: 'Loan Partner',
+            subtitle: 'For Banks & Financial Institutions',
+            description: 'Help our buyers secure the best home loan deals and earn referral commissions for every successful disbursement.',
+            icon: '🏦',
+            color: 'from-green-600 to-teal-600',
+            benefits: [
+                'Direct Access to Homebuyers',
+                'Quick Documentation & API integration',
+                'Track Applications in Real-time',
+                'Higher Approval Conversion Rate',
+                'Flexible Commission Structure'
+            ]
+        }
     ];
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value,
-        }));
-        if (errors[name]) {
-            setErrors(prev => {
-                const newErrors = { ...prev };
-                delete newErrors[name];
-                return newErrors;
-            });
-        }
-    };
-
-    const validateForm = () => {
-        const newErrors: Record<string, string> = {};
-
-        if (!formData.firstName.trim()) newErrors.firstName = 'First name is required';
-        if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required';
-
-        if (!formData.phone.trim()) {
-            newErrors.phone = 'Phone number is required';
-        } else if (!/^\d{10}$/.test(formData.phone.replace(/\D/g, ''))) {
-            newErrors.phone = 'Please enter a valid 10-digit phone number';
-        }
-
-        if (!formData.email.trim()) {
-            newErrors.email = 'Email is required';
-        } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-            newErrors.email = 'Please enter a valid email address';
-        }
-
-        if (!formData.partnerType) {
-            newErrors.partnerType = 'Please select a partner type';
-        }
-
-        if (formData.partnerType === 'PROPERTY_PARTNER') {
-            if (!formData.organizationName.trim()) newErrors.organizationName = 'Organization name is required';
-            if (!formData.experience) newErrors.experience = 'Experience is required';
-        }
-
-        if (formData.partnerType === 'GROWTH_PARTNER') {
-            if (!formData.primaryPlatform) newErrors.primaryPlatform = 'Primary platform is required';
-            if (!formData.channelLink.trim()) newErrors.channelLink = 'Channel link is required';
-            if (!formData.followerCount) newErrors.followerCount = 'Follower count is required';
-        }
-
-        if (formData.partnerType === 'LOAN_PARTNER') {
-            if (!formData.loanTypes.trim()) newErrors.loanTypes = 'Please specify loan types you offer';
-            if (!formData.loanExperience) newErrors.loanExperience = 'Experience is required';
-        }
-
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
-
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-
-        if (!validateForm()) return;
-
-        setIsSubmitting(true);
-
-        try {
-            // Typically you would submit to a specific backend endpoint here:
-            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/public/partners/signup`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData),
-            });
-
-            // Even if the endpoint doesn't exist yet, we can pretend it succeeded for UX 
-            // or handle the error gracefully if it fails.
-            if (!response.ok) {
-                // Fallback for demo purposes since we don't know if the backend endpoint is fully wired up
-                console.warn('Backend endpoint may not exist yet, but showing success message anyway.');
-            }
-
-            setIsSuccess(true);
-            // Wait for 3 seconds then redirect
-            setTimeout(() => {
-                router.push('/');
-            }, 3000);
-        } catch (error: unknown) {
-            console.error('Signup error:', error);
-            // For demonstration, show success anyway to not block user flow until backend is complete
-            setIsSuccess(true);
-            setTimeout(() => {
-                router.push('/');
-            }, 3000);
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
     return (
-        <div className="min-h-screen bg-gray-50 flex flex-col">
+        <div className="min-h-screen bg-white">
             <Navbar />
 
-            <main className="flex-grow pt-8 pb-20">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            {/* Hero Section */}
+            <header className="relative pt-24 pb-16 overflow-hidden">
+                <div className="absolute inset-x-0 -top-40 -z-10 transform-gpu overflow-hidden blur-3xl sm:-top-80">
+                    <div className="relative left-[calc(50%-11rem)] aspect-[1155/678] w-[36.125rem] -translate-x-1/2 rotate-[30deg] bg-gradient-to-tr from-[#ff80b5] to-[#9089fc] opacity-20 sm:left-[calc(50%-30rem)] sm:w-[72.1875rem]"></div>
+                </div>
+                
+                <div className="max-w-7xl mx-auto px-6 lg:px-8 text-center">
+                    <h1 className="text-4xl md:text-6xl font-black text-slate-900 tracking-tight mb-6">
+                        Empowering the Future of <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600">
+                            Real Estate Partnerships
+                        </span>
+                    </h1>
+                    <p className="text-lg md:text-xl text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed">
+                        Join India's most tech-driven ecosystem. Whether you're a developer, a content creator, or a financial institution, we have the tools to help you scale.
+                    </p>
+                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+                        <a href="#roles" className="bg-slate-900 text-white px-8 py-4 rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-xl">
+                            Explore Roles
+                        </a>
+                        <Link href="/register" className="bg-white text-slate-900 border-2 border-slate-100 px-8 py-4 rounded-2xl font-bold hover:bg-slate-50 transition-all">
+                            Join Now
+                        </Link>
+                    </div>
+                </div>
+            </header>
 
-                    {/* Header Section */}
-                    <div className="text-center mb-12 mt-10">
-                        <div className="inline-block mb-4">
-                            <span className="bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold">
-                                Partnership Program
-                            </span>
-                        </div>
-                        <h1 className="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6">
-                            Grow with PropertyHub
-                        </h1>
-                        <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-                            Join India&apos;s fastest-growing real estate network. We collaborate with top professionals to deliver the best properties to home buyers. Find your fit and start earning today.
-                        </p>
+            {/* Feature Cards Section */}
+            <section id="roles" className="py-24 bg-slate-50">
+                <div className="max-w-7xl mx-auto px-6 lg:px-8">
+                    <div className="text-center mb-16">
+                        <h2 className="text-3xl font-extrabold text-slate-900 sm:text-4xl">Choose Your Partnership Path</h2>
+                        <p className="mt-4 text-lg text-slate-600">Click on any role to start your journey with us.</p>
                     </div>
 
-                    {/* Cards Section */}
-                    <div className="grid md:grid-cols-3 lg:grid-cols-3 max-w-5xl mx-auto gap-6 mb-16">
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
-                            <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mb-4 text-xl font-bold">
-                                1
-                            </div>
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">Property Partner</h3>
-                            <p className="text-gray-600 text-sm leading-relaxed">
-                                List your high-quality inventory with us. Gain access to thousands of pre-verified homebuyers instantly.
-                            </p>
-                        </div>
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
-                            <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-xl flex items-center justify-center mb-4 text-xl font-bold">
-                                2
-                            </div>
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">Growth Partner</h3>
-                            <p className="text-gray-600 text-sm leading-relaxed">
-                                Spread the word about PropertyHub. Partner with our brand for sponsored campaigns and affiliate rewards.
-                            </p>
-                        </div>
-                        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition">
-                            <div className="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center mb-4 text-xl font-bold">
-                                3
-                            </div>
-                            <h3 className="text-lg font-bold text-gray-900 mb-2">Loan Partner</h3>
-                            <p className="text-gray-600 text-sm leading-relaxed">
-                                Help our homebuyers secure the best home loan deals. Connect them with top lenders and earn referral commissions.
-                            </p>
-                        </div>
-                    </div>
-
-                    {/* Form Section */}
-                    <div className="max-w-3xl mx-auto bg-white rounded-2xl shadow-xl overflow-hidden">
-                        <div className="bg-gradient-to-r from-blue-700 to-indigo-800 py-8 px-10">
-                            <h2 className="text-2xl font-bold text-white mb-2">Partner Application Form</h2>
-                            <p className="text-blue-100">Fill in your details and our onboarding team will reach out to you within 24 hours.</p>
-                        </div>
-
-                        <div className="p-10">
-                            {isSuccess ? (
-                                <div className="text-center py-10">
-                                    <div className="w-20 h-20 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6">
-                                        <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-                                        </svg>
-                                    </div>
-                                    <h3 className="text-2xl font-bold text-gray-900 mb-2">Application Submitted!</h3>
-                                    <p className="text-gray-600 text-lg">Thank you for your interest. Redirecting you to the home page...</p>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        {partnerRoles.map((role) => (
+                            <div key={role.id} className="group flex flex-col bg-white rounded-3xl p-8 shadow-sm hover:shadow-2xl transition-all duration-300 border border-slate-100 h-full">
+                                <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${role.color} text-white flex items-center justify-center text-3xl mb-6 shadow-lg group-hover:scale-110 transition-transform`}>
+                                    {role.icon}
                                 </div>
-                            ) : (
-                                <form onSubmit={handleSubmit} className="space-y-6">
-                                    {errors.submit && (
-                                        <div className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-800 text-center font-medium">
-                                            {errors.submit}
+                                <h3 className="text-2xl font-black text-slate-900 mb-1">{role.title}</h3>
+                                <p className="text-xs font-bold text-blue-600 uppercase tracking-widest mb-4">{role.subtitle}</p>
+                                <p className="text-slate-600 text-sm leading-relaxed mb-6 flex-grow">
+                                    {role.description}
+                                </p>
+                                <div className="space-y-3 mb-8">
+                                    {role.benefits.map((benefit, i) => (
+                                        <div key={i} className="flex items-center gap-2 text-sm text-slate-500 font-medium">
+                                            <svg className="w-4 h-4 text-green-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                                            </svg>
+                                            {benefit}
                                         </div>
-                                    )}
+                                    ))}
+                                </div>
+                                <Link 
+                                    href={`/register?role=${role.id}`}
+                                    className={`w-full text-center py-4 rounded-xl text-white font-bold bg-gradient-to-r ${role.color} hover:brightness-110 transition-all active:scale-95`}
+                                >
+                                    Join as Partner
+                                </Link>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                                First Name <span className="text-red-500">*</span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="firstName"
-                                                value={formData.firstName}
-                                                onChange={handleChange}
-                                                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition ${errors.firstName ? 'border-red-400 focus:ring-red-500' : 'border-gray-200'}`}
-                                                placeholder="John"
-                                            />
-                                            {errors.firstName && <p className="mt-1 text-sm text-red-500">{errors.firstName}</p>}
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                                Last Name <span className="text-red-500">*</span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                name="lastName"
-                                                value={formData.lastName}
-                                                onChange={handleChange}
-                                                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition ${errors.lastName ? 'border-red-400 focus:ring-red-500' : 'border-gray-200'}`}
-                                                placeholder="Doe"
-                                            />
-                                            {errors.lastName && <p className="mt-1 text-sm text-red-500">{errors.lastName}</p>}
-                                        </div>
-                                    </div>
-
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                                Email Address <span className="text-red-500">*</span>
-                                            </label>
-                                            <input
-                                                type="email"
-                                                name="email"
-                                                value={formData.email}
-                                                onChange={handleChange}
-                                                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition ${errors.email ? 'border-red-400 focus:ring-red-500' : 'border-gray-200'}`}
-                                                placeholder="john@example.com"
-                                            />
-                                            {errors.email && <p className="mt-1 text-sm text-red-500">{errors.email}</p>}
-                                        </div>
-                                        <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                                Phone Number <span className="text-red-500">*</span>
-                                            </label>
-                                            <input
-                                                type="tel"
-                                                name="phone"
-                                                maxLength={10}
-                                                value={formData.phone}
-                                                onChange={handleChange}
-                                                className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition ${errors.phone ? 'border-red-400 focus:ring-red-500' : 'border-gray-200'}`}
-                                                placeholder="10-digit mobile number"
-                                            />
-                                            {errors.phone && <p className="mt-1 text-sm text-red-500">{errors.phone}</p>}
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-3">
-                                            Partnership Type <span className="text-red-500">*</span>
-                                        </label>
-                                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                                            {partnerTypes.map(type => (
-                                                <label
-                                                    key={type.id}
-                                                    className={`flex items-center p-4 border rounded-xl cursor-pointer transition-all duration-200 ${formData.partnerType === type.id
-                                                        ? 'border-blue-600 bg-blue-50 ring-1 ring-blue-600 shadow-sm'
-                                                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
-                                                        }`}
-                                                >
-                                                    <input
-                                                        type="radio"
-                                                        name="partnerType"
-                                                        value={type.id}
-                                                        checked={formData.partnerType === type.id}
-                                                        onChange={handleChange}
-                                                        className="w-5 h-5 text-blue-600 border-gray-300 focus:ring-blue-500 cursor-pointer"
-                                                    />
-                                                    <span className="ml-3 font-medium text-gray-900">{type.label}</span>
-                                                </label>
-                                            ))}
-                                        </div>
-                                        {errors.partnerType && <p className="mt-2 text-sm text-red-500">{errors.partnerType}</p>}
-                                    </div>
-
-                                    {formData.partnerType === 'PROPERTY_PARTNER' && (
-                                        <div className="bg-blue-50 p-6 rounded-xl border border-blue-100 space-y-6 animate-fade-in">
-                                            <h3 className="text-lg font-bold text-blue-900 border-b border-blue-200 pb-2">Property Partner Details</h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <div>
-                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                                        Organization / Company Name <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        name="organizationName"
-                                                        value={formData.organizationName}
-                                                        onChange={handleChange}
-                                                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition ${errors.organizationName ? 'border-red-400 focus:ring-red-500' : 'border-gray-200 bg-white'}`}
-                                                        placeholder="Your Agency Name"
-                                                    />
-                                                    {errors.organizationName && <p className="mt-1 text-sm text-red-500">{errors.organizationName}</p>}
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                                        RERA Registration No. (Optional)
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        name="reraRegistration"
-                                                        value={formData.reraRegistration}
-                                                        onChange={handleChange}
-                                                        className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition border-gray-200 bg-white"
-                                                        placeholder="RERA-1234..."
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                                        Years of Experience <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <select
-                                                        name="experience"
-                                                        value={formData.experience}
-                                                        onChange={handleChange}
-                                                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition ${errors.experience ? 'border-red-400 focus:ring-red-500' : 'border-gray-200 bg-white'}`}
-                                                    >
-                                                        <option value="">Select experience</option>
-                                                        <option value="0-2">0-2 years</option>
-                                                        <option value="3-5">3-5 years</option>
-                                                        <option value="5-10">5-10 years</option>
-                                                        <option value="10+">10+ years</option>
-                                                    </select>
-                                                    {errors.experience && <p className="mt-1 text-sm text-red-500">{errors.experience}</p>}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {formData.partnerType === 'GROWTH_PARTNER' && (
-                                        <div className="bg-purple-50 p-6 rounded-xl border border-purple-100 space-y-6 animate-fade-in">
-                                            <h3 className="text-lg font-bold text-purple-900 border-b border-purple-200 pb-2">Growth Partner Details</h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <div>
-                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                                        Primary Platform <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <select
-                                                        name="primaryPlatform"
-                                                        value={formData.primaryPlatform}
-                                                        onChange={handleChange}
-                                                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none transition ${errors.primaryPlatform ? 'border-red-400 focus:ring-red-500' : 'border-gray-200 bg-white'}`}
-                                                    >
-                                                        <option value="">Select platform</option>
-                                                        <option value="Instagram">Instagram</option>
-                                                        <option value="YouTube">YouTube</option>
-                                                        <option value="Facebook">Facebook</option>
-                                                        <option value="Twitter/X">Twitter / X</option>
-                                                        <option value="LinkedIn">LinkedIn</option>
-                                                        <option value="Other">Other</option>
-                                                    </select>
-                                                    {errors.primaryPlatform && <p className="mt-1 text-sm text-red-500">{errors.primaryPlatform}</p>}
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                                        Follower/Subscriber Count <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <select
-                                                        name="followerCount"
-                                                        value={formData.followerCount}
-                                                        onChange={handleChange}
-                                                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none transition ${errors.followerCount ? 'border-red-400 focus:ring-red-500' : 'border-gray-200 bg-white'}`}
-                                                    >
-                                                        <option value="">Select count</option>
-                                                        <option value="<10k">Under 10,000</option>
-                                                        <option value="10k-50k">10,000 - 50,000</option>
-                                                        <option value="50k-100k">50,000 - 100,000</option>
-                                                        <option value="100k-500k">100,000 - 500,000</option>
-                                                        <option value="500k+">500,000+</option>
-                                                    </select>
-                                                    {errors.followerCount && <p className="mt-1 text-sm text-red-500">{errors.followerCount}</p>}
-                                                </div>
-                                                <div className="md:col-span-2">
-                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                                        Channel / Profile Link <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <input
-                                                        type="url"
-                                                        name="channelLink"
-                                                        value={formData.channelLink}
-                                                        onChange={handleChange}
-                                                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-purple-500 focus:outline-none transition ${errors.channelLink ? 'border-red-400 focus:ring-red-500' : 'border-gray-200 bg-white'}`}
-                                                        placeholder="https://instagram.com/yourhandle"
-                                                    />
-                                                    {errors.channelLink && <p className="mt-1 text-sm text-red-500">{errors.channelLink}</p>}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    {formData.partnerType === 'LOAN_PARTNER' && (
-                                        <div className="bg-green-50 p-6 rounded-xl border border-green-100 space-y-6 animate-fade-in">
-                                            <h3 className="text-lg font-bold text-green-900 border-b border-green-200 pb-2">Loan Partner Details</h3>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <div>
-                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                                        Bank / NBFC / Lender Name (Optional)
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        name="lenderName"
-                                                        value={formData.lenderName}
-                                                        onChange={handleChange}
-                                                        className="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition border-gray-200 bg-white"
-                                                        placeholder="e.g. HDFC Bank, SBI, LIC HFL"
-                                                    />
-                                                </div>
-                                                <div>
-                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                                        Years of Experience <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <select
-                                                        name="loanExperience"
-                                                        value={formData.loanExperience}
-                                                        onChange={handleChange}
-                                                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition ${errors.loanExperience ? 'border-red-400 focus:ring-red-500' : 'border-gray-200 bg-white'}`}
-                                                    >
-                                                        <option value="">Select experience</option>
-                                                        <option value="0-2">0-2 years</option>
-                                                        <option value="3-5">3-5 years</option>
-                                                        <option value="5-10">5-10 years</option>
-                                                        <option value="10+">10+ years</option>
-                                                    </select>
-                                                    {errors.loanExperience && <p className="mt-1 text-sm text-red-500">{errors.loanExperience}</p>}
-                                                </div>
-                                                <div className="md:col-span-2">
-                                                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                                        Loan Types Offered <span className="text-red-500">*</span>
-                                                    </label>
-                                                    <input
-                                                        type="text"
-                                                        name="loanTypes"
-                                                        value={formData.loanTypes}
-                                                        onChange={handleChange}
-                                                        className={`w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-green-500 focus:outline-none transition ${errors.loanTypes ? 'border-red-400 focus:ring-red-500' : 'border-gray-200 bg-white'}`}
-                                                        placeholder="e.g. Home Loan, Loan Against Property, Plot Loan"
-                                                    />
-                                                    {errors.loanTypes && <p className="mt-1 text-sm text-red-500">{errors.loanTypes}</p>}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    )}
-
-                                    <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-2">
-                                            Additional Details (Optional)
-                                        </label>
-                                        <textarea
-                                            name="details"
-                                            rows={4}
-                                            value={formData.details}
-                                            onChange={handleChange}
-                                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none transition resize-none"
-                                            placeholder="Tell us about your experience, company name, or how you plan to partner with us..."
-                                        ></textarea>
-                                    </div>
-
-                                    <button
-                                        type="submit"
-                                        disabled={isSubmitting}
-                                        className="w-full bg-blue-600 text-white font-bold py-4 rounded-xl hover:bg-blue-700 focus:ring-4 focus:ring-blue-200 transition-all duration-300 shadow-lg disabled:opacity-70 disabled:cursor-not-allowed mt-4 text-lg"
-                                    >
-                                        {isSubmitting ? (
-                                            <span className="flex items-center justify-center">
-                                                <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                </svg>
-                                                Submitting Application...
-                                            </span>
-                                        ) : (
-                                            'Submit Registration'
-                                        )}
-                                    </button>
-                                </form>
-                            )}
+            {/* Advantage Section */}
+            <section className="py-24 bg-white overflow-hidden">
+                <div className="max-w-7xl mx-auto px-6 lg:px-8">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+                        <div>
+                            <span className="text-blue-600 font-black tracking-widest text-xs uppercase">Platform Benefits</span>
+                            <h2 className="text-3xl md:text-5xl font-black text-slate-900 mt-4 mb-6 leading-tight">
+                                Why Industry Leaders <br /> Prefer PropertyHub
+                            </h2>
+                            <p className="text-slate-600 text-lg mb-10 leading-relaxed">
+                                Our platform is built by real estate professionals for real estate professionals. We've eliminated the friction in the ecosystem to help you focus on what you do best.
+                            </p>
+                            
+                            <dl className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-10">
+                                <div>
+                                    <dt className="text-lg font-bold text-slate-900">Advanced Dashboard</dt>
+                                    <dd className="mt-2 text-slate-500 text-sm">Real-time statistics, lead tracking, and revenue management all in one place.</dd>
+                                </div>
+                                <div>
+                                    <dt className="text-lg font-bold text-slate-900">Priority Support</dt>
+                                    <dd className="mt-2 text-slate-500 text-sm">Get dedicated relationship managers to help you navigate your partnership.</dd>
+                                </div>
+                                <div>
+                                    <dt className="text-lg font-bold text-slate-900">Verified Database</dt>
+                                    <dd className="mt-2 text-slate-500 text-sm">No cold calls. Access a database of users actively looking for property solutions.</dd>
+                                </div>
+                                <div>
+                                    <dt className="text-lg font-bold text-slate-900">AI Matching</dt>
+                                    <dd className="mt-2 text-slate-500 text-sm">Our AI matches properties with buyer profiles for significantly higher conversion.</dd>
+                                </div>
+                            </dl>
+                        </div>
+                        
+                        <div className="relative">
+                            <div className="bg-slate-100 rounded-3xl aspect-square overflow-hidden shadow-inner flex items-center justify-center text-8xl grayscale opacity-50">
+                                📸
+                            </div>
+                            <div className="absolute -bottom-6 -left-6 bg-white p-6 rounded-3xl shadow-2xl border border-slate-100">
+                                <div className="text-3xl font-black text-slate-900">95%</div>
+                                <div className="text-xs text-slate-500 font-bold uppercase tracking-widest">Client Satisfaction</div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </main>
+            </section>
+
+            {/* How it Works Section */}
+            <section className="py-24 bg-slate-900 text-white">
+                <div className="max-w-7xl mx-auto px-6 lg:px-8">
+                    <div className="text-center mb-16">
+                        <h2 className="text-3xl font-black md:text-5xl">Simple Onboarding Process</h2>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-12 relative">
+                        {/* Connecting Line (Desktop) */}
+                        <div className="hidden md:block absolute top-10 left-[20%] right-[20%] h-0.5 bg-slate-800 -z-0"></div>
+                        
+                        {[
+                            { step: '01', title: 'Choose & Apply', desc: 'Select your role and fill in your professional details.' },
+                            { step: '02', title: 'Email Verification', desc: 'Verify your identity through our secure token-based process.' },
+                            { step: '03', title: 'Start Scaling', desc: 'Access your dashboard and start listing or earning instantly.' }
+                        ].map((item, i) => (
+                            <div key={i} className="relative z-10 text-center">
+                                <div className="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center text-2xl font-black text-blue-500 mx-auto mb-6 border-4 border-slate-900">
+                                    {item.step}
+                                </div>
+                                <h3 className="text-xl font-bold mb-3">{item.title}</h3>
+                                <p className="text-slate-400 text-sm leading-relaxed">{item.desc}</p>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Final CTA */}
+            <section className="py-32 bg-white relative overflow-hidden">
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03]">
+                    <h2 className="text-[20rem] font-black uppercase text-slate-900 select-none">JOIN</h2>
+                </div>
+                <div className="max-w-4xl mx-auto px-6 lg:px-8 text-center relative z-10">
+                    <h2 className="text-4xl md:text-6xl font-black text-slate-900 mb-8 leading-tight">
+                        Ready to Transform Your <br /> Property Business?
+                    </h2>
+                    <Link href="/register" className="inline-block bg-blue-600 text-white px-12 py-5 rounded-3xl font-bold text-xl hover:bg-blue-700 transition-all hover:scale-105 shadow-2xl shadow-blue-200">
+                        Become a Partner Today
+                    </Link>
+                    <p className="mt-8 text-slate-400 text-sm font-medium">Free to join. No hidden setup fees.</p>
+                </div>
+            </section>
+
+            <footer className="py-12 border-t border-slate-100 bg-slate-50">
+                <div className="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
+                    <div className="font-black text-2xl text-slate-800 tracking-tight">PropertyHub</div>
+                    <p className="text-slate-400 text-sm">© {new Date().getFullYear()} PropertyHub. All rights reserved.</p>
+                </div>
+            </footer>
         </div>
     );
 }
