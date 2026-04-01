@@ -43,6 +43,7 @@ export default function Navbar() {
                         <Link href="/#why" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Why Us</Link>
 
                         <Link href="/reels" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Reels</Link>
+                        <Link href="/partners" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Partner with Us</Link>
                         <Link href="/search" className="text-gray-600 hover:text-gray-900 text-sm font-medium">Search</Link>
                     </div>
                     <div className="flex items-center gap-3">
@@ -162,6 +163,7 @@ export default function Navbar() {
                         <Link href="/#why" onClick={() => setIsMobileMenuOpen(false)} className="block px-2 py-2 text-gray-600 hover:text-gray-900 text-sm font-medium hover:bg-gray-50 rounded-md">Why Us</Link>
 
                         <Link href="/reels" onClick={() => setIsMobileMenuOpen(false)} className="block px-2 py-2 text-gray-600 hover:text-gray-900 text-sm font-medium hover:bg-gray-50 rounded-md">Reels</Link>
+                        <Link href="/partners" onClick={() => setIsMobileMenuOpen(false)} className="block px-2 py-2 text-gray-600 hover:text-gray-900 text-sm font-medium hover:bg-gray-50 rounded-md">Partner with Us</Link>
                         <Link href="/search" onClick={() => setIsMobileMenuOpen(false)} className="block px-2 py-2 text-gray-600 hover:text-gray-900 text-sm font-medium hover:bg-gray-50 rounded-md">Search</Link>
                     </div>
                 )}
