@@ -145,11 +145,11 @@ export class UsersService {
 
         // Create/find organization if business info provided for specific roles
         let organizationId = dto.organizationId ?? null;
-        const needsOrg = dto.roles.includes(UserRole.PROPERTY_PARTNER);
+        const needsOrg = dto.roles.includes(UserRole.PROPERTY_PARTNER) || dto.roles.includes(UserRole.GROWTH_PARTNER as UserRole);
         const hasBusinessInfo = dto.companyName;
 
         if (needsOrg && hasBusinessInfo && !organizationId) {
-            const orgType = OrganizationType.PROPERTY_PARTNER;
+            const orgType = dto.roles.includes(UserRole.PROPERTY_PARTNER) ? OrganizationType.PROPERTY_PARTNER : OrganizationType.GROWTH_PARTNER;
             const org = await this.prisma.organization.create({
                 data: {
                     name: (dto.companyName || dto.agencyName) as string,
@@ -310,7 +310,7 @@ export class UsersService {
             
             // Check if profile is considered 'complete' (basic heuristic)
             let hasProfile = false;
-            if (role === 'PROPERTY_PARTNER') {
+            if (role === 'PROPERTY_PARTNER' || role === 'GROWTH_PARTNER') {
                 hasProfile = !!user.organizationId;
             } else if (role === 'BUYER') {
                 hasProfile = true; // Buyers usually don't need much
@@ -363,8 +363,8 @@ export class UsersService {
             }
         });
 
-        // Property Partner — sync key fields to Organization as well
-        if (normalizedRoles.includes(UserRole.PROPERTY_PARTNER)) {
+        // Property Partner & Growth Partner — sync key fields to Organization as well
+        if (normalizedRoles.includes(UserRole.PROPERTY_PARTNER) || normalizedRoles.includes(UserRole.GROWTH_PARTNER)) {
             const orgData: any = {};
             if (incoming.companyName) orgData.name = incoming.companyName;
             if (incoming.companyAddress) orgData.address = incoming.companyAddress;
@@ -375,8 +375,9 @@ export class UsersService {
                 if (user.organizationId) {
                     await this.prisma.organization.update({ where: { id: user.organizationId }, data: orgData });
                 } else {
+                    const orgType = normalizedRoles.includes(UserRole.PROPERTY_PARTNER) ? OrganizationType.PROPERTY_PARTNER : OrganizationType.GROWTH_PARTNER;
                     const org = await this.prisma.organization.create({
-                        data: { name: incoming.companyName || 'New Company', type: OrganizationType.PROPERTY_PARTNER as any, ...orgData },
+                        data: { name: incoming.companyName || 'New Company', type: orgType as any, ...orgData },
                     });
                     await this.prisma.user.update({ where: { id: user.id }, data: { organizationId: org.id } });
                 }
