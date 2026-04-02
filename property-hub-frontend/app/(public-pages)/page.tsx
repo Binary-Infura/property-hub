@@ -335,8 +335,8 @@ export default function Home() {
             <div>
               <h5 className="font-bold text-gray-900 mb-8 uppercase tracking-[0.2em] text-[10px]">Legal</h5>
               <ul className="space-y-4 text-gray-500 font-light">
-                <li><a href="#" className="hover:text-blue-600 transition-colors">Privacy</a></li>
-                <li><a href="#" className="hover:text-blue-600 transition-colors">Terms</a></li>
+                <li><a href="/privacy" className="hover:text-blue-600 transition-colors">Privacy</a></li>
+                <li><a href="/terms" className="hover:text-blue-600 transition-colors">Terms</a></li>
               </ul>
             </div>
           </div>

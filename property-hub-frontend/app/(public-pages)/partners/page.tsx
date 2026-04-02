@@ -216,6 +216,10 @@ export default function PartnersPage() {
             <footer className="py-12 border-t border-slate-100 bg-slate-50">
                 <div className="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
                     <div className="font-black text-2xl text-slate-800 tracking-tight">PropertyHub</div>
+                    <div className="flex gap-8 text-sm text-slate-400">
+                        <Link href="/privacy" className="hover:text-blue-600 transition-colors">Privacy</Link>
+                        <Link href="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>
+                    </div>
                     <p className="text-slate-400 text-sm">© {new Date().getFullYear()} PropertyHub. All rights reserved.</p>
                 </div>
             </footer>
