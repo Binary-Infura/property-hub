@@ -541,15 +541,15 @@ async function main() {
 
     // --- 15. Activity Logs ---
     console.log('   Creating Activity Logs...');
-    const existingActivity = await prisma.activityLog.findFirst({ where: { userId: superUser.id, action: 'APPROVE', target: projects[0].id } });
+    const existingActivity = await prisma.activityLog.findFirst({ where: { userId: superUser.id, action: 'APPROVE', target: projects[0].name } });
     if (!existingActivity) {
         await prisma.activityLog.create({
             data: {
                 userId: superUser.id,
                 type: 'PROJECT',
                 action: 'APPROVE',
-                target: projects[0].id,
-                details: { reason: 'All documents verified' },
+                target: projects[0].name,
+                details: { projectId: projects[0].id, reason: 'All documents verified' },
             }
         });
     }

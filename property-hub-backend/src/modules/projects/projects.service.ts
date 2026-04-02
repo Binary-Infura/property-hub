@@ -247,6 +247,23 @@ export class ProjectsService {
             },
         });
 
+        // Log the change if status was updated
+        if (updateProjectDto.status && updateProjectDto.status !== (project as any).status) {
+            const internalUser = await this.usersService.ensureUserSynced(user);
+            await this.activityLogsService.log({
+                userId: internalUser.id,
+                type: 'PROJECT',
+                action: updateProjectDto.status === 'APPROVED' ? 'APPROVE' : 
+                        updateProjectDto.status === 'REJECTED' ? 'REJECT' : 'Status Updated',
+                target: projectAfter.name,
+                details: { 
+                    projectId: projectAfter.id, 
+                    previousStatus: (project as any).status,
+                    newStatus: projectAfter.status 
+                }
+            });
+        }
+
         return this.applyPresignedUrls(projectAfter);
     }
 

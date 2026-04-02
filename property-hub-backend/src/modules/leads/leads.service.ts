@@ -231,10 +231,10 @@ export class LeadsService {
     }
 
     async update(id: string, updateLeadDto: UpdateLeadDto, user: AuthenticatedUser): Promise<Lead> {
-        await this.findOne(id, user);
+        const lead = await this.findOne(id, user);
         const { projectId, campaignId, assignedTo, ...data } = updateLeadDto;
 
-        return this.prisma.lead.update({
+        const updatedLead = await this.prisma.lead.update({
             where: { id },
             data: {
                 ...data,
@@ -247,6 +247,23 @@ export class LeadsService {
                 campaign: true,
             },
         });
+
+        // Log status change
+        if (updateLeadDto.status && updateLeadDto.status !== lead.status) {
+            await this.activityLogsService.log({
+                userId: user.userId,
+                type: 'LEAD',
+                action: 'Status Updated',
+                target: updatedLead.name,
+                details: { 
+                    leadId: updatedLead.id, 
+                    previousStatus: lead.status, 
+                    newStatus: updatedLead.status 
+                }
+            });
+        }
+
+        return updatedLead;
     }
 
     async remove(id: string, user: AuthenticatedUser): Promise<Lead> {

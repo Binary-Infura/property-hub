@@ -7,7 +7,7 @@ export class ActivityLogsService {
 
     async log(data: {
         userId?: string;
-        type: 'info' | 'alert' | 'warning';
+        type: 'info' | 'alert' | 'warning' | string;
         action: string;
         target: string;
         details?: any;
