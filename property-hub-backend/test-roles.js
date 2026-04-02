@@ -11,8 +11,8 @@ const testCases = [
   { roles: [UserRole.CENTRAL_AUTHORITY, UserRole.BUYER], expected: false },
   { roles: [UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER], expected: true },
   { roles: [UserRole.GROWTH_PARTNER, UserRole.LOAN_PARTNER], expected: false },
-  { roles: [UserRole.BROKER, UserRole.CONSULTANT], expected: true },
-  { roles: [UserRole.BUYER, UserRole.BROKER], expected: true },
+  { roles: [UserRole.BROKER, UserRole.CONSULTANT], expected: false },
+  { roles: [UserRole.BUYER, UserRole.BROKER], expected: false },
 ];
 
 testCases.forEach((tc, i) => {
