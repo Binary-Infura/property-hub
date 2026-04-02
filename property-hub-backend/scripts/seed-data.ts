@@ -105,6 +105,22 @@ async function main() {
         }
     });
 
+    const growthOrg = await prisma.organization.upsert({
+        where: { id: 'growth-partner-org-id' },
+        update: {},
+        create: {
+            id: 'growth-partner-org-id',
+            name: 'Growth Partners',
+            type: OrganizationType.GROWTH_PARTNER,
+            email: 'contact@growthpartners.com',
+            phone: '+919988776655',
+            address: 'Innovation Hub, Pune',
+            isActive: true,
+            isPremium: true,
+            subscriptionMode: SubscriptionMode.PAID,
+        }
+    });
+
     // --- 4. Users ---
     console.log('   Creating Users based on test-users-credentials.md...');
     const users: any[] = [];
@@ -140,9 +156,8 @@ async function main() {
         { role: UserRole.PROPERTY_PARTNER, email: 'property_partner@propertyhub.com', f: 'Property', l: 'Partner', orgId: prestigeOrg.id },
         { role: UserRole.BUYER, email: 'buyer@propertyhub.com', f: 'Test', l: 'Buyer' },
         { role: UserRole.CONSULTANT, email: 'consultant@propertyhub.com', f: 'Test', l: 'Consultant' },
-        { role: UserRole.INFLUENCER, email: 'influencer@propertyhub.com', f: 'Test', l: 'Influencer' },
-        { role: UserRole.MARKETING_MANAGER, email: 'marketing_manager@propertyhub.com', f: 'Marketing', l: 'Manager' },
         { role: UserRole.LOAN_PARTNER, email: 'loan_partner@propertyhub.com', f: 'Loan', l: 'Partner' },
+        { role: UserRole.GROWTH_PARTNER, email: 'growth_partner@propertyhub.com', f: 'Growth', l: 'Partner', orgId: growthOrg.id },
         { role: UserRole.BROKER, email: 'broker@propertyhub.com', f: 'Test', l: 'Broker' },
         { role: UserRole.VISIT_EXECUTIVE, email: 'visit_executive@propertyhub.com', f: 'Visit', l: 'Executive' },
         { role: UserRole.CENTRAL_AUTHORITY, email: 'onboarding_manager@propertyhub.com', f: 'Onboarding', l: 'Manager' },
@@ -181,6 +196,7 @@ async function main() {
     console.log('   Creating Projects...');
     const projectsData = [
         {
+            id: 'f8b47853-f1ed-445f-a3f2-2812f563dd99',
             name: 'Prestige Falcon City',
             description: 'Luxury residential project with world-class amenities.',
             addressRecord: {
@@ -205,6 +221,7 @@ async function main() {
             highlights: ['Near Metro', 'Premium Finishes', 'Forest View'],
         },
         {
+            id: 'a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d',
             name: 'Prestige High Fields',
             description: 'Modern apartments in the heart of the business district.',
             addressRecord: {
@@ -226,6 +243,7 @@ async function main() {
             totalUnits: 1200,
         },
         {
+            id: '9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d',
             name: 'Worli Sky Villa',
             description: 'Ultra-luxurious sea facing villas.',
             addressRecord: {

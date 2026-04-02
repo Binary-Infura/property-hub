@@ -7,11 +7,13 @@ import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import { propertyService, Property } from '@/app/services/propertyService';
 import { userService, User } from '@/app/services/userService';
 import { marketingService } from '@/app/services/marketingService';
+import { otpService } from '@/app/services/otpService';
 import { reelService, Reel } from '@/app/services/reelService';
 import { useConsultingBucket } from '@/app/contexts/ConsultingBucketContext';
 import Link from 'next/link';
 import ReelCard from '@/app/components/ReelCard';
 import GoogleMap from '@/app/components/GoogleMap';
+import OtpInput from '@/app/components/OtpInput';
 
 export default function PropertyDetailPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter();
@@ -93,9 +95,42 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [submitSuccess, setSubmitSuccess] = useState(false);
     const [submitError, setSubmitError] = useState('');
+    const [step, setStep] = useState(0); // 0: Details, 1: OTP
+    const [otpValue, setOtpValue] = useState('');
+    const [resendTimer, setResendTimer] = useState(0);
+
+    const startResendTimer = () => {
+        setResendTimer(30);
+        const timer = setInterval(() => {
+            setResendTimer((prev) => {
+                if (prev <= 1) {
+                    clearInterval(timer);
+                    return 0;
+                }
+                return prev - 1;
+            });
+        }, 1000);
+    };
 
     const handleInquireSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setIsSubmitting(true);
+        setSubmitError('');
+        
+        // Step 1: Send OTP
+        const result = await otpService.sendOtp(formData.phone, formData.email || undefined);
+        if (result.success) {
+            setStep(1);
+            startResendTimer();
+        } else {
+            setSubmitError(result.error || 'Failed to send OTP. Please try again.');
+        }
+        setIsSubmitting(false);
+    };
+
+    const handleOtpVerifyAndSubmit = async () => {
+        if (otpValue.length < 4) return;
+        
         setIsSubmitting(true);
         setSubmitError('');
         try {
@@ -107,18 +142,34 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                 source: 'Property Page Inquiry',
                 assignedTo: owner?.id,
                 notes: formData.message || `Inquiry for ${property?.name}`,
+                otp: otpValue,
             });
             setSubmitSuccess(true);
             setTimeout(() => {
                 setIsModalOpen(false);
                 setSubmitSuccess(false);
                 setFormData({ name: '', email: '', phone: '', message: '' });
+                setStep(0);
+                setOtpValue('');
             }, 3000);
         } catch (error: any) {
-            setSubmitError('Failed to submit your inquiry. Please try again.');
+            setSubmitError(error.message || 'OTP verification failed. Please try again.');
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    const handleResendOtp = async () => {
+        if (resendTimer > 0) return;
+        setIsSubmitting(true);
+        setSubmitError('');
+        const result = await otpService.sendOtp(formData.phone, formData.email || undefined);
+        if (result.success) {
+            startResendTimer();
+        } else {
+            setSubmitError(result.error || 'Failed to resend OTP.');
+        }
+        setIsSubmitting(false);
     };
 
     useEffect(() => {
@@ -588,61 +639,106 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
                                     </div>
                                 )}
 
-                                <form onSubmit={handleInquireSubmit} className="space-y-5">
-                                    <div>
-                                        <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 pl-4">Full Name</label>
-                                        <input
-                                            type="text"
-                                            required
-                                            value={formData.name}
-                                            onChange={e => setFormData({ ...formData, name: e.target.value })}
-                                            className="w-full bg-slate-50 border border-slate-100 text-slate-900 px-6 py-4 rounded-2xl font-bold focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 transition-all"
-                                            placeholder="John Doe"
-                                        />
+                                {step === 0 ? (
+                                    <form onSubmit={handleInquireSubmit} className="space-y-5">
+                                        <div>
+                                            <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 pl-4">Full Name</label>
+                                            <input
+                                                type="text"
+                                                required
+                                                value={formData.name}
+                                                onChange={e => setFormData({ ...formData, name: e.target.value })}
+                                                className="w-full bg-slate-50 border border-slate-100 text-slate-900 px-6 py-4 rounded-2xl font-bold focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 transition-all"
+                                                placeholder="John Doe"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 pl-4">Phone Number</label>
+                                            <input
+                                                type="tel"
+                                                required
+                                                value={formData.phone}
+                                                onChange={e => setFormData({ ...formData, phone: e.target.value })}
+                                                className="w-full bg-slate-50 border border-slate-100 text-slate-900 px-6 py-4 rounded-2xl font-bold focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 transition-all"
+                                                placeholder="+91 9876543210"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 pl-4">Email Address (Optional)</label>
+                                            <input
+                                                type="email"
+                                                value={formData.email}
+                                                onChange={e => setFormData({ ...formData, email: e.target.value })}
+                                                className="w-full bg-slate-50 border border-slate-100 text-slate-900 px-6 py-4 rounded-2xl font-bold focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 transition-all"
+                                                placeholder="john@example.com"
+                                            />
+                                        </div>
+                                        <div>
+                                            <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 pl-4">Message (Optional)</label>
+                                            <textarea
+                                                value={formData.message}
+                                                onChange={e => setFormData({ ...formData, message: e.target.value })}
+                                                className="w-full bg-slate-50 border border-slate-100 text-slate-900 px-6 py-4 rounded-2xl font-bold focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 transition-all resize-none h-24"
+                                                placeholder="I would like to know more about this property..."
+                                            ></textarea>
+                                        </div>
+                                        <button
+                                            type="submit"
+                                            disabled={isSubmitting}
+                                            className="w-full mt-4 py-5 bg-indigo-600 text-white rounded-2xl font-black text-lg tracking-tight shadow-xl shadow-indigo-200 hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3"
+                                        >
+                                            {isSubmitting ? (
+                                                <>
+                                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                    Sending OTP...
+                                                </>
+                                            ) : 'Next Step'}
+                                        </button>
+                                    </form>
+                                ) : (
+                                    <div className="space-y-8 py-4 animate-in fade-in slide-in-from-right-4 duration-500">
+                                        <div className="text-center">
+                                            <p className="text-slate-500 font-bold mb-2">Verification code sent to</p>
+                                            <p className="text-slate-900 font-black text-xl">{formData.phone}</p>
+                                            <button 
+                                                onClick={() => setStep(0)} 
+                                                className="text-indigo-600 text-[11px] font-black uppercase tracking-widest mt-2 hover:underline"
+                                            >
+                                                Change Number
+                                            </button>
+                                        </div>
+
+                                        <OtpInput length={4} onComplete={setOtpValue} disabled={isSubmitting} />
+
+                                        <div className="space-y-4">
+                                            <button
+                                                onClick={handleOtpVerifyAndSubmit}
+                                                disabled={isSubmitting || otpValue.length < 4}
+                                                className="w-full py-5 bg-emerald-600 text-white rounded-2xl font-black text-lg tracking-tight shadow-xl shadow-emerald-200 hover:bg-emerald-700 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3"
+                                            >
+                                                {isSubmitting ? (
+                                                    <>
+                                                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                                        Verifying...
+                                                    </>
+                                                ) : 'Verify & Submit Inquiry'}
+                                            </button>
+
+                                            <div className="text-center">
+                                                {resendTimer > 0 ? (
+                                                    <p className="text-slate-400 font-bold text-sm">Resend code in <span className="text-slate-900">{resendTimer}s</span></p>
+                                                ) : (
+                                                    <button
+                                                        onClick={handleResendOtp}
+                                                        className="text-indigo-600 font-black text-sm hover:underline"
+                                                    >
+                                                        Resend Verification Code
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
                                     </div>
-                                    <div>
-                                        <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 pl-4">Phone Number</label>
-                                        <input
-                                            type="tel"
-                                            required
-                                            value={formData.phone}
-                                            onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                                            className="w-full bg-slate-50 border border-slate-100 text-slate-900 px-6 py-4 rounded-2xl font-bold focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 transition-all"
-                                            placeholder="+91 9876543210"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 pl-4">Email Address (Optional)</label>
-                                        <input
-                                            type="email"
-                                            value={formData.email}
-                                            onChange={e => setFormData({ ...formData, email: e.target.value })}
-                                            className="w-full bg-slate-50 border border-slate-100 text-slate-900 px-6 py-4 rounded-2xl font-bold focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 transition-all"
-                                            placeholder="john@example.com"
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-[11px] font-black text-slate-400 uppercase tracking-widest mb-2 pl-4">Message (Optional)</label>
-                                        <textarea
-                                            value={formData.message}
-                                            onChange={e => setFormData({ ...formData, message: e.target.value })}
-                                            className="w-full bg-slate-50 border border-slate-100 text-slate-900 px-6 py-4 rounded-2xl font-bold focus:outline-none focus:ring-4 focus:ring-indigo-50 focus:border-indigo-400 transition-all resize-none h-24"
-                                            placeholder="I would like to know more about this property..."
-                                        ></textarea>
-                                    </div>
-                                    <button
-                                        type="submit"
-                                        disabled={isSubmitting}
-                                        className="w-full mt-4 py-5 bg-indigo-600 text-white rounded-2xl font-black text-lg tracking-tight shadow-xl shadow-indigo-200 hover:bg-indigo-700 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed transition-all flex items-center justify-center gap-3"
-                                    >
-                                        {isSubmitting ? (
-                                            <>
-                                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                                Submitting...
-                                            </>
-                                        ) : 'Send Inquiry'}
-                                    </button>
-                                </form>
+                                )}
                             </>
                         )}
                     </div>

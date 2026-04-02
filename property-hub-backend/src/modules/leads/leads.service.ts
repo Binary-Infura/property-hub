@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { MailService } from '../mail/mail.service';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
+import { OtpService } from '../otp/otp.service';
 import axios from 'axios';
 
 @Injectable()
@@ -20,6 +21,7 @@ export class LeadsService {
         private whatsappService: WhatsappService,
         private mailService: MailService,
         private activityLogsService: ActivityLogsService,
+        private otpService: OtpService,
     ) { }
 
     async findAll(user: AuthenticatedUser): Promise<Lead[]> {
@@ -159,18 +161,60 @@ export class LeadsService {
 
     async create(createLeadDto: CreateLeadDto): Promise<Lead> {
         try {
-            const { projectId, campaignId, assignedTo, ...data } = createLeadDto;
+            const { projectId, campaignId, assignedTo, otp, ...data } = createLeadDto;
 
+            let buyerId: string | undefined;
+
+            // 1. Verify OTP if provided
+            if (otp) {
+                await this.otpService.verifyOtp({
+                    phone: data.phone,
+                    email: data.email,
+                    code: otp,
+                });
+
+                // 2. Auto-signup/Link to User
+                // Check if user exists by phone or email
+                let user = await this.prisma.user.findFirst({
+                    where: {
+                        OR: [
+                            { phone: data.phone },
+                            data.email ? { email: data.email } : null,
+                        ].filter(Boolean) as any,
+                    },
+                });
+
+                if (!user) {
+                    // Create new BUYER user
+                    user = await this.prisma.user.create({
+                        data: {
+                            email: data.email || `${data.phone}@propertyhub.com`, // Fallback email
+                            phone: data.phone,
+                            firstName: data.name.split(' ')[0],
+                            lastName: data.name.split(' ').slice(1).join(' ') || '',
+                            roles: [UserRole.BUYER],
+                            activeRole: UserRole.BUYER,
+                            status: 'ACTIVE' as any,
+                        },
+                    });
+                }
+
+                buyerId = user.id;
+            }
+
+            // 3. Create Lead
             return await this.prisma.lead.create({
                 data: {
                     ...data,
                     project: projectId ? { connect: { id: projectId } } : undefined,
                     campaign: campaignId ? { connect: { id: campaignId } } : undefined,
                     assignedToUser: assignedTo ? { connect: { id: assignedTo } } : undefined,
+                    buyer: buyerId ? { connect: { id: buyerId } } : undefined,
                 },
                 include: {
                     project: true,
                     campaign: true,
+                    buyer: true,
                 },
             });
         } catch (error) {

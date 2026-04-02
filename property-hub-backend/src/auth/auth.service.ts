@@ -3,13 +3,15 @@ import { JwtService } from '@nestjs/jwt';
 import { PrismaService } from '../database/prisma.service';
 import * as bcrypt from 'bcrypt';
 import { UserRole } from '../common/enums/role.enum';
-import { LoginDto } from './auth.dto';
+import { LoginDto, LoginOtpDto, ResetPasswordDto } from './auth.dto';
+import { OtpService } from '../modules/otp/otp.service';
 
 @Injectable()
 export class AuthService {
     constructor(
         private prisma: PrismaService,
         private jwtService: JwtService,
+        private otpService: OtpService,
     ) { }
 
     async validateUser(email: string, pass: string): Promise<any> {
@@ -39,6 +41,41 @@ export class AuthService {
             throw new UnauthorizedException('Invalid credentials');
         }
 
+        return this.generateToken(user);
+    }
+
+    async loginWithOtp(dto: LoginOtpDto) {
+        // 1. Verify OTP
+        await this.otpService.verifyOtp({
+            phone: dto.phone,
+            email: dto.email,
+            code: dto.code,
+        });
+
+        // 2. Find user
+        const user = await this.prisma.user.findFirst({
+            where: {
+                OR: [
+                    dto.phone ? { phone: dto.phone } : null,
+                    dto.email ? { email: dto.email } : null,
+                ].filter(Boolean) as any,
+            },
+        });
+
+        if (!user) {
+            throw new UnauthorizedException('User not found. Please enquiry or register first.');
+        }
+
+        // 3. Block specific roles if needed (same as validateUser)
+        if (user.roles && (user.roles.includes(UserRole.VISIT_EXECUTIVE as any) || user.roles.includes(UserRole.BROKER as any))) {
+            const blockedRole = user.roles.includes(UserRole.BROKER as any) ? 'Brokers' : 'Visit Executives';
+            throw new UnauthorizedException(`${blockedRole} do not have login access`);
+        }
+
+        return this.generateToken(user);
+    }
+
+    private async generateToken(user: any) {
         // Ensure user has an activeRole to prevent redirection/authorization issues
         let effectiveActiveRole = user.activeRole;
         if (!effectiveActiveRole && user.roles && user.roles.length > 0) {
@@ -105,5 +142,37 @@ export class AuthService {
                 activeRole: updatedUser.activeRole,
             },
         };
+    }
+
+    async resetPassword(dto: ResetPasswordDto) {
+        // 1. Verify OTP
+        await this.otpService.verifyOtp({
+            phone: dto.phone,
+            email: dto.email,
+            code: dto.code,
+        });
+
+        // 2. Find user
+        const user = await this.prisma.user.findFirst({
+            where: {
+                OR: [
+                    dto.phone ? { phone: dto.phone } : null,
+                    dto.email ? { email: dto.email } : null,
+                ].filter(Boolean) as any,
+            },
+        });
+
+        if (!user) {
+            throw new UnauthorizedException('User not found');
+        }
+
+        // 3. Update password
+        const passwordHash = await bcrypt.hash(dto.newPassword, 10);
+        await this.prisma.user.update({
+            where: { id: user.id },
+            data: { passwordHash },
+        });
+
+        return { success: true, message: 'Password reset successfully' };
     }
 }

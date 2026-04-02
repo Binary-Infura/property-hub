@@ -16,6 +16,7 @@ interface AuthContextType {
     activeRole: string | null;
     login: () => void;
     loginWithCredentials: (email: string, password: string) => Promise<{ success: boolean; error?: string }>;
+    loginWithOtp: (code: string, phone?: string, email?: string) => Promise<{ success: boolean; error?: string }>;
     logout: () => void;
     /**
      * Updates the stored token and syncs all derived state (user, roles, activeRole, cookie).
@@ -150,7 +151,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // ------------------------------------------------------------------
     const loginWithCredentials = async (email: string, pass: string): Promise<{ success: boolean; error?: string }> => {
         try {
-            const res = await fetch('/auth/login', {
+            const res = await fetch(`${API_URL}/auth/login`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password: pass }),
@@ -163,6 +164,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 return { success: true };
             }
             return { success: false, error: data.message || 'Invalid credentials' };
+        } catch {
+            return { success: false, error: 'Authentication server unavailable' };
+        }
+    };
+
+    const loginWithOtp = async (code: string, phone?: string, email?: string): Promise<{ success: boolean; error?: string }> => {
+        try {
+            const res = await fetch(`${API_URL}/auth/login-otp`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code, phone, email }),
+            });
+            const data = await res.json();
+            if (res.ok) {
+                hydrateFromToken(data.access_token);
+                setAuthenticated(true);
+                refreshProfileStatus(data.access_token);
+                return { success: true };
+            }
+            return { success: false, error: data.message || 'Invalid or expired OTP' };
         } catch {
             return { success: false, error: 'Authentication server unavailable' };
         }
@@ -234,6 +255,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 activeRole,
                 login,
                 loginWithCredentials,
+                loginWithOtp,
                 logout,
                 refreshAuthToken,
                 switchRole,

@@ -35,10 +35,10 @@ import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 import { MailModule } from './modules/mail/mail.module';
 import { InvitationsModule } from './modules/invitations/invitations.module';
 import { PaymentsModule } from './modules/payments/payments.module';
-import { OrganizationsModule } from './modules/organizations/organizations.module';
 import { TowersModule } from './modules/towers/towers.module';
 import { VisitsModule } from './modules/visits/visits.module';
 import { CallingModule } from './modules/calling/calling.module';
+import { OtpModule } from './modules/otp/otp.module';
 import { join } from 'path';
 
 @Module({
@@ -82,10 +82,9 @@ import { join } from 'path';
         MailModule,
         InvitationsModule,
         PaymentsModule,
-        OrganizationsModule,
         TowersModule,
-
         VisitsModule,
+        OtpModule,
         /*
         ServeStaticModule.forRoot({
             rootPath: join(__dirname, '..', 'uploads'),

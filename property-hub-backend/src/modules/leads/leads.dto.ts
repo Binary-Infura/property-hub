@@ -35,6 +35,10 @@ export class CreateLeadDto {
     @IsString()
     @IsOptional()
     notes?: string;
+
+    @IsString()
+    @IsOptional()
+    otp?: string;
 }
 
 export class UpdateLeadDto {

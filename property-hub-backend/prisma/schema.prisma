@@ -83,6 +83,7 @@ model User {
   invitationsSent   Invitation[]        @relation("UserInvites")
   paymentOrders     PaymentOrder[]      @relation("UserPaymentOrders")
   visitsAsExecutive Visit[]             @relation("VisitExecutiveVisits")
+  submittedLeads    Lead[]              @relation("BuyerLeads")
 
   @@index([email])
   @@index([activeRole])
@@ -195,6 +196,8 @@ model Lead {
   project        Project?           @relation(fields: [projectId], references: [id])
   loans          Loan[]
   visits         Visit[]
+  buyerId        String?
+  buyer          User?              @relation("BuyerLeads", fields: [buyerId], references: [id])
 
   @@index([status])
   @@index([assignedTo])
@@ -794,4 +797,19 @@ model WalletTransaction {
   @@index([organizationId])
   @@index([status])
   @@map("wallet_transactions")
+}
+
+model OneTimePassword {
+  id        String   @id @default(uuid())
+  phone     String?
+  email     String?
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([phone])
+  @@index([email])
+  @@index([code])
+  @@map("one_time_passwords")
 }
