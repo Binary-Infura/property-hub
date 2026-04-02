@@ -8,6 +8,7 @@ import * as crypto from 'crypto';
 import { InvitationStatus, UserStatus } from '@prisma/client';
 import { UsersService } from '../users/users.service';
 import { UserRole } from '../../common/enums/role.enum';
+import { validateRoleCombination } from '../../common/utils/role-validator.util';
 
 @Injectable()
 export class InvitationsService {
@@ -25,6 +26,11 @@ export class InvitationsService {
     try {
       if (!invitedById) {
         throw new BadRequestException('Inviter ID is required');
+      }
+
+      // Validate role combination
+      if (dto.roles) {
+        validateRoleCombination(dto.roles as UserRole[]);
       }
 
       const token = crypto.randomBytes(32).toString('hex');
@@ -64,6 +70,11 @@ export class InvitationsService {
 
   async publicSignup(dto: PublicPartnerSignupDto) {
     try {
+      // 0. Validate role combination
+      if (dto.roles) {
+        validateRoleCombination(dto.roles as UserRole[]);
+      }
+
       // 1. Check for existing user
       const existingUser = await this.prisma.user.findUnique({ where: { email: dto.email } });
       if (existingUser) {

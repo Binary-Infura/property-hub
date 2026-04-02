@@ -1,5 +1,6 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString, IsArray, IsEnum, MinLength, IsIn } from 'class-validator';
 import { UserRole } from '../../common/enums/role.enum';
+import { IsValidRoleCombination } from '../../common/decorators/is-valid-role-combination.decorator';
 
 export class CreateInvitationDto {
   @IsEmail()
@@ -12,6 +13,7 @@ export class CreateInvitationDto {
 
   @IsArray()
   @IsEnum(UserRole, { each: true })
+  @IsValidRoleCombination()
   @IsNotEmpty()
   roles: UserRole[];
 
@@ -85,6 +87,7 @@ export class PublicPartnerSignupDto {
 
   @IsArray()
   @IsEnum(UserRole, { each: true })
+  @IsValidRoleCombination()
   @IsNotEmpty()
   roles: UserRole[];
 

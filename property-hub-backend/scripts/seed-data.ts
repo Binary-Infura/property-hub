@@ -129,7 +129,7 @@ async function main() {
     const superUser = await prisma.user.upsert({
         where: { email: 'superuser@propertyhub.com' },
         update: { 
-            roles: Object.values(UserRole), 
+            roles: [UserRole.CENTRAL_AUTHORITY, UserRole.CONSULTANT, UserRole.GROWTH_PARTNER], 
             activeRole: UserRole.CENTRAL_AUTHORITY, 
             organizationId: platformOrg.id 
         },
@@ -137,7 +137,7 @@ async function main() {
             email: 'superuser@propertyhub.com',
             firstName: 'Super',
             lastName: 'Admin',
-            roles: Object.values(UserRole),
+            roles: [UserRole.CENTRAL_AUTHORITY, UserRole.CONSULTANT, UserRole.GROWTH_PARTNER],
             activeRole: UserRole.CENTRAL_AUTHORITY,
             status: UserStatus.ACTIVE,
             passwordHash,

@@ -16,6 +16,7 @@ import { OrganizationType } from '../../common/enums/organization-type.enum';
 import * as bcrypt from 'bcrypt';
 
 import { StorageService } from '../../common/services/storage.service';
+import { validateRoleCombination } from '../../common/utils/role-validator.util';
 
 @Injectable()
 export class UsersService {
@@ -71,8 +72,16 @@ export class UsersService {
         if (user) return user;
 
         const rawRoles = authenticatedUser.roles || [];
-        const normalizedRoles = rawRoles
+        let normalizedRoles = rawRoles
             .filter(r => Object.values(UserRole).includes(r as any)) as UserRole[];
+
+        // Safety: Ensure incoming roles don't violate rules
+        // If they do, we'll just keep the first one to be safe during sync
+        try {
+            validateRoleCombination(normalizedRoles);
+        } catch {
+            normalizedRoles = normalizedRoles.length > 0 ? [normalizedRoles[0]] : [];
+        }
 
         const fallbackRoles = normalizedRoles.length > 0 ? normalizedRoles : [UserRole.BUYER];
 
@@ -94,6 +103,11 @@ export class UsersService {
 
     async createUser(dto: CreateUserDto, currentUser?: AuthenticatedUser): Promise<User> {
         if (!dto.firstName) throw new BadRequestException('firstName must be provided');
+
+        // Validate role combination
+        if (dto.roles) {
+            validateRoleCombination(dto.roles as UserRole[]);
+        }
 
         const passwordHash = await this.hashPassword(dto.password || 'password');
 
@@ -118,6 +132,10 @@ export class UsersService {
         if (existingUser) {
             // Append new roles, ensuring uniqueness
             const updatedRoles = Array.from(new Set([...existingUser.roles, ...dto.roles]));
+            
+            // Validate consolidated roles
+            validateRoleCombination(updatedRoles as UserRole[]);
+            
             const activeRole = dto.activeRole || dto.roles[0] || existingUser.activeRole;
 
             const updatedUser = await this.prisma.user.update({
@@ -258,6 +276,11 @@ export class UsersService {
 
     async updateUser(id: string, dto: UpdateUserDto): Promise<User> {
         await this.findOne(id);
+
+        if (dto.roles) {
+            validateRoleCombination(dto.roles as UserRole[]);
+        }
+
         return this.prisma.user.update({
             where: { id },
             data: {
@@ -353,6 +376,9 @@ export class UsersService {
         if (!user) throw new NotFoundException('User not found');
 
         const normalizedRoles = roles as UserRole[];
+
+        // Validate current roles (just in case they are updated elsewhere)
+        validateRoleCombination(normalizedRoles);
 
         // Merge new fields into the existing profileData JSON
         const existing = (user.profileData as Record<string, any>) || {};
