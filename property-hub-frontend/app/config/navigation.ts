@@ -19,9 +19,9 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Loan Partners', href: '/dashboard/loan-partners', icon: 'bank' },
         { name: 'Visit Executives', href: '/dashboard/visit-executives', icon: 'car' },
         { name: 'Growth Partners', href: '/dashboard/growth-partners', icon: 'megaphone' },
-        { name: 'Reviews', href: '/dashboard/reviews', icon: 'star' },
         { name: 'Team Members', href: '/dashboard/team-members', icon: 'users' },
         { name: 'Wallet', href: '/dashboard/wallet', icon: 'money' },
+        { name: 'Reviews', href: '/dashboard/reviews', icon: 'star' },
     ],
     'GROWTH_PARTNER': [
         { name: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
