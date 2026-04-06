@@ -1,63 +1,86 @@
-import { IsString, IsNumber, IsOptional, IsEnum, IsUUID, Min } from 'class-validator';
-import { LoanStatus } from '@prisma/client';
+import { IsString, IsNumber, IsOptional, IsEnum, IsUUID, Min, IsArray } from 'class-validator';
+import { BuyerLoanStatus, ReviewStatus, BankStatus } from '@prisma/client';
 
-export class CreateLoanDto {
+// ─────────────────────────────────────────────
+// Flow 1: Buyer Loan Application DTOs
+// ─────────────────────────────────────────────
+
+export class CreateBuyerLoanApplicationDto {
     @IsUUID()
     leadId: string;
 
-    @IsUUID()
-    projectId: string;
-
-    @IsUUID()
-    bankId: string;
+    @IsNumber()
+    @Min(0)
+    loanAmount: number;
 
     @IsNumber()
     @Min(0)
-    amount: number;
+    @IsOptional()
+    eligibleAmount?: number;
 
-    @IsNumber()
-    @Min(1)
-    tenureYears: number;
-
-    @IsNumber()
-    interestRate: number;
+    @IsUUID()
+    @IsOptional()
+    bankId?: string;
 
     @IsString()
     @IsOptional()
     notes?: string;
 }
 
-export class UpdateLoanStatusDto {
-    @IsEnum(LoanStatus)
-    status: LoanStatus;
-}
-
-export class ApplyLoanDto {
-    @IsUUID()
-    @IsOptional()
-    loanPartnerId?: string;
-
-    @IsUUID()
-    projectId: string;
-
-    @IsUUID()
-    bankId: string;
-
-    @IsNumber()
-    @Min(0)
-    amount: number;
-
-    @IsNumber()
-    @Min(1)
-    tenureYears: number;
-
-    @IsNumber()
-    interestRate: number;
+export class UpdateBuyerLoanStatusDto {
+    @IsEnum(BuyerLoanStatus)
+    status: BuyerLoanStatus;
 
     @IsString()
     @IsOptional()
     notes?: string;
+}
 
+export class AssignBuyerLoanPartnerDto {
+    @IsUUID()
+    assignedLoanPartnerId: string;
+}
+
+export class LinkBuyerLoanDocumentsDto {
+    @IsArray()
+    @IsUUID('4', { each: true })
+    documentIds: string[];
+}
+
+// ─────────────────────────────────────────────
+// Flow 2: Project Loan Application DTOs
+// ─────────────────────────────────────────────
+
+export class CreateProjectLoanApplicationDto {
+    @IsUUID()
+    projectId: string;
+
+    @IsArray()
+    @IsUUID('4', { each: true })
+    bankIds: string[];
+}
+
+export class UpdateProjectLoanReviewDto {
+    @IsEnum(ReviewStatus)
     @IsOptional()
-    documents?: any[];
+    reviewStatus?: ReviewStatus;
+
+    @IsEnum(BankStatus)
+    @IsOptional()
+    bankStatus?: BankStatus;
+
+    @IsString()
+    @IsOptional()
+    remarks?: string;
+}
+
+export class AssignProjectLoanPartnerDto {
+    @IsUUID()
+    assignedLoanPartnerId: string;
+}
+
+export class LinkProjectLoanDocumentsDto {
+    @IsArray()
+    @IsUUID('4', { each: true })
+    documentIds: string[];
 }

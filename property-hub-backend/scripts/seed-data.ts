@@ -9,7 +9,7 @@ import {
     UnitStatus,
     VisitStatus,
     CommissionStatus,
-    LoanStatus,
+    BuyerLoanStatus,
     InstagramStatus,
     LeadNoteCategory,
     SubscriptionMode,
@@ -436,19 +436,17 @@ async function main() {
             });
         }
 
-        // Loans
+        // Buyer Loan Applications (Flow 1)
         if (i === 0) {
-            const existingLoan = await prisma.loan.findFirst({ where: { leadId: lead.id, projectId: projects[0].id } });
-            if (!existingLoan) {
-                await prisma.loan.create({
+            const existingBuyerLoan = await prisma.buyerLoanApplication.findFirst({ where: { leadId: lead.id } });
+            if (!existingBuyerLoan) {
+                await prisma.buyerLoanApplication.create({
                     data: {
                         leadId: lead.id,
-                        projectId: projects[0].id,
                         bankId: banks[0].id,
-                        amount: 8000000,
-                        tenureYears: 20,
-                        interestRate: 8.4,
-                        status: LoanStatus.APPROVED,
+                        loanAmount: 8000000,
+                        eligibleAmount: 9000000,
+                        status: BuyerLoanStatus.APPROVED,
                         notes: 'Credit check cleared.'
                     }
                 });

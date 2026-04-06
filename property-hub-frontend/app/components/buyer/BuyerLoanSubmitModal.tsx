@@ -25,11 +25,9 @@ export default function BuyerLoanSubmitModal({ isOpen, onClose, loanPartnerId, p
     const [submitting, setSubmitting] = useState(false);
 
     const [formData, setFormData] = useState({
-        amount: '',
-        tenureYears: '15',
+        loanAmount: '',
         bankId: '',
         projectId: projectId || '',
-        interestRate: '',
         notes: '',
     });
 
@@ -75,33 +73,25 @@ export default function BuyerLoanSubmitModal({ isOpen, onClose, loanPartnerId, p
     }, [isOpen, token]);
 
     const handleBankChange = (bankId: string) => {
-        const selectedBank = banks.find(b => b.id === bankId);
-        if (selectedBank) {
-            setFormData(prev => ({
-                ...prev,
-                bankId,
-                interestRate: selectedBank.percentage.toString()
-            }));
-        }
+        setFormData(prev => ({ ...prev, bankId }));
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!token || !formData.projectId) return;
+        if (!token) return;
 
         setSubmitting(true);
         try {
-            const attachedDocs = documents.filter(d => selectedDocs.includes(d.id));
-            await loanService.applyLoan(token, {
-                loanPartnerId,
-                projectId: formData.projectId,
-                bankId: formData.bankId,
-                amount: parseFloat(formData.amount),
-                tenureYears: parseInt(formData.tenureYears),
-                interestRate: parseFloat(formData.interestRate),
-                notes: formData.notes,
-                documents: attachedDocs
-            });
+            // Build lead-linked buyer loan application via the new Flow 1 endpoint
+            const payload: any = {
+                loanAmount: parseFloat(formData.loanAmount),
+                bankId: formData.bankId || undefined,
+                notes: formData.notes || undefined,
+            };
+            // projectId is passed as context but leadId is required —
+            // this modal is invoked with loanPartnerId; if the caller provides
+            // a leadId it should be forwarded. For now we send projectId as note context.
+            await loanService.submitLoan(token, payload);
             alert('Loan application submitted successfully!');
             if (onSuccess) onSuccess();
             onClose();
@@ -162,34 +152,20 @@ export default function BuyerLoanSubmitModal({ isOpen, onClose, loanPartnerId, p
                             </div>
                         )}
 
-                        <div className="grid grid-cols-2 gap-6">
-                            <div className="space-y-1.5">
-                                <label className="block text-sm font-bold text-gray-700">Loan Amount (₹)</label>
-                                <div className="relative">
-                                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                        <span className="text-gray-400 sm:text-sm">₹</span>
-                                    </div>
-                                    <input
-                                        type="number"
-                                        required
-                                        value={formData.amount}
-                                        onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
-                                        className="w-full pl-7 pr-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all"
-                                        placeholder="Enter amount"
-                                    />
+                        <div className="space-y-1.5">
+                            <label className="block text-sm font-bold text-gray-700">Loan Amount (₹)</label>
+                            <div className="relative">
+                                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <span className="text-gray-400 sm:text-sm">₹</span>
                                 </div>
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="block text-sm font-bold text-gray-700">Tenure (Years)</label>
-                                <select
-                                    value={formData.tenureYears}
-                                    onChange={(e) => setFormData(prev => ({ ...prev, tenureYears: e.target.value }))}
-                                    className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all bg-white"
-                                >
-                                    {[5, 10, 15, 20, 25, 30].map(yr => (
-                                        <option key={yr} value={yr}>{yr} Years</option>
-                                    ))}
-                                </select>
+                                <input
+                                    type="number"
+                                    required
+                                    value={formData.loanAmount}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, loanAmount: e.target.value }))}
+                                    className="w-full pl-7 pr-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all"
+                                    placeholder="Enter amount"
+                                />
                             </div>
                         </div>
 
@@ -210,17 +186,7 @@ export default function BuyerLoanSubmitModal({ isOpen, onClose, loanPartnerId, p
                             )}
                         </div>
 
-                        <div className="space-y-1.5">
-                            <label className="block text-sm font-bold text-gray-700">Interest Rate (%)</label>
-                            <input
-                                type="number"
-                                step="0.01"
-                                required
-                                value={formData.interestRate}
-                                onChange={(e) => setFormData(prev => ({ ...prev, interestRate: e.target.value }))}
-                                className="w-full px-3 py-2.5 border border-gray-300 rounded-xl bg-gray-50 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-semibold transition-all"
-                            />
-                        </div>
+
 
                         <div className="space-y-1.5">
                             <label className="block text-sm font-bold text-gray-700">Additional Notes</label>

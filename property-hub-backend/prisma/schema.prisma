@@ -70,20 +70,22 @@ model User {
   following         Follow[]            @relation("UserFollowers")
   followers         Follow[]            @relation("UserFollowing")
   authoredNotes     LeadNote[]          @relation("AuthorNotes")
-  assignedLeads     Lead[]              @relation("LeadAssignee")
-  projectsOnboarded Project[]           @relation("UserOnboardedProjects")
-  reels             Reel[]              @relation("UserReels")
-  reviews           Review[]            @relation("UserReviews")
-  documents         UserDocument[]      @relation("UserDocuments")
-  onboardedBy       User?               @relation("UserOnboardedUsers", fields: [onboardedById], references: [id])
-  onboardedUsers    User[]              @relation("UserOnboardedUsers")
-  organization      Organization?       @relation(fields: [organizationId], references: [id])
-  campaignsAssigned MarketingCampaign[] @relation("CampaignToUser")
-  assignedProjects  Project[]           @relation("ProjectAssignment")
-  invitationsSent   Invitation[]        @relation("UserInvites")
-  paymentOrders     PaymentOrder[]      @relation("UserPaymentOrders")
-  visitsAsExecutive Visit[]             @relation("VisitExecutiveVisits")
-  submittedLeads    Lead[]              @relation("BuyerLeads")
+  assignedLeads              Lead[]                   @relation("LeadAssignee")
+  projectsOnboarded          Project[]                @relation("UserOnboardedProjects")
+  reels                      Reel[]                   @relation("UserReels")
+  reviews                    Review[]                 @relation("UserReviews")
+  documents                  UserDocument[]           @relation("UserDocuments")
+  onboardedBy                User?                    @relation("UserOnboardedUsers", fields: [onboardedById], references: [id])
+  onboardedUsers             User[]                   @relation("UserOnboardedUsers")
+  organization               Organization?            @relation(fields: [organizationId], references: [id])
+  campaignsAssigned          MarketingCampaign[]      @relation("CampaignToUser")
+  assignedProjects           Project[]                @relation("ProjectAssignment")
+  invitationsSent            Invitation[]             @relation("UserInvites")
+  paymentOrders              PaymentOrder[]           @relation("UserPaymentOrders")
+  visitsAsExecutive          Visit[]                  @relation("VisitExecutiveVisits")
+  submittedLeads             Lead[]                   @relation("BuyerLeads")
+  assignedBuyerLoans         BuyerLoanApplication[]   @relation("AssignedBuyerLoanPartner")
+  assignedProjectLoans       ProjectLoanApplication[] @relation("AssignedProjectLoanPartner")
 
   @@index([email])
   @@index([activeRole])
@@ -109,24 +111,24 @@ model Project {
   onboardedById String?
   category      String?
 
-  images         String[]       @default([])
-  onboardingStep Int?           @default(1)
-  totalTowers    Int?
-  totalUnits     Int?
-  amenities      String[]       @default(["Parking", "Security", "Lift"])
-  highlights     String[]       @default(["Prime Location", "Quality Construction"])
-  adsRequests    AdsRequest[]
-  commissions    Commission[]
-  leads          Lead[]
-  loans          Loan[]
-  onboardedBy    User?          @relation("UserOnboardedProjects", fields: [onboardedById], references: [id])
-  units          PropertyUnit[]
-  towers         Tower[]
-  reels          Reel[]
-  assignedTo     User[]         @relation("ProjectAssignment")
+  images              String[]               @default([])
+  onboardingStep      Int?                   @default(1)
+  totalTowers         Int?
+  totalUnits          Int?
+  amenities           String[]               @default(["Parking", "Security", "Lift"])
+  highlights          String[]               @default(["Prime Location", "Quality Construction"])
+  adsRequests         AdsRequest[]
+  commissions         Commission[]
+  leads               Lead[]
+  onboardedBy         User?                  @relation("UserOnboardedProjects", fields: [onboardedById], references: [id])
+  units               PropertyUnit[]
+  towers              Tower[]
+  reels               Reel[]
+  assignedTo          User[]                 @relation("ProjectAssignment")
+  projectLoanApps     ProjectLoanApplication[]
 
-  addressId      String?
-  addressRecord  Address?       @relation(fields: [addressId], references: [id])
+  addressId           String?
+  addressRecord       Address?               @relation(fields: [addressId], references: [id])
 
   @@index([status])
   @@index([onboardedById])
@@ -188,16 +190,16 @@ model Lead {
   campaignId     String?
   projectId      String?
   videoCallRoom  String?
-  activityLogs   ActivityLog[]
-  callLogs       CallLog[]
-  leadNotes      LeadNote[]
-  assignedToUser User?              @relation("LeadAssignee", fields: [assignedTo], references: [id])
-  campaign       MarketingCampaign? @relation(fields: [campaignId], references: [id])
-  project        Project?           @relation(fields: [projectId], references: [id])
-  loans          Loan[]
-  visits         Visit[]
-  buyerId        String?
-  buyer          User?              @relation("BuyerLeads", fields: [buyerId], references: [id])
+  activityLogs      ActivityLog[]
+  callLogs          CallLog[]
+  leadNotes         LeadNote[]
+  assignedToUser    User?                  @relation("LeadAssignee", fields: [assignedTo], references: [id])
+  campaign          MarketingCampaign?     @relation(fields: [campaignId], references: [id])
+  project           Project?               @relation(fields: [projectId], references: [id])
+  buyerLoanApps     BuyerLoanApplication[]
+  visits            Visit[]
+  buyerId           String?
+  buyer             User?                  @relation("BuyerLeads", fields: [buyerId], references: [id])
 
   @@index([status])
   @@index([assignedTo])
@@ -262,28 +264,57 @@ model CallLog {
   @@map("call_logs")
 }
 
-model Loan {
-  id           String     @id @default(uuid())
-  leadId       String
-  projectId    String
-  bankId       String
-  amount       Decimal    @db.Decimal(15, 2)
-  tenureYears  Int
-  interestRate Decimal    @db.Decimal(5, 2)
-  status       LoanStatus @default(PENDING)
-  notes        String?
-  documents    Json?      @default("{}")
-  createdAt    DateTime   @default(now())
-  updatedAt    DateTime   @updatedAt
-  bank         Bank       @relation(fields: [bankId], references: [id])
-  lead         Lead       @relation(fields: [leadId], references: [id])
-  project      Project    @relation(fields: [projectId], references: [id])
+// Flow 1: Buyer Loan Applications
+// Created when a buyer submits a loan requirement linked to a Lead.
+// Assignment is done manually by Central Authority.
+model BuyerLoanApplication {
+  id                    String              @id @default(uuid())
+  leadId                String
+  assignedLoanPartnerId String?
+  loanAmount            Decimal             @db.Decimal(15, 2)
+  eligibleAmount        Decimal?            @db.Decimal(15, 2)
+  bankId                String?
+  status                BuyerLoanStatus     @default(NEW)
+  notes                 String?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  lead                  Lead                @relation(fields: [leadId], references: [id])
+  assignedLoanPartner   User?               @relation("AssignedBuyerLoanPartner", fields: [assignedLoanPartnerId], references: [id])
+  bank                  Bank?               @relation("BuyerLoanBank", fields: [bankId], references: [id])
+  documents             UserDocument[]      @relation("BuyerLoanDocuments")
 
   @@index([leadId])
-  @@index([projectId])
+  @@index([assignedLoanPartnerId])
   @@index([bankId])
   @@index([status])
-  @@map("loans")
+  @@map("buyer_loan_applications")
+}
+
+// Flow 2: Project Loan Applications (Bank Eligibility)
+// Created when a Property Partner selects banks during project submission.
+// One record per (Project x Bank). Assignment is done manually by Central Authority.
+model ProjectLoanApplication {
+  id                    String              @id @default(uuid())
+  projectId             String
+  bankId                String
+  assignedLoanPartnerId String?
+  reviewStatus          ReviewStatus        @default(PENDING)
+  bankStatus            BankStatus          @default(NOT_AVAILABLE)
+  remarks               String?
+  createdAt             DateTime            @default(now())
+  updatedAt             DateTime            @updatedAt
+
+  project               Project             @relation(fields: [projectId], references: [id])
+  bank                  Bank                @relation("ProjectLoanBank", fields: [bankId], references: [id])
+  assignedLoanPartner   User?               @relation("AssignedProjectLoanPartner", fields: [assignedLoanPartnerId], references: [id])
+  documents             UserDocument[]      @relation("ProjectLoanDocuments")
+
+  @@unique([projectId, bankId])
+  @@index([projectId])
+  @@index([bankId])
+  @@index([assignedLoanPartnerId])
+  @@map("project_loan_applications")
 }
 
 model Commission {
@@ -391,15 +422,17 @@ model Review {
 }
 
 model UserDocument {
-  id        String   @id @default(uuid())
-  userId    String
-  name      String
-  category  String
-  url       String
-  status    String   @default("uploaded")
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation("UserDocuments", fields: [userId], references: [id], onDelete: Cascade)
+  id                   String                   @id @default(uuid())
+  userId               String
+  name                 String
+  category             String
+  url                  String
+  status               String                   @default("uploaded")
+  createdAt            DateTime                 @default(now())
+  updatedAt            DateTime                 @updatedAt
+  user                 User                     @relation("UserDocuments", fields: [userId], references: [id], onDelete: Cascade)
+  buyerLoanApps        BuyerLoanApplication[]   @relation("BuyerLoanDocuments")
+  projectLoanApps      ProjectLoanApplication[] @relation("ProjectLoanDocuments")
 
   @@index([userId])
   @@index([category])
@@ -509,14 +542,15 @@ model PostalCode {
 }
 
 model Bank {
-  id         String   @id @default(uuid())
-  name       String   @unique
-  percentage Decimal  @db.Decimal(5, 2)
-  logoUrl    String?
-  isActive   Boolean  @default(true)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  loans      Loan[]
+  id                  String                   @id @default(uuid())
+  name                String                   @unique
+  percentage          Decimal                  @db.Decimal(5, 2)
+  logoUrl             String?
+  isActive            Boolean                  @default(true)
+  createdAt           DateTime                 @default(now())
+  updatedAt           DateTime                 @updatedAt
+  buyerLoanApps       BuyerLoanApplication[]   @relation("BuyerLoanBank")
+  projectLoanApps     ProjectLoanApplication[] @relation("ProjectLoanBank")
 
   @@map("banks")
 }
@@ -729,12 +763,24 @@ enum CommissionStatus {
   REJECTED
 }
 
-enum LoanStatus {
-  PENDING
-  PROCESSING
+enum BuyerLoanStatus {
+  NEW
+  DOC_PENDING
+  UNDER_REVIEW
   APPROVED
-  DISBURSED
   REJECTED
+}
+
+enum ReviewStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum BankStatus {
+  APPROVED
+  LIMITED
+  NOT_AVAILABLE
 }
 
 enum LeadNoteCategory {

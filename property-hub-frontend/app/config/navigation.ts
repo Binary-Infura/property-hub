@@ -38,6 +38,7 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Projects', href: '/dashboard/projects', icon: 'building' },
         { name: 'My Organization', href: '/dashboard/organization', icon: 'building' },
         { name: 'Units', href: '/dashboard/units', icon: 'home' },
+        { name: 'Bank Approvals', href: '/property-partner/bank-approvals', icon: 'bank' },
         { name: 'Consultants', href: '/dashboard/consultants', icon: 'person', premium: true },
         { name: 'Visit Executives', href: '/dashboard/visit-executives', icon: 'pin', premium: true },
         { name: 'Project Allocation', href: '/dashboard/projects/allocation', icon: 'building', premium: true },
@@ -61,7 +62,8 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
     ],
     'LOAN_PARTNER': [
         { name: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
-        { name: 'Active Loans', href: '/dashboard/loans', icon: 'money' },
+        { name: 'Buyer Loans', href: '/loan-partner/buyer-loans', icon: 'money' },
+        { name: 'Project Loans', href: '/loan-partner/project-loans', icon: 'bank' },
         { name: 'Documents', href: '/dashboard/documents', icon: 'document' },
         { name: 'Reviews', href: '/dashboard/reviews', icon: 'star' },
     ],

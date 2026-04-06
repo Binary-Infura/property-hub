@@ -1,146 +1,227 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { CreateLoanDto, UpdateLoanStatusDto, ApplyLoanDto } from './loans.dto';
-import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
+import {
+    CreateBuyerLoanApplicationDto,
+    UpdateBuyerLoanStatusDto,
+    AssignBuyerLoanPartnerDto,
+    LinkBuyerLoanDocumentsDto,
+    CreateProjectLoanApplicationDto,
+    UpdateProjectLoanReviewDto,
+    AssignProjectLoanPartnerDto,
+    LinkProjectLoanDocumentsDto,
+} from './loans.dto';
+
+const BUYER_LOAN_INCLUDE = {
+    lead: {
+        select: {
+            id: true, name: true, email: true, phone: true, status: true,
+            project: { select: { id: true, name: true, projectType: true } },
+        }
+    },
+    bank: { select: { id: true, name: true, logoUrl: true, percentage: true } },
+    assignedLoanPartner: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
+    documents: {
+        select: { id: true, name: true, category: true, url: true, status: true, createdAt: true }
+    },
+};
+
+const PROJECT_LOAN_INCLUDE = {
+    project: {
+        select: {
+            id: true, name: true, projectType: true, status: true,
+            onboardedBy: { select: { id: true, firstName: true, lastName: true, email: true } },
+            addressRecord: { select: { city: { select: { id: true, name: true, state: true } } } },
+        }
+    },
+    bank: { select: { id: true, name: true, logoUrl: true, percentage: true } },
+    assignedLoanPartner: { select: { id: true, firstName: true, lastName: true, email: true, phone: true } },
+    documents: {
+        select: { id: true, name: true, category: true, url: true, status: true, createdAt: true }
+    },
+};
 
 @Injectable()
 export class LoansService {
     constructor(private prisma: PrismaService) { }
 
-    async create(dto: CreateLoanDto) {
-        return this.prisma.loan.create({
+    // ────────────────────────────────────────────────
+    // FLOW 1: Buyer Loan Applications
+    // ────────────────────────────────────────────────
+
+    async createBuyerLoan(dto: CreateBuyerLoanApplicationDto) {
+        return this.prisma.buyerLoanApplication.create({
             data: {
                 leadId: dto.leadId,
-                projectId: dto.projectId,
+                loanAmount: dto.loanAmount,
+                eligibleAmount: dto.eligibleAmount,
                 bankId: dto.bankId,
-                amount: dto.amount,
-                tenureYears: dto.tenureYears,
-                interestRate: dto.interestRate,
                 notes: dto.notes,
-                status: 'PENDING',
-            }
+            },
+            include: BUYER_LOAN_INCLUDE,
         });
     }
 
-    async applyForLoan(dto: ApplyLoanDto, user: AuthenticatedUser) {
-        const orConditions = [];
-        if (user.email) orConditions.push({ email: user.email });
-        if (user.phone) orConditions.push({ phone: user.phone });
+    async getAllBuyerLoans() {
+        return this.prisma.buyerLoanApplication.findMany({
+            include: BUYER_LOAN_INCLUDE,
+            orderBy: { createdAt: 'desc' },
+        });
+    }
 
-        let lead = null;
-        if (orConditions.length > 0) {
-            lead = await this.prisma.lead.findFirst({
-                where: {
-                    projectId: dto.projectId,
-                    OR: orConditions
-                }
-            });
+    async getBuyerLoansByPartner(loanPartnerId: string) {
+        return this.prisma.buyerLoanApplication.findMany({
+            where: { assignedLoanPartnerId: loanPartnerId },
+            include: BUYER_LOAN_INCLUDE,
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+
+    async getBuyerLoanById(id: string, requesterId?: string, isLoanPartner?: boolean) {
+        const loan = await this.prisma.buyerLoanApplication.findUnique({
+            where: { id },
+            include: BUYER_LOAN_INCLUDE,
+        });
+        if (!loan) throw new NotFoundException('Buyer loan application not found');
+
+        if (isLoanPartner && loan.assignedLoanPartnerId !== requesterId) {
+            throw new ForbiddenException('You are not assigned to this loan application');
         }
 
-        if (!lead) {
-            lead = await this.prisma.lead.create({
-                data: {
-                    name: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Buyer',
-                    email: user.email,
-                    phone: user.phone || '0000000000',
-                    projectId: dto.projectId,
-                    source: 'Dashboard Loan Application',
-                    assignedTo: dto.loanPartnerId || null,
-                }
-            });
-        } else if (dto.loanPartnerId && lead.assignedTo !== dto.loanPartnerId) {
-            lead = await this.prisma.lead.update({
-                where: { id: lead.id },
-                data: { assignedTo: dto.loanPartnerId }
-            });
-        }
-
-        return this.prisma.loan.create({
-            data: {
-                leadId: lead.id,
-                projectId: dto.projectId,
-                bankId: dto.bankId,
-                amount: dto.amount,
-                tenureYears: dto.tenureYears,
-                interestRate: dto.interestRate,
-                notes: dto.notes,
-                status: 'PENDING',
-                documents: dto.documents || [],
-            }
-        });
-    }
-
-    async updateStatus(id: string, dto: UpdateLoanStatusDto) {
-        return this.prisma.loan.update({
-            where: { id },
-            data: { status: dto.status }
-        });
-    }
-
-    async findByConsultant(userId: string) {
-        // Find projects assigned to consultant
-        const projectIds = (await this.prisma.project.findMany({
-            where: {
-                assignedTo: { some: { id: userId } }
-            },
-            select: { id: true }
-        })).map(p => p.id);
-
-        return this.prisma.loan.findMany({
-            where: {
-                projectId: { in: projectIds }
-            },
-            include: {
-                lead: true,
-                project: true,
-                bank: true
-            },
-            orderBy: { createdAt: 'desc' }
-        });
-    }
-
-    async findByUser(email?: string, phone?: string) {
-        if (!email && !phone) return [];
-
-        const where: any = {
-            lead: {}
-        };
-
-        if (email) where.lead.email = email;
-        else if (phone) where.lead.phone = phone;
-
-        return this.prisma.loan.findMany({
-            where,
-            include: {
-                lead: true,
-                project: true,
-                bank: true
-            },
-            orderBy: { createdAt: 'desc' }
-        });
-    }
-
-    async getALl() {
-        return this.prisma.loan.findMany({
-            include: {
-                lead: true,
-                project: true,
-                bank: true
-            },
-            orderBy: { createdAt: 'desc' }
-        });
-    }
-
-    async findOne(id: string) {
-        const loan = await this.prisma.loan.findUnique({
-            where: { id },
-            include: {
-                lead: true,
-                project: true,
-                bank: true
-            }
-        });
-        if (!loan) throw new NotFoundException('Loan not found');
         return loan;
+    }
+
+    async updateBuyerLoanStatus(id: string, dto: UpdateBuyerLoanStatusDto, requesterId: string, isLoanPartner: boolean) {
+        const loan = await this.prisma.buyerLoanApplication.findUnique({ where: { id } });
+        if (!loan) throw new NotFoundException('Buyer loan application not found');
+        if (isLoanPartner && loan.assignedLoanPartnerId !== requesterId) {
+            throw new ForbiddenException('You are not assigned to this loan application');
+        }
+
+        return this.prisma.buyerLoanApplication.update({
+            where: { id },
+            data: { status: dto.status, notes: dto.notes },
+            include: BUYER_LOAN_INCLUDE,
+        });
+    }
+
+    async assignBuyerLoanPartner(id: string, dto: AssignBuyerLoanPartnerDto) {
+        const loan = await this.prisma.buyerLoanApplication.findUnique({ where: { id } });
+        if (!loan) throw new NotFoundException('Buyer loan application not found');
+
+        return this.prisma.buyerLoanApplication.update({
+            where: { id },
+            data: { assignedLoanPartnerId: dto.assignedLoanPartnerId },
+            include: BUYER_LOAN_INCLUDE,
+        });
+    }
+
+    async linkBuyerLoanDocuments(id: string, dto: LinkBuyerLoanDocumentsDto) {
+        const loan = await this.prisma.buyerLoanApplication.findUnique({ where: { id } });
+        if (!loan) throw new NotFoundException('Buyer loan application not found');
+
+        return this.prisma.buyerLoanApplication.update({
+            where: { id },
+            data: {
+                documents: { connect: dto.documentIds.map(docId => ({ id: docId })) }
+            },
+            include: BUYER_LOAN_INCLUDE,
+        });
+    }
+
+    // ────────────────────────────────────────────────
+    // FLOW 2: Project Loan Applications
+    // ────────────────────────────────────────────────
+
+    async createProjectLoanApplications(dto: CreateProjectLoanApplicationDto) {
+        const results = await Promise.all(
+            dto.bankIds.map(bankId =>
+                this.prisma.projectLoanApplication.upsert({
+                    where: { projectId_bankId: { projectId: dto.projectId, bankId } },
+                    create: { projectId: dto.projectId, bankId },
+                    update: {},
+                    include: PROJECT_LOAN_INCLUDE,
+                })
+            )
+        );
+        return results;
+    }
+
+    async getAllProjectLoanApps() {
+        return this.prisma.projectLoanApplication.findMany({
+            include: PROJECT_LOAN_INCLUDE,
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+
+    async getProjectLoanAppsByOwner(ownerId: string) {
+        return this.prisma.projectLoanApplication.findMany({
+            where: { project: { onboardedById: ownerId } },
+            include: PROJECT_LOAN_INCLUDE,
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+
+    async getProjectLoanAppsByPartner(loanPartnerId: string) {
+        return this.prisma.projectLoanApplication.findMany({
+            where: { assignedLoanPartnerId: loanPartnerId },
+            include: PROJECT_LOAN_INCLUDE,
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+
+    async getProjectLoanAppById(id: string, requesterId?: string, isLoanPartner?: boolean) {
+        const app = await this.prisma.projectLoanApplication.findUnique({
+            where: { id },
+            include: PROJECT_LOAN_INCLUDE,
+        });
+        if (!app) throw new NotFoundException('Project loan application not found');
+
+        if (isLoanPartner && app.assignedLoanPartnerId !== requesterId) {
+            throw new ForbiddenException('You are not assigned to this project loan application');
+        }
+
+        return app;
+    }
+
+    async updateProjectLoanReview(id: string, dto: UpdateProjectLoanReviewDto, requesterId: string, isLoanPartner: boolean) {
+        const app = await this.prisma.projectLoanApplication.findUnique({ where: { id } });
+        if (!app) throw new NotFoundException('Project loan application not found');
+        if (isLoanPartner && app.assignedLoanPartnerId !== requesterId) {
+            throw new ForbiddenException('You are not assigned to this project loan application');
+        }
+
+        return this.prisma.projectLoanApplication.update({
+            where: { id },
+            data: {
+                reviewStatus: dto.reviewStatus,
+                bankStatus: dto.bankStatus,
+                remarks: dto.remarks,
+            },
+            include: PROJECT_LOAN_INCLUDE,
+        });
+    }
+
+    async assignProjectLoanPartner(id: string, dto: AssignProjectLoanPartnerDto) {
+        const app = await this.prisma.projectLoanApplication.findUnique({ where: { id } });
+        if (!app) throw new NotFoundException('Project loan application not found');
+
+        return this.prisma.projectLoanApplication.update({
+            where: { id },
+            data: { assignedLoanPartnerId: dto.assignedLoanPartnerId },
+            include: PROJECT_LOAN_INCLUDE,
+        });
+    }
+
+    async linkProjectLoanDocuments(id: string, dto: LinkProjectLoanDocumentsDto) {
+        const app = await this.prisma.projectLoanApplication.findUnique({ where: { id } });
+        if (!app) throw new NotFoundException('Project loan application not found');
+
+        return this.prisma.projectLoanApplication.update({
+            where: { id },
+            data: {
+                documents: { connect: dto.documentIds.map(docId => ({ id: docId })) }
+            },
+            include: PROJECT_LOAN_INCLUDE,
+        });
     }
 }
