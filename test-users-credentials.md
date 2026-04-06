@@ -19,10 +19,8 @@ All test users share the same common password:
 | **Property Partner** | `property_partner@propertyhub.com` |
 | **Buyer** | `buyer@propertyhub.com` |
 | **Consultant** | `consultant@propertyhub.com` |
-| **Influencer** | `influencer@propertyhub.com` |
-| **Marketing Manager** | `marketing_manager@propertyhub.com` |
-| **Loan Advisor** | `loan_advisor@propertyhub.com` |
-| **Onboarding Manager** | `onboarding_manager@propertyhub.com` |
+| **Loan Partner** | `loan_partner@propertyhub.com` |
+| **Growth Partner** | `growth_partner@propertyhub.com` |
 | **Broker** | `broker@propertyhub.com` |
 | **Visit Executive** | `visit_executive@propertyhub.com` |
 
