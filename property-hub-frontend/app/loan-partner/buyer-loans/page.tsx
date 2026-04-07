@@ -3,15 +3,17 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { buyerLoansService, BuyerLoanApplication, BuyerLoanStatus } from '@/app/services/loanService';
+import SidebarIcon from '@/app/components/SidebarIcon';
+import Link from 'next/link';
 
 // ─── Status Config ────────────────────────────────────────────────────────────
 
-const STATUS_CONFIG: Record<BuyerLoanStatus, { label: string; color: string; bg: string; dot: string }> = {
-    NEW:          { label: 'New',          color: '#6366f1', bg: 'rgba(99,102,241,0.1)',  dot: '#6366f1' },
-    DOC_PENDING:  { label: 'Doc Pending',  color: '#f59e0b', bg: 'rgba(245,158,11,0.1)',  dot: '#f59e0b' },
-    UNDER_REVIEW: { label: 'Under Review', color: '#3b82f6', bg: 'rgba(59,130,246,0.1)',  dot: '#3b82f6' },
-    APPROVED:     { label: 'Approved',     color: '#10b981', bg: 'rgba(16,185,129,0.1)',  dot: '#10b981' },
-    REJECTED:     { label: 'Rejected',     color: '#ef4444', bg: 'rgba(239,68,68,0.1)',   dot: '#ef4444' },
+const STATUS_CONFIG: Record<BuyerLoanStatus, { label: string; color: string; bg: string; border: string }> = {
+    NEW:          { label: 'New',          color: 'text-indigo-700', bg: 'bg-indigo-50', border: 'border-indigo-100' },
+    DOC_PENDING:  { label: 'Doc Pending',  color: 'text-amber-700',  bg: 'bg-amber-50',  border: 'border-amber-100' },
+    UNDER_REVIEW: { label: 'Under Review', color: 'text-blue-700',   bg: 'bg-blue-50',   border: 'border-blue-100' },
+    APPROVED:     { label: 'Approved',     color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-100' },
+    REJECTED:     { label: 'Rejected',     color: 'text-rose-700',    bg: 'bg-rose-50',    border: 'border-rose-100' },
 };
 
 const STATUS_ORDER: BuyerLoanStatus[] = ['NEW', 'DOC_PENDING', 'UNDER_REVIEW', 'APPROVED', 'REJECTED'];
@@ -19,13 +21,8 @@ const STATUS_ORDER: BuyerLoanStatus[] = ['NEW', 'DOC_PENDING', 'UNDER_REVIEW', '
 function StatusBadge({ status }: { status: BuyerLoanStatus }) {
     const cfg = STATUS_CONFIG[status];
     return (
-        <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: '6px',
-            padding: '4px 12px', borderRadius: '20px',
-            background: cfg.bg, color: cfg.color,
-            fontSize: '12px', fontWeight: 600, letterSpacing: '0.02em',
-        }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: cfg.dot, display: 'inline-block' }} />
+        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border ${cfg.bg} ${cfg.color} ${cfg.border} text-[10px] font-bold uppercase tracking-wider`}>
+            <span className={`w-1.5 h-1.5 rounded-full ${cfg.color.replace('text', 'bg')}`} />
             {cfg.label}
         </span>
     );
@@ -62,109 +59,109 @@ function DetailPanel({ loan, token, onClose, onStatusUpdate }: {
     }
 
     return (
-        <div style={{
-            position: 'fixed', inset: 0, zIndex: 100,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)',
-        }} onClick={onClose}>
-            <div style={{
-                background: '#fff', borderRadius: '20px', width: '90%', maxWidth: 640,
-                maxHeight: '90vh', overflowY: 'auto', padding: '32px',
-                boxShadow: '0 25px 60px rgba(0,0,0,0.2)',
-            }} onClick={e => e.stopPropagation()}>
-
-                {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
-                    <div>
-                        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#6366f1', textTransform: 'uppercase', marginBottom: 4 }}>
-                            Buyer Loan Application
+        <div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4" 
+            onClick={onClose}
+        >
+            <div 
+                className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in duration-200" 
+                onClick={e => e.stopPropagation()}
+            >
+                {/* Modal Header */}
+                <div className="p-8 border-b border-gray-50 flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-md z-10">
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-indigo-50 text-indigo-600 rounded-2xl flex items-center justify-center text-xl font-black shadow-inner">
+                            {loan.lead.name.charAt(0).toUpperCase()}
                         </div>
-                        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#0f172a' }}>{loan.lead.name}</h2>
-                        <div style={{ fontSize: 13, color: '#64748b', marginTop: 2 }}>{loan.lead.phone} · {loan.lead.email || '—'}</div>
-                    </div>
-                    <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', fontSize: 18, color: '#64748b' }}>×</button>
-                </div>
-
-                <StatusBadge status={loan.status} />
-
-                {/* Project Info */}
-                {loan.lead.project && (
-                    <div style={{ background: '#f8fafc', borderRadius: 12, padding: '16px', marginTop: 20 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Project</div>
-                        <div style={{ fontWeight: 600, color: '#1e293b' }}>{loan.lead.project.name}</div>
-                        <div style={{ fontSize: 13, color: '#64748b' }}>{loan.lead.project.projectType}</div>
-                    </div>
-                )}
-
-                {/* Loan Amounts */}
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 16 }}>
-                    <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Loan Amount</div>
-                        <div style={{ fontSize: 22, fontWeight: 700, color: '#1e293b', marginTop: 4 }}>{formatAmount(loan.loanAmount)}</div>
-                    </div>
-                    <div style={{ background: '#ecfdf5', borderRadius: 12, padding: 16 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: '#059669', textTransform: 'uppercase', letterSpacing: '0.06em' }}>Eligible Amount</div>
-                        <div style={{ fontSize: 22, fontWeight: 700, color: '#065f46', marginTop: 4 }}>{formatAmount(loan.eligibleAmount)}</div>
-                    </div>
-                </div>
-
-                {/* Bank */}
-                {loan.bank && (
-                    <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16, marginTop: 12 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Bank</div>
-                        <div style={{ fontWeight: 600, color: '#1e293b' }}>{loan.bank.name}</div>
-                        <div style={{ fontSize: 13, color: '#64748b' }}>{loan.bank.percentage}% interest rate</div>
-                    </div>
-                )}
-
-                {/* Documents */}
-                {loan.documents.length > 0 && (
-                    <div style={{ marginTop: 16 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Linked Documents</div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            {loan.documents.map(doc => (
-                                <a key={doc.id} href={doc.url} target="_blank" rel="noreferrer" style={{
-                                    display: 'flex', alignItems: 'center', gap: 10,
-                                    background: '#f8fafc', borderRadius: 10, padding: '10px 14px',
-                                    color: '#3b82f6', textDecoration: 'none', fontSize: 13, fontWeight: 500,
-                                }}>
-                                    <span>📄</span>
-                                    <span style={{ flex: 1 }}>{doc.name}</span>
-                                    <span style={{ fontSize: 11, color: '#64748b' }}>{doc.category}</span>
-                                </a>
-                            ))}
+                        <div>
+                            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-indigo-500 mb-1">Application Details</div>
+                            <h2 className="text-2xl font-bold text-gray-900 leading-none">{loan.lead.name}</h2>
                         </div>
                     </div>
-                )}
-
-                {/* Notes */}
-                <div style={{ marginTop: 16 }}>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 8 }}>Notes</label>
-                    <textarea
-                        value={statusNotes}
-                        onChange={e => setStatusNotes(e.target.value)}
-                        style={{ width: '100%', minHeight: 80, borderRadius: 10, border: '1px solid #e2e8f0', padding: '10px 12px', fontSize: 13, resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }}
-                        placeholder="Add notes..."
-                    />
+                    <button onClick={onClose} className="p-2 bg-gray-50 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all">
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
                 </div>
 
-                {/* Status Actions */}
-                <div style={{ marginTop: 20 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Update Status</div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                        {STATUS_ORDER.filter(s => s !== loan.status).map(s => {
-                            const cfg = STATUS_CONFIG[s];
-                            return (
-                                <button key={s} disabled={updatingStatus} onClick={() => handleStatusChange(s)} style={{
-                                    padding: '8px 16px', borderRadius: 10, border: `1.5px solid ${cfg.color}`,
-                                    background: 'transparent', color: cfg.color, fontWeight: 600, fontSize: 13,
-                                    cursor: updatingStatus ? 'not-allowed' : 'pointer', opacity: updatingStatus ? 0.5 : 1,
-                                    transition: 'all 0.15s',
-                                }}>
-                                    → {cfg.label}
-                                </button>
-                            );
-                        })}
+                <div className="p-8 space-y-8">
+                    {/* Status & Project Section */}
+                    <div className="grid md:grid-cols-2 gap-6">
+                        <div className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
+                           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Current Status</p>
+                           <StatusBadge status={loan.status} />
+                        </div>
+                        <div className="bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
+                           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Linked Project</p>
+                           <p className="text-sm font-bold text-gray-900">{loan.lead.project?.name || 'Manual Lead'}</p>
+                           <p className="text-xs text-gray-500 font-medium mt-0.5">{loan.lead.project?.projectType || 'Standard'}</p>
+                        </div>
+                    </div>
+
+                    {/* Financial Overview */}
+                    <div className="bg-indigo-50/30 rounded-3xl p-8 border border-indigo-100/50">
+                        <div className="flex items-end justify-between gap-10">
+                            <div className="flex-1">
+                                <p className="text-[10px] font-bold text-indigo-400 uppercase tracking-widest mb-2">Requested Amount</p>
+                                <p className="text-4xl font-extrabold text-indigo-900 tracking-tight">{formatAmount(loan.loanAmount)}</p>
+                            </div>
+                            <div className="flex-1 border-l border-indigo-100 pl-10">
+                                <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-widest mb-2">Eligible Amount</p>
+                                <p className="text-4xl font-extrabold text-emerald-900 tracking-tight">{formatAmount(loan.eligibleAmount)}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* Bank & Documents */}
+                    <div className="grid md:grid-cols-2 gap-6">
+                        {loan.bank && (
+                           <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-center gap-4">
+                               <div className="w-12 h-12 bg-blue-50 text-blue-600 rounded-xl flex items-center justify-center">
+                                   <SidebarIcon name="bank" className="w-6 h-6" />
+                               </div>
+                               <div>
+                                   <p className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">Preferred Bank</p>
+                                   <p className="text-sm font-bold text-gray-900">{loan.bank.name}</p>
+                                   <p className="text-xs text-blue-600 font-bold">{loan.bank.percentage}% interest</p>
+                               </div>
+                           </div>
+                        )}
+                        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm flex items-center gap-4">
+                           <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center">
+                               <SidebarIcon name="document" className="w-6 h-6" />
+                           </div>
+                           <div>
+                               <p className="text-[10px] font-bold text-gray-400 uppercase mb-0.5">Documents</p>
+                               <p className="text-sm font-bold text-gray-900">{loan.documents.length} Files Linked</p>
+                               <p className="text-xs text-gray-500 font-medium">{loan.documents.filter(d => d.status === 'APPROVED').length} Approved</p>
+                           </div>
+                        </div>
+                    </div>
+
+                    {/* Notes & Actions */}
+                    <div className="space-y-4">
+                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Update application</p>
+                        <textarea
+                            value={statusNotes}
+                            onChange={e => setStatusNotes(e.target.value)}
+                            className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 min-h-[120px] transition-all"
+                            placeholder="Add internal notes for this processing step..."
+                        />
+                        
+                        <div className="flex flex-wrap gap-3 mt-4">
+                            {STATUS_ORDER.filter(s => s !== loan.status).map(s => {
+                                const cfg = STATUS_CONFIG[s];
+                                return (
+                                    <button 
+                                        key={s} 
+                                        disabled={updatingStatus} 
+                                        onClick={() => handleStatusChange(s)}
+                                        className={`px-5 py-2.5 rounded-xl border-2 ${cfg.color.replace('text', 'border')} ${cfg.color} text-xs font-black uppercase tracking-widest hover:opacity-80 disabled:opacity-50 transition-all`}
+                                    >
+                                        Update to {cfg.label}
+                                    </button>
+                                );
+                            })}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -213,116 +210,130 @@ export default function BuyerLoansPage() {
     }
 
     return (
-        <div style={{ padding: '32px', minHeight: '100vh', background: '#f8fafc', fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
-
-            {/* Header */}
-            <div style={{ marginBottom: 32 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', color: '#6366f1', textTransform: 'uppercase', marginBottom: 6 }}>Flow 1</div>
-                <h1 style={{ margin: '0 0 8px', fontSize: 28, fontWeight: 800, color: '#0f172a' }}>Buyer Loans</h1>
-                <p style={{ margin: 0, color: '#64748b', fontSize: 15 }}>Manage buyer loan applications assigned to you</p>
-            </div>
-
-            {/* Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 28 }}>
-                {[
-                    { label: 'Total', value: stats.total, color: '#6366f1', icon: '📋' },
-                    { label: 'New', value: stats.new, color: '#f59e0b', icon: '🆕' },
-                    { label: 'Under Review', value: stats.underReview, color: '#3b82f6', icon: '🔍' },
-                    { label: 'Approved', value: stats.approved, color: '#10b981', icon: '✅' },
-                ].map(stat => (
-                    <div key={stat.label} style={{ background: '#fff', borderRadius: 16, padding: '20px', boxShadow: '0 1px 6px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        <div style={{ fontSize: 22 }}>{stat.icon}</div>
-                        <div style={{ fontSize: 28, fontWeight: 800, color: stat.color }}>{stat.value}</div>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{stat.label}</div>
+        <div className="min-h-screen bg-gray-50">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                
+                {/* Header */}
+                <div className="mb-10">
+                    <div className="flex items-center gap-2 text-indigo-600 mb-2">
+                        <Link href="/dashboard" className="p-2 hover:bg-indigo-50 rounded-lg transition-colors">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                        </Link>
+                        <span className="text-xs font-black uppercase tracking-[0.2em]">Flow 01: Buyer Loans</span>
                     </div>
-                ))}
-            </div>
-
-            {/* Filters */}
-            <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
-                <input
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    placeholder="Search by buyer name, phone, project..."
-                    style={{ flex: 1, minWidth: 240, padding: '10px 16px', borderRadius: 12, border: '1.5px solid #e2e8f0', fontSize: 14, outline: 'none', fontFamily: 'inherit' }}
-                />
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                    {(['ALL', ...STATUS_ORDER] as (BuyerLoanStatus | 'ALL')[]).map(s => {
-                        const active = filterStatus === s;
-                        const cfg = s !== 'ALL' ? STATUS_CONFIG[s] : null;
-                        return (
-                            <button key={s} onClick={() => setFilterStatus(s)} style={{
-                                padding: '8px 16px', borderRadius: 10, border: 'none', cursor: 'pointer', fontSize: 13, fontWeight: 600,
-                                background: active ? (cfg?.color || '#6366f1') : '#fff',
-                                color: active ? '#fff' : '#64748b',
-                                boxShadow: active ? `0 2px 10px ${cfg?.color || '#6366f1'}44` : '0 1px 4px rgba(0,0,0,0.08)',
-                                transition: 'all 0.15s',
-                            }}>
-                                {s === 'ALL' ? 'All' : STATUS_CONFIG[s].label}
-                            </button>
-                        );
-                    })}
+                    <h1 className="text-3xl font-bold text-gray-900">Buyer Applications</h1>
+                    <p className="text-gray-500 mt-1 font-medium">Process and manage individual buyer loan requests</p>
                 </div>
-            </div>
 
-            {/* List */}
-            {loading ? (
-                <div style={{ textAlign: 'center', padding: 80, color: '#94a3b8', fontSize: 15 }}>Loading buyer loans...</div>
-            ) : filtered.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: 80, background: '#fff', borderRadius: 20, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
-                    <div style={{ fontSize: 48, marginBottom: 12 }}>📭</div>
-                    <div style={{ fontSize: 16, fontWeight: 600, color: '#1e293b' }}>No loan applications found</div>
-                    <div style={{ fontSize: 14, color: '#94a3b8', marginTop: 4 }}>Buyer loans assigned to you will appear here</div>
-                </div>
-            ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-                    {filtered.map(loan => (
-                        <div key={loan.id} onClick={() => setSelected(loan)} style={{
-                            background: '#fff', borderRadius: 16, padding: '20px 24px',
-                            boxShadow: '0 1px 6px rgba(0,0,0,0.06)', cursor: 'pointer',
-                            display: 'flex', gap: 20, alignItems: 'center',
-                            border: '1.5px solid transparent',
-                            transition: 'all 0.15s',
-                        }}
-                            onMouseEnter={e => (e.currentTarget.style.borderColor = '#6366f1', e.currentTarget.style.boxShadow = '0 4px 20px rgba(99,102,241,0.12)')}
-                            onMouseLeave={e => (e.currentTarget.style.borderColor = 'transparent', e.currentTarget.style.boxShadow = '0 1px 6px rgba(0,0,0,0.06)')}
-                        >
-                            {/* Avatar */}
-                            <div style={{
-                                width: 48, height: 48, borderRadius: '50%', background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                color: '#fff', fontWeight: 700, fontSize: 18, flexShrink: 0,
-                            }}>
-                                {loan.lead.name.charAt(0).toUpperCase()}
-                            </div>
-
-                            {/* Main info */}
-                            <div style={{ flex: 1, minWidth: 0 }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
-                                    <span style={{ fontWeight: 700, fontSize: 15, color: '#0f172a' }}>{loan.lead.name}</span>
-                                    <StatusBadge status={loan.status} />
-                                </div>
-                                <div style={{ fontSize: 13, color: '#64748b', marginTop: 2 }}>
-                                    {loan.lead.phone} · {loan.lead.project?.name || 'No project linked'}
+                {/* Metrics */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+                   {[
+                        { label: 'Total Apps', value: stats.total, color: 'text-gray-900', bg: 'bg-white', icon: 'person' },
+                        { label: 'New Today', value: stats.new, color: 'text-amber-600', bg: 'bg-white', icon: 'note' },
+                        { label: 'In Review', value: stats.underReview, color: 'text-blue-600', bg: 'bg-white', icon: 'clipboard' },
+                        { label: 'Total Approved', value: stats.approved, color: 'text-emerald-600', bg: 'bg-white', icon: 'bank' },
+                    ].map(stat => (
+                        <div key={stat.label} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 transition-all hover:shadow-md">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{stat.label}</span>
+                                <div className={`w-8 h-8 rounded-lg ${stat.color.replace('text', 'bg')}/10 flex items-center justify-center ${stat.color}`}>
+                                    <SidebarIcon name={stat.icon as any} className="w-4 h-4" />
                                 </div>
                             </div>
-
-                            {/* Amount */}
-                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                                <div style={{ fontSize: 20, fontWeight: 800, color: '#0f172a' }}>{formatAmount(loan.loanAmount)}</div>
-                                {loan.bank && <div style={{ fontSize: 12, color: '#64748b', marginTop: 2 }}>{loan.bank.name}</div>}
-                                {loan.eligibleAmount && (
-                                    <div style={{ fontSize: 12, color: '#10b981', fontWeight: 600 }}>Eligible: {formatAmount(loan.eligibleAmount)}</div>
-                                )}
-                            </div>
-
-                            <div style={{ color: '#cbd5e1', fontSize: 20, flexShrink: 0 }}>›</div>
+                            <p className={`text-4xl font-extrabold ${stat.color} leading-none tracking-tight`}>{stat.value}</p>
                         </div>
                     ))}
                 </div>
-            )}
 
-            {/* Detail Modal */}
+                {/* Filters */}
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-8 flex flex-col md:flex-row gap-4">
+                    <div className="flex-1 relative group">
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            placeholder="Search buyer name, project or phone..."
+                            className="w-full bg-gray-50 border border-gray-100 rounded-xl pl-12 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                        />
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 transition-colors group-focus-within:text-indigo-500">
+                           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        </div>
+                    </div>
+                    <div className="flex gap-2 overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
+                        {(['ALL', ...STATUS_ORDER] as (BuyerLoanStatus | 'ALL')[]).map(s => {
+                            const active = filterStatus === s;
+                            return (
+                                <button
+                                    key={s}
+                                    onClick={() => setFilterStatus(s)}
+                                    className={`px-6 py-3 rounded-xl text-xs font-bold transition-all whitespace-nowrap shadow-sm border ${
+                                        active ? 'bg-indigo-600 text-white border-indigo-700 shadow-indigo-100' : 'bg-white text-gray-500 border-gray-100 hover:bg-gray-50'
+                                    }`}
+                                >
+                                    {s === 'ALL' ? 'All Applications' : STATUS_CONFIG[s].label}
+                                </button>
+                            );
+                        })}
+                    </div>
+                </div>
+
+                {/* List Container */}
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+                    {loading ? (
+                        <div className="py-32 flex flex-col items-center gap-4">
+                            <div className="w-10 h-10 border-4 border-indigo-100 border-t-indigo-600 rounded-full animate-spin"></div>
+                            <p className="text-sm font-bold text-gray-400 uppercase tracking-widest">Loading Records...</p>
+                        </div>
+                    ) : filtered.length === 0 ? (
+                        <div className="py-32 text-center bg-white px-6">
+                            <div className="w-20 h-20 bg-gray-50 rounded-3xl flex items-center justify-center mx-auto mb-6 text-gray-400">
+                                <SidebarIcon name="person" className="w-10 h-10" />
+                            </div>
+                            <h3 className="text-xl font-bold text-gray-800">Clear Records</h3>
+                            <p className="text-gray-500 mt-2 font-medium max-w-sm mx-auto">No buyer loan applications match your current search or filter criteria.</p>
+                        </div>
+                    ) : (
+                        <div className="divide-y divide-gray-50">
+                            {filtered.map(loan => (
+                                <div 
+                                    key={loan.id} 
+                                    onClick={() => setSelected(loan)} 
+                                    className="p-6 hover:bg-indigo-50/30 cursor-pointer transition-all flex items-center justify-between group"
+                                >
+                                    <div className="flex items-center gap-5">
+                                        <div className="w-14 h-14 bg-indigo-50 border border-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center font-black text-xl shadow-inner group-hover:scale-105 transition-transform">
+                                            {loan.lead.name.charAt(0).toUpperCase()}
+                                        </div>
+                                        <div>
+                                            <div className="flex items-center gap-3 mb-1">
+                                                <h3 className="text-lg font-bold text-gray-900 group-hover:text-indigo-600 transition-colors uppercase tracking-tight">{loan.lead.name}</h3>
+                                                <StatusBadge status={loan.status} />
+                                            </div>
+                                            <div className="flex items-center gap-4 text-xs font-bold text-gray-400">
+                                                <span className="flex items-center gap-1.5"><SidebarIcon name="note" className="w-3.5 h-3.5" /> {loan.lead.project?.name || 'Manual Listing'}</span>
+                                                <span className="flex items-center gap-1.5"><SidebarIcon name="handshake" className="w-3.5 h-3.5" /> {loan.lead.phone}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex items-center gap-10">
+                                        <div className="text-right hidden sm:block">
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Loan Amount</p>
+                                            <p className="text-xl font-black text-gray-900 tracking-tighter leading-none">{formatAmount(loan.loanAmount)}</p>
+                                        </div>
+
+                                        <div className="p-3 text-gray-300 group-hover:text-indigo-500 transition-all">
+                                            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M9 5l7 7-7 7" /></svg>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+
+            {/* Detail Overlay */}
             {selected && token && (
                 <DetailPanel
                     loan={selected}

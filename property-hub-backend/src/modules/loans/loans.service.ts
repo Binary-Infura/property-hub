@@ -118,7 +118,12 @@ export class LoansService {
 
     async getBuyerLoansByPartner(loanPartnerId: string) {
         return this.prisma.buyerLoanApplication.findMany({
-            where: { assignedLoanPartnerId: loanPartnerId },
+            where: {
+                OR: [
+                    { assignedLoanPartnerId: loanPartnerId },
+                    { lead: { project: { assignedTo: { some: { id: loanPartnerId } } } } }
+                ]
+            },
             include: BUYER_LOAN_INCLUDE,
             orderBy: { createdAt: 'desc' },
         });
@@ -135,12 +140,26 @@ export class LoansService {
     async getBuyerLoanById(id: string, requesterId?: string, isLoanPartner?: boolean, isBuyer?: boolean) {
         const loan = await this.prisma.buyerLoanApplication.findUnique({
             where: { id },
-            include: BUYER_LOAN_INCLUDE,
+            include: {
+                ...BUYER_LOAN_INCLUDE,
+                lead: {
+                    ...BUYER_LOAN_INCLUDE.lead,
+                    include: {
+                        project: {
+                            include: { assignedTo: true }
+                        }
+                    }
+                }
+            },
         });
         if (!loan) throw new NotFoundException('Buyer loan application not found');
 
-        if (isLoanPartner && loan.assignedLoanPartnerId !== requesterId) {
-            throw new ForbiddenException('You are not assigned to this loan application');
+        if (isLoanPartner) {
+            const isDirectlyAssigned = loan.assignedLoanPartnerId === requesterId;
+            const isAssignedViaProject = loan.lead.project?.assignedTo?.some(u => u.id === requesterId);
+            if (!isDirectlyAssigned && !isAssignedViaProject) {
+                throw new ForbiddenException('You are not assigned to this loan application');
+            }
         }
 
         if (isBuyer && loan.lead.buyerId !== requesterId) {
@@ -151,12 +170,8 @@ export class LoansService {
     }
 
     async updateBuyerLoanStatus(id: string, dto: UpdateBuyerLoanStatusDto, requesterId: string, isLoanPartner: boolean) {
-        const loan = await this.prisma.buyerLoanApplication.findUnique({ where: { id } });
-        if (!loan) throw new NotFoundException('Buyer loan application not found');
-        if (isLoanPartner && loan.assignedLoanPartnerId !== requesterId) {
-            throw new ForbiddenException('You are not assigned to this loan application');
-        }
-
+        const loan = await this.getBuyerLoanById(id, requesterId, isLoanPartner);
+        
         return this.prisma.buyerLoanApplication.update({
             where: { id },
             data: { status: dto.status, notes: dto.notes },
@@ -223,7 +238,12 @@ export class LoansService {
 
     async getProjectLoanAppsByPartner(loanPartnerId: string) {
         return this.prisma.projectLoanApplication.findMany({
-            where: { assignedLoanPartnerId: loanPartnerId },
+            where: {
+                OR: [
+                    { assignedLoanPartnerId: loanPartnerId },
+                    { project: { assignedTo: { some: { id: loanPartnerId } } } }
+                ]
+            },
             include: PROJECT_LOAN_INCLUDE,
             orderBy: { createdAt: 'desc' },
         });
@@ -232,23 +252,29 @@ export class LoansService {
     async getProjectLoanAppById(id: string, requesterId?: string, isLoanPartner?: boolean) {
         const app = await this.prisma.projectLoanApplication.findUnique({
             where: { id },
-            include: PROJECT_LOAN_INCLUDE,
+            include: {
+                ...PROJECT_LOAN_INCLUDE,
+                project: {
+                    ...PROJECT_LOAN_INCLUDE.project,
+                    include: { assignedTo: true }
+                }
+            },
         });
         if (!app) throw new NotFoundException('Project loan application not found');
 
-        if (isLoanPartner && app.assignedLoanPartnerId !== requesterId) {
-            throw new ForbiddenException('You are not assigned to this project loan application');
+        if (isLoanPartner) {
+            const isDirectlyAssigned = app.assignedLoanPartnerId === requesterId;
+            const isAssignedViaProject = app.project.assignedTo?.some(u => u.id === requesterId);
+            if (!isDirectlyAssigned && !isAssignedViaProject) {
+                throw new ForbiddenException('You are not assigned to this project loan application');
+            }
         }
 
         return app;
     }
 
     async updateProjectLoanReview(id: string, dto: UpdateProjectLoanReviewDto, requesterId: string, isLoanPartner: boolean) {
-        const app = await this.prisma.projectLoanApplication.findUnique({ where: { id } });
-        if (!app) throw new NotFoundException('Project loan application not found');
-        if (isLoanPartner && app.assignedLoanPartnerId !== requesterId) {
-            throw new ForbiddenException('You are not assigned to this project loan application');
-        }
+        const app = await this.getProjectLoanAppById(id, requesterId, isLoanPartner);
 
         return this.prisma.projectLoanApplication.update({
             where: { id },

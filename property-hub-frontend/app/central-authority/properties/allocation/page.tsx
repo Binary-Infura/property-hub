@@ -152,6 +152,17 @@ export default function PropertyBulkAllocationPage() {
         );
     }, [agents, agentSearch]);
 
+    // Compute how many projects each agent is already assigned to
+    const agentProjectCounts = useMemo(() => {
+        const counts: Record<string, number> = {};
+        properties.forEach(p => {
+            p.assignedTo?.forEach(a => {
+                counts[a.id] = (counts[a.id] || 0) + 1;
+            });
+        });
+        return counts;
+    }, [properties]);
+
     const itemsCount = filteredProperties.length;
 
     // Selection logic
@@ -351,22 +362,21 @@ export default function PropertyBulkAllocationPage() {
                                                     <span className="w-1 h-1 rounded-full bg-slate-200 shrink-0"></span>
                                                     <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest truncate">{p.city?.name || 'Uncategorized City'}</span>
                                                 </div>
-                                                {/* Assigned agents mini-list */}
+                                                {/* Assigned agents list */}
                                                 {p.assignedTo && p.assignedTo.length > 0 && (
-                                                    <div className="flex -space-x-1.5 mt-2">
-                                                        {p.assignedTo.slice(0, 5).map((con, i) => (
-                                                            <div
+                                                    <div className="flex flex-wrap gap-1.5 mt-3">
+                                                        {p.assignedTo.slice(0, 3).map((con) => (
+                                                            <span 
                                                                 key={`${p.id}-${con.id}`}
-                                                                className="w-5 h-5 rounded-full border border-white bg-slate-100 flex items-center justify-center text-[7px] font-black text-slate-400"
-                                                                title={con.firstName}
+                                                                className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[9px] font-bold rounded-full border border-slate-200"
                                                             >
-                                                                {con.firstName[0]}
-                                                            </div>
+                                                                {con.firstName} {con.lastName?.[0]}.
+                                                            </span>
                                                         ))}
-                                                        {p.assignedTo.length > 5 && (
-                                                            <div className="w-5 h-5 rounded-full border border-white bg-slate-100 flex items-center justify-center text-[7px] font-black text-slate-400">
-                                                                +{p.assignedTo.length - 5}
-                                                            </div>
+                                                        {p.assignedTo.length > 3 && (
+                                                            <span className="px-2 py-0.5 bg-slate-50 text-slate-400 text-[9px] font-bold rounded-full">
+                                                                +{p.assignedTo.length - 3} more
+                                                            </span>
                                                         )}
                                                     </div>
                                                 )}
@@ -424,15 +434,11 @@ export default function PropertyBulkAllocationPage() {
                                             <span className="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-[8px] font-black rounded-md uppercase tracking-tighter">
                                                 {a.role?.replace('-', ' ') || 'agent'}
                                             </span>
-                                            {a.onboardedBy?.roles?.includes('CENTRAL_AUTHORITY') ? (
-                                                <span className="px-1.5 py-0.5 bg-blue-100 text-blue-700 text-[8px] font-black rounded-md uppercase tracking-tighter ring-1 ring-blue-200">
-                                                    Internal
+                                            {agentProjectCounts[a.id] > 0 && (
+                                                <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-black rounded-md uppercase tracking-tighter ring-1 ring-blue-100">
+                                                    {agentProjectCounts[a.id]} Projects
                                                 </span>
-                                            ) : a.onboardedBy?.roles?.includes('PROPERTY_PARTNER') ? (
-                                                <span className="px-1.5 py-0.5 bg-emerald-100 text-emerald-700 text-[8px] font-black rounded-md uppercase tracking-tighter ring-1 ring-emerald-200">
-                                                    Partner Agent
-                                                </span>
-                                            ) : null}
+                                            )}
                                         </div>
                                         <p className="text-xs text-slate-400 font-medium truncate">{a.email}</p>
                                     </div>

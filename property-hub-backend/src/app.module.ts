@@ -14,6 +14,7 @@ import { ConsultantsModule } from './modules/roles/consultants/consultants.modul
 import { PropertyPartnersModule } from './modules/roles/property-partners/property-partners.module';
 
 import { CentralAuthorityModule } from './modules/roles/central-authority/central-authority.module';
+import { LoanPartnersModule } from './modules/roles/loan-partners/loan-partners.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { DatabaseModule } from './database/database.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
@@ -61,6 +62,7 @@ import { join } from 'path';
         BuyersModule,
         ConsultantsModule,
         PropertyPartnersModule,
+        LoanPartnersModule,
 
         CentralAuthorityModule,
         ChatModule,

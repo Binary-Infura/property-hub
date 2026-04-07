@@ -3,30 +3,27 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { projectLoansService, ProjectLoanApplication, ReviewStatus, BankStatus } from '@/app/services/loanService';
+import SidebarIcon from '@/app/components/SidebarIcon';
+import Link from 'next/link';
 
 // ─── Status Config ────────────────────────────────────────────────────────────
 
-const REVIEW_CONFIG: Record<ReviewStatus, { label: string; color: string; bg: string }> = {
-    PENDING:     { label: 'Pending',     color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
-    IN_PROGRESS: { label: 'In Progress', color: '#3b82f6', bg: 'rgba(59,130,246,0.1)' },
-    COMPLETED:   { label: 'Completed',   color: '#10b981', bg: 'rgba(16,185,129,0.1)' },
+const REVIEW_CONFIG: Record<ReviewStatus, { label: string; color: string; bg: string; border: string }> = {
+    PENDING:     { label: 'Pending Review',  color: 'text-amber-700', bg: 'bg-amber-50', border: 'border-amber-200' },
+    IN_PROGRESS: { label: 'In Progress',    color: 'text-blue-700',  bg: 'bg-blue-50',  border: 'border-blue-200' },
+    COMPLETED:   { label: 'Completed',       color: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-200' },
 };
 
-const BANK_STATUS_CONFIG: Record<BankStatus, { label: string; color: string; bg: string; icon: string }> = {
-    APPROVED:      { label: 'Bank Approved',   color: '#10b981', bg: 'rgba(16,185,129,0.1)',  icon: '✅' },
-    LIMITED:       { label: 'Limited Approval', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', icon: '⚠️' },
-    NOT_AVAILABLE: { label: 'Not Available',   color: '#ef4444', bg: 'rgba(239,68,68,0.1)',  icon: '❌' },
+const BANK_STATUS_CONFIG: Record<BankStatus, { label: string; color: string; bg: string; icon: string; border: string }> = {
+    APPROVED:      { label: 'Bank Approved',   color: 'text-emerald-700', bg: 'bg-emerald-50', icon: '✅', border: 'border-emerald-100' },
+    LIMITED:       { label: 'Limited Approval', color: 'text-amber-700',  bg: 'bg-amber-50', icon: '⚠️', border: 'border-amber-100' },
+    NOT_AVAILABLE: { label: 'Not Available',   color: 'text-rose-700',   bg: 'bg-rose-50', icon: '❌', border: 'border-rose-100' },
 };
 
 function ReviewBadge({ status }: { status: ReviewStatus }) {
     const cfg = REVIEW_CONFIG[status];
     return (
-        <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: '5px',
-            padding: '4px 10px', borderRadius: '20px',
-            background: cfg.bg, color: cfg.color,
-            fontSize: '12px', fontWeight: 600,
-        }}>
+        <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full border ${cfg.bg} ${cfg.color} ${cfg.border} text-[10px] font-bold uppercase tracking-wider`}>
             {cfg.label}
         </span>
     );
@@ -35,13 +32,8 @@ function ReviewBadge({ status }: { status: ReviewStatus }) {
 function BankStatusBadge({ status }: { status: BankStatus }) {
     const cfg = BANK_STATUS_CONFIG[status];
     return (
-        <span style={{
-            display: 'inline-flex', alignItems: 'center', gap: '5px',
-            padding: '4px 12px', borderRadius: '20px',
-            background: cfg.bg, color: cfg.color,
-            fontSize: '12px', fontWeight: 600,
-        }}>
-            {cfg.icon} {cfg.label}
+        <span className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border ${cfg.bg} ${cfg.color} ${cfg.border} text-[11px] font-black uppercase tracking-tight`}>
+            <span className="text-sm">{cfg.icon}</span> {cfg.label}
         </span>
     );
 }
@@ -70,128 +62,151 @@ function DetailPanel({ app, token, onClose, onUpdate }: {
     }
 
     return (
-        <div style={{
-            position: 'fixed', inset: 0, zIndex: 100,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            background: 'rgba(0,0,0,0.5)', backdropFilter: 'blur(6px)',
-        }} onClick={onClose}>
-            <div style={{
-                background: '#fff', borderRadius: '20px', width: '90%', maxWidth: 660,
-                maxHeight: '90vh', overflowY: 'auto', padding: '32px',
-                boxShadow: '0 25px 60px rgba(0,0,0,0.2)',
-            }} onClick={e => e.stopPropagation()}>
-
-                {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 24 }}>
-                    <div>
-                        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.08em', color: '#3b82f6', textTransform: 'uppercase', marginBottom: 4 }}>
-                            Project Loan Application
+        <div 
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4" 
+            onClick={onClose}
+        >
+            <div 
+                className="bg-white rounded-3xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-in fade-in zoom-in duration-200" 
+                onClick={e => e.stopPropagation()}
+            >
+                {/* Modal Header */}
+                <div className="p-8 border-b border-gray-50 flex items-center justify-between sticky top-0 bg-white/80 backdrop-blur-md z-10">
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl shadow-inner">
+                            <SidebarIcon name="bank" className="w-8 h-8" />
                         </div>
-                        <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: '#0f172a' }}>{app.project.name}</h2>
-                        <div style={{ fontSize: 13, color: '#64748b', marginTop: 2 }}>
-                            {app.project.projectType} · {app.project.addressRecord?.city?.name || 'City N/A'}, {app.project.addressRecord?.city?.state || ''}
+                        <div>
+                            <div className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-500 mb-1">Bank Eligibility Review</div>
+                            <h2 className="text-2xl font-bold text-gray-900 leading-none">{app.project.name}</h2>
                         </div>
                     </div>
-                    <button onClick={onClose} style={{ background: '#f1f5f9', border: 'none', borderRadius: '50%', width: 36, height: 36, cursor: 'pointer', fontSize: 18, color: '#64748b' }}>×</button>
+                    <button onClick={onClose} className="p-2 bg-gray-50 text-gray-400 hover:text-rose-500 hover:bg-rose-50 rounded-xl transition-all">
+                        <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
                 </div>
 
-                <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 20 }}>
-                    <ReviewBadge status={app.reviewStatus} />
-                    <BankStatusBadge status={app.bankStatus} />
-                </div>
-
-                {/* Builder Info */}
-                {app.project.onboardedBy && (
-                    <div style={{ background: '#f8fafc', borderRadius: 12, padding: 16, marginBottom: 16 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Builder</div>
-                        <div style={{ fontWeight: 600, color: '#1e293b' }}>
-                            {app.project.onboardedBy.firstName} {app.project.onboardedBy.lastName}
+                <div className="p-8 space-y-8">
+                    {/* Status Overview */}
+                    <div className="flex gap-4 flex-wrap">
+                        <div className="flex-1 min-w-[200px] bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
+                           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Review Progress</p>
+                           <ReviewBadge status={app.reviewStatus} />
                         </div>
-                        <div style={{ fontSize: 13, color: '#64748b' }}>{app.project.onboardedBy.email}</div>
-                    </div>
-                )}
-
-                {/* Bank */}
-                <div style={{ background: 'linear-gradient(135deg, #eff6ff, #dbeafe)', borderRadius: 12, padding: 16, marginBottom: 16 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#3b82f6', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 6 }}>Bank for Review</div>
-                    <div style={{ fontWeight: 700, fontSize: 18, color: '#1e40af' }}>{app.bank.name}</div>
-                    <div style={{ fontSize: 13, color: '#3b82f6' }}>{app.bank.percentage}% interest rate</div>
-                </div>
-
-                {/* Documents */}
-                {app.documents.length > 0 && (
-                    <div style={{ marginBottom: 16 }}>
-                        <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>Documents</div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
-                            {app.documents.map(doc => (
-                                <a key={doc.id} href={doc.url} target="_blank" rel="noreferrer" style={{
-                                    display: 'flex', alignItems: 'center', gap: 10,
-                                    background: '#f8fafc', borderRadius: 10, padding: '10px 14px',
-                                    color: '#3b82f6', textDecoration: 'none', fontSize: 13, fontWeight: 500,
-                                }}>
-                                    <span>📄</span>
-                                    <span style={{ flex: 1 }}>{doc.name}</span>
-                                    <span style={{ fontSize: 11, color: '#64748b' }}>{doc.category}</span>
-                                </a>
-                            ))}
+                        <div className="flex-1 min-w-[200px] bg-gray-50/50 rounded-2xl p-6 border border-gray-100">
+                           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-3">Current Decision</p>
+                           <BankStatusBadge status={app.bankStatus} />
                         </div>
                     </div>
-                )}
 
-                {/* Remarks */}
-                <div style={{ marginBottom: 16 }}>
-                    <label style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', display: 'block', marginBottom: 8 }}>Remarks</label>
-                    <textarea
-                        value={remarks}
-                        onChange={e => setRemarks(e.target.value)}
-                        style={{ width: '100%', minHeight: 80, borderRadius: 10, border: '1px solid #e2e8f0', padding: '10px 12px', fontSize: 13, resize: 'vertical', boxSizing: 'border-box', fontFamily: 'inherit' }}
-                        placeholder="Add remarks about this bank eligibility review..."
-                    />
-                </div>
-
-                {/* Review Status Actions */}
-                <div style={{ marginBottom: 16 }}>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Review Progress</div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                        {(['PENDING', 'IN_PROGRESS', 'COMPLETED'] as ReviewStatus[]).map(s => {
-                            const cfg = REVIEW_CONFIG[s];
-                            const active = app.reviewStatus === s;
-                            return (
-                                <button key={s} disabled={updating || active} onClick={() => handleUpdate({ reviewStatus: s })} style={{
-                                    flex: 1, padding: '10px 12px', borderRadius: 10,
-                                    border: `1.5px solid ${active ? cfg.color : '#e2e8f0'}`,
-                                    background: active ? cfg.bg : '#fff',
-                                    color: active ? cfg.color : '#64748b',
-                                    fontWeight: 600, fontSize: 12, cursor: active || updating ? 'default' : 'pointer',
-                                    transition: 'all 0.15s',
-                                }}>
-                                    {cfg.label}
-                                </button>
-                            );
-                        })}
+                    {/* Bank Info Section */}
+                    <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-8 text-white shadow-xl shadow-blue-100 relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-10 -mt-10" />
+                        <div className="relative z-10">
+                            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-blue-100 mb-3 opacity-80">Assigned Bank Partner</p>
+                            <h3 className="text-3xl font-extrabold tracking-tight">{app.bank.name}</h3>
+                            <div className="mt-4 flex items-center gap-6">
+                                <div className="bg-white/10 backdrop-blur-md rounded-2xl p-4 border border-white/10 flex-1">
+                                    <p className="text-[10px] font-bold text-blue-100 uppercase opacity-70">Rate Benchmark</p>
+                                    <p className="text-xl font-black">{app.bank.percentage}%</p>
+                                </div>
+                                <div className="flex-1">
+                                    <p className="text-[10px] font-bold text-blue-100 uppercase opacity-70">Location</p>
+                                    <p className="text-sm font-bold truncate">{app.project.addressRecord?.city?.name || 'All India'}</p>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
 
-                {/* Bank Status Actions */}
-                <div>
-                    <div style={{ fontSize: 11, fontWeight: 700, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 10 }}>Bank Eligibility Decision</div>
-                    <div style={{ display: 'flex', gap: 8 }}>
-                        {(['APPROVED', 'LIMITED', 'NOT_AVAILABLE'] as BankStatus[]).map(s => {
-                            const cfg = BANK_STATUS_CONFIG[s];
-                            const active = app.bankStatus === s;
-                            return (
-                                <button key={s} disabled={updating || active} onClick={() => handleUpdate({ bankStatus: s })} style={{
-                                    flex: 1, padding: '10px 8px', borderRadius: 10,
-                                    border: `1.5px solid ${active ? cfg.color : '#e2e8f0'}`,
-                                    background: active ? cfg.bg : '#fff',
-                                    color: active ? cfg.color : '#64748b',
-                                    fontWeight: 600, fontSize: 11, cursor: active || updating ? 'default' : 'pointer',
-                                    transition: 'all 0.15s',
-                                }}>
-                                    {cfg.icon} {cfg.label}
-                                </button>
-                            );
-                        })}
+                    {/* Builder & Documents */}
+                    <div className="grid md:grid-cols-2 gap-6">
+                        {app.project.onboardedBy && (
+                            <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Builder Contact</p>
+                                <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 bg-slate-100 rounded-full flex items-center justify-center font-bold text-slate-500">
+                                        {app.project.onboardedBy.firstName[0]}{app.project.onboardedBy.lastName[0]}
+                                    </div>
+                                    <div>
+                                        <p className="text-sm font-bold text-gray-900 leading-none">{app.project.onboardedBy.firstName} {app.project.onboardedBy.lastName}</p>
+                                        <p className="text-xs text-gray-500 font-medium mt-1">{app.project.onboardedBy.email}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        <div className="bg-white rounded-2xl p-6 border border-gray-100 shadow-sm">
+                           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Verification Files</p>
+                           <div className="space-y-2">
+                               {app.documents.length === 0 ? (
+                                   <p className="text-xs text-gray-400 font-medium italic">No legal docs linked</p>
+                               ) : (
+                                   app.documents.slice(0, 3).map(doc => (
+                                       <a key={doc.id} href={doc.url} target="_blank" rel="noreferrer" className="flex items-center justify-between p-2 bg-gray-50 rounded-lg group">
+                                           <span className="text-[11px] font-bold text-gray-700 truncate">{doc.name}</span>
+                                           <svg className="w-3.5 h-3.5 text-blue-400 group-hover:text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                                       </a>
+                                   ))
+                               )}
+                           </div>
+                        </div>
+                    </div>
+
+                    {/* Decision Actions */}
+                    <div className="space-y-6 pt-4 border-t border-gray-50">
+                        <div className="space-y-4">
+                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Review Remarks</p>
+                            <textarea
+                                value={remarks}
+                                onChange={e => setRemarks(e.target.value)}
+                                className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 min-h-[100px] transition-all"
+                                placeholder="Add eligibility comments, bank LTV ratios, or notes for the builder..."
+                            />
+                        </div>
+
+                        <div className="grid md:grid-cols-2 gap-8">
+                            <div className="space-y-3">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Mark Progress</p>
+                                <div className="flex flex-col gap-2">
+                                    {(['IN_PROGRESS', 'COMPLETED'] as ReviewStatus[]).map(s => {
+                                        const cfg = REVIEW_CONFIG[s];
+                                        const active = app.reviewStatus === s;
+                                        return (
+                                            <button 
+                                                key={s} 
+                                                disabled={updating || active} 
+                                                onClick={() => handleUpdate({ reviewStatus: s })}
+                                                className={`flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all ${
+                                                    active ? `${cfg.bg} ${cfg.border} ${cfg.color}` : 'bg-white border-gray-50 text-gray-400 hover:border-gray-200'
+                                                } text-xs font-black uppercase tracking-widest`}
+                                            >
+                                                {cfg.label} {active && '✓'}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                            <div className="space-y-3">
+                                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Eligibility Decision</p>
+                                <div className="flex flex-col gap-2">
+                                    {(['APPROVED', 'LIMITED', 'NOT_AVAILABLE'] as BankStatus[]).map(s => {
+                                        const cfg = BANK_STATUS_CONFIG[s];
+                                        const active = app.bankStatus === s;
+                                        return (
+                                            <button 
+                                                key={s} 
+                                                disabled={updating || active} 
+                                                onClick={() => handleUpdate({ bankStatus: s })}
+                                                className={`flex items-center justify-between px-4 py-3 rounded-xl border-2 transition-all ${
+                                                    active ? `${cfg.bg} ${cfg.border} ${cfg.color}` : 'bg-white border-gray-50 text-gray-400 hover:border-gray-200'
+                                                } text-xs font-black uppercase tracking-widest`}
+                                            >
+                                                <span>{cfg.icon} {cfg.label}</span> {active && '✓'}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -244,148 +259,176 @@ export default function ProjectLoansPage() {
     }
 
     return (
-        <div style={{ padding: '32px', minHeight: '100vh', background: '#f8fafc', fontFamily: "'Inter', system-ui, -apple-system, sans-serif" }}>
-
-            {/* Header */}
-            <div style={{ marginBottom: 32 }}>
-                <div style={{ fontSize: 12, fontWeight: 700, letterSpacing: '0.08em', color: '#3b82f6', textTransform: 'uppercase', marginBottom: 6 }}>Flow 2</div>
-                <h1 style={{ margin: '0 0 8px', fontSize: 28, fontWeight: 800, color: '#0f172a' }}>Project Loans</h1>
-                <p style={{ margin: 0, color: '#64748b', fontSize: 15 }}>Review bank eligibility for assigned projects</p>
-            </div>
-
-            {/* Stats */}
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))', gap: 16, marginBottom: 28 }}>
-                {[
-                    { label: 'Total', value: stats.total, color: '#3b82f6', icon: '🏗️' },
-                    { label: 'Pending', value: stats.pending, color: '#f59e0b', icon: '⏳' },
-                    { label: 'In Progress', value: stats.inProgress, color: '#6366f1', icon: '🔄' },
-                    { label: 'Bank Approved', value: stats.approved, color: '#10b981', icon: '🏦' },
-                ].map(stat => (
-                    <div key={stat.label} style={{ background: '#fff', borderRadius: 16, padding: 20, boxShadow: '0 1px 6px rgba(0,0,0,0.06)', display: 'flex', flexDirection: 'column', gap: 4 }}>
-                        <div style={{ fontSize: 22 }}>{stat.icon}</div>
-                        <div style={{ fontSize: 28, fontWeight: 800, color: stat.color }}>{stat.value}</div>
-                        <div style={{ fontSize: 12, fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.04em' }}>{stat.label}</div>
+        <div className="min-h-screen bg-gray-50">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+                
+                {/* Header */}
+                <div className="mb-10">
+                    <div className="flex items-center gap-2 text-blue-600 mb-2">
+                        <Link href="/dashboard" className="p-2 hover:bg-blue-50 rounded-lg transition-colors">
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
+                        </Link>
+                        <span className="text-xs font-black uppercase tracking-[0.2em]">Flow 02: Project Eligibility</span>
                     </div>
-                ))}
-            </div>
-
-            {/* Filters */}
-            <div style={{ display: 'flex', gap: 12, marginBottom: 20, flexWrap: 'wrap' }}>
-                <input
-                    value={search}
-                    onChange={e => setSearch(e.target.value)}
-                    placeholder="Search by project, bank, city..."
-                    style={{ flex: 1, minWidth: 240, padding: '10px 16px', borderRadius: 12, border: '1.5px solid #e2e8f0', fontSize: 14, outline: 'none', fontFamily: 'inherit' }}
-                />
-                {/* Review filter */}
-                <select
-                    value={filterReview}
-                    onChange={e => setFilterReview(e.target.value as ReviewStatus | 'ALL')}
-                    style={{ padding: '10px 14px', borderRadius: 12, border: '1.5px solid #e2e8f0', fontSize: 13, fontWeight: 600, color: '#475569', cursor: 'pointer', background: '#fff', fontFamily: 'inherit' }}
-                >
-                    <option value="ALL">All Reviews</option>
-                    <option value="PENDING">Pending</option>
-                    <option value="IN_PROGRESS">In Progress</option>
-                    <option value="COMPLETED">Completed</option>
-                </select>
-                {/* Bank filter */}
-                <select
-                    value={filterBank}
-                    onChange={e => setFilterBank(e.target.value)}
-                    style={{ padding: '10px 14px', borderRadius: 12, border: '1.5px solid #e2e8f0', fontSize: 13, fontWeight: 600, color: '#475569', cursor: 'pointer', background: '#fff', fontFamily: 'inherit' }}
-                >
-                    <option value="ALL">All Banks</option>
-                    {uniqueBanks.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                </select>
-            </div>
-
-            {/* Pre-approved banner */}
-            {apps.filter(a => a.bankStatus === 'APPROVED').length > 0 && (
-                <div style={{
-                    display: 'flex', gap: 12, alignItems: 'center',
-                    background: 'linear-gradient(135deg, #ecfdf5, #d1fae5)',
-                    border: '1.5px solid #6ee7b7', borderRadius: 14, padding: '14px 20px', marginBottom: 20,
-                }}>
-                    <span style={{ fontSize: 20 }}>🚀</span>
-                    <div>
-                        <div style={{ fontWeight: 700, color: '#065f46', fontSize: 14 }}>
-                            {apps.filter(a => a.bankStatus === 'APPROVED').length} project(s) with bank approval — buyer loans will be faster!
-                        </div>
-                        <div style={{ fontSize: 12, color: '#059669' }}>Pre-approved projects speed up the buyer loan process (Flow 1)</div>
-                    </div>
+                    <h1 className="text-3xl font-bold text-gray-900">Project Bank Tie-ups</h1>
+                    <p className="text-gray-500 mt-1 font-medium">Review and verify collective bank eligibility for construction projects</p>
                 </div>
-            )}
 
-            {/* List */}
-            {loading ? (
-                <div style={{ textAlign: 'center', padding: 80, color: '#94a3b8', fontSize: 15 }}>Loading project loan applications...</div>
-            ) : filtered.length === 0 ? (
-                <div style={{ textAlign: 'center', padding: 80, background: '#fff', borderRadius: 20, boxShadow: '0 1px 6px rgba(0,0,0,0.06)' }}>
-                    <div style={{ fontSize: 48, marginBottom: 12 }}>🏗️</div>
-                    <div style={{ fontSize: 16, fontWeight: 600, color: '#1e293b' }}>No project loan applications found</div>
-                    <div style={{ fontSize: 14, color: '#94a3b8', marginTop: 4 }}>Project bank eligibility reviews assigned to you will appear here</div>
-                </div>
-            ) : (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
-                    {filtered.map(app => (
-                        <div key={app.id} onClick={() => setSelected(app)} style={{
-                            background: '#fff', borderRadius: 16, padding: 20,
-                            boxShadow: '0 1px 6px rgba(0,0,0,0.06)', cursor: 'pointer',
-                            border: '1.5px solid transparent', transition: 'all 0.15s',
-                        }}
-                            onMouseEnter={e => (e.currentTarget.style.borderColor = '#3b82f6', e.currentTarget.style.boxShadow = '0 4px 20px rgba(59,130,246,0.12)')}
-                            onMouseLeave={e => (e.currentTarget.style.borderColor = 'transparent', e.currentTarget.style.boxShadow = '0 1px 6px rgba(0,0,0,0.06)')}
-                        >
-                            {/* Project name & type */}
-                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
-                                <div>
-                                    <div style={{ fontWeight: 700, fontSize: 16, color: '#0f172a', marginBottom: 2 }}>{app.project.name}</div>
-                                    <div style={{ fontSize: 12, color: '#64748b' }}>
-                                        {app.project.projectType} · {app.project.addressRecord?.city?.name || '—'}
-                                    </div>
-                                </div>
-                                <ReviewBadge status={app.reviewStatus} />
-                            </div>
-
-                            {/* Bank chip */}
-                            <div style={{
-                                display: 'inline-flex', alignItems: 'center', gap: 8,
-                                background: 'linear-gradient(135deg, #eff6ff, #dbeafe)', borderRadius: 10,
-                                padding: '8px 12px', marginBottom: 12, width: '100%', boxSizing: 'border-box',
-                            }}>
-                                <span style={{ fontSize: 18 }}>🏦</span>
-                                <div>
-                                    <div style={{ fontWeight: 700, fontSize: 14, color: '#1e40af' }}>{app.bank.name}</div>
-                                    <div style={{ fontSize: 11, color: '#3b82f6' }}>{app.bank.percentage}% rate</div>
+                {/* Metrics */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-10">
+                   {[
+                        { label: 'Assigned Projects', value: stats.total, color: 'text-gray-900', bg: 'bg-white', icon: 'building' },
+                        { label: 'Unreviewed', value: stats.pending, color: 'text-amber-600', bg: 'bg-white', icon: 'clip' },
+                        { label: 'Audit In-Progress', value: stats.inProgress, color: 'text-blue-600', bg: 'bg-white', icon: 'note' },
+                        { label: 'Active Tie-ups', value: stats.approved, color: 'text-emerald-600', bg: 'bg-white', icon: 'bank' },
+                    ].map(stat => (
+                        <div key={stat.label} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 transition-all hover:shadow-md">
+                            <div className="flex items-center justify-between mb-2">
+                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{stat.label}</span>
+                                <div className={`w-8 h-8 rounded-lg ${stat.color.replace('text', 'bg')}/10 flex items-center justify-center ${stat.color}`}>
+                                    <SidebarIcon name={stat.icon as any} className="w-4 h-4" />
                                 </div>
                             </div>
-
-                            {/* Bank status */}
-                            <div style={{ marginBottom: 12 }}>
-                                <BankStatusBadge status={app.bankStatus} />
-                            </div>
-
-                            {/* Builder */}
-                            {app.project.onboardedBy && (
-                                <div style={{ fontSize: 12, color: '#64748b' }}>
-                                    Builder: <span style={{ fontWeight: 600, color: '#475569' }}>
-                                        {app.project.onboardedBy.firstName} {app.project.onboardedBy.lastName}
-                                    </span>
-                                </div>
-                            )}
-
-                            {/* Remarks */}
-                            {app.remarks && (
-                                <div style={{ marginTop: 10, padding: '8px 12px', background: '#fefce8', borderRadius: 8, borderLeft: '3px solid #fbbf24' }}>
-                                    <div style={{ fontSize: 11, color: '#92400e' }}>{app.remarks}</div>
-                                </div>
-                            )}
+                            <p className="text-4xl font-extrabold text-gray-900 leading-none tracking-tight">{stat.value}</p>
                         </div>
                     ))}
                 </div>
-            )}
 
-            {/* Detail Modal */}
+                {/* Pre-approved projects banner */}
+                {apps.filter(a => a.bankStatus === 'APPROVED').length > 0 && (
+                    <div className="mb-10 bg-gradient-to-r from-emerald-600 via-emerald-500 to-teal-500 rounded-[2.5rem] p-1 shadow-lg shadow-emerald-100 group relative overflow-hidden">
+                        <div className="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-32 -mt-32 group-hover:scale-110 transition-transform duration-700" />
+                        <div className="bg-white/5 backdrop-blur-3xl rounded-[2.3rem] p-8 lg:p-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8 relative z-10">
+                            <div className="flex items-center gap-6">
+                                <div className="w-20 h-20 bg-white/20 backdrop-blur-md rounded-3xl flex items-center justify-center text-white text-3xl shadow-2xl border border-white/20">
+                                    🏦
+                                </div>
+                                <div className="text-white">
+                                    <h3 className="text-2xl font-black tracking-tight leading-tight">Fast-Track Loan Processing Enabled</h3>
+                                    <p className="text-emerald-50 font-bold opacity-80 mt-1 uppercase tracking-widest text-[10px]">
+                                        {apps.filter(a => a.bankStatus === 'APPROVED').length} Approved Projects available for immediate buyer lending
+                                    </p>
+                                </div>
+                            </div>
+                            <button className="bg-white text-emerald-700 px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl shadow-emerald-900/10 hover:scale-105 active:scale-95 transition-all">
+                                View Pre-Approved
+                            </button>
+                        </div>
+                    </div>
+                )}
+
+                {/* Filters */}
+                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-8 flex flex-col md:flex-row gap-4 items-center">
+                    <div className="flex-1 w-full relative group">
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={e => setSearch(e.target.value)}
+                            placeholder="Find project, bank partner or city..."
+                            className="w-full bg-gray-50 border border-gray-100 rounded-2xl pl-12 pr-4 py-4 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all font-medium"
+                        />
+                        <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-500 transition-colors">
+                           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                        </div>
+                    </div>
+                    <div className="flex gap-3 w-full md:w-auto">
+                        <select
+                            value={filterReview}
+                            onChange={e => setFilterReview(e.target.value as ReviewStatus | 'ALL')}
+                            className="flex-1 md:w-48 bg-white border border-gray-200 rounded-2xl px-4 py-4 text-[11px] font-black uppercase tracking-widest text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 appearance-none shadow-sm cursor-pointer"
+                        >
+                            <option value="ALL">All Reviews</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="IN_PROGRESS">In Progress</option>
+                            <option value="COMPLETED">Completed</option>
+                        </select>
+                        <select
+                            value={filterBank}
+                            onChange={e => setFilterBank(e.target.value)}
+                            className="flex-1 md:w-48 bg-white border border-gray-200 rounded-2xl px-4 py-4 text-[11px] font-black uppercase tracking-widest text-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 appearance-none shadow-sm cursor-pointer"
+                        >
+                            <option value="ALL">All Banks</option>
+                            {uniqueBanks.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                        </select>
+                    </div>
+                </div>
+
+                {/* List Grid */}
+                {loading ? (
+                    <div className="py-32 flex flex-col items-center gap-4">
+                        <div className="w-12 h-12 border-[6px] border-blue-50 border-t-blue-600 rounded-full animate-spin"></div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] font-mono">Syncing Database...</p>
+                    </div>
+                ) : filtered.length === 0 ? (
+                    <div className="py-32 text-center bg-white rounded-3xl border border-dashed border-gray-200 px-6">
+                        <div className="w-24 h-24 bg-gray-50 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 text-gray-300">
+                            <SidebarIcon name="bank" className="w-12 h-12" />
+                        </div>
+                        <h3 className="text-2xl font-bold text-gray-800">No Review Files Founders</h3>
+                        <p className="text-gray-500 mt-2 font-medium max-w-sm mx-auto">Either you are caught up on all reviews or no applications match your filters.</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {filtered.map(app => (
+                            <div 
+                                key={app.id} 
+                                onClick={() => setSelected(app)} 
+                                className="group bg-white rounded-[2rem] p-4 lg:p-6 border border-gray-100 shadow-sm hover:shadow-xl hover:border-blue-200 transition-all cursor-pointer relative overflow-hidden"
+                            >
+                                {/* Background design element */}
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50/30 rounded-full -mr-16 -mt-16 group-hover:scale-125 transition-transform duration-500" />
+                                
+                                <div className="relative z-10 flex flex-col h-full">
+                                    <div className="flex justify-between items-start mb-6">
+                                        <div className="flex-1 mr-4">
+                                            <h3 className="text-lg font-black text-gray-900 group-hover:text-blue-600 transition-colors uppercase tracking-tight line-clamp-1">{app.project.name}</h3>
+                                            <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mt-1">
+                                                {app.project.projectType} · {app.project.addressRecord?.city?.name || 'In-City'}
+                                            </p>
+                                        </div>
+                                        <ReviewBadge status={app.reviewStatus} />
+                                    </div>
+
+                                    <div className="flex-1 space-y-4">
+                                        <div className="bg-slate-50/50 rounded-2xl p-4 border border-slate-50 group-hover:bg-blue-50/30 transition-colors">
+                                            <div className="flex items-center gap-3">
+                                                <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center text-xl">🏦</div>
+                                                <div>
+                                                    <p className="text-sm font-black text-gray-800 leading-none">{app.bank.name}</p>
+                                                    <p className="text-[10px] font-bold text-blue-500 mt-0.5 uppercase tracking-wider">{app.bank.percentage}% Interest</p>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="flex items-center justify-between px-1">
+                                            <BankStatusBadge status={app.bankStatus} />
+                                            {app.project.onboardedBy && (
+                                                <div className="text-right">
+                                                    <p className="text-[8px] font-black text-gray-400 uppercase tracking-widest mb-0.5">Contact</p>
+                                                    <p className="text-[10px] font-bold text-gray-700">{app.project.onboardedBy.firstName} {app.project.onboardedBy.lastName?.[0]}.</p>
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+
+                                    {app.remarks && (
+                                        <div className="mt-5 p-3 bg-amber-50/50 rounded-xl border border-amber-50 flex gap-2 items-start">
+                                            <span className="text-xs">💬</span>
+                                            <p className="text-[10px] font-medium text-amber-800 line-clamp-2 italic">{app.remarks}</p>
+                                        </div>
+                                    )}
+                                    
+                                    <div className="mt-6 flex items-center justify-center py-2 bg-gray-50 rounded-xl font-black text-[9px] uppercase tracking-[0.2em] text-gray-400 group-hover:bg-blue-600 group-hover:text-white transition-all">
+                                        Open Case File
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Modal Overlay */}
             {selected && token && (
                 <DetailPanel
                     app={selected}
