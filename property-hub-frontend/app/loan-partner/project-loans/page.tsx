@@ -268,7 +268,7 @@ export default function ProjectLoansPage() {
                         <Link href="/dashboard" className="p-2 hover:bg-blue-50 rounded-lg transition-colors">
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                         </Link>
-                        <span className="text-xs font-black uppercase tracking-[0.2em]">Flow 02: Project Eligibility</span>
+                        <span className="text-xs font-black uppercase tracking-[0.2em]">Project Eligibility</span>
                     </div>
                     <h1 className="text-3xl font-bold text-gray-900">Project Bank Tie-ups</h1>
                     <p className="text-gray-500 mt-1 font-medium">Review and verify collective bank eligibility for construction projects</p>

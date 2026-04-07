@@ -219,7 +219,7 @@ export default function BuyerLoansPage() {
                         <Link href="/dashboard" className="p-2 hover:bg-indigo-50 rounded-lg transition-colors">
                             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" /></svg>
                         </Link>
-                        <span className="text-xs font-black uppercase tracking-[0.2em]">Flow 01: Buyer Loans</span>
+                        <span className="text-xs font-black uppercase tracking-[0.2em]">Buyer Loans</span>
                     </div>
                     <h1 className="text-3xl font-bold text-gray-900">Buyer Applications</h1>
                     <p className="text-gray-500 mt-1 font-medium">Process and manage individual buyer loan requests</p>
