@@ -10,6 +10,10 @@ export class CreateBankDto {
     @IsString()
     @IsOptional()
     logoUrl?: string;
+
+    @IsBoolean()
+    @IsOptional()
+    isActive?: boolean;
 }
 
 export class UpdateBankDto {

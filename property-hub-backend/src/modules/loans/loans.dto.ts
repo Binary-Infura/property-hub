@@ -7,7 +7,12 @@ import { BuyerLoanStatus, ReviewStatus, BankStatus } from '@prisma/client';
 
 export class CreateBuyerLoanApplicationDto {
     @IsUUID()
-    leadId: string;
+    @IsOptional()
+    leadId?: string;
+
+    @IsUUID()
+    @IsOptional()
+    projectId?: string;
 
     @IsNumber()
     @Min(0)

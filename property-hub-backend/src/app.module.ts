@@ -39,6 +39,7 @@ import { TowersModule } from './modules/towers/towers.module';
 import { VisitsModule } from './modules/visits/visits.module';
 import { CallingModule } from './modules/calling/calling.module';
 import { OtpModule } from './modules/otp/otp.module';
+import { BankBranchesModule } from './modules/bank-branches/bank-branches.module';
 import { join } from 'path';
 
 @Module({
@@ -85,6 +86,7 @@ import { join } from 'path';
         TowersModule,
         VisitsModule,
         OtpModule,
+        BankBranchesModule,
         /*
         ServeStaticModule.forRoot({
             rootPath: join(__dirname, '..', 'uploads'),

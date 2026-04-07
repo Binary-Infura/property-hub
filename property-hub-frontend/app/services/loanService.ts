@@ -30,7 +30,7 @@ export interface BuyerLoanApplication {
         project: { id: string; name: string; projectType: string } | null;
     };
     bank: { id: string; name: string; logoUrl: string | null; percentage: number } | null;
-    assignedLoanPartner: { id: string; firstName: string; lastName: string; email: string } | null;
+    assignedLoanPartner: { id: string; firstName: string; lastName: string; email: string; phone?: string } | null;
     documents: { id: string; name: string; category: string; url: string; status: string; createdAt: string }[];
 }
 

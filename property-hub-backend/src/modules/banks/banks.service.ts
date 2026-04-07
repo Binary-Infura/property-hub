@@ -10,8 +10,32 @@ export class BanksService {
 
     async createBank(dto: CreateBankDto) {
         try {
-            return await this.prisma.bank.create({
-                data: dto,
+            return await this.prisma.$transaction(async (tx) => {
+                // 1. Create the bank
+                const bank = await tx.bank.create({
+                    data: {
+                        name: dto.name,
+                        percentage: dto.percentage,
+                        logoUrl: dto.logoUrl,
+                        isActive: dto.isActive ?? true,
+                    },
+                });
+
+                // 2. Create the associated organization
+                const organization = await tx.organization.create({
+                    data: {
+                        name: bank.name,
+                        type: 'LOAN_PARTNER',
+                    },
+                });
+
+                // 3. Link organization back to bank
+                return await tx.bank.update({
+                    where: { id: bank.id },
+                    data: {
+                        organizationId: organization.id,
+                    },
+                });
             });
         } catch (error) {
             if (error.code === 'P2002') {

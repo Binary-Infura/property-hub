@@ -136,13 +136,30 @@ export class CreateUserDto {
     @IsOptional()
     brokerType?: string; // 'INDIVIDUAL', 'FIRM'
 
+    // Loan Partner Specific Fields
+    @IsString()
+    @IsOptional()
+    bankId?: string;
 
+    @IsString()
+    @IsOptional()
+    branchId?: string;
 
+    @IsString()
+    @IsOptional()
+    branchName?: string;
 
+    @IsString()
+    @IsOptional()
+    cityId?: string;
 
+    @IsString()
+    @IsOptional()
+    cityName?: string;
 
-
-
+    @IsString()
+    @IsOptional()
+    stateName?: string;
 }
 
 export class UpdateUserDto {
@@ -218,11 +235,30 @@ export class UpdateUserDto {
     @IsOptional()
     brokerType?: string;
 
+    // Loan Partner Specific Fields
+    @IsString()
+    @IsOptional()
+    bankId?: string;
 
+    @IsString()
+    @IsOptional()
+    branchId?: string;
 
+    @IsString()
+    @IsOptional()
+    branchName?: string;
 
+    @IsString()
+    @IsOptional()
+    cityId?: string;
 
+    @IsString()
+    @IsOptional()
+    cityName?: string;
 
+    @IsString()
+    @IsOptional()
+    stateName?: string;
 }
 
 export class UpdateProfileDto {

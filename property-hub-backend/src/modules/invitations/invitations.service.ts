@@ -126,6 +126,12 @@ export class InvitationsService {
         agencyName: dto.agencyName,
         officeAddress: dto.officeAddress,
         reraNumber: dto.reraNumber,
+        bankId: dto.bankId,
+        branchId: dto.branchId,
+        branchName: dto.branchName,
+        cityId: dto.cityId,
+        cityName: dto.cityName,
+        stateName: dto.stateName,
       });
 
       // Override status to PENDING_VERIFICATION
@@ -242,6 +248,12 @@ export class InvitationsService {
       agencyName: dto.agencyName,
       officeAddress: dto.officeAddress,
       reraNumber: dto.reraNumber,
+      bankId: dto.bankId,
+      branchId: dto.branchId,
+      branchName: dto.branchName,
+      cityId: dto.cityId,
+      cityName: dto.cityName,
+      stateName: dto.stateName,
     });
 
     // Mark invitation as accepted

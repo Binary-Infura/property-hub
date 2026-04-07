@@ -78,6 +78,30 @@ export class RegisterInvitationDto {
   @IsString()
   @IsOptional()
   reraNumber?: string;
+
+  @IsString()
+  @IsOptional()
+  bankId?: string;
+
+  @IsString()
+  @IsOptional()
+  branchId?: string;
+
+  @IsString()
+  @IsOptional()
+  branchName?: string;
+
+  @IsString()
+  @IsOptional()
+  cityId?: string;
+
+  @IsString()
+  @IsOptional()
+  cityName?: string;
+
+  @IsString()
+  @IsOptional()
+  stateName?: string;
 }
 
 export class PublicPartnerSignupDto {
@@ -135,4 +159,28 @@ export class PublicPartnerSignupDto {
   @IsString()
   @IsOptional()
   reraNumber?: string;
+
+  @IsString()
+  @IsOptional()
+  bankId?: string;
+
+  @IsString()
+  @IsOptional()
+  branchId?: string;
+
+  @IsString()
+  @IsOptional()
+  branchName?: string;
+
+  @IsString()
+  @IsOptional()
+  cityId?: string;
+
+  @IsString()
+  @IsOptional()
+  cityName?: string;
+
+  @IsString()
+  @IsOptional()
+  stateName?: string;
 }

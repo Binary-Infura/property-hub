@@ -35,25 +35,29 @@ export class LoansController {
     // ────────────────────────────────────────────────
 
     @Post('buyer')
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.CONSULTANT)
-    createBuyerLoan(@Body() dto: CreateBuyerLoanApplicationDto) {
-        return this.loansService.createBuyerLoan(dto);
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.CONSULTANT, UserRole.BUYER)
+    createBuyerLoan(@Body() dto: CreateBuyerLoanApplicationDto, @CurrentUser() user: AuthenticatedUser) {
+        return this.loansService.createBuyerLoan(dto, user.userId);
     }
-
+    
     @Get('buyer')
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER, UserRole.BUYER)
     getAllBuyerLoans(@CurrentUser() user: AuthenticatedUser) {
+        if (user.activeRole === UserRole.BUYER) {
+            return this.loansService.getBuyerLoansByBuyer(user.userId);
+        }
         if (user.roles.includes(UserRole.LOAN_PARTNER) && !user.roles.includes(UserRole.CENTRAL_AUTHORITY)) {
             return this.loansService.getBuyerLoansByPartner(user.userId);
         }
         return this.loansService.getAllBuyerLoans();
     }
-
+    
     @Get('buyer/:id')
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER, UserRole.BUYER)
     getBuyerLoanById(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
         const isLP = user.roles.includes(UserRole.LOAN_PARTNER) && !user.roles.includes(UserRole.CENTRAL_AUTHORITY);
-        return this.loansService.getBuyerLoanById(id, user.userId, isLP);
+        const isBuyer = user.activeRole === UserRole.BUYER;
+        return this.loansService.getBuyerLoanById(id, user.userId, isLP, isBuyer);
     }
 
     @Patch('buyer/:id/status')

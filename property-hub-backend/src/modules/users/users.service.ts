@@ -163,13 +163,101 @@ export class UsersService {
 
         // Create/find organization if business info provided for specific roles
         let organizationId = dto.organizationId ?? null;
-        const needsOrg = dto.roles.includes(UserRole.PROPERTY_PARTNER) || dto.roles.includes(UserRole.GROWTH_PARTNER as UserRole) || dto.roles.includes(UserRole.LOAN_PARTNER as UserRole);
+        let branchId = dto.branchId ?? null;
+
+        const isLoanPartner = dto.roles.includes(UserRole.LOAN_PARTNER as UserRole);
+        const needsOrg = dto.roles.includes(UserRole.PROPERTY_PARTNER) || dto.roles.includes(UserRole.GROWTH_PARTNER as UserRole) || isLoanPartner;
         const hasBusinessInfo = dto.companyName;
 
-        if (needsOrg && hasBusinessInfo && !organizationId) {
+        if (isLoanPartner) {
+            if (!dto.bankId) {
+                throw new BadRequestException('bankId is required for Loan Partner registration');
+            }
+
+            const bank = await this.prisma.bank.findUnique({
+                where: { id: dto.bankId },
+                select: { organizationId: true }
+            });
+
+            if (!bank || !bank.organizationId) {
+                throw new BadRequestException('Selected bank is not properly configured');
+            }
+
+            organizationId = bank.organizationId;
+
+            // Handle Branch (Find or Create)
+            if (!branchId) {
+                if (!dto.cityId && (!dto.cityName || !dto.stateName)) {
+                    throw new BadRequestException('cityId or (cityName and stateName) are required for Loan Partner branch registration');
+                }
+
+                let targetCityId = dto.cityId;
+
+                // If no cityId provided, or it's not a UUID, we look up/create by name
+                const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(dto.cityId || '');
+                if (!isUuid && dto.cityName && dto.stateName) {
+                    const normalizedCity = dto.cityName.trim();
+                    const normalizedState = dto.stateName.trim();
+
+                    const existingCity = await this.prisma.city.findFirst({
+                        where: {
+                            name: { equals: normalizedCity, mode: 'insensitive' },
+                            state: { equals: normalizedState, mode: 'insensitive' }
+                        }
+                    });
+
+                    if (existingCity) {
+                        targetCityId = existingCity.id;
+                    } else {
+                        const newCity = await this.prisma.city.create({
+                            data: {
+                                name: normalizedCity,
+                                state: normalizedState,
+                            }
+                        });
+                        targetCityId = newCity.id;
+                    }
+                }
+
+                if (!dto.branchName) {
+                    throw new BadRequestException('branchName is required');
+                }
+
+                const normalizedName = (dto.branchName || "").trim().toLowerCase();
+
+                try {
+                    const branch = await this.prisma.bankBranch.create({
+                        data: {
+                            bankId: dto.bankId,
+                            organizationId: bank.organizationId,
+                            cityId: targetCityId!,
+                            name: normalizedName,
+                            address: dto.officeAddress,
+                        }
+                    });
+                    branchId = branch.id;
+                } catch (error) {
+                    // Handle unique constraint (race condition)
+                    const existingBranch = await this.prisma.bankBranch.findFirst({
+                        where: {
+                            bankId: dto.bankId,
+                            cityId: targetCityId!,
+                            name: normalizedName
+                        }
+                    });
+                    if (!existingBranch) throw error;
+                    branchId = existingBranch.id;
+                }
+            } else {
+                // Validate branch belongs to the selected bank
+                const branch = await this.prisma.bankBranch.findUnique({ where: { id: branchId } });
+                if (!branch || branch.bankId !== dto.bankId) {
+                    throw new BadRequestException('Invalid branch selected for the chosen bank');
+                }
+            }
+        } else if (needsOrg && hasBusinessInfo && !organizationId) {
             let orgType = OrganizationType.GROWTH_PARTNER;
             if (dto.roles.includes(UserRole.PROPERTY_PARTNER)) orgType = OrganizationType.PROPERTY_PARTNER;
-            else if (dto.roles.includes(UserRole.LOAN_PARTNER)) orgType = OrganizationType.LOAN_PARTNER;
             const org = await this.prisma.organization.create({
                 data: {
                     name: (dto.companyName || dto.agencyName) as string,
@@ -193,6 +281,7 @@ export class UsersService {
                 activeRole: (dto.activeRole ?? dto.roles[0] ?? undefined) as any,
                 reraId: dto.reraId,
                 organizationId: organizationId || inheritedOrganizationId,
+                branchId,
                 onboardedById,
                 profileData: (dto.roles.includes(UserRole.BROKER as any) || 
                              dto.roles.includes(UserRole.PROPERTY_PARTNER) || 
@@ -408,10 +497,12 @@ export class UsersService {
             if (Object.keys(orgData).length > 0) {
                 if (user.organizationId) {
                     await this.prisma.organization.update({ where: { id: user.organizationId }, data: orgData });
-                } else {
+                } else if (!normalizedRoles.includes(UserRole.LOAN_PARTNER)) {
+                    // Only auto-create org for non-Loan Partners here.
+                    // Loan Partners must be linked to a Bank's Org.
                     let orgType = OrganizationType.GROWTH_PARTNER;
                     if (normalizedRoles.includes(UserRole.PROPERTY_PARTNER)) orgType = OrganizationType.PROPERTY_PARTNER;
-                    else if (normalizedRoles.includes(UserRole.LOAN_PARTNER)) orgType = OrganizationType.LOAN_PARTNER;
+                    
                     const org = await this.prisma.organization.create({
                         data: { name: incoming.companyName || 'New Company', type: orgType as any, ...orgData },
                     });

@@ -3,9 +3,10 @@
 import React, { useState, useEffect } from 'react';
 import { bankService, Bank } from '@/app/services/bankService';
 import { loanService } from '@/app/services/loanService';
+import { useConsultingBucket } from '@/app/contexts/ConsultingBucketContext';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { userService } from '@/app/services/userService';
-import { propertyService, Property } from '@/app/services/propertyService';
+import { propertyService, Property as Project } from '@/app/services/propertyService';
 
 interface BuyerLoanSubmitModalProps {
     isOpen: boolean;
@@ -17,8 +18,9 @@ interface BuyerLoanSubmitModalProps {
 
 export default function BuyerLoanSubmitModal({ isOpen, onClose, loanPartnerId, projectId, onSuccess }: BuyerLoanSubmitModalProps) {
     const { token } = useAuth();
+    const { items } = useConsultingBucket();
     const [banks, setBanks] = useState<Bank[]>([]);
-    const [properties, setProperties] = useState<Property[]>([]);
+    const [projects, setProjects] = useState<Project[]>([]);
     const [documents, setDocuments] = useState<any[]>([]);
     const [selectedDocs, setSelectedDocs] = useState<string[]>([]);
     const [loading, setLoading] = useState(false);
@@ -45,21 +47,23 @@ export default function BuyerLoanSubmitModal({ isOpen, onClose, loanPartnerId, p
             const fetchData = async () => {
                 setLoading(true);
                 try {
-                    const [activeBanks, allProperties, userDocs] = await Promise.all([
+                    const [activeBanks, allProjects, userDocs] = await Promise.all([
                         bankService.getActiveBanks(),
                         propertyService.getAll(token),
                         userService.getMyDocuments(token)
                     ]);
 
+                    const savedProjectIds = items.map(item => item.id);
+                    const filteredProjects = allProjects.filter((p: Project) => savedProjectIds.includes(p.id));
+
                     setBanks(activeBanks);
-                    setProperties(allProperties);
+                    setProjects(filteredProjects);
                     setDocuments(userDocs || []);
 
                     if (activeBanks.length > 0) {
                         setFormData(prev => ({
                             ...prev,
                             bankId: activeBanks[0].id,
-                            interestRate: activeBanks[0].percentage.toString()
                         }));
                     }
                 } catch (error) {
@@ -70,7 +74,7 @@ export default function BuyerLoanSubmitModal({ isOpen, onClose, loanPartnerId, p
             };
             fetchData();
         }
-    }, [isOpen, token]);
+    }, [isOpen, token, items]);
 
     const handleBankChange = (bankId: string) => {
         setFormData(prev => ({ ...prev, bankId }));
@@ -86,6 +90,7 @@ export default function BuyerLoanSubmitModal({ isOpen, onClose, loanPartnerId, p
             const payload: any = {
                 loanAmount: parseFloat(formData.loanAmount),
                 bankId: formData.bankId || undefined,
+                projectId: formData.projectId || undefined,
                 notes: formData.notes || undefined,
             };
             // projectId is passed as context but leadId is required —
@@ -130,10 +135,10 @@ export default function BuyerLoanSubmitModal({ isOpen, onClose, loanPartnerId, p
                 <form onSubmit={handleSubmit} className="p-6 overflow-y-auto max-h-[80vh]">
                     <div className="space-y-6">
 
-                        {/* Property Selection if not fixed */}
+                        {/* Project Selection if not fixed */}
                         {!projectId && (
                             <div className="space-y-1.5 border-b border-gray-100 pb-4">
-                                <label className="block text-sm font-bold text-gray-700">Select Property</label>
+                                <label className="block text-sm font-bold text-gray-700">Select Project</label>
                                 {loading ? (
                                     <div className="h-10 bg-gray-100 animate-pulse rounded-xl"></div>
                                 ) : (
@@ -143,9 +148,9 @@ export default function BuyerLoanSubmitModal({ isOpen, onClose, loanPartnerId, p
                                         onChange={(e) => setFormData(prev => ({ ...prev, projectId: e.target.value }))}
                                         className="w-full px-3 py-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm font-medium transition-all bg-white"
                                     >
-                                        <option value="">Select a property you are interested in</option>
-                                        {properties.map((prop) => (
-                                            <option key={prop.id} value={prop.id}>{prop.name} - {prop.location}</option>
+                                        <option value="">Select a project you are interested in</option>
+                                        {projects.map((prop) => (
+                                            <option key={prop.id} value={prop.id}>{prop.name}</option>
                                         ))}
                                     </select>
                                 )}

@@ -29,6 +29,8 @@ model Organization {
   updatedAt            DateTime         @updatedAt
   walletBalance        Decimal          @default(0.00) @db.Decimal(15, 2)
   members              User[]
+  bank                 Bank?
+  bankBranches         BankBranch[]
   walletTransactions   WalletTransaction[] @relation("OrgWalletTransactions")
   paymentOrders        PaymentOrder[]      @relation("OrgPaymentOrders")
 
@@ -56,6 +58,7 @@ model User {
   notifications     Json?               @default("{}")
   onboardingStatus  String?             @default("pending")
   organizationId    String?
+  branchId          String?
   activeRole        UserRole?
   profileData       Json?               @default("{}")
   regionPreference  String?
@@ -78,6 +81,7 @@ model User {
   onboardedBy                User?                    @relation("UserOnboardedUsers", fields: [onboardedById], references: [id])
   onboardedUsers             User[]                   @relation("UserOnboardedUsers")
   organization               Organization?            @relation(fields: [organizationId], references: [id])
+  branch                     BankBranch?              @relation(fields: [branchId], references: [id])
   campaignsAssigned          MarketingCampaign[]      @relation("CampaignToUser")
   assignedProjects           Project[]                @relation("ProjectAssignment")
   invitationsSent            Invitation[]             @relation("UserInvites")
@@ -91,6 +95,7 @@ model User {
   @@index([activeRole])
   @@index([status])
   @@index([organizationId])
+  @@index([branchId])
   @@index([onboardedById])
   @@index([createdAt])
   @@map("users")
@@ -510,6 +515,7 @@ model City {
   updatedAt DateTime  @updatedAt
   active    Boolean   @default(true)
   addresses Address[]
+  bankBranches BankBranch[]
 
   @@index([name])
   @@map("cities")
@@ -547,12 +553,36 @@ model Bank {
   percentage          Decimal                  @db.Decimal(5, 2)
   logoUrl             String?
   isActive            Boolean                  @default(true)
+  organizationId      String?                  @unique
+  organization        Organization?            @relation(fields: [organizationId], references: [id])
+  branches            BankBranch[]
   createdAt           DateTime                 @default(now())
   updatedAt           DateTime                 @updatedAt
   buyerLoanApps       BuyerLoanApplication[]   @relation("BuyerLoanBank")
   projectLoanApps     ProjectLoanApplication[] @relation("ProjectLoanBank")
 
   @@map("banks")
+}
+
+model BankBranch {
+  id             String   @id @default(uuid())
+  bankId         String
+  organizationId String
+  cityId         String
+  name           String   @default("") // normalized, avoid NULL
+  address        String?
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  bank           Bank         @relation(fields: [bankId], references: [id])
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  city           City         @relation(fields: [cityId], references: [id])
+  users          User[]
+
+  @@unique([bankId, cityId, name])
+  @@index([bankId, cityId])
+  @@map("bank_branches")
 }
 
 model ReraProject {

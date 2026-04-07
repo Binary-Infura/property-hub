@@ -41,7 +41,6 @@ export default function ProjectsPage() {
   const [isViewListingModalOpen, setIsViewListingModalOpen] = useState(false);
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isMarkAsSoldModalOpen, setIsMarkAsSoldModalOpen] = useState(false);
-  const [isBankApprovalModalOpen, setIsBankApprovalModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedProjectForView, setSelectedProjectForView] = useState<Property | null>(null);
   const [selectedProjectForSale, setSelectedProjectForSale] = useState<Property | null>(null);
@@ -193,15 +192,6 @@ export default function ProjectsPage() {
             List to Public
           </button>
           <button
-            onClick={() => setIsBankApprovalModalOpen(true)}
-            className="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 font-bold transition flex items-center gap-2 shadow-lg shadow-indigo-200"
-          >
-            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z" />
-            </svg>
-            Submit for Bank Approval
-          </button>
-          <button
             onClick={() => setIsImportModalOpen(true)}
             className="bg-emerald-600 text-white px-6 py-3 rounded-xl hover:bg-emerald-700 font-bold transition flex items-center gap-2 shadow-lg shadow-emerald-200"
           >
@@ -245,12 +235,6 @@ export default function ProjectsPage() {
         onSold={fetchProjects}
       />
 
-      <SubmitBankApprovalModal
-        isOpen={isBankApprovalModalOpen}
-        onClose={() => setIsBankApprovalModalOpen(false)}
-        projects={projects.map(p => ({ id: p.id, title: p.title, status: p.status }))}
-        onSuccess={() => setIsBankApprovalModalOpen(false)}
-      />
 
       <ViewListingModal
         isOpen={isViewListingModalOpen}

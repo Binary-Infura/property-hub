@@ -4,6 +4,9 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { invitationService, Invitation } from '@/app/services/invitationService';
+import { bankService, Bank } from '@/app/services/bankService';
+import { cityService, City } from '@/app/services/cityService';
+import { bankBranchService, BankBranch } from '@/app/services/bankBranchService';
 
 interface UniversalRegistrationFormProps {
   mode: 'INVITATION' | 'PUBLIC';
@@ -35,8 +38,24 @@ export default function UniversalRegistrationForm({ mode, token, initialRole }: 
     agencyName: '',
     officeAddress: '',
     reraNumber: '',
+    bankId: '',
+    stateCode: '',
+    cityId: '',
+    cityName: '',
+    branchId: '',
+    branchName: '',
     termsAccepted: false,
   });
+
+  const [activeBanks, setActiveBanks] = useState<Bank[]>([]);
+  const [states, setStates] = useState<{ code: string, name: string }[]>([]);
+  const [allCities, setAllCities] = useState<City[]>([]);
+  const [branches, setBranches] = useState<BankBranch[]>([]);
+  const [loadingBanks, setLoadingBanks] = useState(false);
+  const [loadingStates, setLoadingStates] = useState(false);
+  const [loadingCities, setLoadingCities] = useState(false);
+  const [loadingBranches, setLoadingBranches] = useState(false);
+  const [showNewBranchInput, setShowNewBranchInput] = useState(false);
 
   const AVAILABLE_PARTNER_ROLES = [
     { id: 'PROPERTY_PARTNER', label: 'Property Partner' },
@@ -72,13 +91,98 @@ export default function UniversalRegistrationForm({ mode, token, initialRole }: 
     }
   }, [token, mode, initialRole]);
 
+  // Fetch Banks and States
+  useEffect(() => {
+    if (formData.selectedRole === 'LOAN_PARTNER') {
+      const fetchData = async () => {
+        setLoadingBanks(true);
+        setLoadingStates(true);
+        try {
+          const [banksData, statesData] = await Promise.all([
+            bankService.getActiveBanks(),
+            fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/cities/india/states`).then(res => res.json())
+          ]);
+          setActiveBanks(banksData);
+          setStates(statesData || []);
+        } catch (err) {
+          console.error('Failed to fetch banks/states:', err);
+        } finally {
+          setLoadingBanks(false);
+          setLoadingStates(false);
+        }
+      };
+      fetchData();
+    }
+  }, [formData.selectedRole]);
+
+  // Fetch Cities when State changes
+  useEffect(() => {
+    if (formData.stateCode) {
+      const selectedState = states.find(s => s.code === formData.stateCode);
+      if (!selectedState) return;
+
+      const fetchCities = async () => {
+        setLoadingCities(true);
+        try {
+          // Fetch ALL cities for this state from the public API
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/cities/india/${formData.stateCode}/cities`);
+          const citiesData = await response.json();
+          setAllCities(citiesData || []);
+          setFormData(prev => ({ ...prev, cityId: '', cityName: '' })); 
+        } catch (err) {
+          console.error('Failed to fetch cities:', err);
+        } finally {
+          setLoadingCities(false);
+        }
+      };
+      fetchCities();
+    } else {
+      setAllCities([]);
+    }
+  }, [formData.stateCode, states]);
+
+  // Fetch Branches
+  useEffect(() => {
+    if (formData.bankId && formData.cityId) {
+      const fetchBranches = async () => {
+        setLoadingBranches(true);
+        try {
+          const data = await bankBranchService.getBranches(formData.bankId, formData.cityId);
+          setBranches(data);
+          if (data.length === 0) {
+            setShowNewBranchInput(true);
+          } else {
+            setShowNewBranchInput(false);
+          }
+        } catch (err) {
+          console.error('Failed to fetch branches:', err);
+        } finally {
+          setLoadingBranches(false);
+        }
+      };
+      fetchBranches();
+    } else {
+      setBranches([]);
+      setShowNewBranchInput(false);
+    }
+  }, [formData.bankId, formData.cityId]);
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target as HTMLInputElement;
     const checked = (e.target as HTMLInputElement).checked;
-    setFormData(prev => ({ 
-      ...prev, 
-      [name]: type === 'checkbox' ? checked : value 
-    }));
+    
+    if (name === 'cityId') {
+      setFormData(prev => ({ 
+        ...prev, 
+        cityId: value,
+        cityName: value 
+      }));
+    } else {
+      setFormData(prev => ({ 
+        ...prev, 
+        [name]: type === 'checkbox' ? checked : value 
+      }));
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -108,6 +212,8 @@ export default function UniversalRegistrationForm({ mode, token, initialRole }: 
     setIsSubmitting(true);
 
     try {
+      const selectedState = states.find(s => s.code === formData.stateCode);
+
       if (mode === 'INVITATION' && token) {
         await invitationService.register({
           token,
@@ -122,6 +228,12 @@ export default function UniversalRegistrationForm({ mode, token, initialRole }: 
           agencyName: formData.agencyName || undefined,
           officeAddress: formData.officeAddress || undefined,
           reraNumber: formData.reraNumber || undefined,
+          bankId: formData.bankId || undefined,
+          branchId: formData.branchId || undefined,
+          branchName: formData.branchName || undefined,
+          cityId: formData.cityId || undefined,
+          cityName: formData.cityName || undefined,
+          stateName: selectedState?.name || undefined,
         });
         router.push('/signin?registered=true');
       } else {
@@ -140,6 +252,12 @@ export default function UniversalRegistrationForm({ mode, token, initialRole }: 
           agencyName: formData.agencyName || undefined,
           officeAddress: formData.officeAddress || undefined,
           reraNumber: formData.reraNumber || undefined,
+          bankId: formData.bankId || undefined,
+          branchId: formData.branchId || undefined,
+          branchName: formData.branchName || undefined,
+          cityId: formData.cityId || undefined,
+          cityName: formData.cityName || undefined,
+          stateName: selectedState?.name || undefined,
         });
         setSuccess(result.message || 'Signup successful! Please check your email for verification.');
         // Don't redirect immediately so they can see the success message
@@ -318,34 +436,155 @@ export default function UniversalRegistrationForm({ mode, token, initialRole }: 
                 </svg>
                 Business Information
               </p>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">Company / Organization Name *</label>
-                  <input type="text" name="companyName" required value={formData.companyName} onChange={handleChange} placeholder="e.g. Prestige Builders" className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none shadow-sm" />
-                </div>
-                
-                {formData.selectedRole === 'LOAN_PARTNER' && (
+              
+              {formData.selectedRole !== 'LOAN_PARTNER' ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                   <div className="md:col-span-2">
-                    <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">Bank / NBFC Name (If distinct)</label>
-                    <input type="text" name="agencyName" value={formData.agencyName} onChange={handleChange} placeholder="e.g. HDFC Bank" className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none shadow-sm" />
+                    <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">Company / Organization Name *</label>
+                    <input type="text" name="companyName" required value={formData.companyName} onChange={handleChange} placeholder="e.g. Prestige Builders" className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none shadow-sm" />
                   </div>
-                )}
+                  
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">Office Address</label>
+                    <input type="text" name="companyAddress" value={formData.companyAddress} onChange={handleChange} placeholder="Complete office address" className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none shadow-sm" />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">PAN / Tax ID</label>
+                    <input type="text" name="taxId" value={formData.taxId} onChange={handleChange} placeholder="ABCDE1234F" className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none shadow-sm" />
+                  </div>
+                  
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">{formData.selectedRole === 'PROPERTY_PARTNER' ? 'RERA Registration No.' : 'License / Registration No.'}</label>
+                    <input type="text" name="licenseNumber" value={formData.licenseNumber} onChange={handleChange} placeholder="e.g. RERA/12345/MUM" className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none shadow-sm" />
+                  </div>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">Select Bank *</label>
+                    <select
+                      name="bankId"
+                      required
+                      value={formData.bankId}
+                      onChange={handleChange}
+                      className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none shadow-sm"
+                    >
+                      <option value="">{loadingBanks ? 'Loading banks...' : 'Choose a Bank'}</option>
+                      {activeBanks.map(bank => (
+                        <option key={bank.id} value={bank.id}>{bank.name}</option>
+                      ))}
+                    </select>
+                  </div>
 
-                <div className="md:col-span-2">
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">Office Address</label>
-                  <input type="text" name="companyAddress" value={formData.companyAddress} onChange={handleChange} placeholder="Complete office address" className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none shadow-sm" />
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">Select State *</label>
+                    <select
+                      name="stateCode"
+                      required
+                      value={formData.stateCode}
+                      onChange={handleChange}
+                      className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none shadow-sm"
+                    >
+                      <option value="">{loadingStates ? 'Loading states...' : 'Choose a State'}</option>
+                      {states.map(state => (
+                        <option key={state.code} value={state.code}>{state.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  <div className="md:col-span-2">
+                    <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">Select City *</label>
+                    <select
+                      name="cityId"
+                      required
+                      disabled={!formData.stateCode}
+                      value={formData.cityId}
+                      onChange={handleChange}
+                      className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none shadow-sm disabled:bg-gray-100 disabled:cursor-not-allowed"
+                    >
+                      <option value="">{loadingCities ? 'Loading cities...' : !formData.stateCode ? 'Select a state first' : 'Choose a City'}</option>
+                      {allCities.map((city: any, idx: number) => (
+                        <option key={`${city.name}-${idx}`} value={city.name}>{city.name}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {formData.bankId && formData.cityId && (
+                    <div className="md:col-span-2 space-y-4 pt-2">
+                      {branches.length > 0 && !showNewBranchInput ? (
+                        <div className="space-y-4">
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">Select Existing Branch *</label>
+                            <select
+                              name="branchId"
+                              required={!showNewBranchInput}
+                              value={formData.branchId}
+                              onChange={handleChange}
+                              className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none shadow-sm"
+                            >
+                              <option value="">Choose a Branch</option>
+                              {branches.map(branch => (
+                                <option key={branch.id} value={branch.id}>{branch.name.toUpperCase()}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setShowNewBranchInput(true);
+                              setFormData(prev => ({ ...prev, branchId: '' }));
+                            }}
+                            className="text-blue-600 text-sm font-bold hover:underline ml-1"
+                          >
+                            + Use a different branch
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="space-y-4 animate-in fade-in duration-500">
+                          <div className="flex items-center justify-between">
+                            <label className="block text-sm font-bold text-slate-700 ml-1">Branch Details</label>
+                            {branches.length > 0 && (
+                              <button
+                                type="button"
+                                onClick={() => setShowNewBranchInput(false)}
+                                className="text-gray-500 text-xs font-bold hover:text-slate-900"
+                              >
+                                ← Back to existing branches
+                              </button>
+                            )}
+                          </div>
+                          
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">Branch Name *</label>
+                            <input
+                              type="text"
+                              name="branchName"
+                              required={showNewBranchInput}
+                              value={formData.branchName}
+                              onChange={handleChange}
+                              placeholder="e.g. MG Road Branch"
+                              className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none shadow-sm"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">Office Address</label>
+                            <input
+                              type="text"
+                              name="officeAddress"
+                              value={formData.officeAddress}
+                              onChange={handleChange}
+                              placeholder="Full office address"
+                              className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none shadow-sm"
+                            />
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-                
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">PAN / Tax ID</label>
-                  <input type="text" name="taxId" value={formData.taxId} onChange={handleChange} placeholder="ABCDE1234F" className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none shadow-sm" />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-semibold text-gray-700 mb-2 ml-1">{formData.selectedRole === 'PROPERTY_PARTNER' ? 'RERA Registration No.' : 'License / Registration No.'}</label>
-                  <input type="text" name="licenseNumber" value={formData.licenseNumber} onChange={handleChange} placeholder="e.g. RERA/12345/MUM" className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all outline-none shadow-sm" />
-                </div>
-              </div>
+              )}
             </div>
           )}
 

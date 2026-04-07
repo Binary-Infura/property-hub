@@ -14,7 +14,7 @@ import {
 const BUYER_LOAN_INCLUDE = {
     lead: {
         select: {
-            id: true, name: true, email: true, phone: true, status: true,
+            id: true, name: true, email: true, phone: true, status: true, buyerId: true,
             project: { select: { id: true, name: true, projectType: true } },
         }
     },
@@ -48,10 +48,58 @@ export class LoansService {
     // FLOW 1: Buyer Loan Applications
     // ────────────────────────────────────────────────
 
-    async createBuyerLoan(dto: CreateBuyerLoanApplicationDto) {
+    async createBuyerLoan(dto: CreateBuyerLoanApplicationDto, creatorId?: string) {
+        let leadId = dto.leadId;
+
+        // If no leadId provided, try to find or create a lead for the current buyer
+        if (!leadId && creatorId) {
+            const user = await this.prisma.user.findUnique({ where: { id: creatorId } });
+            if (user) {
+                // Find existing lead for this buyer
+                const existingLead = await this.prisma.lead.findFirst({
+                    where: { buyerId: creatorId }
+                });
+
+                if (existingLead) {
+                    leadId = existingLead.id;
+                    // Update project if provided
+                    if (dto.projectId) {
+                        await this.prisma.lead.update({
+                            where: { id: leadId },
+                            data: { projectId: dto.projectId }
+                        });
+                    }
+                } else {
+                    // Create a new lead for this buyer
+                    const newLead = await this.prisma.lead.create({
+                        data: {
+                            buyerId: creatorId,
+                            name: `${user.firstName} ${user.lastName || ''}`.trim(),
+                            phone: user.phone || '0000000000',
+                            email: user.email,
+                            status: 'NEW',
+                            source: 'LOAN_DASHBOARD',
+                            projectId: dto.projectId
+                        }
+                    });
+                    leadId = newLead.id;
+                }
+            }
+        } else if (leadId && dto.projectId) {
+            // Update existing lead with project
+            await this.prisma.lead.update({
+                where: { id: leadId },
+                data: { projectId: dto.projectId }
+            });
+        }
+
+        if (!leadId) {
+            throw new ForbiddenException('Lead is required to create a loan application.');
+        }
+
         return this.prisma.buyerLoanApplication.create({
             data: {
-                leadId: dto.leadId,
+                leadId: leadId,
                 loanAmount: dto.loanAmount,
                 eligibleAmount: dto.eligibleAmount,
                 bankId: dto.bankId,
@@ -76,7 +124,15 @@ export class LoansService {
         });
     }
 
-    async getBuyerLoanById(id: string, requesterId?: string, isLoanPartner?: boolean) {
+    async getBuyerLoansByBuyer(buyerId: string) {
+        return this.prisma.buyerLoanApplication.findMany({
+            where: { lead: { buyerId } },
+            include: BUYER_LOAN_INCLUDE,
+            orderBy: { createdAt: 'desc' },
+        });
+    }
+
+    async getBuyerLoanById(id: string, requesterId?: string, isLoanPartner?: boolean, isBuyer?: boolean) {
         const loan = await this.prisma.buyerLoanApplication.findUnique({
             where: { id },
             include: BUYER_LOAN_INCLUDE,
@@ -85,6 +141,10 @@ export class LoansService {
 
         if (isLoanPartner && loan.assignedLoanPartnerId !== requesterId) {
             throw new ForbiddenException('You are not assigned to this loan application');
+        }
+
+        if (isBuyer && loan.lead.buyerId !== requesterId) {
+            throw new ForbiddenException('You do not have access to this loan application');
         }
 
         return loan;
