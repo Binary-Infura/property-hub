@@ -58,6 +58,17 @@ export default function GrowthPartnerDashboard() {
     const avgConvRate = totalLeads > 0 ? ((totalConversions / totalLeads) * 100).toFixed(1) : '0';
     const budgetUtilization = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
 
+    const handleUpdateStatus = async (id: string, status: string) => {
+        if (!token) return;
+        try {
+            await marketingService.updateCampaign(token, id, { status });
+            // Update local state
+            setCampaigns(prev => prev.map(c => c.id === id ? { ...c, status } : c));
+        } catch (error) {
+            console.error("Failed to update status:", error);
+        }
+    };
+
     if (loading) {
         return <div className="p-8 flex items-center justify-center min-h-screen">Loading dashboard...</div>;
     }
@@ -202,8 +213,13 @@ export default function GrowthPartnerDashboard() {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span
-                                            className={`px-3 py-1 rounded-full text-xs font-medium uppercase ${campaign.status.toLowerCase() === 'active'
+                                            className={`px-3 py-1 rounded-full text-xs font-medium uppercase ${
+                                                campaign.status.toLowerCase() === 'active'
                                                 ? 'bg-green-100 text-green-800'
+                                                : campaign.status.toLowerCase() === 'pending'
+                                                ? 'bg-blue-100 text-blue-800 animate-pulse'
+                                                : campaign.status.toLowerCase() === 'rejected'
+                                                ? 'bg-red-100 text-red-800'
                                                 : 'bg-yellow-100 text-yellow-800'
                                                 }`}
                                         >
@@ -230,10 +246,29 @@ export default function GrowthPartnerDashboard() {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm">
                                         <div className="flex gap-2">
-                                            <button className="text-purple-600 hover:text-purple-800 font-medium">Edit</button>
-                                            <button className="text-gray-600 hover:text-gray-800 font-medium">
-                                                {campaign.status.toLowerCase() === 'active' ? 'Pause' : 'Resume'}
-                                            </button>
+                                            {campaign.status.toLowerCase() === 'pending' ? (
+                                                <>
+                                                    <button 
+                                                        onClick={() => handleUpdateStatus(campaign.id, 'ACTIVE')}
+                                                        className="px-3 py-1 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-xs font-bold"
+                                                    >
+                                                        Accept
+                                                    </button>
+                                                    <button 
+                                                        onClick={() => handleUpdateStatus(campaign.id, 'REJECTED')}
+                                                        className="px-3 py-1 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-xs font-bold"
+                                                    >
+                                                        Reject
+                                                    </button>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <button className="text-purple-600 hover:text-purple-800 font-medium text-xs">Edit</button>
+                                                    <button className="text-gray-600 hover:text-gray-800 font-medium text-xs">
+                                                        {campaign.status.toLowerCase() === 'active' ? 'Pause' : 'Resume'}
+                                                    </button>
+                                                </>
+                                            )}
                                         </div>
                                     </td>
                                 </tr>

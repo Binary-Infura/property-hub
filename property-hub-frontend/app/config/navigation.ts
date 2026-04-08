@@ -36,7 +36,6 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
     'PROPERTY_PARTNER': [
         { name: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
         { name: 'Projects', href: '/dashboard/projects', icon: 'building' },
-        { name: 'My Organization', href: '/dashboard/organization', icon: 'building' },
         { name: 'Units', href: '/dashboard/units', icon: 'home' },
         { name: 'Bank Approvals', href: '/property-partner/bank-approvals', icon: 'bank' },
         { name: 'Consultants', href: '/dashboard/consultants', icon: 'person', premium: true },
@@ -46,7 +45,7 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Wallet', href: '/dashboard/wallet', icon: 'money' },
         { name: 'Brokers Network', href: '/dashboard/brokers', icon: 'users', premium: true },
         { name: 'Reels', href: '/dashboard/reels', icon: 'video' },
-        { name: 'Ads Requests', href: '/dashboard/ads-requests', icon: 'megaphone' },
+        { name: 'Growth Marketplace', href: '/property-partner/growth-marketplace', icon: 'megaphone' },
         { name: 'Reviews', href: '/dashboard/reviews', icon: 'star' },
     ],
     'CONSULTANT': [

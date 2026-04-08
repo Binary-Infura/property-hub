@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
-import { adsRequestsService } from '@/app/services/adsRequestsService';
+import { marketingService } from '@/app/services/marketingService';
 
 interface AdsRequest {
     id: string;
@@ -10,8 +10,7 @@ interface AdsRequest {
     description?: string;
     status: string;
     priority: string;
-    budget?: number;
-    platform?: string;
+    originalCampaignId: string;
     project?: {
         id: string;
         name: string;
@@ -43,8 +42,42 @@ export default function CentralAuthorityAdsRequestsPage() {
     const fetchRequests = async () => {
         if (!token) return;
         try {
-            const data = await adsRequestsService.getAdsRequests(token);
-            setRequests(data);
+            const campaigns = await marketingService.getCampaigns(token).catch(() => []);
+
+            const formattedCampaigns = campaigns.map((campaign: any) => ({
+                id: `collab-${campaign.id}`,
+                originalCampaignId: campaign.id,
+                title: `Collaboration Request: ${campaign.name || 'Untitled'}`,
+                description: `Requested budget: ₹${campaign.budget?.toLocaleString() || 0} for platform: ${campaign.platform}`,
+                status: campaign.status,
+                priority: 'HIGH',
+                project: campaign.project ? {
+                    id: campaign.project.id,
+                    name: campaign.project.name,
+                    location: campaign.project.addressRecord?.city || campaign.project.addressId || 'N/A'
+                } : undefined,
+                requestedBy: campaign.project?.onboardedBy ? {
+                   id: campaign.project.onboardedBy.id,
+                   firstName: campaign.project.onboardedBy.firstName,
+                   lastName: campaign.project.onboardedBy.lastName,
+                   email: campaign.project.onboardedBy.email,
+                   role: 'PROPERTY_PARTNER'
+                } : {
+                   id: 'unknown',
+                   firstName: 'Property',
+                   lastName: 'Partner',
+                   email: '',
+                   role: 'PROPERTY_PARTNER'
+                },
+                createdAt: campaign.createdAt,
+                updatedAt: campaign.updatedAt || campaign.createdAt
+            }));
+
+            const combined = formattedCampaigns.sort((a: any, b: any) => 
+                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
+
+            setRequests(combined);
         } catch (error) {
             console.error("Failed to fetch ads requests:", error);
         } finally {
@@ -52,16 +85,6 @@ export default function CentralAuthorityAdsRequestsPage() {
         }
     };
 
-    const handleStatusUpdate = async (id: string, newStatus: string) => {
-        if (!token) return;
-        try {
-            await adsRequestsService.updateAdsRequest(token, id, { status: newStatus });
-            await fetchRequests();
-        } catch (error) {
-            console.error("Failed to update status:", error);
-            alert("Failed to update status");
-        }
-    };
 
     const filteredRequests = requests.filter((req) => {
         if (statusFilter !== 'all' && req.status !== statusFilter) return false;
@@ -190,15 +213,6 @@ export default function CentralAuthorityAdsRequestsPage() {
                                             </div>
                                         </>
                                     )}
-                                    {(request.budget || request.platform) && (
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-gray-500">Details:</span>
-                                            <span className="font-medium text-gray-900 border px-2 py-0.5 rounded text-xs bg-gray-50">
-                                                {request.platform && <span className="mr-1">{request.platform}</span>}
-                                                {request.budget && <span className={request.platform ? "ml-1 border-l pl-2 border-gray-300" : ""}>₹{request.budget}</span>}
-                                            </span>
-                                        </div>
-                                    )}
                                     <div className="flex items-center gap-2">
                                         <span className="text-gray-500">Requested by:</span>
                                         <span className="font-medium text-gray-900">
@@ -214,30 +228,7 @@ export default function CentralAuthorityAdsRequestsPage() {
 
                                 {/* Action Buttons */}
                                 <div className="flex gap-2">
-                                    {request.status === 'PENDING' && (
-                                        <>
-                                            <button
-                                                onClick={() => handleStatusUpdate(request.id, 'APPROVED')}
-                                                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
-                                            >
-                                                Approve
-                                            </button>
-                                            <button
-                                                onClick={() => handleStatusUpdate(request.id, 'REJECTED')}
-                                                className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm font-medium"
-                                            >
-                                                Reject
-                                            </button>
-                                        </>
-                                    )}
-                                    {request.status === 'APPROVED' && (
-                                        <button
-                                            onClick={() => handleStatusUpdate(request.id, 'COMPLETED')}
-                                            className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium"
-                                        >
-                                            Mark as Completed
-                                        </button>
-                                    )}
+
                                     <button
                                         onClick={() => setSelectedRequest(request)}
                                         className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition text-sm font-medium"
@@ -271,22 +262,6 @@ export default function CentralAuthorityAdsRequestsPage() {
                                     <p className="text-gray-900">{selectedRequest.priority}</p>
                                 </div>
                             </div>
-                            {(selectedRequest.budget || selectedRequest.platform) && (
-                                <div className="grid grid-cols-2 gap-4">
-                                    {selectedRequest.platform && (
-                                        <div>
-                                            <label className="text-sm font-medium text-gray-500">Platform</label>
-                                            <p className="text-gray-900">{selectedRequest.platform}</p>
-                                        </div>
-                                    )}
-                                    {selectedRequest.budget && (
-                                        <div>
-                                            <label className="text-sm font-medium text-gray-500">Budget</label>
-                                            <p className="text-gray-900">₹{selectedRequest.budget}</p>
-                                        </div>
-                                    )}
-                                </div>
-                            )}
                             {selectedRequest.project && (
                                 <div>
                                     <label className="text-sm font-medium text-gray-500">Project / Location</label>

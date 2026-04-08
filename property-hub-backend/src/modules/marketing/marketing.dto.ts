@@ -32,9 +32,21 @@ export class CreateCampaignDto {
     @IsArray()
     @IsString({ each: true })
     assignedUserIds: string[];
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    projectId?: string;
+
+    @ApiProperty({ required: false })
+    @IsOptional()
+    @IsString()
+    status?: string;
 }
 
-export class UpdateCampaignDto extends CreateCampaignDto {
+import { PartialType } from '@nestjs/swagger';
+
+export class UpdateCampaignDto extends PartialType(CreateCampaignDto) {
     @ApiProperty({ required: false })
     @IsOptional()
     @IsString()

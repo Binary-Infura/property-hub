@@ -1,4 +1,5 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../database/prisma.service';
 import { CreateCampaignDto, UpdateCampaignDto } from './marketing.dto';
 
@@ -10,6 +11,28 @@ export class MarketingService {
         return this.prisma.marketingCampaign.findMany({
             include: {
                 assignedTo: true,
+                project: {
+                    include: {
+                        onboardedBy: true,
+                    }
+                },
+            },
+            orderBy: {
+                createdAt: 'desc',
+            },
+        });
+    }
+
+    async findMyRequests(userId: string) {
+        return this.prisma.marketingCampaign.findMany({
+            where: {
+                project: {
+                    onboardedById: userId,
+                },
+            },
+            include: {
+                assignedTo: true,
+                project: true,
             },
             orderBy: {
                 createdAt: 'desc',
@@ -33,7 +56,7 @@ export class MarketingService {
     }
 
     async create(dto: CreateCampaignDto) {
-        const { assignedUserIds, startDate, endDate, ...data } = dto;
+        const { assignedUserIds, startDate, endDate, projectId, ...data } = dto;
 
         return this.prisma.marketingCampaign.create({
             data: {
@@ -43,15 +66,17 @@ export class MarketingService {
                 assignedTo: {
                     connect: (assignedUserIds || []).map((id) => ({ id })),
                 },
+                project: projectId ? { connect: { id: projectId } } : undefined,
             },
             include: {
                 assignedTo: true,
+                project: true,
             },
         });
     }
 
     async update(id: string, dto: UpdateCampaignDto) {
-        const { assignedUserIds, startDate, endDate, ...data } = dto;
+        const { assignedUserIds, startDate, endDate, projectId, ...data } = dto;
 
         return this.prisma.marketingCampaign.update({
             where: { id },
@@ -62,9 +87,11 @@ export class MarketingService {
                 assignedTo: assignedUserIds ? {
                     set: assignedUserIds.map((id) => ({ id })),
                 } : undefined,
+                project: projectId ? { connect: { id: projectId } } : (projectId === null ? { disconnect: true } : undefined),
             },
             include: {
                 assignedTo: true,
+                project: true,
             },
         });
     }
@@ -73,5 +100,27 @@ export class MarketingService {
         return this.prisma.marketingCampaign.delete({
             where: { id },
         });
+    }
+
+    @Cron(CronExpression.EVERY_HOUR)
+    async handleAutoRejectRequests() {
+        const seventyTwoHoursAgo = new Date();
+        seventyTwoHoursAgo.setHours(seventyTwoHoursAgo.getHours() - 72);
+
+        const expiredRequests = await this.prisma.marketingCampaign.updateMany({
+            where: {
+                status: 'PENDING',
+                createdAt: {
+                    lt: seventyTwoHoursAgo,
+                },
+            },
+            data: {
+                status: 'REJECTED',
+            },
+        });
+
+        if (expiredRequests.count > 0) {
+            console.log(`Auto-rejected ${expiredRequests.count} expired collaboration requests.`);
+        }
     }
 }

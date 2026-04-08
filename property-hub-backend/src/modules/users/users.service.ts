@@ -445,7 +445,17 @@ export class UsersService {
                 profileData: {
                     ...profileData,
                     // Inject organization data if applicable
-                    organizationName: user.organization?.name || user.onboardedBy?.organization?.name || null,
+                    companyName: user.organization?.name || user.onboardedBy?.organization?.name || null,
+                    tagline: user.organization?.tagline || null,
+                    about: user.organization?.about || null,
+                    website: user.organization?.websiteUrl || null,
+                    industry: user.organization?.industry || null,
+                    companySize: user.organization?.companySize || null,
+                    foundedYear: user.organization?.foundedYear || null,
+                    specialties: user.organization?.specialties || [],
+                    companyAddress: user.organization?.address || null,
+                    taxId: user.organization?.taxId || null,
+                    licenseNumber: user.organization?.licenseNumber || null,
                     isPremium: user.organization?.isPremium || user.onboardedBy?.organization?.isPremium || false,
                     subscriptionMode: user.organization?.subscriptionMode || user.onboardedBy?.organization?.subscriptionMode || 'FREE',
                 }
@@ -489,22 +499,42 @@ export class UsersService {
         // Property Partner & Growth Partner & Loan Partner — sync key fields to Organization as well
         if (normalizedRoles.includes(UserRole.PROPERTY_PARTNER) || normalizedRoles.includes(UserRole.GROWTH_PARTNER) || normalizedRoles.includes(UserRole.LOAN_PARTNER)) {
             const orgData: any = {};
+            
+            // Extract from incoming profile data
             if (incoming.companyName) orgData.name = incoming.companyName;
             if (incoming.companyAddress) orgData.address = incoming.companyAddress;
             if (incoming.taxId) orgData.taxId = incoming.taxId;
             if (incoming.licenseNumber) orgData.licenseNumber = incoming.licenseNumber;
+            if (incoming.tagline) orgData.tagline = incoming.tagline;
+            if (incoming.about) orgData.about = incoming.about;
+            if (incoming.website) orgData.websiteUrl = incoming.website;
+            if (incoming.industry) orgData.industry = incoming.industry;
+            if (incoming.companySize) orgData.companySize = incoming.companySize;
+            if (incoming.foundedYear) orgData.foundedYear = parseInt(incoming.foundedYear);
+            if (incoming.specialties) orgData.specialties = incoming.specialties;
 
-            if (Object.keys(orgData).length > 0) {
+            // Deciding if we need to sync with Organization
+            const needsSync = user.organizationId || 
+                             normalizedRoles.includes(UserRole.PROPERTY_PARTNER) || 
+                             (normalizedRoles.includes(UserRole.GROWTH_PARTNER) && incoming.partnerType === 'Agency');
+
+            if (Object.keys(orgData).length > 0 && needsSync) {
                 if (user.organizationId) {
-                    await this.prisma.organization.update({ where: { id: user.organizationId }, data: orgData });
+                    await this.prisma.organization.update({ 
+                        where: { id: user.organizationId }, 
+                        data: orgData 
+                    });
                 } else if (!normalizedRoles.includes(UserRole.LOAN_PARTNER)) {
-                    // Only auto-create org for non-Loan Partners here.
-                    // Loan Partners must be linked to a Bank's Org.
+                    // Only auto-create org for non-Loan Partners. Bank linkage required for LPs.
                     let orgType = OrganizationType.GROWTH_PARTNER;
                     if (normalizedRoles.includes(UserRole.PROPERTY_PARTNER)) orgType = OrganizationType.PROPERTY_PARTNER;
                     
                     const org = await this.prisma.organization.create({
-                        data: { name: incoming.companyName || 'New Company', type: orgType as any, ...orgData },
+                        data: { 
+                            name: incoming.companyName || 'New Company', 
+                            type: orgType as any, 
+                            ...orgData 
+                        },
                     });
                     await this.prisma.user.update({ where: { id: user.id }, data: { organizationId: org.id } });
                 }

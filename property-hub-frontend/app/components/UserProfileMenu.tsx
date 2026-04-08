@@ -127,7 +127,7 @@ export default function UserProfileMenu() {
 
                             {activeContext.activeRole.id === 'PROPERTY_PARTNER' && (
                                 <Link
-                                    href="/dashboard/organization"
+                                    href="/dashboard/profile"
                                     onClick={() => setIsOpen(false)}
                                     className="flex flex-col items-center justify-center p-3 rounded-2xl hover:bg-emerald-50 transition-all group border border-transparent hover:border-emerald-100"
                                 >

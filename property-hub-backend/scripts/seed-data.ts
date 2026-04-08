@@ -131,7 +131,8 @@ async function main() {
         update: { 
             roles: [UserRole.CENTRAL_AUTHORITY, UserRole.CONSULTANT, UserRole.GROWTH_PARTNER], 
             activeRole: UserRole.CENTRAL_AUTHORITY, 
-            organizationId: platformOrg.id 
+            organizationId: platformOrg.id,
+            passwordHash
         },
         create: {
             email: 'superuser@propertyhub.com',
@@ -168,7 +169,8 @@ async function main() {
             where: { email: r.email },
             update: { 
                 activeRole: r.role,
-                organizationId: r.orgId || platformOrg.id
+                organizationId: r.orgId || platformOrg.id,
+                passwordHash
             },
             create: {
                 email: r.email,

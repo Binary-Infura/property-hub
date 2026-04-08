@@ -11,6 +11,16 @@ export const marketingService = {
         return response.json();
     },
 
+    async getMyRequests(token: string) {
+        const response = await fetch(`${API_URL}/api/marketing/campaigns/requests/my`, {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+        });
+        if (!response.ok) throw new Error('Failed to fetch my requests');
+        return response.json();
+    },
+
     async createCampaign(token: string, data: any) {
         const response = await fetch(`${API_URL}/api/marketing/campaigns`, {
             method: 'POST',

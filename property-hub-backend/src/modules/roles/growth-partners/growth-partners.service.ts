@@ -27,18 +27,61 @@ export class GrowthPartnersService {
         });
     }
 
-    async findAll(page: number = 1, limit: number = 10): Promise<{ data: GrowthPartnerDto[], total: number }> {
+    async findAll(query: { search?: string, platform?: string, type?: string, minBudget?: number, maxBudget?: number, page?: number, limit?: number }) {
+        const { search, platform, type, minBudget, maxBudget, page = 1, limit = 10 } = query;
         const skip = (page - 1) * limit;
+
+        const where: any = {
+            roles: { has: UserRole.GROWTH_PARTNER },
+        };
+
+        if (search) {
+            where.OR = [
+                { firstName: { contains: search, mode: 'insensitive' } },
+                { lastName: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search, mode: 'insensitive' } },
+            ];
+        }
+
+        // Filtering by profileData (JSON)
+        // Note: Prisma JSON filters vary by DB, but here we can use basic path matches if supported or filter after fetch if needed.
+        // For Postgres, we can use JSONB filters if the schema allows.
+        
+        const andFilters = [];
+        if (platform) {
+            andFilters.push({ profileData: { path: ['platforms'], array_contains: platform } });
+        }
+        if (type) {
+            andFilters.push({ profileData: { path: ['type'], equals: type } });
+        }
+        
+        if (andFilters.length > 0) {
+            where.AND = andFilters;
+        }
+
         const [data, total] = await Promise.all([
             this.prisma.user.findMany({
-                where: { roles: { has: UserRole.GROWTH_PARTNER } },
+                where,
                 orderBy: { createdAt: 'desc' },
                 skip,
                 take: limit,
             }),
-            this.prisma.user.count({ where: { roles: { has: UserRole.GROWTH_PARTNER } } })
+            this.prisma.user.count({ where })
         ]);
-        return { data: data as any, total };
+
+        // Post-fetch budget filtering if JSON filtering is tricky with ranges
+        let filteredData = data;
+        if (minBudget !== undefined || maxBudget !== undefined) {
+            filteredData = data.filter(user => {
+                const profile = (user.profileData as any) || {};
+                const price = profile.startingPrice || 0;
+                if (minBudget !== undefined && price < minBudget) return false;
+                if (maxBudget !== undefined && price > maxBudget) return false;
+                return true;
+            });
+        }
+
+        return { data: filteredData as any, total: (minBudget || maxBudget) ? filteredData.length : total };
     }
 
     /**

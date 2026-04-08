@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
-import { adsRequestsService } from '@/app/services/adsRequestsService';
+import { marketingService } from '@/app/services/marketingService';
 
 interface AdsRequest {
     id: string;
@@ -10,6 +10,7 @@ interface AdsRequest {
     description?: string;
     status: string;
     priority: string;
+    originalCampaignId: string;
     project?: {
         id: string;
         name: string;
@@ -27,7 +28,7 @@ interface AdsRequest {
 }
 
 export default function AdsRequestsPage() {
-    const { token } = useAuth();
+    const { token, user, profileStatus } = useAuth();
     const [requests, setRequests] = useState<AdsRequest[]>([]);
     const [statusFilter, setStatusFilter] = useState<string>('all');
     const [priorityFilter, setPriorityFilter] = useState<string>('all');
@@ -41,23 +42,76 @@ export default function AdsRequestsPage() {
     const fetchRequests = async () => {
         if (!token) return;
         try {
-            const data = await adsRequestsService.getAdsRequests(token);
-            setRequests(data);
+            const campaigns = await marketingService.getCampaigns(token).catch(() => []);
+
+            const formattedCampaigns = campaigns.map((campaign: any) => ({
+                id: `collab-${campaign.id}`,
+                originalCampaignId: campaign.id,
+                title: `Collaboration Request: ${campaign.name || 'Untitled'}`,
+                description: `Requested budget: ₹${campaign.budget?.toLocaleString() || 0} for platform: ${campaign.platform}`,
+                status: campaign.status,
+                priority: 'HIGH',
+                project: campaign.project ? {
+                    id: campaign.project.id,
+                    name: campaign.project.name,
+                    location: campaign.project.addressRecord?.city || campaign.project.addressId || 'N/A'
+                } : undefined,
+                requestedBy: campaign.project?.onboardedBy ? {
+                   id: campaign.project.onboardedBy.id,
+                   firstName: campaign.project.onboardedBy.firstName,
+                   lastName: campaign.project.onboardedBy.lastName,
+                   email: campaign.project.onboardedBy.email,
+                   role: 'PROPERTY_PARTNER'
+                } : {
+                   id: 'unknown',
+                   firstName: 'Property',
+                   lastName: 'Partner',
+                   email: '',
+                   role: 'PROPERTY_PARTNER'
+                },
+                createdAt: campaign.createdAt,
+                updatedAt: campaign.updatedAt || campaign.createdAt
+            }));
+
+            const combined = formattedCampaigns.sort((a: any, b: any) => 
+                new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+            );
+
+            setRequests(combined);
         } catch (error) {
-            console.error("Failed to fetch ads requests:", error);
+            console.error("Failed to fetch requests:", error);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleStatusUpdate = async (id: string, newStatus: string) => {
+    const handleStatusUpdate = async (id: string, newStatus: string, originalCampaignId: string) => {
         if (!token) return;
         try {
-            await adsRequestsService.updateAdsRequest(token, id, { status: newStatus });
+            // Determine new status for campaign - typically ACTIVE (accepted) or REJECTED
+            const campaignStatus = newStatus === 'APPROVED' ? 'ACTIVE' : newStatus;
+            await marketingService.updateCampaign(token, originalCampaignId, { status: campaignStatus });
             await fetchRequests();
         } catch (error) {
             console.error("Failed to update status:", error);
             alert("Failed to update status");
+        }
+    };
+
+    const getUTMLink = (request: AdsRequest) => {
+        if (!user || !request.project) return '';
+        const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'https://propertyhub.com';
+        const partnerType = profileStatus?.['GROWTH_PARTNER']?.profileData?.partnerType?.toLowerCase() || 'influencer';
+        const projectId = request.project.id;
+        return `${baseUrl}/projects/${projectId}?utm_source=growth_partner&utm_medium=${partnerType}&utm_campaign=${request.originalCampaignId}&utm_term=${user.id}`;
+    };
+
+    const copyToClipboard = async (text: string) => {
+        try {
+            await navigator.clipboard.writeText(text);
+            alert('UTM Link copied to clipboard!');
+        } catch (err) {
+            console.error('Failed to copy', err);
         }
     };
 
@@ -161,7 +215,9 @@ export default function AdsRequestsPage() {
                             <div className="p-6">
                                 <div className="flex items-start justify-between mb-4">
                                     <div className="flex-1">
-                                        <h3 className="text-lg font-bold text-gray-900 mb-2">{request.title}</h3>
+                                        <div className="flex items-center gap-2 mb-2">
+                                            <h3 className="text-lg font-bold text-gray-900">{request.title}</h3>
+                                        </div>
                                         <p className="text-sm text-gray-600 mb-3">{request.description || 'No description provided'}</p>
                                     </div>
                                 </div>
@@ -201,18 +257,38 @@ export default function AdsRequestsPage() {
                                     </div>
                                 </div>
 
+                                {/* UTM Tracker */}
+                                {['APPROVED', 'ACTIVE'].includes(request.status) && request.project && (
+                                    <div className="mb-4 bg-purple-50 border border-purple-100 p-3 rounded-xl shadow-sm">
+                                        <div className="flex justify-between items-center mb-1.5">
+                                            <span className="text-[11px] font-black uppercase tracking-wider text-purple-700">UTM Tracking Link</span>
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => copyToClipboard(getUTMLink(request))}
+                                                    className="px-2 py-1 text-[11px] font-black uppercase text-purple-600 bg-purple-100 hover:bg-purple-200 rounded transition"
+                                                >
+                                                    Copy Link
+                                                </button>
+                                            </div>
+                                        </div>
+                                        <div className="text-xs text-gray-600 break-all bg-white p-2 rounded border border-gray-200/50">
+                                            {getUTMLink(request)}
+                                        </div>
+                                    </div>
+                                )}
+
                                 {/* Action Buttons */}
                                 <div className="flex gap-2">
                                     {request.status === 'PENDING' && (
                                         <>
                                             <button
-                                                onClick={() => handleStatusUpdate(request.id, 'APPROVED')}
+                                                onClick={() => handleStatusUpdate(request.id, 'APPROVED', request.originalCampaignId)}
                                                 className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition text-sm font-medium"
                                             >
-                                                Approve
+                                                Accept
                                             </button>
                                             <button
-                                                onClick={() => handleStatusUpdate(request.id, 'REJECTED')}
+                                                onClick={() => handleStatusUpdate(request.id, 'REJECTED', request.originalCampaignId)}
                                                 className="flex-1 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition text-sm font-medium"
                                             >
                                                 Reject
@@ -221,7 +297,7 @@ export default function AdsRequestsPage() {
                                     )}
                                     {request.status === 'APPROVED' && (
                                         <button
-                                            onClick={() => handleStatusUpdate(request.id, 'COMPLETED')}
+                                            onClick={() => handleStatusUpdate(request.id, 'COMPLETED', request.originalCampaignId)}
                                             className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium"
                                         >
                                             Mark as Completed

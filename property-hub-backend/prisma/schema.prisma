@@ -18,6 +18,12 @@ model Organization {
   licenseNumber        String?
   logoUrl              String?
   websiteUrl           String?
+  tagline              String?
+  about                String?
+  industry             String?
+  companySize          String?
+  foundedYear          Int?
+  specialties          String[]         @default([])
   isActive             Boolean          @default(true)
   isPremium            Boolean          @default(false)
   subscriptionMode     SubscriptionMode @default(FREE)
@@ -131,6 +137,7 @@ model Project {
   reels               Reel[]
   assignedTo          User[]                 @relation("ProjectAssignment")
   projectLoanApps     ProjectLoanApplication[]
+  marketingCampaigns  MarketingCampaign[]
 
   addressId           String?
   addressRecord       Address?               @relation(fields: [addressId], references: [id])
@@ -359,8 +366,11 @@ model MarketingCampaign {
   updatedAt   DateTime @updatedAt
   leads       Lead[]
   assignedTo  User[]   @relation("CampaignToUser")
+  projectId   String?
+  project     Project? @relation(fields: [projectId], references: [id])
 
   @@index([status])
+  @@index([projectId])
   @@map("marketing_campaigns")
 }
 

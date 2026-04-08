@@ -20,12 +20,25 @@ export class GrowthPartnersController {
     }
 
     @Get()
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.PROPERTY_PARTNER)
     findAll(
+        @Query('search') search?: string,
+        @Query('platform') platform?: string,
+        @Query('type') type?: string,
+        @Query('minBudget') minBudget?: string,
+        @Query('maxBudget') maxBudget?: string,
         @Query('page') page: string = '1',
         @Query('limit') limit: string = '10'
     ) {
-        return this.growthPartnersService.findAll(Number(page), Number(limit));
+        return this.growthPartnersService.findAll({
+            search,
+            platform,
+            type,
+            minBudget: minBudget ? Number(minBudget) : undefined,
+            maxBudget: maxBudget ? Number(maxBudget) : undefined,
+            page: Number(page),
+            limit: Number(limit)
+        });
     }
 
     @Get('me/profile')

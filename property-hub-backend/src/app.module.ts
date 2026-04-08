@@ -41,6 +41,7 @@ import { VisitsModule } from './modules/visits/visits.module';
 import { CallingModule } from './modules/calling/calling.module';
 import { OtpModule } from './modules/otp/otp.module';
 import { BankBranchesModule } from './modules/bank-branches/bank-branches.module';
+import { ScheduleModule } from '@nestjs/schedule';
 import { join } from 'path';
 
 @Module({
@@ -49,6 +50,7 @@ import { join } from 'path';
             isGlobal: true,
             envFilePath: '.env',
         }),
+        ScheduleModule.forRoot(),
         DatabaseModule,
         CommonModule,
         AuthModule,
