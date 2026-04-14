@@ -158,15 +158,30 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
 
     const fetchCities = async (cCode: string, sCode: string) => {
         try {
-            const citiesData = City.getCitiesOfState(cCode, sCode);
-            if (citiesData && Array.isArray(citiesData)) {
-                const formattedCities = citiesData.map((city: any) => ({
-                    id: city.name,
+            // Find the state name from the code
+            const state = states.find(s => s.code === sCode);
+            const stateName = state?.name || sCode;
+            
+            const res = await fetch(`${API_URL}/api/cities?state=${encodeURIComponent(stateName)}`, {
+                headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+            });
+            
+            if (res.ok) {
+                const citiesData = await res.json();
+                setCities(citiesData.map((city: any) => ({
+                    id: city.id,
                     name: city.name,
-                }));
-                setCities(formattedCities);
+                })));
             } else {
-                setCities([]);
+                // Fallback to library if backend fails or returns empty
+                const citiesData = City.getCitiesOfState(cCode, sCode);
+                if (citiesData && Array.isArray(citiesData)) {
+                    const formattedCities = citiesData.map((city: any) => ({
+                        id: city.name,
+                        name: city.name,
+                    }));
+                    setCities(formattedCities);
+                }
             }
         } catch (e) {
             console.error('Error fetching cities:', e);
@@ -217,16 +232,25 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
                     amenities: amenities,
                 });
 
-                // Extract city and state, handling both string and object formats from API
-                const cityName = data.cityName || (typeof data.city === 'object' && data.city?.name ? data.city.name : (data.city || ''));
-                const stateName = data.state || (typeof data.state === 'object' && data.state?.name ? data.state.name : '');
+                // Extract address info from nested addressRecord
+                const addr = data.addressRecord;
+                const cityName = addr?.city?.name || '';
+                const stateName = addr?.city?.state || '';
 
                 setAddressData({
-                    location: data.location || '',
-                    address: data.address || '',
+                    location: addr?.line2 || '',
+                    address: addr?.line1 || '',
                     city: cityName,
                     state: stateName,
                 });
+
+                // If we have a state name, try to find the code to trigger city fetching
+                if (stateName) {
+                    const state = states.find(s => s.name === stateName);
+                    if (state) {
+                        setSelectedStateCode(state.code || '');
+                    }
+                }
 
                 if (data.onboardingStep) {
                     // Adjust step for editing if it was saved using the old 6-step scheme
@@ -343,14 +367,12 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
 
         const fullDescription = formData.description;
 
-        const payload = {
+        const selectedCity = cities.find(c => c.name === addressData.city);
+        
+        const payload: any = {
             name: formData.title,
             description: fullDescription,
             category: projectCategory.toUpperCase(),
-            location: addressData.location || formData.title,
-            address: addressData.address,
-            cityName: addressData.city,
-            state: addressData.state,
             status: status.toUpperCase(),
             price: parseFloat(formData.startingPrice) || 0,
             area: parseFloat(formData.totalArea) || 0,
@@ -362,6 +384,15 @@ export default function AddProjectModal({ isOpen, onClose, editId, onSuccess }: 
             onboardingStep: step,
             amenities: formData.amenities,
         };
+
+        // Add addressRecord if city is selected with a valid ID
+        if (selectedCity && selectedCity.id && selectedCity.id.length > 30) { // Check if it looks like a UUID
+            payload.addressRecord = {
+                line1: addressData.address,
+                line2: addressData.location,
+                cityId: selectedCity.id
+            };
+        }
 
         const url = projectId
             ? `${API_URL}/api/projects/${projectId}`

@@ -154,8 +154,6 @@ export default function AddPropertyModal({ isOpen, onClose, editId, onSuccess }:
             name: formData.title,
             description: fullDescription,
             category: propertyCategory.toUpperCase(),
-            location: formData.title, // Provide title as temporary location string (required by backend)
-
 
             status: status.toUpperCase(),
             price: parseFloat(formData.startingPrice) || 0,
