@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { projectLoansService, ProjectLoanApplication, ReviewStatus, BankStatus } from '@/app/services/loanService';
+import { projectService, Project } from '@/app/services/propertyService';
 import SubmitBankApprovalModal from '@/app/components/property-partner/SubmitBankApprovalModal';
 
 // ─── Badge helpers ────────────────────────────────────────────────────────────
@@ -25,6 +26,7 @@ export default function BankApprovalsPage() {
     const { token } = useAuth();
     const [apps, setApps] = useState<ProjectLoanApplication[]>([]);
     const [loading, setLoading] = useState(true);
+    const [allProjects, setAllProjects] = useState<Project[]>([]);
     const [filterReview, setFilterReview] = useState<ReviewStatus | 'all'>('all');
     const [filterBank, setFilterBank] = useState<BankStatus | 'all'>('all');
     const [search, setSearch] = useState('');
@@ -39,7 +41,17 @@ export default function BankApprovalsPage() {
             .finally(() => setLoading(false));
     };
 
-    useEffect(() => { fetchApps(); }, [token]);
+    const fetchProjects = () => {
+        if (!token) return;
+        projectService.getAll(token, true)
+            .then(setAllProjects)
+            .catch(() => setAllProjects([]));
+    };
+
+    useEffect(() => {
+        fetchApps();
+        fetchProjects();
+    }, [token]);
 
     const filtered = apps.filter(a => {
         const matchReview = filterReview === 'all' || a.reviewStatus === filterReview;
@@ -266,7 +278,7 @@ export default function BankApprovalsPage() {
             <SubmitBankApprovalModal
                 isOpen={isModalOpen}
                 onClose={() => setIsModalOpen(false)}
-                projects={[...new Map(apps.map(a => [a.projectId, { id: a.projectId, title: a.project.name, status: a.project.status }])).values()]}
+                projects={allProjects.map(p => ({ id: p.id, title: p.name, status: p.status }))}
                 onSuccess={() => { setIsModalOpen(false); fetchApps(); }}
             />
         </div>

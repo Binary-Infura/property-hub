@@ -21,7 +21,7 @@ export default function SubmitBankApprovalModal({
     const { token } = useAuth();
     const [banks, setBanks] = useState<Bank[]>([]);
     const [selectedProjectId, setSelectedProjectId] = useState('');
-    const [selectedBankIds, setSelectedBankIds] = useState<string[]>([]);
+    const [selectedBankId, setSelectedBankId] = useState('');
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
     const [submitted, setSubmitted] = useState(false);
@@ -29,7 +29,7 @@ export default function SubmitBankApprovalModal({
     useEffect(() => {
         if (!isOpen) return;
         setSelectedProjectId(projects[0]?.id || '');
-        setSelectedBankIds([]);
+        setSelectedBankId('');
         setSubmitted(false);
 
         setLoading(true);
@@ -40,18 +40,16 @@ export default function SubmitBankApprovalModal({
     }, [isOpen, projects]);
 
     function toggleBank(id: string) {
-        setSelectedBankIds(prev =>
-            prev.includes(id) ? prev.filter(b => b !== id) : [...prev, id]
-        );
+        setSelectedBankId(id);
     }
 
     async function handleSubmit(e: React.FormEvent) {
         e.preventDefault();
-        if (!token || !selectedProjectId || selectedBankIds.length === 0) return;
+        if (!token || !selectedProjectId || !selectedBankId) return;
 
         setSubmitting(true);
         try {
-            await projectLoansService.createForProject(token, selectedProjectId, selectedBankIds);
+            await projectLoansService.createForProject(token, selectedProjectId, [selectedBankId]);
             setSubmitted(true);
             if (onSuccess) onSuccess();
         } catch (err: any) {
@@ -104,7 +102,7 @@ export default function SubmitBankApprovalModal({
                                     Submit for Bank Approval
                                 </h2>
                                 <p style={{ margin: '4px 0 0', fontSize: 13, color: '#64748b' }}>
-                                    Select a project and the banks you want eligibility reviewed for
+                                    Select a project and the bank you want eligibility reviewed for
                                 </p>
                             </div>
                             <button type="button" onClick={onClose} style={{
@@ -140,14 +138,14 @@ export default function SubmitBankApprovalModal({
                         {/* Bank Selection */}
                         <div style={{ marginBottom: 24 }}>
                             <label style={{ fontSize: 12, fontWeight: 700, color: '#374151', display: 'block', marginBottom: 10, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                                Select Banks for Eligibility Review ({selectedBankIds.length} selected)
+                                Select Bank for Eligibility Review
                             </label>
                             {loading ? (
                                 <div style={{ textAlign: 'center', padding: 24, color: '#94a3b8' }}>Loading banks...</div>
                             ) : (
                                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                                     {banks.map(bank => {
-                                        const checked = selectedBankIds.includes(bank.id);
+                                        const checked = selectedBankId === bank.id;
                                         return (
                                             <label key={bank.id} style={{
                                                 display: 'flex', alignItems: 'center', gap: 14,
@@ -157,7 +155,8 @@ export default function SubmitBankApprovalModal({
                                                 transition: 'all 0.15s',
                                             }}>
                                                 <input
-                                                    type="checkbox"
+                                                    type="radio"
+                                                    name="bankSelect"
                                                     checked={checked}
                                                     onChange={() => toggleBank(bank.id)}
                                                     style={{ width: 18, height: 18, cursor: 'pointer', accentColor: '#3b82f6' }}
@@ -186,7 +185,7 @@ export default function SubmitBankApprovalModal({
                         }}>
                             <span style={{ fontSize: 18, flexShrink: 0 }}>ℹ️</span>
                             <p style={{ margin: 0, fontSize: 12, color: '#1e40af', lineHeight: 1.6 }}>
-                                Our Loan Partner team will review your project's eligibility with the selected banks.
+                                Our Loan Partner team will review your project's eligibility with the selected bank.
                                 This helps buyers get pre-approved loans faster. The Central Authority will assign a
                                 Loan Partner who will update the approval status.
                             </p>
@@ -200,13 +199,13 @@ export default function SubmitBankApprovalModal({
                             }}>
                                 Cancel
                             </button>
-                            <button type="submit" disabled={submitting || selectedBankIds.length === 0 || !selectedProjectId} style={{
+                            <button type="submit" disabled={submitting || !selectedBankId || !selectedProjectId} style={{
                                 flex: 2, padding: '12px', borderRadius: 12, border: 'none',
-                                background: selectedBankIds.length === 0 || !selectedProjectId ? '#e2e8f0' : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-                                color: selectedBankIds.length === 0 || !selectedProjectId ? '#94a3b8' : '#fff',
+                                background: !selectedBankId || !selectedProjectId ? '#e2e8f0' : 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
+                                color: !selectedBankId || !selectedProjectId ? '#94a3b8' : '#fff',
                                 fontWeight: 700, fontSize: 14,
-                                cursor: submitting || selectedBankIds.length === 0 || !selectedProjectId ? 'not-allowed' : 'pointer',
-                                boxShadow: selectedBankIds.length > 0 && selectedProjectId ? '0 4px 16px rgba(59,130,246,0.3)' : 'none',
+                                cursor: submitting || !selectedBankId || !selectedProjectId ? 'not-allowed' : 'pointer',
+                                boxShadow: selectedBankId && selectedProjectId ? '0 4px 16px rgba(59,130,246,0.3)' : 'none',
                                 transition: 'all 0.15s',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
                             }}>
