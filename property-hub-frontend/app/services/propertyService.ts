@@ -57,10 +57,22 @@ export interface Project {
 }
 
 export const projectService = {
-    async getAll(token: string | null, myOnly: boolean = false, city?: string, status?: ProjectStatus): Promise<Project[]> {
+    async getAll(
+        token: string | null,
+        myOnly: boolean = false,
+        city?: string,
+        status?: ProjectStatus,
+        page: number = 1,
+        limit: number = 10,
+        search?: string
+    ): Promise<{ data: Project[], total: number }> {
         const params = new URLSearchParams();
         if (city) params.append('city', city);
         if (status) params.append('status', status);
+        params.append('page', page.toString());
+        params.append('limit', limit.toString());
+        if (search) params.append('search', search);
+
         const query = params.toString() ? `?${params.toString()}` : '';
         const endpoint = myOnly ? '/api/projects/my' : '/api/projects';
 

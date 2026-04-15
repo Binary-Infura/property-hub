@@ -314,7 +314,8 @@ export class UsersService {
         myOnly: boolean = false,
         user?: AuthenticatedUser,
         page: number = 1,
-        limit: number = 10
+        limit: number = 10,
+        search?: string
     ): Promise<{ data: User[], total: number }> {
         const skip = (page - 1) * limit;
         const normalizedRole = role as UserRole;
@@ -323,6 +324,14 @@ export class UsersService {
         if (myOnly && user) {
             const internalUser = await this.prisma.user.findUnique({ where: { id: user.userId } });
             if (internalUser) where.onboardedById = internalUser.id;
+        }
+
+        if (search) {
+            where.OR = [
+                { firstName: { contains: search, mode: 'insensitive' } },
+                { lastName: { contains: search, mode: 'insensitive' } },
+                { email: { contains: search, mode: 'insensitive' } },
+            ];
         }
 
         const [data, total] = await Promise.all([

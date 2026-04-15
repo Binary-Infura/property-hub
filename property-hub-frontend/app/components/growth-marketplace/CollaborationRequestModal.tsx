@@ -32,7 +32,7 @@ export default function CollaborationRequestModal({ isOpen, onClose, partner, to
 
     useEffect(() => {
         if (isOpen && token) {
-            propertyService.getAll(token, true).then(setProjects).catch(console.error);
+            propertyService.getAll(token, true).then(res => setProjects(res.data)).catch(console.error);
         }
     }, [isOpen, token]);
 

@@ -47,12 +47,13 @@ export default function BuyerLoanSubmitModal({ isOpen, onClose, loanPartnerId, p
             const fetchData = async () => {
                 setLoading(true);
                 try {
-                    const [activeBanks, allProjects, userDocs] = await Promise.all([
+                    const [activeBanks, projectsResponse, userDocs] = await Promise.all([
                         bankService.getActiveBanks(),
                         propertyService.getAll(token),
                         userService.getMyDocuments(token)
                     ]);
 
+                    const allProjects = projectsResponse.data || [];
                     const savedProjectIds = items.map(item => item.id);
                     const filteredProjects = allProjects.filter((p: Project) => savedProjectIds.includes(p.id));
 

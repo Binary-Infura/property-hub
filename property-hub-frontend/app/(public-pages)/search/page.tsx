@@ -95,7 +95,8 @@ export default function PropertySearchPage({ hideHeader = false }: { hideHeader?
     const fetchRealProperties = async () => {
       try {
         setLoading(true);
-        const data = await propertyService.getAll(token || null, false, undefined, 'APPROVED');
+        const response = await propertyService.getAll(token || null, false, undefined, 'APPROVED');
+        const data = response.data;
 
         const mapped: Property[] = data.map(p => {
           const stateCode = p.addressRecord?.city?.state || p.state || '';

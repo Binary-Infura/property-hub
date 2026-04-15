@@ -77,11 +77,12 @@ export interface User {
 }
 
 export const userService = {
-    async getAllByRole(role: string, token: string, myOnly: boolean = false, page: number = 1, limit: number = 10): Promise<{ data: User[], total: number }> {
+    async getAllByRole(role: string, token: string, myOnly: boolean = false, page: number = 1, limit: number = 10, search?: string): Promise<{ data: User[], total: number }> {
         const params = new URLSearchParams();
         if (myOnly) params.append('myOnly', 'true');
         params.append('page', page.toString());
         params.append('limit', limit.toString());
+        if (search) params.append('search', search);
 
         const queryString = params.toString();
         const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/users/role/${role}${queryString ? `?${queryString}` : ''}`;

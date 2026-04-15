@@ -57,13 +57,19 @@ export class ProjectsService {
         return this.storageService.extractKey(urlOrKey) as string | undefined;
     }
 
-    async findAll(user: AuthenticatedUser | undefined, myOnly?: boolean, city?: string, status?: string): Promise<Project[]> {
+    async findAll(
+        user: AuthenticatedUser | undefined,
+        myOnly?: boolean,
+        city?: string,
+        status?: string,
+        page: number = 1,
+        limit: number = 10,
+        search?: string
+    ): Promise<{ data: Project[], total: number }> {
         const isCentralAuthority = user?.roles?.includes(UserRole.CENTRAL_AUTHORITY) || false;
         const isPropertyPartner = user?.roles?.includes(UserRole.PROPERTY_PARTNER) || false;
         const allRoles = Object.values(UserRole);
         const isGlobalRole = user?.roles?.some(role => allRoles.includes(role as UserRole)) || false;
-
-
 
         let where: any = {};
 
@@ -84,32 +90,46 @@ export class ProjectsService {
             };
         }
 
+        if (search) {
+            where.OR = [
+                { name: { contains: search, mode: 'insensitive' } },
+                { location: { contains: search, mode: 'insensitive' } },
+                { description: { contains: search, mode: 'insensitive' } }
+            ];
+        }
+
         if (myOnly) {
             const internalUser = await this.usersService.ensureUserSynced(user);
             where.onboardedById = internalUser.id;
         }
 
-        const results = await this.prisma.project.findMany({
-            where,
-            include: {
-                addressRecord: {
-                    include: {
-                        city: true
-                    }
-                },
-                onboardedBy: {
-                    include: {
-                        organization: true,
+        const [results, total] = await Promise.all([
+            this.prisma.project.findMany({
+                where,
+                include: {
+                    addressRecord: {
+                        include: {
+                            city: true
+                        }
                     },
+                    onboardedBy: {
+                        include: {
+                            organization: true,
+                        },
+                    },
+                    assignedTo: true,
                 },
-                assignedTo: true,
-            },
-            orderBy: {
-                createdAt: 'desc',
-            },
-        });
+                orderBy: {
+                    createdAt: 'desc',
+                },
+                skip: (page - 1) * limit,
+                take: limit,
+            }),
+            this.prisma.project.count({ where })
+        ]);
 
-        return Promise.all(results.map(p => this.applyPresignedUrls(p)));
+        const data = await Promise.all(results.map(p => this.applyPresignedUrls(p)));
+        return { data, total };
     }
 
     async findOne(id: string, user?: AuthenticatedUser): Promise<Project> {

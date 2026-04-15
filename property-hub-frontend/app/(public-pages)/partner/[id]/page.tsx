@@ -32,7 +32,8 @@ export default function PartnerBusinessPage({ params }: { params: Promise<{ id: 
                 setPartner(partnerData);
 
                 // Fetch partner's properties
-                const allProps = await propertyService.getAll(token || null, false);
+                const response = await propertyService.getAll(token || null, false);
+                const allProps = response.data || [];
                 setProperties(allProps.filter(p => p.onboardedById === id));
 
                 // Fetch follow status and count

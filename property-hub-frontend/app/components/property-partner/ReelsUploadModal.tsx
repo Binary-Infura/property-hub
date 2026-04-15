@@ -29,8 +29,8 @@ export default function ReelsUploadModal({ isOpen, onClose, token, onSuccess }: 
         if (isOpen && token) {
             const fetchProjects = async () => {
                 try {
-                    const data = await propertyService.getAll(token, true);
-                    setProjects(data);
+                    const response = await propertyService.getAll(token, true);
+                    setProjects(response.data);
                 } catch (err) {
                     console.error('Failed to fetch projects:', err);
                 }

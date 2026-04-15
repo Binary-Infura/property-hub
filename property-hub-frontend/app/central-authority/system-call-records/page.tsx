@@ -25,8 +25,8 @@ export default function SystemCallRecordsPage() {
                 const consultantsData = await userService.getAllByRole('CONSULTANT', token, false, 1, 100);
                 setConsultants(consultantsData.data);
 
-                const projectsData = await propertyService.getAll(token);
-                setProjects(projectsData);
+                const projectsResponse = await propertyService.getAll(token);
+                setProjects(projectsResponse.data);
             } catch (error) {
                 console.error('Failed to fetch filter data:', error);
             }

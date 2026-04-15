@@ -38,12 +38,12 @@ export default function PropertyPartnerDashboard() {
     const fetchData = async () => {
       if (!token) return;
       try {
-        const [consultants, visitExecutives, brokersData, leadsData, projects, unitsData] = await Promise.all([
+        const [consultants, visitExecutives, brokersData, leadsData, projectsRaw, unitsData] = await Promise.all([
           userService.getAllByRole('CONSULTANT', token, true, 1, 1),
           userService.getAllByRole('VISIT_EXECUTIVE', token, true, 1, 1),
           fetch(`${API_URL}/api/property-partners/brokers`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
           fetch(`${API_URL}/api/leads`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
-          propertyService.getAll(token, true),
+          propertyService.getAll(token, true, undefined, undefined, 1, 20),
           fetch(`${API_URL}/api/units/my`, {
             headers: {
               'Authorization': `Bearer ${token}`
@@ -69,8 +69,12 @@ export default function PropertyPartnerDashboard() {
         const bookedUnits = units.filter((u: any) => u.status === 'SOLD').length;
         const totalRevenue = units.filter((u: any) => u.status === 'SOLD').reduce((sum: number, u: any) => sum + (parseFloat(u.salePrice) || 0), 0);
 
+        const projectsResponse = projectsRaw;
+        const projects = projectsResponse.data || [];
+        const totalProjectsCount = projectsResponse.total || 0;
+
         setAnalyticsData({
-          totalProjects: projects.length,
+          totalProjects: totalProjectsCount,
           activeProjects: projects.filter((p: Property) => p.status === 'APPROVED').length,
           totalUnits,
           bookedUnits,

@@ -1,70 +1,81 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
-import { propertyService, Property } from '@/app/services/propertyService';
+import { propertyService, Property, ProjectStatus } from '@/app/services/propertyService';
 import { userService, User } from '@/app/services/userService';
-import { cityService, City } from '@/app/services/cityService';
+import { cityService } from '@/app/services/cityService';
 
-export default function PropertyBulkAllocationPage() {
+const PAGE_SIZE = 20;
+
+export default function CentralAuthorityPropertyAllocationPage() {
     const { token } = useAuth();
+    
+    // Data states
     const [properties, setProperties] = useState<Property[]>([]);
     const [agents, setAgents] = useState<User[]>([]);
-    const [cities, setCities] = useState<City[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [processing, setProcessing] = useState(false);
-
-    // Filter Visibility Toggles
-    const [showOnlyUnassigned, setShowOnlyUnassigned] = useState(false);
-    const [statusFilter, setStatusFilter] = useState('all');
-
-    // Centralized Filter States
     const [states, setStates] = useState<{ name: string; code: string }[]>([]);
     const [citiesInState, setCitiesInState] = useState<{ name: string }[]>([]);
-    const [filterState, setFilterState] = useState('all'); // This will store the state code
+
+    // Loading states
+    const [loadingProperties, setLoadingProperties] = useState(false);
+    const [loadingAgents, setLoadingAgents] = useState(false);
+    const [loadingInitial, setLoadingInitial] = useState(true);
+    const [processing, setProcessing] = useState(false);
+
+    // Pagination states
+    const [propertyPage, setPropertyPage] = useState(1);
+    const [agentPage, setAgentPage] = useState(1);
+    const [hasMoreProperties, setHasMoreProperties] = useState(true);
+    const [hasMoreAgents, setHasMoreAgents] = useState(true);
+    const [propertyTotal, setPropertyTotal] = useState(0);
+    const [agentTotal, setAgentTotal] = useState(0);
+
+    // Filter states
+    const [showOnlyUnassigned, setShowOnlyUnassigned] = useState(false);
+    const [statusFilter, setStatusFilter] = useState('all');
+    const [filterState, setFilterState] = useState('all');
     const [filterCity, setFilterCity] = useState('all');
 
-    // Selection states
-    const [selectedPropertyIds, setSelectedPropertyIds] = useState<string[]>([]);
-    const [selectedAgentIds, setSelectedAgentIds] = useState<string[]>([]);
-
-    // Search states (for individual columns)
+    // Search states (debounced)
     const [propSearch, setPropSearch] = useState('');
     const [agentSearch, setAgentSearch] = useState('');
+    const [debouncedPropSearch, setDebouncedPropSearch] = useState('');
+    const [debouncedAgentSearch, setDebouncedAgentSearch] = useState('');
+
+    // Selection states
+    const [selectedPropertyIds, setSelectedPropertyIds] = useState<Set<string>>(new Set());
+    const [selectedAgentIds, setSelectedAgentIds] = useState<Set<string>>(new Set());
+
+    // Refs for infinite scroll
+    const propertyEndRef = useRef<HTMLDivElement>(null);
+    const agentEndRef = useRef<HTMLDivElement>(null);
+
+    // Debounce search
+    useEffect(() => {
+        const timer = setTimeout(() => setDebouncedPropSearch(propSearch), 500);
+        return () => clearTimeout(timer);
+    }, [propSearch]);
 
     useEffect(() => {
-        const loadInitialData = async () => {
+        const timer = setTimeout(() => setDebouncedAgentSearch(agentSearch), 500);
+        return () => clearTimeout(timer);
+    }, [agentSearch]);
+
+    // Initial load of states
+    useEffect(() => {
+        const loadMetadata = async () => {
             if (!token) return;
             try {
-                setLoading(true);
-                const [props, consultantsData, loanPartnersData, visitExecutivesData, statesData] = await Promise.all([
-                    propertyService.getAll(token),
-                    userService.getAllByRole('CONSULTANT', token),
-                    userService.getAllByRole('LOAN_PARTNER', token),
-                    userService.getAllByRole('VISIT_EXECUTIVE', token),
-                    cityService.getStates(token)
-                ]);
-
-                // Combine all eligible roles into one agents list with guaranteed role property
-                const combined = [
-                    ...consultantsData.data.map((u: User) => ({ ...u, role: u.role || 'CONSULTANT' })),
-                    ...loanPartnersData.data.map((u: User) => ({ ...u, role: u.role || 'LOAN_PARTNER' })),
-                    ...visitExecutivesData.data.map((u: User) => ({ ...u, role: u.role || 'VISIT_EXECUTIVE' }))
-                ];
-
-                // De-duplicate by ID to avoid React key collisions if a user has multiple roles
-                const allAgents = Array.from(new Map(combined.map(u => [u.id, u])).values());
-
-                setProperties(props);
-                setAgents(allAgents);
+                const statesData = await propertyService.getStates();
                 setStates(statesData);
             } catch (error) {
-                console.error('Failed to load initial allocation data:', error);
+                console.error('Failed to load metadata:', error);
             } finally {
-                setLoading(false);
+                setLoadingInitial(false);
             }
         };
-        loadInitialData();
+        loadMetadata();
     }, [token]);
 
     // Fetch cities when state changes
@@ -85,120 +96,153 @@ export default function PropertyBulkAllocationPage() {
         loadCities();
     }, [filterState, token]);
 
-    // Derive filter options - Robust version using global city data
-    const availableStates = useMemo(() => {
-        const combined = new Map<string, string>(); // code -> name
-        states.forEach(s => combined.set(s.code, s.name));
+    // Function to load properties
+    const loadProperties = useCallback(async (page: number, append: boolean = true) => {
+        if (!token) return;
+        try {
+            setLoadingProperties(true);
+            const cityParam = filterCity !== 'all' ? filterCity : undefined;
+            const statusParam = statusFilter !== 'all' ? (statusFilter as ProjectStatus) : undefined;
+            
+            const response = await propertyService.getAll(
+                token, 
+                false, // All projects for central authority
+                cityParam, 
+                statusParam, 
+                page, 
+                PAGE_SIZE, 
+                debouncedPropSearch
+            );
 
-        // Ensure states from existing properties are also included (just in case)
-        properties.forEach(p => {
-            if (p.city?.state) {
-                // Try to find code for this state name if missing
-                const entry = states.find(s => s.name === p.city?.state);
-                if (entry) combined.set(entry.code, entry.name);
-                else combined.set(p.city.state, p.city.state);
+            setProperties(prev => append ? [...prev, ...response.data] : response.data);
+            setPropertyTotal(response.total);
+            setHasMoreProperties(response.data.length === PAGE_SIZE);
+        } catch (error) {
+            console.error('Failed to load properties:', error);
+        } finally {
+            setLoadingProperties(false);
+        }
+    }, [token, filterCity, statusFilter, debouncedPropSearch]);
+
+    // Function to load agents
+    const loadAgents = useCallback(async (page: number, append: boolean = true) => {
+        if (!token) return;
+        try {
+            setLoadingAgents(true);
+            // Central authority can assign to any eligible team member
+            const response = await userService.getAllByRole(
+                'CONSULTANT', 
+                token,
+                false, // All consultants
+                page,
+                PAGE_SIZE,
+                debouncedAgentSearch
+            );
+
+            setAgents(prev => append ? [...prev, ...response.data] : response.data);
+            setAgentTotal(response.total);
+            setHasMoreAgents(response.data.length === PAGE_SIZE);
+        } catch (error) {
+            console.error('Failed to load agents:', error);
+        } finally {
+            setLoadingAgents(false);
+        }
+    }, [token, debouncedAgentSearch]);
+
+    // Reset and load when filters change
+    useEffect(() => {
+        if (!loadingInitial) {
+            setPropertyPage(1);
+            loadProperties(1, false);
+        }
+    }, [filterState, filterCity, statusFilter, debouncedPropSearch, showOnlyUnassigned, loadProperties, loadingInitial]);
+
+    useEffect(() => {
+        if (!loadingInitial) {
+            setAgentPage(1);
+            loadAgents(1, false);
+        }
+    }, [debouncedAgentSearch, loadAgents, loadingInitial]);
+
+    // Intersection Observer for Infinite Scroll
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && hasMoreProperties && !loadingProperties) {
+                setPropertyPage(prev => {
+                    const next = prev + 1;
+                    loadProperties(next, true);
+                    return next;
+                });
             }
-        });
+        }, { threshold: 0.1 });
 
-        return Array.from(combined.entries()).map(([code, name]) => ({ code, name })).sort((a, b) => a.name.localeCompare(b.name));
-    }, [states, properties]);
+        if (propertyEndRef.current) observer.observe(propertyEndRef.current);
+        return () => observer.disconnect();
+    }, [hasMoreProperties, loadingProperties, loadProperties]);
 
-    const availableCitiesList = useMemo(() => {
-        const citiesList = new Set<string>();
-        citiesInState.forEach(c => citiesList.add(c.name));
-
-        // Also add from existing properties matching the selected state
-        const selectedStateName = states.find(s => s.code === filterState)?.name;
-        properties.forEach(p => {
-            if (p.city?.name && (filterState === 'all' || p.city.state === selectedStateName || p.city.state === filterState)) {
-                citiesList.add(p.city.name);
+    useEffect(() => {
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && hasMoreAgents && !loadingAgents) {
+                setAgentPage(prev => {
+                    const next = prev + 1;
+                    loadAgents(next, true);
+                    return next;
+                });
             }
-        });
-        return Array.from(citiesList).sort();
-    }, [citiesInState, properties, filterState, states]);
+        }, { threshold: 0.1 });
 
-    const availableStatuses = useMemo(() => {
-        const statuses = new Set<string>();
-        properties.forEach(p => statuses.add(p.status));
-        return Array.from(statuses).sort();
-    }, [properties]);
+        if (agentEndRef.current) observer.observe(agentEndRef.current);
+        return () => observer.disconnect();
+    }, [hasMoreAgents, loadingAgents, loadAgents]);
 
-    // Handle central filter resets
     const handleStateChange = (state: string) => {
         setFilterState(state);
         setFilterCity('all');
     };
 
-    // Filtered lists - Optimized for scalability
-    const filteredProperties = useMemo(() => {
-        const selectedStateName = states.find(s => s.code === filterState)?.name;
-        return properties.filter(p => {
-            const matchesSearch = p.name.toLowerCase().includes(propSearch.toLowerCase()) ||
-                (p.location && p.location.toLowerCase().includes(propSearch.toLowerCase()));
-            const matchesState = filterState === 'all' || p.city?.state === selectedStateName || p.city?.state === filterState;
-            const matchesCity = filterCity === 'all' || p.city?.name === filterCity;
-            const matchesStatus = statusFilter === 'all' || p.status === statusFilter;
-            const matchesAssignment = !showOnlyUnassigned || (!p.assignedTo || p.assignedTo.length === 0);
-
-            return matchesSearch && matchesState && matchesCity && matchesStatus && matchesAssignment;
-        });
-    }, [properties, propSearch, filterState, filterCity, statusFilter, showOnlyUnassigned, states]);
-
-    const filteredAgents = useMemo(() => {
-        return agents.filter(a =>
-            `${a.firstName} ${a.lastName || ''}`.toLowerCase().includes(agentSearch.toLowerCase()) ||
-            a.email.toLowerCase().includes(agentSearch.toLowerCase()) ||
-            (a.role && a.role.toLowerCase().includes(agentSearch.toLowerCase()))
-        );
-    }, [agents, agentSearch]);
-
-    // Compute how many projects each agent is already assigned to
-    const agentProjectCounts = useMemo(() => {
-        const counts: Record<string, number> = {};
-        properties.forEach(p => {
-            p.assignedTo?.forEach(a => {
-                counts[a.id] = (counts[a.id] || 0) + 1;
-            });
-        });
-        return counts;
-    }, [properties]);
-
-    const itemsCount = filteredProperties.length;
-
-    // Selection logic
     const toggleProperty = (id: string) => {
-        setSelectedPropertyIds(prev =>
-            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-        );
+        setSelectedPropertyIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
     };
 
     const toggleAgent = (id: string) => {
-        setSelectedAgentIds(prev =>
-            prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-        );
+        setSelectedAgentIds(prev => {
+            const next = new Set(prev);
+            if (next.has(id)) next.delete(id);
+            else next.add(id);
+            return next;
+        });
     };
 
-    const selectAllFilteredProperties = () => {
-        if (selectedPropertyIds.length === filteredProperties.length && filteredProperties.length > 0) {
-            setSelectedPropertyIds([]);
+    const selectAllLoadedProperties = () => {
+        if (selectedPropertyIds.size >= properties.length) {
+            setSelectedPropertyIds(new Set());
         } else {
-            setSelectedPropertyIds(filteredProperties.map(p => p.id));
+            setSelectedPropertyIds(new Set(properties.map(p => p.id)));
         }
     };
 
     const handleBulkAssign = async () => {
-        if (!token || selectedPropertyIds.length === 0 || selectedAgentIds.length === 0) return;
+        if (!token || selectedPropertyIds.size === 0 || selectedAgentIds.size === 0) return;
 
         try {
             setProcessing(true);
-            await propertyService.bulkAssignConsultants(selectedPropertyIds, selectedAgentIds, token);
+            await propertyService.bulkAssignConsultants(
+                Array.from(selectedPropertyIds), 
+                Array.from(selectedAgentIds), 
+                token
+            );
 
-            // Refresh
-            const updatedProps = await propertyService.getAll(token);
-            setProperties(updatedProps);
+            // Refetch current properties
+            setPropertyPage(1);
+            loadProperties(1, false);
 
-            setSelectedPropertyIds([]);
-            setSelectedAgentIds([]);
+            setSelectedPropertyIds(new Set());
+            setSelectedAgentIds(new Set());
             alert('Bulk assignment completed successfully!');
         } catch (error) {
             console.error(error);
@@ -208,7 +252,7 @@ export default function PropertyBulkAllocationPage() {
         }
     };
 
-    if (loading) {
+    if (loadingInitial) {
         return (
             <div className="flex items-center justify-center min-h-[400px]">
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
@@ -216,17 +260,19 @@ export default function PropertyBulkAllocationPage() {
         );
     }
 
+    const availableStates = states.sort((a, b) => a.name.localeCompare(b.name));
+    const availableStatuses = ['DRAFT', 'UNDER_CONSTRUCTION', 'SUBMITTED', 'APPROVED', 'REJECTED'];
+
     return (
         <div className="space-y-6 animate-in fade-in duration-500 pb-24">
-            {/* Header Area */}
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
                 <div>
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Project Allocation</h1>
-                    <p className="text-slate-500 font-medium mt-1">Centralized management for assigning properties to consultants, loan partners and visit executives.</p>
+                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">System Allocation</h1>
+                    <p className="text-slate-500 font-medium mt-1">Central Authority Control: Distribute projects across the entire system team.</p>
                 </div>
             </div>
 
-            {/* Centralized Filter Bar */}
+            {/* Filters Bar */}
             <div className="bg-white p-6 rounded-[32px] shadow-sm border border-gray-100 flex flex-wrap gap-6 items-center">
                 <div className="flex flex-col gap-1.5">
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Location Filter</span>
@@ -246,7 +292,7 @@ export default function PropertyBulkAllocationPage() {
                             disabled={filterState === 'all'}
                         >
                             <option value="all">All Cities</option>
-                            {availableCitiesList.map(c => <option key={c} value={c}>{c}</option>)}
+                            {citiesInState.map(c => <option key={c.name} value={c.name}>{c.name}</option>)}
                         </select>
                     </div>
                 </div>
@@ -280,12 +326,12 @@ export default function PropertyBulkAllocationPage() {
                     <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Selection Summary</span>
                     <div className="flex gap-6 items-center">
                         <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full bg-blue-600 ${selectedPropertyIds.length > 0 ? 'animate-pulse' : ''}`}></div>
-                            <span className="text-sm font-black text-slate-900">{selectedPropertyIds.length} <span className="text-slate-400 text-[10px] uppercase font-bold">Projects Selected</span></span>
+                            <div className={`w-2 h-2 rounded-full bg-blue-600 ${selectedPropertyIds.size > 0 ? 'animate-pulse' : ''}`}></div>
+                            <span className="text-sm font-black text-slate-900">{selectedPropertyIds.size} <span className="text-slate-400 text-[10px] uppercase font-bold">Projects</span></span>
                         </div>
                         <div className="flex items-center gap-2">
-                            <div className={`w-2 h-2 rounded-full bg-purple-600 ${selectedAgentIds.length > 0 ? 'animate-pulse' : ''}`}></div>
-                            <span className="text-sm font-black text-slate-900">{selectedAgentIds.length} <span className="text-slate-400 text-[10px] uppercase font-bold">Agents Selected</span></span>
+                            <div className={`w-2 h-2 rounded-full bg-purple-600 ${selectedAgentIds.size > 0 ? 'animate-pulse' : ''}`}></div>
+                            <span className="text-sm font-black text-slate-900">{selectedAgentIds.size} <span className="text-slate-400 text-[10px] uppercase font-bold">Agents</span></span>
                         </div>
                     </div>
                 </div>
@@ -298,13 +344,13 @@ export default function PropertyBulkAllocationPage() {
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-lg font-black text-slate-900 flex items-center gap-2 uppercase tracking-tight">
                                 <span className="w-1.5 h-6 bg-blue-600 rounded-full"></span>
-                                Step 1: Select Projects ({itemsCount})
+                                System Projects ({propertyTotal})
                             </h2>
                             <button
-                                onClick={selectAllFilteredProperties}
+                                onClick={selectAllLoadedProperties}
                                 className="text-[10px] font-black text-blue-600 hover:text-blue-700 uppercase tracking-[0.15em] bg-blue-50 px-3 py-1.5 rounded-full transition-colors"
                             >
-                                {selectedPropertyIds.length === filteredProperties.length && filteredProperties.length > 0 ? 'Deselect All' : 'Select All Filtered'}
+                                {selectedPropertyIds.size >= properties.length && properties.length > 0 ? 'Deselect All' : 'Select Loaded'}
                             </button>
                         </div>
                         <div className="relative">
@@ -313,7 +359,7 @@ export default function PropertyBulkAllocationPage() {
                             </svg>
                             <input
                                 type="text"
-                                placeholder="Search by name or micro-location..."
+                                placeholder="Search by name, micro-location..."
                                 className="w-full pl-11 pr-4 py-3 bg-white border border-gray-200 rounded-2xl text-sm font-medium focus:ring-4 focus:ring-blue-500/5 focus:border-blue-500 outline-none transition-all placeholder:text-slate-300"
                                 value={propSearch}
                                 onChange={(e) => setPropSearch(e.target.value)}
@@ -322,83 +368,69 @@ export default function PropertyBulkAllocationPage() {
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
-                        {filteredProperties.length === 0 ? (
+                        {properties.length === 0 && !loadingProperties ? (
                             <div className="h-full flex flex-col items-center justify-center text-slate-300 py-12">
-                                <svg className="w-12 h-12 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
-                                </svg>
-                                <p className="font-bold text-sm">No projects match your filters</p>
+                                <p className="font-bold text-sm">No projects found</p>
                             </div>
                         ) : (
-                            filteredProperties.map(p => {
-                                const isSelected = selectedPropertyIds.includes(p.id);
-                                return (
-                                    <div
-                                        key={p.id}
-                                        onClick={() => toggleProperty(p.id)}
-                                        className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between group ${isSelected ? 'border-blue-600 bg-blue-50/40 shadow-md shadow-blue-100/10' : 'border-transparent hover:bg-slate-50'
-                                            }`}
-                                    >
-                                        <div className="flex items-center gap-4 flex-1 min-w-0">
-                                            <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all shrink-0 ${isSelected ? 'bg-blue-600 border-blue-600 shadow-lg shadow-blue-200' : 'bg-white border-slate-200 group-hover:border-blue-300'
-                                                }`}>
-                                                {isSelected && (
-                                                    <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
-                                                    </svg>
-                                                )}
-                                            </div>
-                                            <div className="min-w-0 flex-1">
-                                                <div className="flex items-center gap-2">
-                                                    <p className={`font-bold text-sm truncate ${isSelected ? 'text-blue-900' : 'text-slate-900 group-hover:text-blue-600 transition-colors'}`}>{p.name}</p>
-                                                    {p.assignedTo && p.assignedTo.length > 0 && (
-                                                        <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-[8px] font-black rounded-md uppercase tracking-tighter">
-                                                            {p.assignedTo.length} Assigned
-                                                        </span>
+                            <>
+                                {properties.map(p => {
+                                    const isSelected = selectedPropertyIds.has(p.id);
+                                    return (
+                                        <div
+                                            key={p.id}
+                                            onClick={() => toggleProperty(p.id)}
+                                            className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center justify-between group ${isSelected ? 'border-blue-600 bg-blue-50/40' : 'border-transparent hover:bg-slate-50'}`}
+                                        >
+                                            <div className="flex items-center gap-4 flex-1 min-w-0">
+                                                <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all shrink-0 ${isSelected ? 'bg-blue-600 border-blue-600 shadow-lg shadow-blue-200' : 'bg-white border-slate-200 group-hover:border-blue-300'}`}>
+                                                    {isSelected && (
+                                                        <svg className="w-3.5 h-3.5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
+                                                        </svg>
                                                     )}
                                                 </div>
-                                                <div className="flex items-center gap-2 mt-0.5 overflow-hidden whitespace-nowrap">
-                                                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest truncate">{p.location}</span>
-                                                    <span className="w-1 h-1 rounded-full bg-slate-200 shrink-0"></span>
-                                                    <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest truncate">{p.city?.name || 'Uncategorized City'}</span>
-                                                </div>
-                                                {/* Assigned agents list */}
-                                                {p.assignedTo && p.assignedTo.length > 0 && (
-                                                    <div className="flex flex-wrap gap-1.5 mt-3">
-                                                        {p.assignedTo.slice(0, 3).map((con) => (
-                                                            <span 
-                                                                key={`${p.id}-${con.id}`}
-                                                                className="px-2 py-0.5 bg-slate-100 text-slate-600 text-[9px] font-bold rounded-full border border-slate-200"
-                                                            >
-                                                                {con.firstName} {con.lastName?.[0]}.
-                                                            </span>
-                                                        ))}
-                                                        {p.assignedTo.length > 3 && (
-                                                            <span className="px-2 py-0.5 bg-slate-50 text-slate-400 text-[9px] font-bold rounded-full">
-                                                                +{p.assignedTo.length - 3} more
+                                                <div className="min-w-0 flex-1">
+                                                    <div className="flex items-center gap-2">
+                                                        <p className={`font-bold text-sm truncate ${isSelected ? 'text-blue-900' : 'text-slate-900 group-hover:text-blue-600'}`}>{p.name}</p>
+                                                        {p.assignedTo && p.assignedTo.length > 0 && (
+                                                            <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-[8px] font-black rounded-md uppercase tracking-tighter">
+                                                                {p.assignedTo.length} Assigned
                                                             </span>
                                                         )}
                                                     </div>
-                                                )}
+                                                    <div className="flex items-center gap-2 mt-0.5 overflow-hidden whitespace-nowrap">
+                                                        <span className="text-[10px] text-slate-400 font-black uppercase tracking-widest truncate">{p.location}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div className="text-right ml-4 shrink-0">
+                                                <span className="text-xs font-black text-slate-900 block group-hover:text-blue-600">₹{new Intl.NumberFormat('en-IN').format(p.price)}</span>
+                                                <span className={`text-[9px] font-black uppercase tracking-tighter mt-0.5 block ${p.status === 'APPROVED' ? 'text-green-500' : 'text-slate-400'}`}>{p.status}</span>
                                             </div>
                                         </div>
-                                        <div className="text-right ml-4 shrink-0">
-                                            <span className="text-xs font-black text-slate-900 block group-hover:text-blue-600 transition-colors">₹{new Intl.NumberFormat('en-IN').format(p.price)}</span>
-                                            <span className={`text-[9px] font-black uppercase tracking-tighter mt-0.5 block ${p.status === 'APPROVED' ? 'text-green-500' : 'text-slate-400'}`}>{p.status}</span>
-                                        </div>
-                                    </div>
-                                );
-                            })
+                                    );
+                                })}
+                                
+                                <div ref={propertyEndRef} className="py-4 flex justify-center">
+                                    {loadingProperties && (
+                                        <div className="w-6 h-6 border-2 border-blue-600/20 border-t-blue-600 rounded-full animate-spin"></div>
+                                    )}
+                                    {!hasMoreProperties && properties.length > 0 && (
+                                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">End of results</span>
+                                    )}
+                                </div>
+                            </>
                         )}
                     </div>
                 </div>
 
-                {/* Section 2: Consultants */}
+                {/* Section 2: Agents */}
                 <div className="bg-white rounded-[32px] border border-gray-100 shadow-sm flex flex-col overflow-hidden">
                     <div className="p-6 border-b border-gray-50 bg-slate-50/30">
                         <h2 className="text-lg font-black text-slate-900 flex items-center gap-2 uppercase tracking-tight mb-4">
                             <span className="w-1.5 h-6 bg-purple-600 rounded-full"></span>
-                            Step 2: Assign to Agents
+                            System Agents ({agentTotal})
                         </h2>
                         <div className="relative">
                             <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -415,64 +447,73 @@ export default function PropertyBulkAllocationPage() {
                     </div>
 
                     <div className="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar">
-                        {filteredAgents.map(a => {
-                            const isSelected = selectedAgentIds.includes(a.id);
-                            return (
-                                <div
-                                    key={a.id}
-                                    onClick={() => toggleAgent(a.id)}
-                                    className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-4 group ${isSelected ? 'border-purple-600 bg-purple-50/40 shadow-sm' : 'border-transparent hover:bg-slate-50'
-                                        }`}
-                                >
-                                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-sm transition-all ${isSelected ? 'bg-purple-600 text-white scale-105 shadow-xl shadow-purple-200' : 'bg-slate-100 text-slate-400'
-                                        }`}>
-                                        {a.firstName[0]}{a.lastName?.[0] || ''}
-                                    </div>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-2">
-                                            <p className={`font-bold text-sm truncate ${isSelected ? 'text-purple-900' : 'text-slate-900'}`}>{a.firstName} {a.lastName}</p>
-                                            <span className="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-[8px] font-black rounded-md uppercase tracking-tighter">
-                                                {a.role?.replace('-', ' ') || 'agent'}
-                                            </span>
-                                            {agentProjectCounts[a.id] > 0 && (
-                                                <span className="px-1.5 py-0.5 bg-blue-50 text-blue-600 text-[8px] font-black rounded-md uppercase tracking-tighter ring-1 ring-blue-100">
-                                                    {agentProjectCounts[a.id]} Projects
-                                                </span>
-                                            )}
+                        {agents.length === 0 && !loadingAgents ? (
+                            <div className="h-full flex flex-col items-center justify-center text-slate-300 py-12">
+                                <p className="font-bold text-sm">No agents found</p>
+                            </div>
+                        ) : (
+                            <>
+                                {agents.map(a => {
+                                    const isSelected = selectedAgentIds.has(a.id);
+                                    return (
+                                        <div
+                                            key={a.id}
+                                            onClick={() => toggleAgent(a.id)}
+                                            className={`p-4 rounded-2xl border-2 transition-all cursor-pointer flex items-center gap-4 group ${isSelected ? 'border-purple-600 bg-purple-50/40 shadow-sm' : 'border-transparent hover:bg-slate-50'}`}
+                                        >
+                                            <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-sm transition-all ${isSelected ? 'bg-purple-600 text-white scale-105 shadow-xl shadow-purple-200' : 'bg-slate-100 text-slate-400'}`}>
+                                                {a.firstName[0]}{a.lastName?.[0] || ''}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2">
+                                                    <p className={`font-bold text-sm truncate ${isSelected ? 'text-purple-900' : 'text-slate-900'}`}>{a.firstName} {a.lastName}</p>
+                                                    <span className="px-1.5 py-0.5 bg-slate-100 text-slate-500 text-[8px] font-black rounded-md uppercase tracking-tighter">
+                                                        {a.role?.replace('-', ' ') || 'agent'}
+                                                    </span>
+                                                </div>
+                                                <p className="text-xs text-slate-400 font-medium truncate">{a.email}</p>
+                                            </div>
+                                            <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-purple-600 border-purple-600' : 'bg-white border-slate-200 group-hover:border-purple-300'}`}>
+                                                {isSelected && (
+                                                    <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
+                                                    </svg>
+                                                )}
+                                            </div>
                                         </div>
-                                        <p className="text-xs text-slate-400 font-medium truncate">{a.email}</p>
-                                    </div>
-                                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'bg-purple-600 border-purple-600' : 'bg-white border-slate-200 group-hover:border-purple-300'
-                                        }`}>
-                                        {isSelected && (
-                                            <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={4} d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        )}
-                                    </div>
+                                    );
+                                })}
+                                
+                                <div ref={agentEndRef} className="py-4 flex justify-center">
+                                    {loadingAgents && (
+                                        <div className="w-6 h-6 border-2 border-purple-600/20 border-t-purple-600 rounded-full animate-spin"></div>
+                                    )}
+                                    {!hasMoreAgents && agents.length > 0 && (
+                                        <span className="text-[10px] font-black text-slate-300 uppercase tracking-widest">End of results</span>
+                                    )}
                                 </div>
-                            );
-                        })}
+                            </>
+                        )}
                     </div>
                 </div>
             </div>
 
-            {/* Sticky Execution Bar */}
+            {/* Execution Footer Bar */}
             <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-[95%] md:max-w-3xl z-50">
                 <div className="bg-slate-900 rounded-[40px] p-6 shadow-2xl border border-slate-800 flex items-center justify-between gap-8 h-24">
                     <div className="hidden sm:flex items-center gap-8 pl-4">
                         <div className="flex flex-col">
                             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-2">Assigning</span>
                             <div className="flex items-baseline gap-1">
-                                <span className="text-2xl font-black text-white">{selectedPropertyIds.length}</span>
-                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Props</span>
+                                <span className="text-2xl font-black text-white">{selectedPropertyIds.size}</span>
+                                <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Projects</span>
                             </div>
                         </div>
                         <div className="w-px h-8 bg-slate-800"></div>
                         <div className="flex flex-col">
                             <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest leading-none mb-2">Targeting</span>
                             <div className="flex items-baseline gap-1">
-                                <span className="text-2xl font-black text-white">{selectedAgentIds.length}</span>
+                                <span className="text-2xl font-black text-white">{selectedAgentIds.size}</span>
                                 <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Agents</span>
                             </div>
                         </div>
@@ -480,8 +521,8 @@ export default function PropertyBulkAllocationPage() {
 
                     <button
                         onClick={handleBulkAssign}
-                        disabled={selectedPropertyIds.length === 0 || selectedAgentIds.length === 0 || processing}
-                        className="flex-1 sm:flex-none h-14 px-12 bg-blue-600 text-white rounded-3xl font-black text-[11px] uppercase tracking-[0.25em] shadow-2xl shadow-blue-500/20 hover:bg-blue-500 hover:scale-[1.03] active:scale-95 transition-all disabled:opacity-20 disabled:hover:scale-100 flex items-center justify-center gap-3 group"
+                        disabled={selectedPropertyIds.size === 0 || selectedAgentIds.size === 0 || processing}
+                        className="flex-1 sm:flex-none h-14 px-12 bg-blue-600 text-white rounded-3xl font-black text-[11px] uppercase tracking-[0.25em] shadow-2xl shadow-blue-500/20 hover:bg-blue-500 hover:scale-[1.03] active:scale-95 transition-all disabled:opacity-20 flex items-center justify-center gap-3 group"
                     >
                         {processing ? (
                             <div className="w-5 h-5 border-2 border-white/20 border-t-white rounded-full animate-spin"></div>

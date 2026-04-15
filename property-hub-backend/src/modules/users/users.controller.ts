@@ -64,6 +64,7 @@ export class UsersController {
         @Query('myOnly') myOnly?: string,
         @Query('page') page: string = '1',
         @Query('limit') limit: string = '10',
+        @Query('search') search?: string,
         @CurrentUser() user?: AuthenticatedUser
     ) {
         return this.usersService.findAllByRole(
@@ -71,7 +72,8 @@ export class UsersController {
             myOnly === 'true',
             user,
             Number(page),
-            Number(limit)
+            Number(limit),
+            search
         );
     }
 
