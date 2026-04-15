@@ -43,8 +43,12 @@ export default function BankApprovalsPage() {
 
     const fetchProjects = () => {
         if (!token) return;
-        projectService.getAll(token, true)
-            .then(setAllProjects)
+        projectService.getAll(token, true, undefined, undefined, 1, 100)
+            .then(res => {
+                // Handle both older array response and new paginated object response
+                const data = Array.isArray(res) ? res : (res.data || []);
+                setAllProjects(data);
+            })
             .catch(() => setAllProjects([]));
     };
 

@@ -33,8 +33,9 @@ export default function CentralAuthorityListingRequestsPage() {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
-                const data = await res.json();
-                const submitted = data.filter((p: any) => p.status === 'SUBMITTED');
+                const responseData = await res.json();
+                const projectsList = Array.isArray(responseData) ? responseData : (responseData.data || []);
+                const submitted = projectsList.filter((p: any) => p.status === 'SUBMITTED');
                 setRequests(submitted);
             }
         } catch (e) {

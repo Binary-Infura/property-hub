@@ -103,7 +103,7 @@ export class ProjectsService {
             where.onboardedById = internalUser.id;
         }
 
-        const [results, total] = await Promise.all([
+        const [results, total, statsRaw] = await Promise.all([
             this.prisma.project.findMany({
                 where,
                 include: {
@@ -125,11 +125,21 @@ export class ProjectsService {
                 skip: (page - 1) * limit,
                 take: limit,
             }),
-            this.prisma.project.count({ where })
+            this.prisma.project.count({ where }),
+            this.prisma.project.groupBy({
+                by: ['status'],
+                where: { ...where, status: undefined }, // stats for current search/myOnly regardless of status filter
+                _count: { id: true }
+            })
         ]);
 
+        const stats = statsRaw.reduce((acc, curr) => {
+            acc[curr.status.toLowerCase()] = curr._count.id;
+            return acc;
+        }, {} as Record<string, number>);
+
         const data = await Promise.all(results.map(p => this.applyPresignedUrls(p)));
-        return { data, total };
+        return { data, total, stats };
     }
 
     async findOne(id: string, user?: AuthenticatedUser): Promise<Project> {

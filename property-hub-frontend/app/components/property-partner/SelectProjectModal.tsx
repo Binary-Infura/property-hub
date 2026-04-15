@@ -43,8 +43,10 @@ export default function SelectProjectModal({ isOpen, onClose, onSuccess }: Selec
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
-                const data = await res.json();
-                const allProjects = data.map((p: any) => ({
+                const responseData = await res.json();
+                const projectsList = Array.isArray(responseData) ? responseData : (responseData.data || []);
+                
+                const allProjects = projectsList.map((p: any) => ({
                     id: p.id,
                     title: p.name,
                     location: p.location,

@@ -80,8 +80,9 @@ export default function PropertyPartnerAdsRequestsPage() {
                 }
             });
             if (res.ok) {
-                const data = await res.json();
-                setProjects(data);
+                const responseData = await res.json();
+                const projectsList = Array.isArray(responseData) ? responseData : (responseData.data || []);
+                setProjects(projectsList);
             }
         } catch (error) {
             console.error("Failed to fetch projects:", error);

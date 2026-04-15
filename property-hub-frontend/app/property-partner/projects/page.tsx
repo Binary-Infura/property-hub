@@ -35,6 +35,17 @@ export default function ProjectsPage() {
   const [filterStatus, setFilterStatus] = useState<FilterStatus>('all');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalCount, setTotalCount] = useState(0);
+  const [statusCounts, setStatusCounts] = useState({
+    total: 0,
+    draft: 0,
+    approved: 0,
+    under_construction: 0,
+    rejected: 0,
+    submitted: 0
+  });
+  const PROJECTS_PER_PAGE = 8;
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSelectModalOpen, setIsSelectModalOpen] = useState(false);
@@ -50,15 +61,25 @@ export default function ProjectsPage() {
 
     try {
       setLoading(true);
-      const res = await fetch(`${API_URL}/api/projects/my`, {
+      const params = new URLSearchParams({
+        page: currentPage.toString(),
+        limit: PROJECTS_PER_PAGE.toString(),
+      });
+      
+      if (searchQuery) params.append('search', searchQuery);
+      if (filterStatus !== 'all') params.append('status', filterStatus.toUpperCase());
+
+      const res = await fetch(`${API_URL}/api/projects/my?${params.toString()}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
       });
 
       if (res.ok) {
-        const data = await res.json();
-        const mapped: Property[] = data.map((p: any) => {
+        const responseData = await res.json();
+        const projectsList = Array.isArray(responseData) ? responseData : (responseData.data || []);
+        
+        const mapped: Property[] = projectsList.map((p: any) => {
           const backendStatus = p.status?.toUpperCase();
           let frontendStatus: PropertyStatus = 'draft';
 
@@ -113,6 +134,18 @@ export default function ProjectsPage() {
         });
 
         setProjects(mapped);
+        setTotalCount(responseData.total || mapped.length);
+        if (responseData.stats) {
+          const stats = responseData.stats;
+          setStatusCounts({
+            total: Object.values(stats).reduce((a: any, b: any) => a + b, 0) as number,
+            draft: stats.draft || 0,
+            approved: stats.approved || 0,
+            under_construction: stats.under_construction || 0,
+            rejected: stats.rejected || 0,
+            submitted: stats.submitted || 0
+          });
+        }
       }
     } catch (err) {
       console.error(err);
@@ -122,8 +155,16 @@ export default function ProjectsPage() {
   };
 
   useEffect(() => {
-    fetchProjects();
-  }, [token]);
+    const timer = setTimeout(() => {
+      fetchProjects();
+    }, 500);
+    return () => clearTimeout(timer);
+  }, [token, currentPage, filterStatus, searchQuery]);
+
+  // Reset to page 1 when filter or search changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [filterStatus, searchQuery]);
 
   const handleAddProject = () => {
     setEditingId(null);
@@ -158,19 +199,7 @@ export default function ProjectsPage() {
     );
   }
 
-  const filteredProjects = projects.filter(prop => {
-    const statusMatch = filterStatus === 'all' || prop.status === filterStatus;
-    const searchMatch = prop.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (prop.location && prop.location.toLowerCase().includes(searchQuery.toLowerCase()));
-    return statusMatch && searchMatch;
-  });
-
-  const statusCounts = {
-    total: projects.length,
-    draft: projects.filter(p => p.status === 'draft').length,
-    approved: projects.filter(p => p.status === 'approved').length,
-    underConstruction: projects.filter(p => p.status === 'under_construction').length,
-  };
+  const filteredProjects = projects; // Filtering now happens on the server
 
   return (
     <div className="space-y-6">
@@ -259,7 +288,7 @@ export default function ProjectsPage() {
           { label: 'Total', count: statusCounts.total, color: 'text-gray-900', bgColor: 'bg-white' },
           { label: 'Draft', count: statusCounts.draft, color: 'text-gray-600', bgColor: 'bg-white' },
           { label: 'Approved', count: statusCounts.approved, color: 'text-blue-600', bgColor: 'bg-white' },
-          { label: 'Under Construction', count: statusCounts.underConstruction, color: 'text-amber-600', bgColor: 'bg-white' },
+          { label: 'Under Construction', count: statusCounts.under_construction, color: 'text-amber-600', bgColor: 'bg-white' },
         ].map(stat => (
           <div key={stat.label} className={`${stat.bgColor} rounded-lg shadow-sm border border-gray-100 p-4`}>
             <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">{stat.label}</p>
@@ -522,6 +551,30 @@ export default function ProjectsPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {totalCount > PROJECTS_PER_PAGE && (
+        <div className="flex items-center justify-between bg-white px-6 py-4 rounded-xl border border-gray-100 shadow-sm mt-6">
+          <p className="text-sm text-gray-500 font-medium tracking-tight">
+            Showing <span className="text-gray-900 font-bold">{(currentPage - 1) * PROJECTS_PER_PAGE + 1}</span> to <span className="text-gray-900 font-bold">{Math.min(currentPage * PROJECTS_PER_PAGE, totalCount)}</span> of <span className="text-gray-900 font-bold">{totalCount}</span> projects
+          </p>
+          <div className="flex gap-3">
+            <button
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(prev => prev - 1)}
+              className="px-5 py-2.5 border-2 border-gray-100 rounded-xl text-xs font-black uppercase tracking-widest text-gray-600 hover:bg-gray-50 transition-all disabled:opacity-30 disabled:hover:bg-transparent"
+            >
+              Previous
+            </button>
+            <button
+              disabled={currentPage * PROJECTS_PER_PAGE >= totalCount}
+              onClick={() => setCurrentPage(prev => prev + 1)}
+              className="px-5 py-2.5 bg-blue-600 text-white rounded-xl text-xs font-black uppercase tracking-widest hover:bg-blue-700 shadow-lg shadow-blue-100 transition-all disabled:opacity-30 disabled:bg-blue-400 disabled:shadow-none"
+            >
+              Next
+            </button>
+          </div>
         </div>
       )}
     </div>

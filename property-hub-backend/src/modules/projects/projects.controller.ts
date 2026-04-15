@@ -29,11 +29,12 @@ export class ProjectsController {
     findAllMy(
         @CurrentUser() user: AuthenticatedUser,
         @Query('city') city?: string,
+        @Query('status') status?: string,
         @Query('page') page: string = '1',
         @Query('limit') limit: string = '10',
         @Query('search') search?: string,
     ) {
-        return this.projectsService.findAll(user, true, city, undefined, Number(page), Number(limit), search);
+        return this.projectsService.findAll(user, true, city, status, Number(page), Number(limit), search);
     }
 
     @Get()
