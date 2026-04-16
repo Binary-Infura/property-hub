@@ -45,7 +45,9 @@ COPY prisma ./prisma
 
 # Copy built application from builder
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+
+# Generate Prisma Client in production stage
+RUN npx prisma generate
 
 # Expose port
 EXPOSE 3001
