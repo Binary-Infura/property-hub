@@ -32,11 +32,20 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
+      - name: Get Backend Version
+        id: backend_version
+        run: |
+          VERSION=$(jq -r .version property-hub-backend/package.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Extract metadata (tags, labels) for Backend
         id: meta-backend
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.BACKEND_IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ steps.backend_version.outputs.version }}
+            type=raw,value=latest
 
       - name: Build and push Backend image
         uses: docker/build-push-action@v5
@@ -48,11 +57,20 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Get Frontend Version
+        id: frontend_version
+        run: |
+          VERSION=$(jq -r .version property-hub-frontend/package.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Extract metadata (tags, labels) for Frontend
         id: meta-frontend
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ env.FRONTEND_IMAGE_NAME }}
+          tags: |
+            type=raw,value=${{ steps.frontend_version.outputs.version }}
+            type=raw,value=latest
 
       - name: Build and push Frontend image
         uses: docker/build-push-action@v5
@@ -64,11 +82,20 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: Get Scraper Version
+        id: scraper_version
+        run: |
+          VERSION=$(jq -r .version property-hub-rera-scraper/package.json)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+
       - name: Extract metadata (tags, labels) for Scraper
         id: meta-scraper
         uses: docker/metadata-action@v5
         with:
           images: ${{ env.REGISTRY }}/${{ github.repository }}-scraper
+          tags: |
+            type=raw,value=${{ steps.scraper_version.outputs.version }}
+            type=raw,value=latest
 
       - name: Build and push Scraper image
         uses: docker/build-push-action@v5
