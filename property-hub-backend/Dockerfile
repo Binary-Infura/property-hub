@@ -13,7 +13,7 @@ COPY tsconfig*.json ./
 COPY nest-cli.json ./
 
 # Install dependencies
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --no-frozen-lockfile
 
 # Copy source code
 COPY src ./src
@@ -38,7 +38,7 @@ RUN npm install -g pnpm@8
 COPY package.json pnpm-lock.yaml ./
 
 # Install production dependencies only
-RUN pnpm install --prod --frozen-lockfile
+RUN pnpm install --prod --no-frozen-lockfile
 
 # Copy Prisma schema
 COPY prisma ./prisma
