@@ -65,7 +65,7 @@ export class ProjectsService {
         page: number = 1,
         limit: number = 10,
         search?: string
-    ): Promise<{ data: Project[], total: number }> {
+    ): Promise<{ data: Project[], total: number, stats: Record<string, number> }> {
         const isCentralAuthority = user?.roles?.includes(UserRole.CENTRAL_AUTHORITY) || false;
         const isPropertyPartner = user?.roles?.includes(UserRole.PROPERTY_PARTNER) || false;
         const allRoles = Object.values(UserRole);
