@@ -85,7 +85,7 @@ jobs:
       - name: Get Scraper Version
         id: scraper_version
         run: |
-          VERSION=$(jq -r .version property-hub-rera-scraper/package.json)
+          VERSION=$(jq -r .version property-hub-scraper/package.json)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Extract metadata (tags, labels) for Scraper
@@ -100,7 +100,7 @@ jobs:
       - name: Build and push Scraper image
         uses: docker/build-push-action@v5
         with:
-          context: ./property-hub-rera-scraper
+          context: ./property-hub-scraper
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta-scraper.outputs.tags }}
           labels: ${{ steps.meta-scraper.outputs.labels }}
