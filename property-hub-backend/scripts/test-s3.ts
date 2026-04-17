@@ -22,7 +22,7 @@ async function test() {
         const result = await client.send(new PutObjectCommand({
             Bucket: process.env.S3_BUCKET || 'property-hub-documents',
             Key: 'test-file.txt',
-            Body: 'Hello MinIO!',
+            Body: 'Hello Cloudflare R2!',
             ContentType: 'text/plain',
         }));
         console.log('Upload Success:', result.$metadata.httpStatusCode);

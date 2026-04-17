@@ -90,7 +90,7 @@ export class UploadsController {
             const randomName = crypto.randomBytes(16).toString('hex');
             const fileName = `${randomName}${fileExtension}`;
 
-            // Upload to S3/MinIO
+            // Upload to Cloudflare R2
             const uploadResult = await this.storageService.uploadFile(
                 fileBuffer,
                 fileName,

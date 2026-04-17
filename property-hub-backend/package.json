@@ -23,7 +23,8 @@
     "prisma:migrate:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
     "seed": "ts-node scripts/seed-data.ts",
-    "db:clean": "ts-node scripts/clean-db.ts"
+    "db:clean": "ts-node scripts/clean-db.ts",
+    "test:s3": "ts-node scripts/test-s3.ts"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1004.0",
