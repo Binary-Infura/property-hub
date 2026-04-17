@@ -13,9 +13,9 @@ database:
 backend:
   enabled: true
   image:
-    repository: property-hub-backend
+    repository: ghcr.io/binary-infura/property-hub-backend
     tag: latest
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   service:
     type: ClusterIP
     port: 3001
@@ -27,22 +27,21 @@ backend:
 frontend:
   enabled: true
   image:
-    repository: property-hub-frontend
+    repository: ghcr.io/binary-infura/property-hub-frontend
     tag: latest
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   service:
     type: ClusterIP
     port: 3000
 
-# LiveKit (Video/Audio)
-livekit:
+# Property Hub Scraper
+scraper:
   enabled: true
   image:
-    repository: livekit/livekit-server
+    repository: ghcr.io/binary-infura/property-hub-scraper
     tag: latest
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   service:
     type: ClusterIP
-    port: 7880
-  apiKey: "devkey"
-  apiSecret: "secret"
+    port: 3005
+

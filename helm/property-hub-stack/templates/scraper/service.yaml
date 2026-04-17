@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "property-hub-stack.fullname" . }}-scraper
+  labels:
+    {{- include "property-hub-stack.labels" . | nindent 4 }}
+    app.kubernetes.io/component: scraper
+spec:
+  type: {{ .Values.scraper.service.type }}
+  ports:
+    - port: {{ .Values.scraper.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "property-hub-stack.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: scraper

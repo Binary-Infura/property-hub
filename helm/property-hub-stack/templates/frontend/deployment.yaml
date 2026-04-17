@@ -29,5 +29,3 @@ spec:
           env:
             - name: NEXT_PUBLIC_BACKEND_URL
               value: "http://{{ include "property-hub-stack.fullname" . }}-backend:3001"
-            - name: NEXT_PUBLIC_LIVEKIT_URL
-              value: "ws://{{ include "property-hub-stack.fullname" . }}-livekit:7880"
