@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { useConsultingBucket } from '../contexts/ConsultingBucketContext';
 import { useUnifiedApp } from '../contexts/UnifiedAppContext';
 import { useAuth } from '../contexts/AuthContext';
@@ -47,7 +46,6 @@ export default function PropertySearchCard({
   onViewDetails,
   onToggleCompare,
 }: PropertySearchCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
   const { addItem, removeItem, isInBucket } = useConsultingBucket();
   const { activeContext } = useUnifiedApp();
   const { authenticated } = useAuth();
@@ -70,8 +68,7 @@ export default function PropertySearchCard({
 
   return (
     <div
-      onClick={() => setIsExpanded(!isExpanded)}
-      className={`group bg-white rounded-[2.5rem] overflow-hidden transition-all duration-500 border-2 cursor-pointer ${isSelectedForCompare ? 'border-blue-500 shadow-2xl ring-4 ring-blue-50' : 'border-slate-100 hover:border-blue-200 shadow-xl shadow-slate-200/50'
+      className={`group bg-white rounded-[2.5rem] overflow-hidden transition-all duration-500 border-2 ${isSelectedForCompare ? 'border-blue-500 shadow-2xl ring-4 ring-blue-50' : 'border-slate-100 hover:border-blue-200 shadow-xl shadow-slate-200/50'
         }`}
     >
       {/* Image Section */}
@@ -97,12 +94,7 @@ export default function PropertySearchCard({
               {property.recommendationTag}
             </span>
           )}
-          {property.legalVerified && (
-            <span className="px-4 py-2 bg-white/95 backdrop-blur-md text-slate-900 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg flex items-center gap-2 border border-slate-200/50">
-              <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
-              Title Verified
-            </span>
-          )}
+
         </div>
 
         {/* Action Overlays */}
@@ -152,37 +144,6 @@ export default function PropertySearchCard({
           </div>
         </div>
 
-        {/* Expandable Section */}
-        {isExpanded && (
-          <div className="space-y-8 animate-in fade-in slide-in-from-top-4 duration-500 mb-8 pt-4 border-t border-slate-50">
-
-            {/* Consultant & Insight */}
-            <div className="grid md:grid-cols-2 gap-6">
-              <div className="p-8 bg-slate-50 rounded-[2rem] border border-slate-100">
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4">Consultant Insight</p>
-                <p className="text-slate-700 font-medium leading-relaxed italic">"{property.consultantNote || "Exceptional property with high potential for appreciation."}"</p>
-              </div>
-
-              {property.consultant && (
-                <div className="p-8 bg-blue-50 rounded-[2rem] border border-blue-100">
-                  <p className="text-[10px] font-black text-blue-700 uppercase tracking-widest mb-4">Managing Consultant</p>
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-blue-600 rounded-xl flex items-center justify-center text-white text-xs font-black shadow-lg shadow-blue-200 uppercase">
-                      {property.consultant.initials}
-                    </div>
-                    <div>
-                      <h4 className="font-extrabold text-slate-900 leading-tight">{property.consultant.name}</h4>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">
-                        ★ {property.consultant.rating} • {property.consultant.deals}+ Deals
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
         {/* CTA Section */}
         <div className="flex items-center gap-4">
           <button
@@ -206,10 +167,6 @@ export default function PropertySearchCard({
           )}
         </div>
 
-        {/* Footer Hint */}
-        <p className="text-[10px] font-black text-slate-400 text-center uppercase tracking-[0.2em] mt-6">
-          {isExpanded ? 'Click to collapse insights' : 'Click card for consultant insights'}
-        </p>
       </div>
     </div>
   );
