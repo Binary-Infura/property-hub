@@ -5,7 +5,7 @@ import { Property, PropertyStatus } from '@/app/types/property';
 import { useAuth } from '@/app/contexts/AuthContext';
 import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
 interface SelectProjectModalProps {
     isOpen: boolean;

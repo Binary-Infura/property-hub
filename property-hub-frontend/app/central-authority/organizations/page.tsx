@@ -24,7 +24,7 @@ export default function OrganizationsPage() {
     const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
     const fetchOrganizations = async () => {
         if (!token) return;

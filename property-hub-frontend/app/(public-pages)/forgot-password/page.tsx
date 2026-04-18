@@ -6,7 +6,7 @@ import { otpService } from '@/app/services/otpService';
 import OtpInput from '@/app/components/OtpInput';
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
 export default function ForgotPasswordPage() {
     const [identifier, setIdentifier] = useState('');

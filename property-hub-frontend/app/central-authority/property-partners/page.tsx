@@ -37,7 +37,7 @@ export default function AllPropertyPartnersPage() {
     const [updatingPartner, setUpdatingPartner] = useState<string | null>(null);
     const [isInviteModalOpen, setIsInviteModalOpen] = useState(false);
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
     const fetchPartners = async () => {
         if (!token) return;

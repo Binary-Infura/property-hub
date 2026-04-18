@@ -88,7 +88,7 @@ export default function BuyerDashboard() {
     const fetchDocs = async () => {
       if (!token) return;
       try {
-        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+        const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
         const res = await fetch(`${API_URL}/api/users/me/documents`, {
           headers: { Authorization: `Bearer ${token}` }
         });

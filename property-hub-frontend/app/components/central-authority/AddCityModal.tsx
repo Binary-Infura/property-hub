@@ -45,7 +45,7 @@ export default function AddCityModal({ isOpen, onClose, onSuccess, initialData }
     const [loadingLocations, setLoadingLocations] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
     // 0. Pre-fill data if in Edit mode
     useEffect(() => {

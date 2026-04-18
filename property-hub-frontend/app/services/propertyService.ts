@@ -81,7 +81,7 @@ export const projectService = {
             headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}${endpoint}${query}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102'}${endpoint}${query}`, {
             headers,
         });
         if (!response.ok) {
@@ -97,7 +97,7 @@ export const projectService = {
             headers['Authorization'] = `Bearer ${token}`;
         }
 
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/projects/${id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102'}/api/projects/${id}`, {
             headers,
         });
         if (!response.ok) {
@@ -107,7 +107,7 @@ export const projectService = {
     },
 
     async create(data: Partial<Project>, token: string): Promise<Project> {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/projects`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102'}/api/projects`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -123,7 +123,7 @@ export const projectService = {
     },
 
     async update(id: string, data: Partial<Project>, token: string): Promise<Project> {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/projects/${id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102'}/api/projects/${id}`, {
             method: 'PATCH',
             headers: {
                 'Content-Type': 'application/json',
@@ -139,7 +139,7 @@ export const projectService = {
     },
 
     async delete(id: string, token: string): Promise<void> {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/projects/${id}`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102'}/api/projects/${id}`, {
             method: 'DELETE',
             headers: {
                 'Authorization': `Bearer ${token}`,
@@ -152,7 +152,7 @@ export const projectService = {
     },
 
     async assignConsultants(id: string, consultantIds: string[], token: string): Promise<Project> {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/projects/${id}/assign-consultants`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102'}/api/projects/${id}/assign-consultants`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -168,7 +168,7 @@ export const projectService = {
     },
 
     async bulkAssignConsultants(projectIds: string[], consultantIds: string[], token: string): Promise<any> {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/projects/bulk-assign-consultants`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102'}/api/projects/bulk-assign-consultants`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -184,7 +184,7 @@ export const projectService = {
     },
 
     async getStates(): Promise<{ code: string; name: string }[]> {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/cities/india/states`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102'}/api/cities/india/states`);
         if (!response.ok) {
             throw new Error('Failed to fetch states');
         }
@@ -192,7 +192,7 @@ export const projectService = {
     },
 
     async getCitiesOfState(stateCode: string): Promise<{ id: string; name: string; state: string }[]> {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/cities?state=${stateCode}`);
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102'}/api/cities?state=${stateCode}`);
         if (!response.ok) {
             throw new Error('Failed to fetch cities of state');
         }

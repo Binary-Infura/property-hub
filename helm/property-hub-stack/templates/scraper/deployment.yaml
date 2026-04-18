@@ -23,11 +23,11 @@ spec:
           imagePullPolicy: {{ .Values.scraper.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 3005
+              containerPort: 3103
               protocol: TCP
           env:
             - name: PORT
-              value: "3005"
+              value: "3103"
             - name: HOSTNAME
               value: "0.0.0.0"
             - name: DATABASE_URL

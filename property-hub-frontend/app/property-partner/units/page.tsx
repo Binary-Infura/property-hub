@@ -5,7 +5,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import Link from 'next/link';
 import MarkAsSoldModal from '@/app/components/property-partner/MarkAsSoldModal';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
 interface Unit {
     id: string;

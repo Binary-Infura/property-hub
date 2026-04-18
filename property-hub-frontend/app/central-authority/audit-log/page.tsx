@@ -25,7 +25,7 @@ export default function AuditLogPage() {
     const [loading, setLoading] = useState(true);
     const limit = 20;
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
     useEffect(() => {
         const fetchLogs = async () => {

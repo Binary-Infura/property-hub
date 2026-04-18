@@ -32,7 +32,7 @@ export default function DocumentManagementPage() {
             if (!token) return;
 
             try {
-                const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+                const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
                 console.log('[DocumentSync] Fetching from /api/users/me/documents ...');
 
                 const res = await fetch(`${API_URL}/api/users/me/documents`, {

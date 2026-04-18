@@ -84,7 +84,7 @@ export default function ConsultationPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/public/buyers/signup`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102'}/api/public/buyers/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

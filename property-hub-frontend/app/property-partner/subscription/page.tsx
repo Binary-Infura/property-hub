@@ -6,7 +6,7 @@ import { toast } from 'react-hot-toast';
 import SidebarIcon from '@/app/components/SidebarIcon';
 import Link from 'next/link';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
 const loadRazorpayScript = () => {
     return new Promise((resolve) => {

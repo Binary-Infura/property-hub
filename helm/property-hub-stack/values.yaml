@@ -18,7 +18,7 @@ backend:
     pullPolicy: Always
   service:
     type: ClusterIP
-    port: 3001
+    port: 3102
   env:
     # These will use the database settings above
     # Additional backend env vars can go here
@@ -32,7 +32,7 @@ frontend:
     pullPolicy: Always
   service:
     type: ClusterIP
-    port: 3000
+    port: 3101
 
 # Property Hub Scraper
 scraper:
@@ -43,5 +43,5 @@ scraper:
     pullPolicy: Always
   service:
     type: ClusterIP
-    port: 3005
+    port: 3103
 

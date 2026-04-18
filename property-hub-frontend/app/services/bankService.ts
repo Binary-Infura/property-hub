@@ -8,7 +8,7 @@ export interface Bank {
     updatedAt: string;
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
 export const bankService = {
     async getAllBanks(token: string): Promise<Bank[]> {

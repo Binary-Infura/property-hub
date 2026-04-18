@@ -50,7 +50,7 @@ COPY --from=builder /app/dist ./dist
 RUN npx prisma generate
 
 # Expose port
-EXPOSE 3001
+EXPOSE 3102
 
 # Run migrations and start application
 CMD ["sh", "-c", "npx prisma migrate deploy && node dist/main"]

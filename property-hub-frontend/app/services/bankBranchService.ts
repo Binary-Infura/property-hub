@@ -12,7 +12,7 @@ export interface BankBranch {
     city?: { name: string };
 }
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
 export const bankBranchService = {
     async getBranches(bankId?: string, cityId?: string): Promise<BankBranch[]> {

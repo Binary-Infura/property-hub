@@ -13,7 +13,7 @@ export default function InquiriesPage() {
             if (!token) return;
             try {
                 setLoading(true);
-                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/leads`, {
+                const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102'}/api/leads`, {
                     headers: { Authorization: `Bearer ${token}` }
                 });
                 if (!response.ok) throw new Error('Failed to fetch inquiries');

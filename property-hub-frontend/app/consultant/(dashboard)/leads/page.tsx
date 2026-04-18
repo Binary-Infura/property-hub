@@ -206,7 +206,7 @@ export default function LeadsPage() {
         if (token) {
             marketingService.getProperties(token).then(setAvailableProperties);
             // Fetch brokers directly via role
-            fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/users/role/BROKER`, {
+            fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102'}/api/users/role/BROKER`, {
                 headers: { Authorization: `Bearer ${token}` }
             })
             .then(r => r.json())

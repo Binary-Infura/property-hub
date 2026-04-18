@@ -3,7 +3,7 @@
 import { setCookie, deleteCookie } from 'cookies-next';
 import React, { createContext, useContext, useEffect, useState, ReactNode, useCallback } from 'react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
 // ---------------------------------------------------------------------------
 // Types

@@ -6,7 +6,7 @@ import { useAuth } from '@/app/contexts/AuthContext';
 import { PROPERTY_STATUS_CONFIG } from '@/app/constants/property';
 import { Property } from '@/app/services/propertyService';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
 export default function CentralAuthorityPropertiesPage() {
     const { token } = useAuth();

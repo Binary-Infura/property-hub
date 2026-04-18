@@ -63,7 +63,7 @@ export default function CampaignLeadsPage() {
         try {
             const [campaignsData, leadsData, propsData] = await Promise.all([
                 marketingService.getCampaigns(token),
-                fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/leads`, {
+                fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102'}/api/leads`, {
                     headers: { Authorization: `Bearer ${token}` }
                 }).then(res => res.json()),
                 marketingService.getProperties(token)

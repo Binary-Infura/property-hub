@@ -17,7 +17,7 @@ import { projectService } from '@/app/services/propertyService';
 import SidebarIcon from '@/app/components/SidebarIcon';
 import GoogleMap from '@/app/components/GoogleMap';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
 
 

@@ -28,7 +28,7 @@ export default function AllInvitationsPage() {
     const [total, setTotal] = useState(0);
     const limit = 20;
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
     const fetchInvitations = async (pageNumber: number) => {
         if (!token) return;

@@ -47,7 +47,7 @@ export default function AllBrokersPage() {
         brokerType: 'INDIVIDUAL',
     });
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
     const fetchBrokers = async () => {
         if (!token || !isPremium) return;

@@ -401,7 +401,7 @@ export class LeadsService {
                 });
             }
 
-            const videoCallLink = `${this.configService.get('APP_URL') || 'http://localhost:3000'}/join-call/${videoRoomName}?leadName=${encodeURIComponent(lead.name || 'Guest')}`;
+            const videoCallLink = `${this.configService.get('APP_URL') || 'http://localhost:3101'}/join-call/${videoRoomName}?leadName=${encodeURIComponent(lead.name || 'Guest')}`;
 
             // Log the communication in Lead notes
             await this.prisma.lead.update({
@@ -500,7 +500,7 @@ export class LeadsService {
             });
         }
 
-        const videoCallLink = `${this.configService.get('APP_URL') || 'http://localhost:3000'}/join-call/${videoRoomName}?leadName=${encodeURIComponent(lead.name || 'Guest')}`;
+        const videoCallLink = `${this.configService.get('APP_URL') || 'http://localhost:3101'}/join-call/${videoRoomName}?leadName=${encodeURIComponent(lead.name || 'Guest')}`;
 
         // Log Activity
         const log = await this.activityLogsService.log({

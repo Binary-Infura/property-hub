@@ -24,8 +24,8 @@ spec:
           imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: 3000
+              containerPort: 3101
               protocol: TCP
           env:
             - name: NEXT_PUBLIC_BACKEND_URL
-              value: "http://{{ include "property-hub-stack.fullname" . }}-backend:3001"
+              value: "http://{{ include "property-hub-stack.fullname" . }}-backend:3102"

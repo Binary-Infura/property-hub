@@ -8,7 +8,7 @@ import { PROPERTY_STATUS_CONFIG } from '@/app/constants/property';
 import { userService, User } from '@/app/services/userService';
 import { propertyService } from '@/app/services/propertyService';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
 interface Property {
     id: string;

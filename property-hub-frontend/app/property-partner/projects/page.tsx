@@ -13,7 +13,7 @@ import ImportReraPropertyModal from '@/app/components/property-partner/ImportRer
 import MarkAsSoldModal from '@/app/components/property-partner/MarkAsSoldModal';
 import SubmitBankApprovalModal from '@/app/components/property-partner/SubmitBankApprovalModal';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
 type FilterStatus = PropertyStatus | 'all';
 

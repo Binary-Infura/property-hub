@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
 export const otpService = {
     async sendOtp(phone?: string, email?: string, checkExists?: boolean): Promise<{ success: boolean; data?: any; error?: string }> {

@@ -7,7 +7,7 @@ import SidebarIcon from '@/app/components/SidebarIcon';
 import { userService } from '@/app/services/userService';
 import { propertyService, Property } from '@/app/services/propertyService';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
 export default function PropertyPartnerDashboard() {
   const { profileStatus, token } = useAuth();

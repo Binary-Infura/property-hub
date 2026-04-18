@@ -18,7 +18,7 @@ export interface PropertyUnit {
     updatedAt: string;
 }
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
 export const unitService = {
     async getByProject(projectId: string): Promise<PropertyUnit[]> {

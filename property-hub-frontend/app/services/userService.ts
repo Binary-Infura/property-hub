@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
 export interface User {
     id: string;
@@ -85,7 +85,7 @@ export const userService = {
         if (search) params.append('search', search);
 
         const queryString = params.toString();
-        const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/users/role/${role}${queryString ? `?${queryString}` : ''}`;
+        const url = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102'}/api/users/role/${role}${queryString ? `?${queryString}` : ''}`;
 
         const response = await fetch(url, {
             headers: {

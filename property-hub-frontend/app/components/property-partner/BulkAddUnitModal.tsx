@@ -6,7 +6,7 @@ import { PropertyCategory, Tower } from '@/app/types/property';
 import { RESIDENTIAL_UNIT_TYPES, PLOT_UNIT_TYPES } from '@/app/constants/property';
 import { useEffect } from 'react';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
 interface BulkAddUnitModalProps {
     isOpen: boolean;

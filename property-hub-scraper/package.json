@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev -p 3005",
+    "dev": "next dev -p 3103",
     "dev:worker": "npx tsx src/worker-entry.ts",
     "build": "next build",
     "start": "next start",

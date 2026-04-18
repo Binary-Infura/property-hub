@@ -27,7 +27,7 @@ export default function EditAssignmentModal({ isOpen, user, onClose, onSuccess, 
     const [loading, setLoading] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
     useEffect(() => {
         if (isOpen && user) {

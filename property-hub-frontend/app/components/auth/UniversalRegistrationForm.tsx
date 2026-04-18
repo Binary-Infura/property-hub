@@ -101,7 +101,7 @@ export default function UniversalRegistrationForm({ mode, token, initialRole }: 
         try {
           const [banksData, statesData] = await Promise.all([
             bankService.getActiveBanks(),
-            fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/cities/india/states`).then(res => res.json())
+            fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102'}/api/cities/india/states`).then(res => res.json())
           ]);
           setActiveBanks(banksData);
           setStates(statesData || []);
@@ -126,7 +126,7 @@ export default function UniversalRegistrationForm({ mode, token, initialRole }: 
         setLoadingCities(true);
         try {
           // Fetch ALL cities for this state from the public API
-          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/api/cities/india/${formData.stateCode}/cities`);
+          const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102'}/api/cities/india/${formData.stateCode}/cities`);
           const citiesData = await response.json();
           setAllCities(citiesData || []);
           setFormData(prev => ({ ...prev, cityId: '', cityName: '' })); 

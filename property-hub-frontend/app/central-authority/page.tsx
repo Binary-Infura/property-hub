@@ -93,7 +93,7 @@ export default function CentralAuthorityDashboardPage() {
     const [districtSearch, setDistrictSearch] = useState('');
     const [selectedPayment, setSelectedPayment] = useState<PropertyPartner['latestPayment'] | null>(null);
     const [showReraImport, setShowReraImport] = useState(false);
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
 
     const fetchPartners = async () => {

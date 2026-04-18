@@ -49,7 +49,7 @@ export class InvitationsService {
         } as any,
       });
 
-      const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+      const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3101';
       const inviteLink = `${frontendUrl}/register?token=${token}`;
 
       if (dto.email) {
@@ -141,7 +141,7 @@ export class InvitationsService {
       });
 
       // 5. Send Verification Email
-      const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3000';
+      const frontendUrl = this.configService.get<string>('FRONTEND_URL') || 'http://localhost:3101';
       const verifyLink = `${frontendUrl}/verify?token=${token}`;
 
       if (dto.email) {

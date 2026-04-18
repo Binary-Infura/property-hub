@@ -36,7 +36,7 @@ export default function PostalCodesPage() {
     const [syncMessage, setSyncMessage] = useState<{ text: string, type: 'success' | 'error' } | null>(null);
     const [syncLogs, setSyncLogs] = useState<any[]>([]);
 
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
     const fetchSyncLogs = async () => {
         if (!token) return;
