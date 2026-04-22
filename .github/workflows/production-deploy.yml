@@ -1,0 +1,129 @@
+name: Production Deploy
+
+on:
+  release:
+    types: [published]
+
+env:
+  REGISTRY: ghcr.io
+  BACKEND_IMAGE: ghcr.io/${{ github.repository }}-backend
+  FRONTEND_IMAGE: ghcr.io/${{ github.repository }}-frontend
+  SCRAPER_IMAGE: ghcr.io/${{ github.repository }}-scraper
+  DOKS_CLUSTER_NAME: property-hub-cluster # Update with your cluster name
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Install doctl
+        uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DIGITALOCEAN_ACCESS_TOKEN }}
+
+      - name: Save DigitalOcean Kubeconfig
+        run: doctl kubernetes cluster kubeconfig save ${{ env.DOKS_CLUSTER_NAME }}
+
+      - name: Deploy to Kubernetes
+        run: |
+          # Apply Backend Deployment
+          cat <<EOF | kubectl apply -f -
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: property-hub-backend
+          spec:
+            replicas: 2
+            selector:
+              matchLabels:
+                app: property-hub-backend
+            template:
+              metadata:
+                labels:
+                  app: property-hub-backend
+              spec:
+                containers:
+                - name: backend
+                  image: ${{ env.BACKEND_IMAGE }}:${{ github.event.release.tag_name }}
+                  ports:
+                  - containerPort: 3102
+                  envFrom:
+                  - secretRef:
+                      name: property-hub-secrets
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: property-hub-backend
+          spec:
+            selector:
+              app: property-hub-backend
+            ports:
+            - port: 3102
+              targetPort: 3102
+          EOF
+
+          # Apply Frontend Deployment
+          cat <<EOF | kubectl apply -f -
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: property-hub-frontend
+          spec:
+            replicas: 2
+            selector:
+              matchLabels:
+                app: property-hub-frontend
+            template:
+              metadata:
+                labels:
+                  app: property-hub-frontend
+              spec:
+                containers:
+                - name: frontend
+                  image: ${{ env.FRONTEND_IMAGE }}:${{ github.event.release.tag_name }}
+                  ports:
+                  - containerPort: 3101
+                  envFrom:
+                  - secretRef:
+                      name: property-hub-secrets
+          ---
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: property-hub-frontend
+          spec:
+            selector:
+              app: property-hub-frontend
+            ports:
+            - port: 3101
+              targetPort: 3101
+          EOF
+
+          # Apply Scraper Deployment
+          cat <<EOF | kubectl apply -f -
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: property-hub-scraper
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: property-hub-scraper
+            template:
+              metadata:
+                labels:
+                  app: property-hub-scraper
+              spec:
+                containers:
+                - name: scraper
+                  image: ${{ env.SCRAPER_IMAGE }}:${{ github.event.release.tag_name }}
+                  envFrom:
+                  - secretRef:
+                      name: property-hub-secrets
+          EOF
+
+          # Verify deployment
+          kubectl rollout status deployment/property-hub-backend
+          kubectl rollout status deployment/property-hub-frontend
+          kubectl rollout status deployment/property-hub-scraper
