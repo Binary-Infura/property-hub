@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  frontend:
+    image: ghcr.io/binary-infura/property-hub-frontend:latest
+    platform: linux/amd64
+    restart: always
+    ports:
+      - "3101:3101"
+    env_file:
+      - .env
+
+  backend:
+    image: ghcr.io/binary-infura/property-hub-backend:latest
+    platform: linux/amd64
+    restart: always
+    ports:
+      - "3102:3102"
+    env_file:
+      - .env
+
+  nginx:
+    image: nginx:alpine
+    platform: linux/amd64
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - frontend
+      - backend

@@ -34,9 +34,12 @@ export default function PropertyPartnerDashboard() {
   const [topProperties, setTopProperties] = useState<any[]>([]);
   const [recentActivityData, setRecentActivityData] = useState<any[]>([]);
 
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     const fetchData = async () => {
       if (!token) return;
+      setIsLoading(true);
       try {
         const [consultants, visitExecutives, brokersData, leadsData, projectsRaw, unitsData] = await Promise.all([
           userService.getAllByRole('CONSULTANT', token, true, 1, 1),
@@ -159,6 +162,8 @@ export default function PropertyPartnerDashboard() {
 
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -222,7 +227,11 @@ export default function PropertyPartnerDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Total Projects</p>
-                <p className="text-3xl font-bold text-gray-900 mt-2">{analyticsData.totalProjects}</p>
+                {isLoading ? (
+                  <div className="h-9 w-24 bg-gray-200 animate-pulse rounded-lg mt-2" />
+                ) : (
+                  <p className="text-3xl font-bold text-gray-900 mt-2">{analyticsData.totalProjects}</p>
+                )}
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -230,16 +239,24 @@ export default function PropertyPartnerDashboard() {
                 </svg>
               </div>
             </div>
-            <p className="text-sm text-green-600 mt-2">
-              <span className="font-medium">{analyticsData.activeProjects}</span> active
-            </p>
+            {isLoading ? (
+              <div className="h-4 w-16 bg-gray-100 animate-pulse rounded mt-2" />
+            ) : (
+              <p className="text-sm text-green-600 mt-2">
+                <span className="font-medium">{analyticsData.activeProjects}</span> active
+              </p>
+            )}
           </Link>
 
           <Link href="/dashboard/units" className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-1 transition-all">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Total Units</p>
-                <p className="text-3xl font-bold text-blue-600 mt-2">{analyticsData.totalUnits}</p>
+                {isLoading ? (
+                  <div className="h-9 w-24 bg-gray-200 animate-pulse rounded-lg mt-2" />
+                ) : (
+                  <p className="text-3xl font-bold text-blue-600 mt-2">{analyticsData.totalUnits}</p>
+                )}
               </div>
               <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -247,16 +264,24 @@ export default function PropertyPartnerDashboard() {
                 </svg>
               </div>
             </div>
-            <p className="text-sm text-gray-600 mt-2">
-              <span className="font-medium text-green-600">{analyticsData.bookedUnits}</span> booked ({bookingPercentage}%)
-            </p>
+            {isLoading ? (
+              <div className="h-4 w-32 bg-gray-100 animate-pulse rounded mt-2" />
+            ) : (
+              <p className="text-sm text-gray-600 mt-2">
+                <span className="font-medium text-green-600">{analyticsData.bookedUnits}</span> booked ({bookingPercentage}%)
+              </p>
+            )}
           </Link>
 
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Total Revenue</p>
-                <p className="text-3xl font-bold text-green-600 mt-2">{formatCurrency(analyticsData.totalRevenue)}</p>
+                {isLoading ? (
+                  <div className="h-9 w-32 bg-gray-200 animate-pulse rounded-lg mt-2" />
+                ) : (
+                  <p className="text-3xl font-bold text-green-600 mt-2">{formatCurrency(analyticsData.totalRevenue)}</p>
+                )}
               </div>
               <div className="w-12 h-12 bg-purple-100 rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -271,7 +296,11 @@ export default function PropertyPartnerDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Monthly Buyer Leads</p>
-                <p className="text-3xl font-bold text-orange-600 mt-2">{analyticsData.monthlyLeads}</p>
+                {isLoading ? (
+                  <div className="h-9 w-24 bg-gray-200 animate-pulse rounded-lg mt-2" />
+                ) : (
+                  <p className="text-3xl font-bold text-orange-600 mt-2">{analyticsData.monthlyLeads}</p>
+                )}
               </div>
               <div className="w-12 h-12 bg-orange-100 rounded-lg flex items-center justify-center">
                 <svg className="w-6 h-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -279,16 +308,24 @@ export default function PropertyPartnerDashboard() {
                 </svg>
               </div>
             </div>
-            <p className="text-sm text-gray-600 mt-2">
-              <span className="font-medium text-green-600">{analyticsData.conversionRate}%</span> conversion rate
-            </p>
+            {isLoading ? (
+              <div className="h-4 w-24 bg-gray-100 animate-pulse rounded mt-2" />
+            ) : (
+              <p className="text-sm text-gray-600 mt-2">
+                <span className="font-medium text-green-600">{analyticsData.conversionRate}%</span> conversion rate
+              </p>
+            )}
           </Link>
 
           <Link href="/dashboard/consultants" className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-1 transition-all">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Total Consultants</p>
-                <p className="text-3xl font-bold text-blue-600 mt-2">{agentCounts.consultants}</p>
+                {isLoading ? (
+                  <div className="h-9 w-24 bg-gray-200 animate-pulse rounded-lg mt-2" />
+                ) : (
+                  <p className="text-3xl font-bold text-blue-600 mt-2">{agentCounts.consultants}</p>
+                )}
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
                 <SidebarIcon name="person" className="w-6 h-6 text-blue-600" />
@@ -301,7 +338,11 @@ export default function PropertyPartnerDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Total Visit Executives</p>
-                <p className="text-3xl font-bold text-rose-600 mt-2">{agentCounts.visitExecutives}</p>
+                {isLoading ? (
+                  <div className="h-9 w-24 bg-gray-200 animate-pulse rounded-lg mt-2" />
+                ) : (
+                  <p className="text-3xl font-bold text-rose-600 mt-2">{agentCounts.visitExecutives}</p>
+                )}
               </div>
               <div className="w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center">
                 <SidebarIcon name="pin" className="w-6 h-6 text-rose-600" />
@@ -314,7 +355,11 @@ export default function PropertyPartnerDashboard() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-gray-600 text-sm font-medium">Total Brokers</p>
-                <p className="text-3xl font-bold text-indigo-600 mt-2">{agentCounts.brokers}</p>
+                {isLoading ? (
+                  <div className="h-9 w-24 bg-gray-200 animate-pulse rounded-lg mt-2" />
+                ) : (
+                  <p className="text-3xl font-bold text-indigo-600 mt-2">{agentCounts.brokers}</p>
+                )}
               </div>
               <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
                 <SidebarIcon name="handshake" className="w-6 h-6 text-indigo-600" />
@@ -379,57 +424,92 @@ export default function PropertyPartnerDashboard() {
           {/* Booking Progress */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-6">Overall Booking Progress</h2>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-gray-600">Units Booked</span>
-                <span className="text-2xl font-bold text-gray-900">{analyticsData.bookedUnits} / {analyticsData.totalUnits}</span>
-              </div>
-              <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all"
-                  style={{ width: `${bookingPercentage}%` }}
-                />
-              </div>
-              <div className="grid grid-cols-3 gap-4 mt-6">
-                <div className="text-center p-4 bg-green-50 rounded-lg">
-                  <p className="text-2xl font-bold text-green-600">{analyticsData.bookedUnits}</p>
-                  <p className="text-sm text-gray-600">Booked</p>
+            {isLoading ? (
+              <div className="space-y-6">
+                <div className="flex justify-between items-center">
+                  <div className="h-4 w-24 bg-gray-100 animate-pulse rounded" />
+                  <div className="h-8 w-32 bg-gray-200 animate-pulse rounded" />
                 </div>
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
-                  <p className="text-2xl font-bold text-blue-600">{analyticsData.totalUnits - analyticsData.bookedUnits}</p>
-                  <p className="text-sm text-gray-600">Available</p>
-                </div>
-                <div className="text-center p-4 bg-purple-50 rounded-lg">
-                  <p className="text-2xl font-bold text-purple-600">{bookingPercentage}%</p>
-                  <p className="text-sm text-gray-600">Booking Rate</p>
+                <div className="w-full h-4 bg-gray-100 animate-pulse rounded-full" />
+                <div className="grid grid-cols-3 gap-4 mt-6">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="h-20 bg-gray-50 animate-pulse rounded-lg" />
+                  ))}
                 </div>
               </div>
-            </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-gray-600">Units Booked</span>
+                  <span className="text-2xl font-bold text-gray-900">{analyticsData.bookedUnits} / {analyticsData.totalUnits}</span>
+                </div>
+                <div className="w-full h-4 bg-gray-200 rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all"
+                    style={{ width: `${bookingPercentage}%` }}
+                  />
+                </div>
+                <div className="grid grid-cols-3 gap-4 mt-6">
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <p className="text-2xl font-bold text-green-600">{analyticsData.bookedUnits}</p>
+                    <p className="text-sm text-gray-600">Booked</p>
+                  </div>
+                  <div className="text-center p-4 bg-blue-50 rounded-lg">
+                    <p className="text-2xl font-bold text-blue-600">{analyticsData.totalUnits - analyticsData.bookedUnits}</p>
+                    <p className="text-sm text-gray-600">Available</p>
+                  </div>
+                  <div className="text-center p-4 bg-purple-50 rounded-lg">
+                    <p className="text-2xl font-bold text-purple-600">{bookingPercentage}%</p>
+                    <p className="text-sm text-gray-600">Booking Rate</p>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Top Projects */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-6">Top Performing Projects</h2>
-            <div className="space-y-4">
-              {topProperties.map((property, idx) => (
-                <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold ${idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : 'bg-amber-600'
-                      }`}>
-                      {idx + 1}
+            {isLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map(i => (
+                  <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-gray-200 animate-pulse rounded-lg" />
+                      <div className="space-y-2">
+                        <div className="h-4 w-32 bg-gray-200 animate-pulse rounded" />
+                        <div className="h-3 w-24 bg-gray-100 animate-pulse rounded" />
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-semibold text-gray-900">{property.name}</p>
-                      <p className="text-sm text-gray-600">{property.location}</p>
+                    <div className="text-right space-y-2">
+                      <div className="h-6 w-12 bg-gray-200 animate-pulse rounded ml-auto" />
+                      <div className="h-3 w-16 bg-gray-100 animate-pulse rounded ml-auto" />
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-gray-900">{property.bookingRate}%</p>
-                    <p className="text-sm text-gray-500">{property.units} units</p>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {topProperties.map((property, idx) => (
+                  <div key={idx} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition">
+                    <div className="flex items-center gap-4">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-white font-bold ${idx === 0 ? 'bg-yellow-500' : idx === 1 ? 'bg-gray-400' : 'bg-amber-600'
+                        }`}>
+                        {idx + 1}
+                      </div>
+                      <div>
+                        <p className="font-semibold text-gray-900">{property.name}</p>
+                        <p className="text-sm text-gray-600">{property.location}</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-lg font-bold text-gray-900">{property.bookingRate}%</p>
+                      <p className="text-sm text-gray-500">{property.units} units</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
@@ -438,65 +518,87 @@ export default function PropertyPartnerDashboard() {
           {/* Recent Activity */}
           <div className="lg:col-span-2 bg-white rounded-lg shadow-sm border border-gray-100 p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-6">Recent Activity</h2>
-            <div className="space-y-4">
-              {recentActivityData.map((activity, idx) => (
-                <div key={idx} className="flex items-start gap-4 p-3 hover:bg-gray-50 rounded-lg transition">
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${activity.type === 'booking' ? 'bg-green-100' :
-                    activity.type === 'inquiry' ? 'bg-blue-100' :
-                      activity.type === 'visit' ? 'bg-purple-100' :
-                        'bg-amber-100'
-                    }`}>
-                    {activity.type === 'booking' && (
-                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                    )}
-                    {activity.type === 'inquiry' && (
-                      <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                      </svg>
-                    )}
-                    {activity.type === 'visit' && (
-                      <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    )}
-                    {activity.type === 'approval' && (
-                      <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                    )}
+            {isLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3, 4, 5].map(i => (
+                  <div key={i} className="flex items-start gap-4 p-3">
+                    <div className="w-10 h-10 rounded-full bg-gray-100 animate-pulse flex-shrink-0" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-4 w-full bg-gray-100 animate-pulse rounded" />
+                      <div className="h-3 w-24 bg-gray-50 animate-pulse rounded" />
+                    </div>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-gray-900">{activity.message}</p>
-                    <p className="text-sm text-gray-500 mt-1">{activity.time}</p>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {recentActivityData.map((activity, idx) => (
+                  <div key={idx} className="flex items-start gap-4 p-3 hover:bg-gray-50 rounded-lg transition">
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${activity.type === 'booking' ? 'bg-green-100' :
+                      activity.type === 'inquiry' ? 'bg-blue-100' :
+                        activity.type === 'visit' ? 'bg-purple-100' :
+                          'bg-amber-100'
+                      }`}>
+                      {activity.type === 'booking' && (
+                        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      )}
+                      {activity.type === 'inquiry' && (
+                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                        </svg>
+                      )}
+                      {activity.type === 'visit' && (
+                        <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      )}
+                      {activity.type === 'approval' && (
+                        <svg className="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-gray-900">{activity.message}</p>
+                      <p className="text-sm text-gray-500 mt-1">{activity.time}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* Quick Stats */}
           <div className="bg-white rounded-lg shadow-sm border border-gray-100 p-6">
             <h2 className="text-lg font-bold text-gray-900 mb-6">Quick Stats</h2>
-            <div className="space-y-4">
-              <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
-                <p className="text-sm text-blue-700 font-medium">Avg. Days to Close</p>
-                <p className="text-2xl font-bold text-blue-900">{analyticsData.avgDaysToClose} days</p>
+            {isLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="p-4 bg-gray-50 animate-pulse rounded-lg h-20" />
+                ))}
               </div>
-              <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg">
-                <p className="text-sm text-green-700 font-medium">Conversion Rate</p>
-                <p className="text-2xl font-bold text-green-900">{analyticsData.conversionRate}%</p>
+            ) : (
+              <div className="space-y-4">
+                <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg">
+                  <p className="text-sm text-blue-700 font-medium">Avg. Days to Close</p>
+                  <p className="text-2xl font-bold text-blue-900">{analyticsData.avgDaysToClose} days</p>
+                </div>
+                <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg">
+                  <p className="text-sm text-green-700 font-medium">Conversion Rate</p>
+                  <p className="text-2xl font-bold text-green-900">{analyticsData.conversionRate}%</p>
+                </div>
+                <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg">
+                  <p className="text-sm text-purple-700 font-medium">Active Projects</p>
+                  <p className="text-2xl font-bold text-purple-900">{analyticsData.activeProjects}</p>
+                </div>
+                <div className="p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg">
+                  <p className="text-sm text-orange-700 font-medium">This Month&apos;s Buyer Leads</p>
+                  <p className="text-2xl font-bold text-orange-900">{analyticsData.monthlyLeads}</p>
+                </div>
               </div>
-              <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg">
-                <p className="text-sm text-purple-700 font-medium">Active Projects</p>
-                <p className="text-2xl font-bold text-purple-900">{analyticsData.activeProjects}</p>
-              </div>
-              <div className="p-4 bg-gradient-to-r from-orange-50 to-orange-100 rounded-lg">
-                <p className="text-sm text-orange-700 font-medium">This Month&apos;s Buyer Leads</p>
-                <p className="text-2xl font-bold text-orange-900">{analyticsData.monthlyLeads}</p>
-              </div>
-            </div>
+            )}
           </div>
         </div>
       </div>
