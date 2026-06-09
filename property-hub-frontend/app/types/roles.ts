@@ -1,8 +1,6 @@
 export type UserRole =
     | 'CENTRAL_AUTHORITY'
-    | 'DSA'
     | 'PROPERTY_PARTNER'
-    | 'CONSULTANT'
     | 'GROWTH_PARTNER'
     | 'LOAN_PARTNER'
     | 'BUYER';
@@ -32,25 +30,11 @@ export const ROLES: Record<UserRole, RoleDefinition> = {
         canCreateRoles: ['GROWTH_PARTNER']
     },
 
-    'DSA': {
-        role: 'DSA',
-        label: 'DSA',
-        description: 'Direct Selling Agent',
-        permissions: [
-            { resource: 'properties', actions: ['create', 'read', 'update'] },
-            { resource: 'leads', actions: ['read', 'update'] }
-        ]
-    },
+
     'PROPERTY_PARTNER': {
         role: 'PROPERTY_PARTNER',
         label: 'Property Partner',
         description: 'Property developer and partner',
-        permissions: []
-    },
-    'CONSULTANT': {
-        role: 'CONSULTANT',
-        label: 'Consultant',
-        description: 'Property consultant',
         permissions: []
     },
     'LOAN_PARTNER': {

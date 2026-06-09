@@ -32,7 +32,7 @@ interface DashboardStats {
     users: {
         total: number;
         partners: number;
-        consultants: number;
+        
     };
     leads: {
         monthly: number;
@@ -243,7 +243,7 @@ export default function CentralAuthorityDashboardPage() {
                     <div className="text-xs text-gray-500 mt-1 flex gap-2">
                         <span>{stats.users.partners} Property Partner</span>
                         <span>•</span>
-                        <span>{stats.users.consultants} Cons</span>
+                        
                     </div>
                 </div>
 
@@ -535,25 +535,6 @@ export default function CentralAuthorityDashboardPage() {
                     </div>
                 </Link>
 
-                <Link href="/dashboard/properties/allocation" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-blue-300 transition-all hover:shadow-md group">
-                    <div className="flex items-center gap-3 mb-3">
-                        <div className="w-10 h-10 rounded-lg bg-blue-50 flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                            <svg className="w-5 h-5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h3 className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">Project Allocation</h3>
-                            <p className="text-xs text-gray-500">Assign projects to consultants</p>
-                        </div>
-                    </div>
-                    <div className="text-xs font-semibold text-blue-600 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        Start Allocating
-                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                        </svg>
-                    </div>
-                </Link>
 
                 <Link href="/dashboard/commissions" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-green-300 transition-all hover:shadow-md group">
                     <div className="flex items-center gap-3 mb-3">

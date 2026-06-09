@@ -129,7 +129,7 @@ async function main() {
     const superUser = await prisma.user.upsert({
         where: { email: 'superuser@propertyhub.com' },
         update: { 
-            roles: [UserRole.CENTRAL_AUTHORITY, UserRole.CONSULTANT, UserRole.GROWTH_PARTNER], 
+            roles: [UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER], 
             activeRole: UserRole.CENTRAL_AUTHORITY, 
             organizationId: platformOrg.id,
             passwordHash
@@ -138,7 +138,7 @@ async function main() {
             email: 'superuser@propertyhub.com',
             firstName: 'Super',
             lastName: 'Admin',
-            roles: [UserRole.CENTRAL_AUTHORITY, UserRole.CONSULTANT, UserRole.GROWTH_PARTNER],
+            roles: [UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER],
             activeRole: UserRole.CENTRAL_AUTHORITY,
             status: UserStatus.ACTIVE,
             passwordHash,
@@ -156,7 +156,6 @@ async function main() {
         { role: UserRole.CENTRAL_AUTHORITY, email: 'central_authority@propertyhub.com', f: 'Central', l: 'Authority' },
         { role: UserRole.PROPERTY_PARTNER, email: 'property_partner@propertyhub.com', f: 'Property', l: 'Partner', orgId: prestigeOrg.id },
         { role: UserRole.BUYER, email: 'buyer@propertyhub.com', f: 'Test', l: 'Buyer' },
-        { role: UserRole.CONSULTANT, email: 'consultant@propertyhub.com', f: 'Test', l: 'Consultant' },
         { role: UserRole.LOAN_PARTNER, email: 'loan_partner@propertyhub.com', f: 'Loan', l: 'Partner' },
         { role: UserRole.GROWTH_PARTNER, email: 'growth_partner@propertyhub.com', f: 'Growth', l: 'Partner', orgId: growthOrg.id },
         { role: UserRole.BROKER, email: 'broker@propertyhub.com', f: 'Test', l: 'Broker' },
@@ -190,7 +189,6 @@ async function main() {
 
     // Helper references for subsequent seed steps
     const ppUser = users.find(u => u.activeRole === UserRole.PROPERTY_PARTNER);
-    const consultantUser = users.find(u => u.activeRole === UserRole.CONSULTANT);
     const visitExecutive = users.find(u => u.activeRole === UserRole.VISIT_EXECUTIVE);
     const buyerUser = users.find(u => u.activeRole === UserRole.BUYER);
 
@@ -423,12 +421,11 @@ async function main() {
         }
 
         // Call Logs
-        const existingCall = await prisma.callLog.findFirst({ where: { leadId: lead.id, consultantId: consultantUser?.id } });
+        const existingCall = await prisma.callLog.findFirst({ where: { leadId: lead.id } });
         if (!existingCall) {
             await prisma.callLog.create({
                 data: {
                     leadId: lead.id,
-                    consultantId: consultantUser?.id,
                     status: 'COMPLETED',
                     duration: 450,
                     recordingUrl: 'https://storage.provider.com/calls/rec_123.mp3',

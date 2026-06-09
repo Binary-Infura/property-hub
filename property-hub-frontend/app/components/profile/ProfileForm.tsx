@@ -196,44 +196,7 @@ export default function ProfileForm() {
                     </div>
                 </div>
 
-                {/* Section: Consultant */}
-                <div className={`grid transition-all duration-700 ease-in-out ${userRoles.includes('CONSULTANT') ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                    <div className="overflow-hidden">
-                        <div className="flex items-center gap-3 mb-6 pt-6 border-t border-gray-100">
-                            <div className="w-10 h-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center">
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-black text-gray-900 tracking-tight">Consultant Profile</h3>
-                            </div>
-                        </div>
 
-                        <div className="grid grid-cols-1 gap-6 bg-orange-50/30 p-6 rounded-2xl border border-orange-100/50 animate-in fade-in slide-in-from-top-4 duration-700 delay-100 fill-mode-both">
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Experience (Years)</label>
-                                <input
-                                    type="number"
-                                    value={formData.experienceYears}
-                                    onChange={(e) => setFormData({ ...formData, experienceYears: parseInt(e.target.value) || 0 })}
-                                    className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all text-sm font-medium shadow-sm"
-                                />
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Specializations (Comma separated)</label>
-                                <input
-                                    type="text"
-                                    value={formData.specialization.join(', ')}
-                                    onChange={(e) => setFormData({ ...formData, specialization: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) })}
-                                    className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 transition-all text-sm font-medium shadow-sm"
-                                    placeholder="Luxury, Commercial, Penthouses"
-                                />
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 {/* Section: Buyer */}
                 <div className={`grid transition-all duration-700 ease-in-out ${userRoles.includes('BUYER') ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>

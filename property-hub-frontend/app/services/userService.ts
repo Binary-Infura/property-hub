@@ -38,11 +38,7 @@ export interface User {
         reach?: number;
         niche?: string;
     };
-    brokerProfile?: {
-        agencyBusinessName: string;
-        reraNumber?: string;
-        officeAddress?: string;
-    };
+
     consultantProfile?: {
         specialization: string[];
         experienceYears?: number;
@@ -118,21 +114,7 @@ export const userService = {
         return response.json();
     },
 
-    async createBroker(userData: any, token: string): Promise<User> {
-        const response = await fetch(`${API_URL}/api/property-partners/brokers`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify(userData),
-        });
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Failed to create broker');
-        }
-        return response.json();
-    },
+
 
     async update(id: string, userData: any, token: string): Promise<User> {
         const payload = { ...userData };

@@ -18,13 +18,10 @@ interface ChatPermissionRule {
 
 const CHAT_PERMISSION_RULES: Record<string, ChatPermissionRule> = {
     [UserRole.BUYER]: {
-        canChatWith: [UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER],
+        canChatWith: [ UserRole.PROPERTY_PARTNER],
         canViewChatsOf: 'self'
     },
-    [UserRole.CONSULTANT]: {
-        canChatWith: [UserRole.BUYER],
-        canViewChatsOf: 'self'
-    },
+    
     [UserRole.PROPERTY_PARTNER]: {
         canChatWith: [UserRole.BUYER],
         canViewChatsOf: 'self'

@@ -7,7 +7,6 @@ export interface DashboardStats {
     };
     users: {
         builders: number;
-        consultants: number;
         partners: number;
     };
     siteVisits: {

@@ -75,7 +75,7 @@ export class LeadsService {
         // For others, they only see their own calls.
         const incompleteCalls = await this.prisma.callLog.findMany({
             where: {
-                ...(isCentralAuthority ? (consultantId ? { consultantId } : {}) : { consultantId: user.userId }),
+                ...(isCentralAuthority ? (consultantId ? { consultantId } : {}) : {  }),
                 ...(leadId ? { leadId } : {}),
                 ...(projectId ? { lead: { projectId } } : {}),
                 OR: [{ status: 'queued' }, { status: 'in-progress' }, { status: null }]
@@ -109,7 +109,7 @@ export class LeadsService {
         // 3. Return the fully synced logs
         return this.prisma.callLog.findMany({
             where: {
-                ...(isCentralAuthority ? (consultantId ? { consultantId } : {}) : { consultantId: user.userId }),
+                ...(isCentralAuthority ? (consultantId ? { consultantId } : {}) : {  }),
                 ...(leadId ? { leadId } : {}),
                 ...(projectId ? { lead: { projectId } } : {}),
             },
@@ -119,15 +119,7 @@ export class LeadsService {
                         project: true
                     }
                 },
-                consultant: {
-                    select: {
-                        id: true,
-                        firstName: true,
-                        lastName: true,
-                        email: true,
-                        phone: true
-                    }
-                }
+
             },
             orderBy: { createdAt: 'desc' },
         });
@@ -138,7 +130,6 @@ export class LeadsService {
             where: { id },
             include: {
                 project: true,
-                visits: true,
             },
         });
 
@@ -281,7 +272,6 @@ export class LeadsService {
                 where: { id },
                 include: {
                     project: true,
-                    visits: true,
                 },
             });
 
@@ -293,7 +283,7 @@ export class LeadsService {
             // Authorization check specific to calls: consultants can call leads assigned to them or unassigned leads
             const isCentralAuthority = user.roles?.includes(UserRole.CENTRAL_AUTHORITY);
             const isGrowthPartner = user.roles?.includes(UserRole.GROWTH_PARTNER);
-            const isConsultant = user.roles?.includes(UserRole.CONSULTANT);
+            const isConsultant = false;
             const isAssignedConsultant = lead.assignedTo === user.userId;
             const isUnassignedLead = !lead.assignedTo;
 
@@ -335,7 +325,7 @@ export class LeadsService {
                 from: consultantPhone,
                 to: lead.phone,
                 leadId: lead.id,
-                consultantId: user.userId
+                
             });
         } catch (error) {
             console.error('Call initiation error:', error);
@@ -366,7 +356,7 @@ export class LeadsService {
             // Authorization check
             const isCentralAuthority = user.roles?.includes(UserRole.CENTRAL_AUTHORITY);
             const isGrowthPartner = user.roles?.includes(UserRole.GROWTH_PARTNER);
-            const isConsultant = user.roles?.includes(UserRole.CONSULTANT);
+            const isConsultant = false;
             const isAssignedConsultant = lead.assignedTo === user.userId;
             const isUnassignedLead = !lead.assignedTo;
 

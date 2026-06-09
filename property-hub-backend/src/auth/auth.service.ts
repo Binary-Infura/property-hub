@@ -20,11 +20,6 @@ export class AuthService {
         });
 
         if (user && user.passwordHash) {
-            // Block specific roles from logging in
-            if (user.roles && (user.roles.includes(UserRole.VISIT_EXECUTIVE as any) || user.roles.includes(UserRole.BROKER as any))) {
-                const blockedRole = user.roles.includes(UserRole.BROKER as any) ? 'Brokers' : 'Visit Executives';
-                throw new UnauthorizedException(`${blockedRole} do not have login access`);
-            }
 
             const isMatch = await bcrypt.compare(pass, user.passwordHash);
             if (isMatch) {
@@ -66,11 +61,6 @@ export class AuthService {
             throw new UnauthorizedException('User not found. Please enquiry or register first.');
         }
 
-        // 3. Block specific roles if needed (same as validateUser)
-        if (user.roles && (user.roles.includes(UserRole.VISIT_EXECUTIVE as any) || user.roles.includes(UserRole.BROKER as any))) {
-            const blockedRole = user.roles.includes(UserRole.BROKER as any) ? 'Brokers' : 'Visit Executives';
-            throw new UnauthorizedException(`${blockedRole} do not have login access`);
-        }
 
         return this.generateToken(user);
     }

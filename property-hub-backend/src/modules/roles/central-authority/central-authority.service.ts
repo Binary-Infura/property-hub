@@ -166,7 +166,7 @@ export class CentralAuthorityService {
         const users = {
             total: userStats.length,
             partners: userRolesFlattened.filter(r => r === UserRole.PROPERTY_PARTNER).length,
-            consultants: userRolesFlattened.filter(r => r === UserRole.CONSULTANT).length,
+            
         };
 
         const recentActivity = await this.prisma.activityLog.findMany({

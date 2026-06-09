@@ -26,22 +26,12 @@ export default function LeadsPage() {
     });
 
     const [properties, setProperties] = useState<any[]>([]);
-    const [brokers, setBrokers] = useState<any[]>([]);
-    const [selectedBroker, setSelectedBroker] = useState<string>('');
 
     useEffect(() => {
         fetchLeads();
         if (token) {
             marketingService.getProperties(token).then(setProperties);
-            // Fetch brokers directly from the property-partners endpoint
-            fetch(`${API_URL}/api/property-partners/brokers`, {
-                headers: { Authorization: `Bearer ${token}` }
-            })
-            .then(r => r.json())
-            .then(data => {
-                setBrokers(data);
-            })
-            .catch(err => console.error("Error fetching brokers for PP:", err));
+
         }
     }, [token]);
 
@@ -73,10 +63,6 @@ export default function LeadsPage() {
         setSubmitting(true);
         try {
             let sourceLabel = formData.source;
-            if (selectedBroker) {
-                const broker = brokers.find(b => b.id === selectedBroker);
-                sourceLabel = `Broker: ${broker?.firstName} ${broker?.lastName}`;
-            }
 
             await marketingService.createLead(token, {
                 ...formData,
@@ -93,7 +79,6 @@ export default function LeadsPage() {
                 source: 'Manual',
                 notes: ''
             });
-            setSelectedBroker('');
 
             fetchLeads();
         } catch (error) {
@@ -286,35 +271,7 @@ export default function LeadsPage() {
                                     </div>
                                 </div>
 
-                                <div className="p-8 bg-indigo-50/50 rounded-[2.5rem] border border-indigo-100 space-y-4 shadow-inner">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <div className="p-2 bg-indigo-600 rounded-xl text-white shadow-lg shadow-indigo-100">
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                                        </div>
-                                        <div>
-                                            <h3 className="text-[10px] font-black text-indigo-900 uppercase tracking-widest">Broker Referral</h3>
-                                            <p className="text-[9px] text-indigo-400 font-bold uppercase tracking-wider">Attribute this lead to a partner</p>
-                                        </div>
-                                    </div>
-                                    
-                                    <div>
-                                        <label className="block text-[10px] font-bold text-indigo-400 uppercase mb-2 ml-1 opacity-60 px-1">Select Professional</label>
-                                        <div className="relative">
-                                            <select
-                                                value={selectedBroker}
-                                                onChange={(e) => setSelectedBroker(e.target.value)}
-                                                className="w-full pl-6 pr-12 py-4 bg-white border border-indigo-100 rounded-2xl focus:ring-4 focus:ring-indigo-500/10 outline-none transition-all text-sm font-bold text-slate-800 shadow-sm appearance-none bg-[url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2220%22%20height%3D%2220%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22none%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%3E%3Cpath%20d%3D%22M5%207.5L10%2012.5L15%207.5%22%20stroke%3D%22%236366f1%22%20stroke-width%3D%222.5%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22/%3E%3C/svg%3E')] bg-[length:1.25rem_1.25rem] bg-[right_1.5rem_center] bg-no-repeat"
-                                            >
-                                                <option value="">No Referral (Direct)</option>
-                                                {brokers.map(u => (
-                                                    <option key={u.id} value={u.id}>
-                                                        {u.firstName} {u.lastName} {u.organization?.name ? `(${u.organization.name})` : ''}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
+
 
                                 <div>
                                     <label className="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-3 ml-1">Discovery Notes</label>

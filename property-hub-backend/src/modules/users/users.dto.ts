@@ -119,23 +119,6 @@ export class CreateUserDto {
     @IsOptional()
     licenseNumber?: string;
 
-    // Broker Specific Fields
-    @IsString()
-    @IsOptional()
-    agencyName?: string;
-
-    @IsString()
-    @IsOptional()
-    officeAddress?: string;
-
-    @IsString()
-    @IsOptional()
-    reraNumber?: string;
-
-    @IsString()
-    @IsOptional()
-    brokerType?: string; // 'INDIVIDUAL', 'FIRM'
-
     // Loan Partner Specific Fields
     @IsString()
     @IsOptional()
@@ -218,23 +201,6 @@ export class UpdateUserDto {
     @IsOptional()
     licenseNumber?: string;
 
-    // Broker Specific Fields
-    @IsString()
-    @IsOptional()
-    agencyName?: string;
-
-    @IsString()
-    @IsOptional()
-    officeAddress?: string;
-
-    @IsString()
-    @IsOptional()
-    reraNumber?: string;
-
-    @IsString()
-    @IsOptional()
-    brokerType?: string;
-
     // Loan Partner Specific Fields
     @IsString()
     @IsOptional()
@@ -285,7 +251,6 @@ export class UpdateProfileDto {
      * BUYER:           { budgetMin, budgetMax, preferredLocations, propertyTypes }
      * CONSULTANT:      { consultantType, specialization, experienceYears, rating }
      * INFLUENCER:      { socialMediaLinks, reach, niche }
-     * BROKER:          { agencyName, officeAddress, reraNumber, brokerType }
      * PROPERTY_PARTNER: { companyName, companyAddress, taxId, licenseNumber }
      */
     @IsObject()

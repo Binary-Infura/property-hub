@@ -15,10 +15,8 @@ interface InviteUserModalProps {
 const AVAILABLE_ROLES = [
   'CENTRAL_AUTHORITY',
   'PROPERTY_PARTNER',
-  'CONSULTANT',
   'GROWTH_PARTNER',
   'LOAN_PARTNER',
-  'VISIT_EXECUTIVE',
   'BUYER',
 ];
 

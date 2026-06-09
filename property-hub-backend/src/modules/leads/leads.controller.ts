@@ -30,7 +30,7 @@ export class LeadsController {
     ) { }
     // Call Logs
     @Get('calls/history')
-    @RequireRoles(UserRole.CONSULTANT, UserRole.CENTRAL_AUTHORITY)
+    @RequireRoles( UserRole.CENTRAL_AUTHORITY)
     getCallLogs(
         @CurrentUser() user: AuthenticatedUser,
         @Query('consultantId') consultantId?: string,
@@ -40,7 +40,7 @@ export class LeadsController {
     }
 
     @Get(':id/calls')
-    @RequireRoles(UserRole.CONSULTANT, UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER)
+    @RequireRoles( UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER)
     getLeadCallLogs(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
@@ -60,7 +60,7 @@ export class LeadsController {
 
     // Lead Notes
     @Post(':id/notes')
-    @RequireRoles(UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER)
+    @RequireRoles( UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER)
     addNote(
         @Param('id') id: string,
         @Body() dto: CreateLeadNoteDto,
@@ -70,13 +70,13 @@ export class LeadsController {
     }
 
     @Get(':id/notes')
-    @RequireRoles(UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER)
+    @RequireRoles( UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER)
     getNotes(@Param('id') id: string) {
         return this.leadNotesService.findByLead(id);
     }
 
     @Delete(':id/notes/:noteId')
-    @RequireRoles(UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER)
+    @RequireRoles( UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER)
     removeNote(
         @Param('noteId') noteId: string,
         @CurrentUser() user: AuthenticatedUser,
@@ -85,7 +85,7 @@ export class LeadsController {
     }
 
     @Get()
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.PROPERTY_PARTNER, UserRole.CONSULTANT, UserRole.BUYER)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.PROPERTY_PARTNER, UserRole.BUYER)
     findAll(
         @CurrentUser() user: AuthenticatedUser
     ) {
@@ -93,7 +93,7 @@ export class LeadsController {
     }
 
     @Post()
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.PROPERTY_PARTNER)
     create(
         @Body() createLeadDto: CreateLeadDto
     ) {
@@ -117,7 +117,7 @@ export class LeadsController {
     }
 
     @Patch(':id')
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.CONSULTANT, UserRole.PROPERTY_PARTNER)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.PROPERTY_PARTNER)
     update(
         @Param('id') id: string,
         @Body() updateLeadDto: UpdateLeadDto,
@@ -136,7 +136,7 @@ export class LeadsController {
     }
 
     @Post(':id/call')
-    @RequireRoles(UserRole.CONSULTANT)
+    @RequireRoles()
     initiateCall(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser,
@@ -145,7 +145,7 @@ export class LeadsController {
     }
 
     @Post(':id/send-video-link')
-    @RequireRoles(UserRole.CONSULTANT)
+    @RequireRoles()
     sendVideoCallLink(
         @Param('id') id: string,
         @Body() dto: SendVideoCallLinkDto,
@@ -155,7 +155,7 @@ export class LeadsController {
     }
 
     @Post(':id/generate-video-room')
-    @RequireRoles(UserRole.CONSULTANT)
+    @RequireRoles()
     generateVideoRoom(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser,

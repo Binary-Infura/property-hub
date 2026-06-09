@@ -59,17 +59,15 @@ export default function CentralAuthorityPropertyDetailPage() {
         if (!token) return;
         try {
             setLoading(true);
-            const [propertyData, consultantsData, loanPartnersData, visitExecutivesData] = await Promise.all([
+            const [propertyData, consultantsData, loanPartnersData] = await Promise.all([
                 propertyService.getOne(propertyId, token),
                 userService.getAllByRole('CONSULTANT', token),
-                userService.getAllByRole('LOAN_PARTNER', token),
-                userService.getAllByRole('VISIT_EXECUTIVE', token)
+                userService.getAllByRole('LOAN_PARTNER', token)
             ]);
 
             const combined = [
                 ...consultantsData.data.map((u: User) => ({ ...u, role: u.role || 'CONSULTANT' })),
-                ...loanPartnersData.data.map((u: User) => ({ ...u, role: u.role || 'LOAN_PARTNER' })),
-                ...visitExecutivesData.data.map((u: User) => ({ ...u, role: u.role || 'VISIT_EXECUTIVE' }))
+                ...loanPartnersData.data.map((u: User) => ({ ...u, role: u.role || 'LOAN_PARTNER' }))
             ];
 
             // De-duplicate by ID

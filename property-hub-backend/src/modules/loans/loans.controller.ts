@@ -35,7 +35,7 @@ export class LoansController {
     // ────────────────────────────────────────────────
 
     @Post('buyer')
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.CONSULTANT, UserRole.BUYER)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.BUYER)
     createBuyerLoan(@Body() dto: CreateBuyerLoanApplicationDto, @CurrentUser() user: AuthenticatedUser) {
         return this.loansService.createBuyerLoan(dto, user.userId);
     }

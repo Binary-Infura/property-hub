@@ -74,7 +74,7 @@ model User {
   roles             UserRole[]
   activityLogs      ActivityLog[]
   adsRequests       AdsRequest[]
-  callLogs          CallLog[]
+
   walletTransactions WalletTransaction[] @relation("UserWalletTransactions")
   following         Follow[]            @relation("UserFollowers")
   followers         Follow[]            @relation("UserFollowing")
@@ -92,7 +92,6 @@ model User {
   assignedProjects           Project[]                @relation("ProjectAssignment")
   invitationsSent            Invitation[]             @relation("UserInvites")
   paymentOrders              PaymentOrder[]           @relation("UserPaymentOrders")
-  visitsAsExecutive          Visit[]                  @relation("VisitExecutiveVisits")
   submittedLeads             Lead[]                   @relation("BuyerLeads")
   assignedBuyerLoans         BuyerLoanApplication[]   @relation("AssignedBuyerLoanPartner")
   assignedProjectLoans       ProjectLoanApplication[] @relation("AssignedProjectLoanPartner")
@@ -209,7 +208,6 @@ model Lead {
   campaign          MarketingCampaign?     @relation(fields: [campaignId], references: [id])
   project           Project?               @relation(fields: [projectId], references: [id])
   buyerLoanApps     BuyerLoanApplication[]
-  visits            Visit[]
   buyerId           String?
   buyer             User?                  @relation("BuyerLeads", fields: [buyerId], references: [id])
 
@@ -236,30 +234,11 @@ model LeadNote {
   @@map("lead_notes")
 }
 
-model Visit {
-  id               String      @id @default(uuid())
-  leadId           String
-  scheduledAt      DateTime
-  completedAt      DateTime?
-  status           VisitStatus @default(SCHEDULED)
-  notes            String?
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
-  visitExecutiveId String?
-  lead             Lead        @relation(fields: [leadId], references: [id])
-  visitExecutive   User?       @relation("VisitExecutiveVisits", fields: [visitExecutiveId], references: [id])
-
-  @@index([leadId])
-  @@index([status])
-  @@index([visitExecutiveId])
-  @@map("visits")
-}
 
 model CallLog {
   id           String    @id @default(uuid())
   sid          String?   @unique
   leadId       String
-  consultantId String
   status       String?
   duration     Int?
   recordingUrl String?
@@ -267,11 +246,9 @@ model CallLog {
   endTime      DateTime?
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
-  consultant   User      @relation(fields: [consultantId], references: [id])
   lead         Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
 
   @@index([leadId])
-  @@index([consultantId])
   @@index([sid])
   @@map("call_logs")
 }
@@ -719,12 +696,9 @@ model PaymentOrder {
 enum UserRole {
   CENTRAL_AUTHORITY
   PROPERTY_PARTNER
-  BROKER
   BUYER
-  CONSULTANT
   GROWTH_PARTNER
   LOAN_PARTNER
-  VISIT_EXECUTIVE
 }
 
 enum UserStatus {
@@ -734,10 +708,7 @@ enum UserStatus {
   PENDING_VERIFICATION
 }
 
-enum ConsultantType {
-  PLATFORM
-  PROPERTY_PARTNER
-}
+
 
 enum OrganizationType {
   PLATFORM
@@ -789,12 +760,6 @@ enum LeadStatus {
   FOLLOW_UP_STARTED
 }
 
-enum VisitStatus {
-  SCHEDULED
-  COMPLETED
-  CANCELLED
-  NO_SHOW
-}
 
 enum CommissionStatus {
   PENDING

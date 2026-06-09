@@ -10,7 +10,6 @@ import { UsersModule } from './modules/users/users.module';
 
 import { GrowthPartnersModule } from './modules/roles/growth-partners/growth-partners.module';
 import { BuyersModule } from './modules/roles/buyers/buyers.module';
-import { ConsultantsModule } from './modules/roles/consultants/consultants.module';
 import { PropertyPartnersModule } from './modules/roles/property-partners/property-partners.module';
 
 import { CentralAuthorityModule } from './modules/roles/central-authority/central-authority.module';
@@ -37,7 +36,6 @@ import { MailModule } from './modules/mail/mail.module';
 import { InvitationsModule } from './modules/invitations/invitations.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { TowersModule } from './modules/towers/towers.module';
-import { VisitsModule } from './modules/visits/visits.module';
 import { CallingModule } from './modules/calling/calling.module';
 import { OtpModule } from './modules/otp/otp.module';
 import { BankBranchesModule } from './modules/bank-branches/bank-branches.module';
@@ -62,7 +60,6 @@ import { join } from 'path';
 
         GrowthPartnersModule,
         BuyersModule,
-        ConsultantsModule,
         PropertyPartnersModule,
         LoanPartnersModule,
 
@@ -88,7 +85,6 @@ import { join } from 'path';
         InvitationsModule,
         PaymentsModule,
         TowersModule,
-        VisitsModule,
         OtpModule,
         BankBranchesModule,
         /*

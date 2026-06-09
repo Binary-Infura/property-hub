@@ -12,9 +12,9 @@ export default function SystemCallRecordsPage() {
     const [logs, setLogs] = useState<any[]>([]);
 
     // Filters
-    const [consultants, setConsultants] = useState<User[]>([]);
+    
     const [projects, setProjects] = useState<Project[]>([]);
-    const [selectedConsultant, setSelectedConsultant] = useState('');
+    
     const [selectedProject, setSelectedProject] = useState('');
 
     useEffect(() => {
@@ -22,8 +22,8 @@ export default function SystemCallRecordsPage() {
             if (!token) return;
             try {
                 // Fetch consultants and projects for filters
-                const consultantsData = await userService.getAllByRole('CONSULTANT', token, false, 1, 100);
-                setConsultants(consultantsData.data);
+                
+                
 
                 const projectsResponse = await propertyService.getAll(token);
                 setProjects(projectsResponse.data);
@@ -40,7 +40,7 @@ export default function SystemCallRecordsPage() {
             setLoading(true);
             try {
                 const data = await callLogService.getCallLogs(token, {
-                    consultantId: selectedConsultant || undefined,
+                    
                     projectId: selectedProject || undefined
                 });
                 setLogs(data);
@@ -51,7 +51,7 @@ export default function SystemCallRecordsPage() {
             }
         };
         fetchLogs();
-    }, [token, selectedConsultant, selectedProject]);
+    }, [token, , selectedProject]);
 
     const formatDuration = (seconds?: number | null) => {
         if (!seconds) return '--';
@@ -78,21 +78,7 @@ export default function SystemCallRecordsPage() {
 
             {/* Filters Section */}
             <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-100 flex flex-wrap gap-4 items-end">
-                <div className="w-64">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Filter by User (Consultant)</label>
-                    <select
-                        value={selectedConsultant}
-                        onChange={(e) => setSelectedConsultant(e.target.value)}
-                        className="w-full border border-gray-200 rounded-lg px-3 py-2 bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all"
-                    >
-                        <option value="">All Consultants</option>
-                        {consultants.map((c) => (
-                            <option key={c.id} value={c.id}>
-                                {c.firstName} {c.lastName} ({c.email})
-                            </option>
-                        ))}
-                    </select>
-                </div>
+
 
                 <div className="w-64">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Property (Project)</label>
@@ -111,7 +97,7 @@ export default function SystemCallRecordsPage() {
                 </div>
 
                 <button
-                    onClick={() => { setSelectedConsultant(''); setSelectedProject(''); }}
+                    onClick={() => { setSelectedProject(''); }}
                     className="px-4 py-2 text-sm text-gray-500 hover:text-gray-900 font-medium h-[42px]"
                 >
                     Clear Filters

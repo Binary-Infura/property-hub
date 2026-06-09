@@ -3,8 +3,7 @@ export interface CallParams {
     from: string;
     to: string;
     leadId: string;
-    consultantId: string;
-}
+    }
 
 export interface CallResponse {
     success: boolean;

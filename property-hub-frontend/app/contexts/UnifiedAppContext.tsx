@@ -10,7 +10,6 @@ export type RoleId =
     | 'CENTRAL_AUTHORITY'
     | 'GROWTH_PARTNER'
     | 'PROPERTY_PARTNER'
-    | 'CONSULTANT'
     | 'LOAN_PARTNER'
     | 'BUYER';
 
@@ -65,12 +64,7 @@ export const KNOWN_ROLES: Record<RoleId, UserRole> = {
         permissionHint: 'Manage properties and inventory',
         dashboardUrl: '/dashboard',
     },
-    CONSULTANT: {
-        id: 'CONSULTANT',
-        name: 'Sales Consultant',
-        permissionHint: 'Direct sales and client guidance',
-        dashboardUrl: '/dashboard',
-    },
+    
     LOAN_PARTNER: {
         id: 'LOAN_PARTNER',
         name: 'Loan Partner',

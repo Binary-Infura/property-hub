@@ -24,21 +24,7 @@ export class CallingService {
     }
 
     async initiateCall(params: CallParams): Promise<CallResponse> {
-        const { consultantId, leadId, from, to } = params;
-
-        // 1. Check organization wallet balance
-        const consultant = await this.prisma.user.findUnique({
-            where: { id: consultantId },
-            include: { organization: true }
-        });
-
-        if (!consultant?.organizationId) {
-            throw new BadRequestException('Consultant must belong to an organization to initiate calls.');
-        }
-
-        if (Number(consultant.organization?.walletBalance || 0) < 10) {
-            throw new BadRequestException('Insufficient organizational wallet balance to start a call. Minimum ₹10 required.');
-        }
+        const { leadId, from, to } = params;
 
         // 2. Select Provider
         const providerType = this.configService.get<CallProviderType>('DEFAULT_CALL_PROVIDER', CallProviderType.EXOTEL);
@@ -59,7 +45,6 @@ export class CallingService {
                 data: {
                     sid: response.sid,
                     leadId,
-                    consultantId,
                     status: 'queued',
                 },
             });
@@ -103,44 +88,6 @@ export class CallingService {
                 endTime: status === 'completed' ? new Date() : undefined
             }
         });
-
-        // Deduct from wallet if completed
-        if (status === 'completed' && duration > 0) {
-            const durationInMinutes = Math.ceil(duration / 60);
-            const costPerMinute = 2; // Default ₹2/min
-            const totalCost = durationInMinutes * costPerMinute;
-
-            const log = await this.prisma.callLog.findUnique({
-                where: { sid }
-            });
-
-            if (log && log.consultantId) {
-                const user = await this.prisma.user.findUnique({
-                    where: { id: log.consultantId },
-                    select: { organizationId: true }
-                });
-
-                if (user?.organizationId) {
-                    await this.prisma.organization.update({
-                        where: { id: user.organizationId },
-                        data: {
-                            walletBalance: { decrement: totalCost }
-                        }
-                    });
-
-                    await this.prisma.walletTransaction.create({
-                        data: {
-                            userId: log.consultantId,
-                            organizationId: user.organizationId,
-                            amount: -totalCost,
-                            type: 'CALL_COST',
-                            description: `Call charge (${provider}): ${durationInMinutes} min (SID: ${sid})`,
-                            referenceId: log.id
-                        }
-                    });
-                }
-            }
-        }
     }
 
     async syncCallDetails(sid: string) {

@@ -232,7 +232,7 @@ export class UsersService {
                             organizationId: bank.organizationId,
                             cityId: targetCityId!,
                             name: normalizedName,
-                            address: dto.officeAddress,
+                            address: dto.companyAddress,
                         }
                     });
                     branchId = branch.id;
@@ -260,11 +260,11 @@ export class UsersService {
             if (dto.roles.includes(UserRole.PROPERTY_PARTNER)) orgType = OrganizationType.PROPERTY_PARTNER;
             const org = await this.prisma.organization.create({
                 data: {
-                    name: (dto.companyName || dto.agencyName) as string,
+                    name: dto.companyName as string,
                     type: orgType as any,
-                    address: dto.companyAddress || dto.officeAddress,
+                    address: dto.companyAddress,
                     taxId: dto.taxId,
-                    licenseNumber: dto.licenseNumber || dto.reraNumber,
+                    licenseNumber: dto.licenseNumber,
                 },
             });
             organizationId = org.id;
@@ -283,13 +283,9 @@ export class UsersService {
                 organizationId: organizationId || inheritedOrganizationId,
                 branchId,
                 onboardedById,
-                profileData: (dto.roles.includes(UserRole.BROKER as any) || 
-                             dto.roles.includes(UserRole.PROPERTY_PARTNER) || 
+                profileData: (dto.roles.includes(UserRole.PROPERTY_PARTNER) || 
                              dto.roles.includes(UserRole.GROWTH_PARTNER as UserRole) || 
                              dto.roles.includes(UserRole.LOAN_PARTNER as UserRole)) ? {
-                    agencyName: dto.agencyName,
-                    officeAddress: dto.officeAddress,
-                    reraNumber: dto.reraNumber || dto.licenseNumber,
                     companyName: dto.companyName,
                     companyAddress: dto.companyAddress,
                     taxId: dto.taxId,

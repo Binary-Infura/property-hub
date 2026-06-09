@@ -34,7 +34,7 @@ export class UploadsController {
     }
 
     @Post()
-    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.BUYER, UserRole.CONSULTANT)
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.BUYER)
     async uploadFile(
         @Req() req: FastifyRequest,
         @CurrentUser() user: AuthenticatedUser
@@ -103,7 +103,7 @@ export class UploadsController {
 
             // If this is a buyer/consultant document, save to DB
             const isBuyer = user.roles.includes(UserRole.BUYER);
-            const isConsultant = user.roles.includes(UserRole.CONSULTANT);
+            const isConsultant = false;
 
             this.log(`[UploadDebug] Role check: isBuyer=${isBuyer}, isConsultant=${isConsultant}, category="${category}", name="${documentName}"`);
 

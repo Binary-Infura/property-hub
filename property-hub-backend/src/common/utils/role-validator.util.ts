@@ -6,7 +6,6 @@ import { UserRole } from '../enums/role.enum';
  * 1. PROPERTY_PARTNER cannot coexist with CENTRAL_AUTHORITY, LOAN_PARTNER, or GROWTH_PARTNER.
  * 2. CENTRAL_AUTHORITY cannot coexist with PROPERTY_PARTNER, LOAN_PARTNER, or BUYER.
  * 3. GROWTH_PARTNER cannot coexist with PROPERTY_PARTNER or LOAN_PARTNER.
- * 4. BROKER and VISIT_EXECUTIVE cannot be combined with any other roles.
  */
 const INCOMPATIBLE_MAP: Record<UserRole, UserRole[]> = {
   [UserRole.PROPERTY_PARTNER]: [
@@ -28,9 +27,6 @@ const INCOMPATIBLE_MAP: Record<UserRole, UserRole[]> = {
   [UserRole.GROWTH_PARTNER]: [UserRole.PROPERTY_PARTNER, UserRole.LOAN_PARTNER],
   [UserRole.BUYER]: [UserRole.CENTRAL_AUTHORITY],
   // Others have no restrictions
-  [UserRole.BROKER]: [],
-  [UserRole.CONSULTANT]: [],
-  [UserRole.VISIT_EXECUTIVE]: [],
 };
 
 /**
@@ -40,15 +36,6 @@ const INCOMPATIBLE_MAP: Record<UserRole, UserRole[]> = {
  */
 export function validateRoleCombination(roles: UserRole[]): boolean {
   if (!roles || roles.length <= 1) return true;
-
-  const exclusiveRoles = [UserRole.BROKER, UserRole.VISIT_EXECUTIVE];
-  for (const role of exclusiveRoles) {
-    if (roles.includes(role)) {
-      throw new BadRequestException(
-        `Role combination invalid: ${role} cannot be combined with any other role.`,
-      );
-    }
-  }
 
   for (const role of roles) {
     const incompatible = INCOMPATIBLE_MAP[role] || [];
@@ -69,16 +56,6 @@ export function validateRoleCombination(roles: UserRole[]): boolean {
  */
 export function isRoleCombinationValid(roles: UserRole[]): { valid: boolean; reason?: string } {
   if (!roles || roles.length <= 1) return { valid: true };
-
-  const exclusiveRoles = [UserRole.BROKER, UserRole.VISIT_EXECUTIVE];
-  for (const role of exclusiveRoles) {
-    if (roles.includes(role)) {
-      return {
-        valid: false,
-        reason: `${role} cannot be combined with any other role.`,
-      };
-    }
-  }
 
   for (const role of roles) {
     const incompatible = INCOMPATIBLE_MAP[role] || [];

@@ -5,7 +5,7 @@ import { AuthenticatedUser } from '../../../common/interfaces/jwt-payload.interf
 import { UsersService } from '../../users/users.service';
 import { UserRole } from '../../../common/enums/role.enum';
 import { OrganizationType } from '../../../common/enums/organization-type.enum';
-import { CreateBrokerDto } from './property-partners.dto';
+
 
 @Injectable()
 export class PropertyPartnersService {
@@ -60,23 +60,5 @@ export class PropertyPartnersService {
         return this.getProfile(userId);
     }
 
-    async getBrokers(userId: string) {
-        // Find users with BROKER role
-        return this.prisma.user.findMany({
-            where: {
-                roles: { has: UserRole.BROKER as any }
-            },
-            include: {
-                organization: true
-            }
-        });
-    }
 
-    async createBroker(dto: CreateBrokerDto, currentUser: AuthenticatedUser) {
-        return this.usersService.createUser({
-            ...dto,
-            roles: [UserRole.BROKER as any],
-            activeRole: UserRole.BROKER as any
-        }, currentUser);
-    }
 }

@@ -21,7 +21,7 @@ import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface
 
 @Controller('api/projects')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.PROPERTY_PARTNER, UserRole.CONSULTANT, UserRole.BUYER, UserRole.LOAN_PARTNER)
+@RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.PROPERTY_PARTNER, UserRole.BUYER, UserRole.LOAN_PARTNER)
 export class ProjectsController {
     constructor(private readonly projectsService: ProjectsService) { }
 

@@ -46,7 +46,7 @@ export default function AllReviewsPage() {
                             Community <span className="text-blue-600">Voices</span>
                         </h1>
                         <p className="text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed">
-                            Discover honest feedback and success stories from our network of property partners, brokers, and homebuyers.
+                            Discover honest feedback and success stories from our network of property partners and homebuyers.
                         </p>
                     </div>
 

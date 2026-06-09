@@ -27,16 +27,5 @@ export class PropertyPartnersController {
         return this.propertyPartnersService.upsertProfile(user.userId, dto);
     }
 
-    @Get('brokers')
-    async getBrokers(@CurrentUser() user: AuthenticatedUser) {
-        return this.propertyPartnersService.getBrokers(user.userId);
-    }
 
-    @Post('brokers')
-    async createBroker(
-        @CurrentUser() user: AuthenticatedUser,
-        @Body() dto: any, // Use any or CreateBrokerDto
-    ) {
-        return this.propertyPartnersService.createBroker(dto, user);
-    }
 }

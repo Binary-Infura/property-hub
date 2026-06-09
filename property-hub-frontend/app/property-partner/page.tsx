@@ -13,12 +13,7 @@ export default function PropertyPartnerDashboard() {
   const { profileStatus, token } = useAuth();
   const isPremium = profileStatus?.['PROPERTY_PARTNER']?.profileData?.isPremium;
 
-  const [agentCounts, setAgentCounts] = useState({
-    consultants: 0,
-    visitExecutives: 0,
-    brokers: 0,
-    totalAgents: 0
-  });
+
 
   const [analyticsData, setAnalyticsData] = useState({
     totalProjects: 0,
@@ -41,10 +36,7 @@ export default function PropertyPartnerDashboard() {
       if (!token) return;
       setIsLoading(true);
       try {
-        const [consultants, visitExecutives, brokersData, leadsData, projectsRaw, unitsData] = await Promise.all([
-          userService.getAllByRole('CONSULTANT', token, true, 1, 1),
-          userService.getAllByRole('VISIT_EXECUTIVE', token, true, 1, 1),
-          fetch(`${API_URL}/api/property-partners/brokers`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
+        const [leadsData, projectsRaw, unitsData] = await Promise.all([
           fetch(`${API_URL}/api/leads`, { headers: { 'Authorization': `Bearer ${token}` } }).then(r => r.json()),
           propertyService.getAll(token, true, undefined, undefined, 1, 20),
           fetch(`${API_URL}/api/units/my`, {
@@ -56,17 +48,7 @@ export default function PropertyPartnerDashboard() {
 
         const units = unitsData?.units || [];
 
-        const cCount = consultants.total || 0;
-        const vCount = visitExecutives.total || 0;
-        const bCount = Array.isArray(brokersData) ? brokersData.length : 0;
         const leads = Array.isArray(leadsData) ? leadsData : [];
-
-        setAgentCounts({
-          consultants: cCount,
-          visitExecutives: vCount,
-          brokers: bCount,
-          totalAgents: cCount + vCount + bCount
-        });
 
         const totalUnits = units.length || 0;
         const bookedUnits = units.filter((u: any) => u.status === 'SOLD').length;
@@ -317,56 +299,6 @@ export default function PropertyPartnerDashboard() {
             )}
           </Link>
 
-          <Link href="/dashboard/consultants" className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-1 transition-all">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Total Consultants</p>
-                {isLoading ? (
-                  <div className="h-9 w-24 bg-gray-200 animate-pulse rounded-lg mt-2" />
-                ) : (
-                  <p className="text-3xl font-bold text-blue-600 mt-2">{agentCounts.consultants}</p>
-                )}
-              </div>
-              <div className="w-12 h-12 bg-blue-100 rounded-lg flex items-center justify-center">
-                <SidebarIcon name="person" className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-            <p className="text-sm text-gray-600 mt-2">Active consultants</p>
-          </Link>
-
-          <Link href="/dashboard/visit-executives" className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-1 transition-all">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Total Visit Executives</p>
-                {isLoading ? (
-                  <div className="h-9 w-24 bg-gray-200 animate-pulse rounded-lg mt-2" />
-                ) : (
-                  <p className="text-3xl font-bold text-rose-600 mt-2">{agentCounts.visitExecutives}</p>
-                )}
-              </div>
-              <div className="w-12 h-12 bg-rose-100 rounded-lg flex items-center justify-center">
-                <SidebarIcon name="pin" className="w-6 h-6 text-rose-600" />
-              </div>
-            </div>
-            <p className="text-sm text-gray-600 mt-2">On-ground team</p>
-          </Link>
-
-          <Link href="/dashboard/brokers" className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 hover:shadow-md hover:-translate-y-1 transition-all">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-gray-600 text-sm font-medium">Total Brokers</p>
-                {isLoading ? (
-                  <div className="h-9 w-24 bg-gray-200 animate-pulse rounded-lg mt-2" />
-                ) : (
-                  <p className="text-3xl font-bold text-indigo-600 mt-2">{agentCounts.brokers}</p>
-                )}
-              </div>
-              <div className="w-12 h-12 bg-indigo-100 rounded-lg flex items-center justify-center">
-                <SidebarIcon name="handshake" className="w-6 h-6 text-indigo-600" />
-              </div>
-            </div>
-            <p className="text-sm text-gray-600 mt-2">External partners</p>
-          </Link>
         </div>
 
         {/* Management Quick Access */}
@@ -385,33 +317,6 @@ export default function PropertyPartnerDashboard() {
                 href={item.href}
                 className={`bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-${item.color}-200 transition-all text-center group relative`}
               >
-                <div className="mb-3 flex justify-center"><SidebarIcon name={item.icon} className="w-6 h-6 text-gray-600" /></div>
-                <p className="font-semibold text-gray-900 text-sm">{item.name}</p>
-              </Link>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-3 mb-6">
-            <h2 className="text-xl font-bold text-gray-900">Premium Team Management</h2>
-            {!isPremium && (
-              <span className="bg-amber-50 text-amber-700 border border-amber-100 text-xs px-2.5 py-1 rounded-full font-bold flex items-center gap-1">
-                <SidebarIcon name="lock" className="w-3 h-3" /> Premium Feature
-              </span>
-            )}
-          </div>
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {[
-              { name: 'Consultants', href: '/dashboard/consultants', icon: 'person' as const, color: 'blue' },
-              { name: 'Brokers', href: '/dashboard/brokers', icon: 'handshake' as const, color: 'indigo' },
-              { name: 'Visit Executives', href: '/dashboard/visit-executives', icon: 'pin' as const, color: 'rose' },
-              { name: 'Project Allocation', href: '/dashboard/projects/allocation', icon: 'building' as const, color: 'emerald' },
-            ].map((item) => (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={`bg-white p-4 rounded-xl border border-gray-100 shadow-sm hover:shadow-md hover:border-${item.color}-200 transition-all text-center group relative ${!isPremium ? 'opacity-80 grayscale-[0.3]' : ''}`}
-              >
-                {!isPremium && <div className="absolute top-2 right-2 text-gray-400"><SidebarIcon name="lock" className="w-3.5 h-3.5" /></div>}
                 <div className="mb-3 flex justify-center"><SidebarIcon name={item.icon} className="w-6 h-6 text-gray-600" /></div>
                 <p className="font-semibold text-gray-900 text-sm">{item.name}</p>
               </Link>

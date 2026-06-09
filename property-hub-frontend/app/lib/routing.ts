@@ -12,7 +12,7 @@
 
 export type UserRole =
   | 'BUYER'
-  | 'CONSULTANT'
+  
   | 'PROPERTY_PARTNER'
   | 'LOAN_PARTNER'
 
@@ -25,7 +25,7 @@ export type UserRole =
  */
 export const DASHBOARD_ROUTES: Record<string, string> = {
   BUYER: '/dashboard',
-  CONSULTANT: '/dashboard',
+  
   PROPERTY_PARTNER: '/dashboard',
 
   LOAN_PARTNER: '/dashboard',
