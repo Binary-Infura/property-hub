@@ -158,8 +158,8 @@ export class CentralAuthorityService {
 
         const projects = {
             total: projectStats?.reduce((sum, item) => sum + item._count._all, 0) || 0,
-            active: projectStats?.find(i => ['DRAFT', 'APPROVED'].includes(i.status))?._count._all || 0,
-            pending: projectStats?.find(i => i.status === 'SUBMITTED')?._count._all || 0
+            active: projectStats?.find(i => i.status === 'PUBLISHED')?._count._all || 0,
+            pending: projectStats?.find(i => i.status === 'DRAFT')?._count._all || 0
         };
 
         const userRolesFlattened = userStats.flatMap(u => u.roles);

@@ -29,14 +29,13 @@ export default function CentralAuthorityListingRequestsPage() {
         if (!token) return;
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/api/projects?status=SUBMITTED`, {
+            const res = await fetch(`${API_URL}/api/projects`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
                 const responseData = await res.json();
                 const projectsList = Array.isArray(responseData) ? responseData : (responseData.data || []);
-                const submitted = projectsList.filter((p: any) => p.status === 'SUBMITTED');
-                setRequests(submitted);
+                setRequests(projectsList);
             }
         } catch (e) {
             console.error(e);
@@ -53,41 +52,14 @@ export default function CentralAuthorityListingRequestsPage() {
         setCurrentPage(1);
     }, [selectedCity, searchQuery]);
 
-    const handleAction = async (id: string, action: 'APPROVE' | 'REJECT') => {
-        if (!token) return;
-        setProcessingId(id);
-        try {
-            const res = await fetch(`${API_URL}/api/projects/${id}`, {
-                method: 'PATCH',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({
-                    status: action === 'APPROVE' ? 'APPROVED' : 'REJECTED'
-                })
-            });
-
-            if (res.ok) {
-                fetchRequests();
-            } else {
-                alert(`Failed to ${action.toLowerCase()} request`);
-            }
-        } catch (e) {
-            console.error(e);
-        } finally {
-            setProcessingId(null);
-        }
-    };
-
     const cities = ['all', ...Array.from(new Set(requests.map(r => r.location?.split(',').pop()?.trim() || 'Unknown')))];
 
     return (
         <div className="space-y-6">
             <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold text-gray-900">Listing Requests</h1>
-                    <p className="text-gray-600 mt-1">Review and approve project listings from partners</p>
+                    <h1 className="text-3xl font-bold text-gray-900">All Projects</h1>
+                    <p className="text-gray-600 mt-1">View all published projects from partners</p>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 w-full md:w-auto">
@@ -124,7 +96,7 @@ export default function CentralAuthorityListingRequestsPage() {
             {loading ? (
                 <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
                     <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-                    <p className="mt-4 text-gray-500 font-medium">Fetching listing requests...</p>
+                    <p className="mt-4 text-gray-500 font-medium">Fetching projects...</p>
                 </div>
             ) : (() => {
                 const filtered = requests.filter(r => {
@@ -140,8 +112,8 @@ export default function CentralAuthorityListingRequestsPage() {
                         <div className="text-center py-20 bg-white rounded-2xl border border-gray-100 shadow-sm">
                             <p className="text-gray-400 text-lg">
                                 {searchQuery || selectedCity !== 'all'
-                                    ? `No requests matching your filters`
-                                    : 'No pending listing requests found.'}
+                                    ? `No projects matching your filters`
+                                    : 'No projects found.'}
                             </p>
                         </div>
                     );
@@ -160,8 +132,8 @@ export default function CentralAuthorityListingRequestsPage() {
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-3 mb-2">
                                                 <h3 className="text-xl font-bold text-gray-900 truncate">{request.name}</h3>
-                                                <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-orange-100 text-orange-700 border border-orange-200">
-                                                    New Request
+                                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${request.status === 'PUBLISHED' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-gray-100 text-gray-700 border-gray-200'} border`}>
+                                                    {request.status}
                                                 </span>
                                             </div>
                                             <p className="text-gray-600 flex items-center gap-2 text-sm mb-4">
@@ -205,23 +177,6 @@ export default function CentralAuthorityListingRequestsPage() {
                                                     <p className="text-[10px] text-gray-500 font-medium">Verified Partner</p>
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        <div className="flex lg:flex-col gap-3 shrink-0">
-                                            <button
-                                                onClick={() => handleAction(request.id, 'APPROVE')}
-                                                disabled={!!processingId}
-                                                className="flex-1 px-6 py-2.5 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition shadow-lg shadow-green-100 flex items-center justify-center gap-2 disabled:opacity-50"
-                                            >
-                                                {processingId === request.id ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : 'Approve'}
-                                            </button>
-                                            <button
-                                                onClick={() => handleAction(request.id, 'REJECT')}
-                                                disabled={!!processingId}
-                                                className="flex-1 px-6 py-2.5 border border-red-200 text-red-600 font-bold rounded-xl hover:bg-red-50 transition flex items-center justify-center gap-2 disabled:opacity-50"
-                                            >
-                                                Reject
-                                            </button>
                                         </div>
                                     </div>
                                 </div>

@@ -77,7 +77,7 @@ export class ProjectsService {
             where.status = status;
         } else if (!myOnly && !isCentralAuthority && !isPropertyPartner) {
             // For public search/buyers, only show approved projects by default
-            where.status = 'APPROVED';
+            where.status = 'PUBLISHED';
         }
 
         if (city) {
@@ -283,8 +283,8 @@ export class ProjectsService {
             await this.activityLogsService.log({
                 userId: internalUser.id,
                 type: 'PROJECT',
-                action: updateProjectDto.status === 'APPROVED' ? 'APPROVE' : 
-                        updateProjectDto.status === 'REJECTED' ? 'REJECT' : 'Status Updated',
+                action: updateProjectDto.status === 'PUBLISHED' ? 'PUBLISH' : 
+                        updateProjectDto.status === 'DRAFT' ? 'DRAFT' : 'Status Updated',
                 target: projectAfter.name,
                 details: { 
                     projectId: projectAfter.id, 

@@ -9,7 +9,6 @@ import { useUnifiedApp } from '@/app/contexts/UnifiedAppContext';
 import AddProjectModal from '@/app/components/property-partner/AddProjectModal';
 import SelectProjectModal from '@/app/components/property-partner/SelectProjectModal';
 import ViewListingModal from '@/app/components/property-partner/ViewListingModal';
-import ImportReraPropertyModal from '@/app/components/property-partner/ImportReraPropertyModal';
 import MarkAsSoldModal from '@/app/components/property-partner/MarkAsSoldModal';
 import SubmitBankApprovalModal from '@/app/components/property-partner/SubmitBankApprovalModal';
 
@@ -40,17 +39,13 @@ export default function ProjectsPage() {
   const [statusCounts, setStatusCounts] = useState({
     total: 0,
     draft: 0,
-    approved: 0,
-    under_construction: 0,
-    rejected: 0,
-    submitted: 0
+    published: 0
   });
   const PROJECTS_PER_PAGE = 8;
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [isSelectModalOpen, setIsSelectModalOpen] = useState(false);
   const [isViewListingModalOpen, setIsViewListingModalOpen] = useState(false);
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [isMarkAsSoldModalOpen, setIsMarkAsSoldModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [selectedProjectForView, setSelectedProjectForView] = useState<Property | null>(null);
@@ -85,10 +80,7 @@ export default function ProjectsPage() {
 
           switch (backendStatus) {
             case 'DRAFT': frontendStatus = 'draft'; break;
-            case 'SUBMITTED': frontendStatus = 'submitted'; break;
-            case 'APPROVED': frontendStatus = 'approved'; break;
-            case 'REJECTED': frontendStatus = 'rejected'; break;
-            case 'UNDER_CONSTRUCTION': frontendStatus = 'under_construction'; break;
+            case 'PUBLISHED': frontendStatus = 'published'; break;
             default: frontendStatus = 'draft';
           }
 
@@ -140,10 +132,7 @@ export default function ProjectsPage() {
           setStatusCounts({
             total: Object.values(stats).reduce((a: any, b: any) => a + b, 0) as number,
             draft: stats.draft || 0,
-            approved: stats.approved || 0,
-            under_construction: stats.under_construction || 0,
-            rejected: stats.rejected || 0,
-            submitted: stats.submitted || 0
+            published: stats.published || 0
           });
         }
       }
@@ -220,15 +209,7 @@ export default function ProjectsPage() {
             </svg>
             List to Public
           </button>
-          <button
-            onClick={() => setIsImportModalOpen(true)}
-            className="bg-emerald-600 text-white px-6 py-3 rounded-xl hover:bg-emerald-700 font-bold transition flex items-center gap-2 shadow-lg shadow-emerald-200"
-          >
-            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-            </svg>
-            Import Verified Project
-          </button>
+
           <button
             onClick={handleAddProject}
             className="bg-blue-600 text-white px-6 py-3 rounded-xl hover:bg-blue-700 font-bold transition flex items-center gap-2 shadow-lg shadow-blue-200"
@@ -274,11 +255,7 @@ export default function ProjectsPage() {
         property={selectedProjectForView}
       />
 
-      <ImportReraPropertyModal
-        isOpen={isImportModalOpen}
-        onClose={() => setIsImportModalOpen(false)}
-        onSuccess={fetchProjects}
-      />
+
 
 
 
@@ -287,8 +264,7 @@ export default function ProjectsPage() {
         {[
           { label: 'Total', count: statusCounts.total, color: 'text-gray-900', bgColor: 'bg-white' },
           { label: 'Draft', count: statusCounts.draft, color: 'text-gray-600', bgColor: 'bg-white' },
-          { label: 'Approved', count: statusCounts.approved, color: 'text-blue-600', bgColor: 'bg-white' },
-          { label: 'Under Construction', count: statusCounts.under_construction, color: 'text-amber-600', bgColor: 'bg-white' },
+          { label: 'Published', count: statusCounts.published, color: 'text-blue-600', bgColor: 'bg-white' },
         ].map(stat => (
           <div key={stat.label} className={`${stat.bgColor} rounded-lg shadow-sm border border-gray-100 p-4`}>
             <p className="text-gray-500 text-xs font-bold uppercase tracking-wider">{stat.label}</p>
@@ -316,7 +292,7 @@ export default function ProjectsPage() {
           </div>
 
           <div className="flex gap-1.5 flex-wrap">
-            {['all', 'draft', 'approved', 'under_construction'].map((status) => (
+            {['all', 'draft', 'published'].map((status) => (
               <button
                 key={status}
                 onClick={() => setFilterStatus(status as any)}
@@ -384,8 +360,8 @@ export default function ProjectsPage() {
               {filteredProjects.map(project => {
                 const statusConfig = PROPERTY_STATUS_CONFIG[project.status];
                 const isDraft = project.status === 'draft';
-                const canMarkAsSold = ['draft', 'approved'].includes(project.status);
-                const hasListingData = ['submitted', 'approved', 'rejected'].includes(project.status);
+                const canMarkAsSold = ['draft', 'published'].includes(project.status);
+                const hasListingData = ['published'].includes(project.status);
 
                 return (
                   <tr key={project.id} className="hover:bg-gray-50/80 transition-colors group">
@@ -475,8 +451,8 @@ export default function ProjectsPage() {
           {filteredProjects.map(project => {
             const statusConfig = PROPERTY_STATUS_CONFIG[project.status];
             const isDraft = project.status === 'draft';
-            const canMarkAsSold = ['draft', 'approved'].includes(project.status);
-            const hasListingData = ['submitted', 'approved', 'rejected'].includes(project.status);
+            const canMarkAsSold = ['draft', 'published'].includes(project.status);
+            const hasListingData = ['published'].includes(project.status);
 
             return (
               <div key={project.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden hover:shadow-xl transition-all group animate-in fade-in slide-in-from-bottom-4 duration-500">

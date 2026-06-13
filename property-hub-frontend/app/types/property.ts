@@ -3,7 +3,7 @@
  * Represents a property that contains towers, floors, and units
  */
 
-export type PropertyStatus = 'submitted' | 'approved' | 'rejected' | 'draft' | 'under_construction';
+export type PropertyStatus = 'draft' | 'published';
 export type PropertyType = 'residential' | 'commercial' | 'mixed-use';
 export type PropertyCategory = 'flat' | 'plot' | 'shop' | 'villa' | 'office' | 'warehouse';
 

@@ -95,7 +95,7 @@ export default function PropertySearchPage({ hideHeader = false }: { hideHeader?
     const fetchRealProperties = async () => {
       try {
         setLoading(true);
-        const response = await propertyService.getAll(token || null, false, undefined, 'APPROVED');
+        const response = await propertyService.getAll(token || null, false, undefined, 'PUBLISHED');
         const data = response.data;
 
         const mapped: Property[] = data.map(p => {
@@ -116,10 +116,10 @@ export default function PropertySearchPage({ hideHeader = false }: { hideHeader?
                 p.projectType === 'PLOT' ? 'Plot' : 'Commercial') as any,
             bhk: `${p.bedrooms || 2} BHK`,
             isNew: true,
-            isReadyToMove: p.status === 'APPROVED' || p.status === 'UNDER_CONSTRUCTION',
+            isReadyToMove: p.status === 'PUBLISHED',
             highlights: p.highlights || ['Premium Location', 'High ROI'],
             amenities: p.amenities || [],
-            legalVerified: p.status === 'APPROVED',
+            legalVerified: p.status === 'PUBLISHED',
             image: p.images && p.images.length > 0 ? p.images[0] : undefined,
             consultantNote: p.description?.slice(0, 150) + "..." || "This property offers exceptional value in a high-growth corridor.",
             consultant: {

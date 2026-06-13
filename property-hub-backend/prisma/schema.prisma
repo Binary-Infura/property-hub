@@ -717,10 +717,7 @@ enum OrganizationType {
 
 enum ProjectStatus {
   DRAFT
-  UNDER_CONSTRUCTION
-  SUBMITTED
-  APPROVED
-  REJECTED
+  PUBLISHED
 }
 
 enum InstagramStatus {

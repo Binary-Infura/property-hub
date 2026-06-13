@@ -395,7 +395,7 @@ export default function PropertyDetailPage({ params }: { params: Promise<{ id: s
 
                                 <div className="absolute bottom-12 left-12 right-12 flex items-end justify-between pointer-events-none">
                                     <div className="flex gap-4 pointer-events-auto">
-                                        {property.status === 'APPROVED' && <span className="px-6 py-3 bg-emerald-500 text-white text-[11px] font-black uppercase tracking-[0.25em] rounded-2xl shadow-2xl backdrop-blur-md ring-1 ring-white/20">Ready to Move</span>}
+                                        {property.status === 'PUBLISHED' && <span className="px-6 py-3 bg-emerald-500 text-white text-[11px] font-black uppercase tracking-[0.25em] rounded-2xl shadow-2xl backdrop-blur-md ring-1 ring-white/20">Ready to Move</span>}
                                     </div>
                                     <div className="flex gap-3 pointer-events-auto">
 

@@ -60,7 +60,7 @@ export default function PropertyPartnerDashboard() {
 
         setAnalyticsData({
           totalProjects: totalProjectsCount,
-          activeProjects: projects.filter((p: Property) => p.status === 'APPROVED').length,
+          activeProjects: projects.filter((p: Property) => p.status === 'PUBLISHED').length,
           totalUnits,
           bookedUnits,
           totalRevenue,

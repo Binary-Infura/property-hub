@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/app/contexts/AuthContext';
-import { reraService } from '@/app/services/reraService';
 import Link from 'next/link';
-import ReraImportSection from '@/app/components/dashboard/ReraImportSection';
 import BankManagerSection from '@/app/components/dashboard/BankManagerSection';
 import PaymentDetailsModal from '@/app/components/dashboard/PaymentDetailsModal';
 
@@ -86,13 +84,9 @@ export default function CentralAuthorityDashboardPage() {
     const { token } = useAuth();
     const [stats, setStats] = useState<DashboardStats | null>(null);
     const [partners, setPartners] = useState<PropertyPartner[]>([]);
-    const [districtCounts, setDistrictCounts] = useState<any[]>([]);
-    const [loading, setLoading] = useState(true);
     const [updatingPartner, setUpdatingPartner] = useState<string | null>(null);
-    const [fetchingCounts, setFetchingCounts] = useState(false);
-    const [districtSearch, setDistrictSearch] = useState('');
+    const [loading, setLoading] = useState(true);
     const [selectedPayment, setSelectedPayment] = useState<PropertyPartner['latestPayment'] | null>(null);
-    const [showReraImport, setShowReraImport] = useState(false);
     const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3102';
 
 
@@ -112,24 +106,7 @@ export default function CentralAuthorityDashboardPage() {
     };
 
 
-    const fetchDistrictCounts = async (search?: string) => {
-        if (!token) return;
-        setFetchingCounts(true);
-        try {
-            const counts = await reraService.getDistrictCounts(token, undefined, search);
-            setDistrictCounts(counts);
-        } catch (error) {
-            console.error('Failed to fetch district counts:', error);
-        } finally {
-            setFetchingCounts(false);
-        }
-    };
 
-    useEffect(() => {
-        if (token) {
-            fetchDistrictCounts(districtSearch);
-        }
-    }, [token, districtSearch]);
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -390,123 +367,7 @@ export default function CentralAuthorityDashboardPage() {
             </div>
 
 
-            {/* RERA District-wise Counts Section */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
-                <div className="flex justify-between items-center mb-6">
-                    <div>
-                        <h2 className="text-xl font-bold text-gray-900">RERA District-wise Projects</h2>
-                        <div className="flex items-center gap-4 mt-1">
-                            <p className="text-sm text-gray-500">Total registered projects per district (from RERA portals)</p>
-                            <div className="h-4 w-[1px] bg-gray-200"></div>
-                            <div className="relative">
-                                <input
-                                    type="text"
-                                    placeholder="Filter district..."
-                                    value={districtSearch}
-                                    onChange={(e) => setDistrictSearch(e.target.value)}
-                                    className="text-xs border border-gray-200 rounded-full px-3 py-1 bg-gray-50/50 focus:bg-white focus:ring-2 focus:ring-blue-500/10 focus:border-blue-400 outline-none transition-all w-40"
-                                />
-                                {districtSearch && (
-                                    <button
-                                        onClick={() => setDistrictSearch('')}
-                                        className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                                    >
-                                        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <button
-                            onClick={() => setShowReraImport(!showReraImport)}
-                            className={`text-sm font-semibold flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${showReraImport
-                                ? 'bg-orange-50 text-orange-600 border border-orange-100'
-                                : 'bg-blue-50 text-blue-600 border border-blue-100 hover:bg-blue-100'
-                                }`}
-                        >
-                            <svg className={`w-4 h-4 transition-transform ${showReraImport ? 'rotate-45' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                            {showReraImport ? 'Close Importer' : 'Import RERA Data'}
-                        </button>
-                        <Link
-                            href="/dashboard/rera-counts"
-                            className="text-sm font-semibold text-blue-600 hover:text-blue-800 flex items-center gap-1"
-                        >
-                            View Details
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                            </svg>
-                        </Link>
-                    </div>
-                </div>
 
-                {showReraImport && (
-                    <div className="mb-8 p-6 bg-slate-50 rounded-2xl border border-slate-100 animate-in slide-in-from-top-4 duration-300">
-                        <ReraImportSection />
-                    </div>
-                )}
-
-                <div className="overflow-x-auto min-h-[200px]">
-                    {fetchingCounts ? (
-                        <div className="flex items-center justify-center p-12">
-                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                        </div>
-                    ) : (
-                        <table className="w-full text-left border-collapse">
-                            <thead>
-                                <tr className="border-b border-gray-100 text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-                                    <th className="px-4 py-3">District Name</th>
-                                    <th className="px-4 py-3">State</th>
-                                    <th className="px-4 py-3 text-center">Project Count</th>
-                                    <th className="px-4 py-3 text-right">Last Updated</th>
-                                </tr>
-                            </thead>
-                            <tbody className="divide-y divide-gray-50">
-                                {districtCounts.slice(0, 5).map((item) => (
-                                    <tr key={item.id} className="text-sm group hover:bg-gray-50 transition-colors">
-                                        <td className="px-4 py-4 font-bold text-gray-900">
-                                            {item.district}
-                                        </td>
-                                        <td className="px-4 py-4 text-gray-600">{item.state}</td>
-                                        <td className="px-4 py-4 text-center">
-                                            <span className="bg-blue-50 text-blue-700 font-bold px-3 py-1 rounded-lg">
-                                                {item.projectCount.toLocaleString()}
-                                            </span>
-                                        </td>
-                                        <td className="px-4 py-4 text-right text-gray-400 text-xs">
-                                            {new Date(item.updatedAt).toLocaleDateString()}
-                                        </td>
-                                    </tr>
-                                ))}
-                                {districtCounts.length === 0 && (
-                                    <tr>
-                                        <td colSpan={4} className="px-4 py-8 text-center text-gray-500 italic">
-                                            No RERA data synchronized yet. Go to scraper to sync.
-                                        </td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
-                    )}
-                </div>
-                {districtCounts.length > 5 && (
-                    <div className="mt-4 pt-4 border-t border-gray-50">
-                        <Link
-                            href="/dashboard/rera-counts"
-                            className="text-xs font-bold text-blue-600 hover:text-blue-800 uppercase tracking-wider flex items-center justify-center gap-1"
-                        >
-                            View All {districtCounts.length} Districts
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                            </svg>
-                        </Link>
-                    </div>
-                )}
-            </div>
 
             {/* Bank Management Section */}
             <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
@@ -615,7 +476,7 @@ export default function CentralAuthorityDashboardPage() {
                     </div>
                 </Link>
 
-                <Link href="/dashboard/listing-requests" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-teal-300 transition-all hover:shadow-md group">
+                <Link href="/central-authority/listing-requests" className="block bg-white p-6 rounded-xl shadow-sm border border-gray-100 hover:border-teal-300 transition-all hover:shadow-md group">
                     <div className="flex items-center gap-3 mb-3">
                         <div className="w-10 h-10 rounded-lg bg-teal-50 flex items-center justify-center group-hover:bg-teal-100 transition-colors">
                             <svg className="w-5 h-5 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -623,12 +484,12 @@ export default function CentralAuthorityDashboardPage() {
                             </svg>
                         </div>
                         <div>
-                            <h3 className="text-sm font-semibold text-gray-900 group-hover:text-teal-600 transition-colors">Listing Requests</h3>
-                            <p className="text-xs text-gray-500">{stats.projects.pending} Pending Approval</p>
+                            <h3 className="text-sm font-semibold text-gray-900 group-hover:text-teal-600 transition-colors">All Projects</h3>
+                            <p className="text-xs text-gray-500">{stats.projects.total} Total Projects</p>
                         </div>
                     </div>
                     <div className="text-xs font-semibold text-teal-600 flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                        Review Requests
+                        View Projects
                         <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                         </svg>
