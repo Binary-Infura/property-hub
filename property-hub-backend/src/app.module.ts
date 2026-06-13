@@ -13,7 +13,6 @@ import { PropertyPartnersModule } from './modules/roles/property-partners/proper
 
 import { CentralAuthorityModule } from './modules/roles/central-authority/central-authority.module';
 import { LoanPartnersModule } from './modules/roles/loan-partners/loan-partners.module';
-import { ChatModule } from './modules/chat/chat.module';
 import { DatabaseModule } from './database/database.module';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { UploadsModule } from './modules/uploads/uploads.module';
@@ -62,7 +61,6 @@ import { join } from 'path';
         LoanPartnersModule,
 
         CentralAuthorityModule,
-        ChatModule,
         UploadsModule,
         MarketingModule,
         AdsRequestsModule,

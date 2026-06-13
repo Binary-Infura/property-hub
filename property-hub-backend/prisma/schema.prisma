@@ -463,33 +463,7 @@ model Follow {
   @@map("follows")
 }
 
-model ChatSession {
-  id           String            @id @default(uuid())
-  channelType  String            @default("DIRECT")
-  contextType  String?
-  contextId    String?
-  status       String            @default("active")
-  createdAt    DateTime          @default(now())
-  updatedAt    DateTime          @updatedAt
-  participants ChatParticipant[]
 
-  @@index([contextType, contextId])
-  @@map("chat_sessions")
-}
-
-model ChatParticipant {
-  id            String      @id @default(uuid())
-  chatSessionId String
-  userId        String
-  role          String
-  joinedAt      DateTime    @default(now())
-  lastReadAt    DateTime?
-  chatSession   ChatSession @relation(fields: [chatSessionId], references: [id], onDelete: Cascade)
-
-  @@unique([chatSessionId, userId])
-  @@index([userId])
-  @@map("chat_participants")
-}
 
 model City {
   id        String    @id @default(uuid())

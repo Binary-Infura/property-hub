@@ -546,30 +546,7 @@ async function main() {
         }
     });
 
-    // --- 17. Chats ---
-    console.log('   Creating Chat Sessions...');
-    const existingChat = await prisma.chatSession.findFirst({
-        where: {
-            participants: {
-                some: { userId: superUser.id }
-            }
-        }
-    });
-    if (!existingChat) {
-        await prisma.chatSession.create({
-            data: {
-                channelType: 'DIRECT',
-                participants: {
-                    create: [
-                        { userId: superUser.id, role: 'ADMIN' },
-                        { userId: buyerUser.id, role: 'MEMBER' },
-                    ]
-                }
-            }
-        });
-    }
-
-    // --- 18. RERA & Sync Logs ---
+    // --- 17. RERA & Sync Logs ---
     console.log('   Creating RERA and Sync data...');
     await prisma.reraProject.upsert({
         where: { reraNumber: 'PRM/KA/RERA/1251/310/PR/170915/000213' },

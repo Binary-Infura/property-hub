@@ -10,8 +10,6 @@ async function main() {
         'ActivityLog',
         'AdsRequest',
         'CallLog',
-        'ChatParticipant',
-        'ChatSession',
         'Commission',
         'Follow',
         'Invitation',
