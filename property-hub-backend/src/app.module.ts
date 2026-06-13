@@ -27,14 +27,12 @@ import { BanksModule } from './modules/banks/banks.module';
 import { ReelsModule } from './modules/reels/reels.module';
 import { InstagramModule } from './modules/instagram/instagram.module';
 import { LoansModule } from './modules/loans/loans.module';
-import { LivekitModule } from './modules/livekit/livekit.module';
 import { ReviewsModule } from './modules/reviews/reviews.module';
 import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 import { MailModule } from './modules/mail/mail.module';
 import { InvitationsModule } from './modules/invitations/invitations.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { TowersModule } from './modules/towers/towers.module';
-import { CallingModule } from './modules/calling/calling.module';
 import { OtpModule } from './modules/otp/otp.module';
 import { BankBranchesModule } from './modules/bank-branches/bank-branches.module';
 import { ScheduleModule } from '@nestjs/schedule';
@@ -73,8 +71,6 @@ import { join } from 'path';
         ReelsModule,
         InstagramModule,
         LoansModule,
-        CallingModule,
-        LivekitModule,
         ReviewsModule,
         WhatsappModule,
         MailModule,

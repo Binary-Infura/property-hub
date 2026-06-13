@@ -7,10 +7,9 @@ import {
     Param,
     Delete,
     UseGuards,
-    Query,
 } from '@nestjs/common';
 import { LeadsService } from './leads.service';
-import { CreateLeadDto, UpdateLeadDto, SendVideoCallLinkDto } from './leads.dto';
+import { CreateLeadDto, UpdateLeadDto } from './leads.dto';
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../../auth/guards/roles.guard';
 import { RequireRoles } from '../../common/decorators/require-roles.decorator';
@@ -28,26 +27,6 @@ export class LeadsController {
         private readonly leadsService: LeadsService,
         private readonly leadNotesService: LeadNotesService
     ) { }
-    // Call Logs
-    @Get('calls/history')
-    @RequireRoles( UserRole.CENTRAL_AUTHORITY)
-    getCallLogs(
-        @CurrentUser() user: AuthenticatedUser,
-        @Query('consultantId') consultantId?: string,
-        @Query('projectId') projectId?: string
-    ) {
-        return this.leadsService.getCallLogs(user, undefined, consultantId, projectId);
-    }
-
-    @Get(':id/calls')
-    @RequireRoles( UserRole.CENTRAL_AUTHORITY)
-    getLeadCallLogs(
-        @Param('id') id: string,
-        @CurrentUser() user: AuthenticatedUser
-    ) {
-        return this.leadsService.getCallLogs(user, id);
-    }
-
 
     @Get(':id')
     @RequireRoles(UserRole.CENTRAL_AUTHORITY)
@@ -60,7 +39,7 @@ export class LeadsController {
 
     // Lead Notes
     @Post(':id/notes')
-    @RequireRoles( UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER)
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER)
     addNote(
         @Param('id') id: string,
         @Body() dto: CreateLeadNoteDto,
@@ -70,13 +49,13 @@ export class LeadsController {
     }
 
     @Get(':id/notes')
-    @RequireRoles( UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER)
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER)
     getNotes(@Param('id') id: string) {
         return this.leadNotesService.findByLead(id);
     }
 
     @Delete(':id/notes/:noteId')
-    @RequireRoles( UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER)
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.LOAN_PARTNER)
     removeNote(
         @Param('noteId') noteId: string,
         @CurrentUser() user: AuthenticatedUser,
@@ -133,33 +112,5 @@ export class LeadsController {
         @CurrentUser() user: AuthenticatedUser
     ) {
         return this.leadsService.remove(id, user);
-    }
-
-    @Post(':id/call')
-    @RequireRoles()
-    initiateCall(
-        @Param('id') id: string,
-        @CurrentUser() user: AuthenticatedUser,
-    ) {
-        return this.leadsService.initiateCall(id, user);
-    }
-
-    @Post(':id/send-video-link')
-    @RequireRoles()
-    sendVideoCallLink(
-        @Param('id') id: string,
-        @Body() dto: SendVideoCallLinkDto,
-        @CurrentUser() user: AuthenticatedUser,
-    ) {
-        return this.leadsService.sendVideoCallLink(id, dto, user);
-    }
-
-    @Post(':id/generate-video-room')
-    @RequireRoles()
-    generateVideoRoom(
-        @Param('id') id: string,
-        @CurrentUser() user: AuthenticatedUser,
-    ) {
-        return this.leadsService.generateVideoCallRoom(id, user);
     }
 }

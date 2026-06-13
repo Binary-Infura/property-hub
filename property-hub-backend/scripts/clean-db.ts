@@ -9,7 +9,6 @@ async function main() {
     const modelNames = [
         'ActivityLog',
         'AdsRequest',
-        'CallLog',
         'Commission',
         'Follow',
         'Invitation',

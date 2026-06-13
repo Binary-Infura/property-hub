@@ -174,20 +174,8 @@ export default function LeadsPage() {
                                     <td className="px-8 py-6 whitespace-nowrap text-sm text-slate-500 font-medium">
                                         {new Date(lead.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                                     </td>
-                                    <td className="px-8 py-6 whitespace-nowrap text-right text-sm space-y-3">
+                                    <td className="px-8 py-6 whitespace-nowrap text-right text-sm">
                                         <div className="flex flex-col items-end gap-2">
-                                            <Link
-                                                href={`/property-partner/call/${lead.id}?leadName=${encodeURIComponent(lead.name || 'Buyer Lead')}`}
-                                                className="inline-flex items-center justify-center px-4 py-2 bg-emerald-600 text-white rounded-2xl uppercase tracking-[0.18em] text-[10px] font-black hover:bg-emerald-700 transition"
-                                            >
-                                                Call
-                                            </Link>
-                                            <Link
-                                                href={`/property-partner/call/${lead.id}?leadName=${encodeURIComponent(lead.name || 'Buyer Lead')}`}
-                                                className="inline-flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-2xl uppercase tracking-[0.18em] text-[10px] font-black hover:bg-blue-700 transition"
-                                            >
-                                                Video Call
-                                            </Link>
                                             <Link
                                                 href={`/property-partner/leads/${lead.id}`}
                                                 className="inline-flex items-center justify-center px-4 py-2 bg-slate-100 text-slate-700 rounded-2xl uppercase tracking-[0.18em] text-[10px] font-black hover:bg-slate-200 transition"

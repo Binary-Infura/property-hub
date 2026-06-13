@@ -200,9 +200,7 @@ model Lead {
   updatedAt      DateTime           @updatedAt
   campaignId     String?
   projectId      String?
-  videoCallRoom  String?
   activityLogs      ActivityLog[]
-  callLogs          CallLog[]
   leadNotes         LeadNote[]
   assignedToUser    User?                  @relation("LeadAssignee", fields: [assignedTo], references: [id])
   campaign          MarketingCampaign?     @relation(fields: [campaignId], references: [id])
@@ -235,23 +233,8 @@ model LeadNote {
 }
 
 
-model CallLog {
-  id           String    @id @default(uuid())
-  sid          String?   @unique
-  leadId       String
-  status       String?
-  duration     Int?
-  recordingUrl String?
-  startTime    DateTime  @default(now())
-  endTime      DateTime?
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
-  lead         Lead      @relation(fields: [leadId], references: [id], onDelete: Cascade)
 
-  @@index([leadId])
-  @@index([sid])
-  @@map("call_logs")
-}
+
 
 // Flow 1: Buyer Loan Applications
 // Created when a buyer submits a loan requirement linked to a Lead.

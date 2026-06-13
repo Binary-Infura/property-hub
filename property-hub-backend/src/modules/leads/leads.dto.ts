@@ -82,14 +82,6 @@ export class BulkCreateLeadsDto {
     leads: CreateLeadDto[];
 }
 
-export class SendVideoCallLinkDto {
-    @IsString()
-    channel: 'email' | 'whatsapp';
-
-    @IsString()
-    @IsOptional()
-    videoRoomName?: string;
-}
 
 export class SendCommunicationResponse {
     success: boolean;

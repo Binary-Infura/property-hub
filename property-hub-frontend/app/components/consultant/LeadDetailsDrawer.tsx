@@ -12,17 +12,13 @@ interface LeadDetailsDrawerProps {
 }
 
 export default function LeadDetailsDrawer({ lead, token, onClose, onStatusUpdate }: LeadDetailsDrawerProps) {
-    const [activeTab, setActiveTab] = useState<'notes' | 'calls' | 'info' | 'activity'>('notes');
+    const [activeTab, setActiveTab] = useState<'notes' | 'info' | 'activity'>('notes');
     const [notes, setNotes] = useState<LeadNote[]>([]);
-    const [calls, setCalls] = useState<any[]>([]);
     const [activities, setActivities] = useState<any[]>([]);
     const [loading, setLoading] = useState(false);
-    const [generatingLink, setGeneratingLink] = useState(false);
-    const [videoLink, setVideoLink] = useState(lead?.videoCallRoom ? `${window.location.origin}/consultant/call/${lead.videoCallRoom}?leadName=${encodeURIComponent(lead.name || 'Guest')}` : '');
     const [newNote, setNewNote] = useState('');
     const [newCategory, setNewCategory] = useState('GENERAL');
     const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
-    const [sendingLink, setSendingLink] = useState<'email' | 'whatsapp' | null>(null);
 
     useEffect(() => {
         if (!lead || !token) return;
@@ -32,13 +28,11 @@ export default function LeadDetailsDrawer({ lead, token, onClose, onStatusUpdate
     async function fetchData() {
         setLoading(true);
         try {
-            const [fetchedNotes, fetchedCalls, fetchedActivities] = await Promise.all([
+            const [fetchedNotes, fetchedActivities] = await Promise.all([
                 leadNoteService.getNotes(token, lead.id),
-                consultantService.getLeadCallLogs(token, lead.id),
                 consultantService.getLeadActivities(token, lead.id)
             ]);
             setNotes(fetchedNotes);
-            setCalls(fetchedCalls);
             setActivities(fetchedActivities);
         } catch (error) {
             console.error('Error fetching lead details:', error);
@@ -66,39 +60,6 @@ export default function LeadDetailsDrawer({ lead, token, onClose, onStatusUpdate
             await onStatusUpdate(lead.id, status);
         } finally {
             setIsUpdatingStatus(false);
-        }
-    };
-
-    const handleSendVideoLink = async (channel: 'email' | 'whatsapp') => {
-        setSendingLink(channel);
-        try {
-            await consultantService.sendVideoCallLink(token, lead.id, channel);
-            alert(`Video call link sent via ${channel} successfully!`);
-            // Refresh activity
-            const fetchedActivities = await consultantService.getLeadActivities(token, lead.id);
-            setActivities(fetchedActivities);
-        } catch (error) {
-            console.error(`Error sending video link via ${channel}:`, error);
-            alert(`Failed to send video link via ${channel}`);
-        } finally {
-            setSendingLink(null);
-        }
-    };
-
-    const handleGenerateVideoRoom = async () => {
-        setGeneratingLink(true);
-        try {
-            const result = await consultantService.generateVideoRoom(token, lead.id);
-            setVideoLink(result.videoCallLink);
-            // Refresh activity after generating
-            const fetchedActivities = await consultantService.getLeadActivities(token, lead.id);
-            setActivities(fetchedActivities);
-            alert('Video room generated successfully!');
-        } catch (error) {
-            console.error('Error generating video room:', error);
-            alert('Failed to generate video room');
-        } finally {
-            setGeneratingLink(false);
         }
     };
 
@@ -173,12 +134,6 @@ export default function LeadDetailsDrawer({ lead, token, onClose, onStatusUpdate
                     Timeline & Notes
                 </button>
                 <button
-                    onClick={() => setActiveTab('calls')}
-                    className={`flex-1 py-4 text-sm font-bold uppercase tracking-wider transition-colors ${activeTab === 'calls' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/30' : 'text-gray-400 hover:text-gray-600'}`}
-                >
-                    Calls
-                </button>
-                <button
                     onClick={() => setActiveTab('activity')}
                     className={`flex-1 py-4 text-sm font-bold uppercase tracking-wider transition-colors ${activeTab === 'activity' ? 'text-blue-600 border-b-2 border-blue-600 bg-blue-50/30' : 'text-gray-400 hover:text-gray-600'}`}
                 >
@@ -248,34 +203,6 @@ export default function LeadDetailsDrawer({ lead, token, onClose, onStatusUpdate
                     </div>
                 )}
 
-                {activeTab === 'calls' && (
-                    <div className="space-y-4">
-                        {loading ? (
-                            <div className="text-center py-10 text-gray-400 animate-pulse">Syncing call history...</div>
-                        ) : calls.length === 0 ? (
-                            <div className="text-center py-10 text-gray-400 italic">No call history found.</div>
-                        ) : (
-                            calls.map(call => (
-                                <div key={call.id} className="bg-white p-4 rounded-2xl border border-gray-100 shadow-sm flex items-center justify-between">
-                                    <div className="flex items-center gap-4">
-                                        <div className={`h-10 w-10 rounded-full flex items-center justify-center ${call.status === 'completed' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'}`}>
-                                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M6.62 10.79a15.05 15.05 0 006.59 6.59l2.2-2.2a1 1 0 011.01-.24c1.12.45 2.33.7 3.58.7a1 1 0 011 1V20a1 1 0 01-1 1C10.61 21 3 13.39 3 4a1 1 0 011-1h3.5a1 1 0 011 1c0 1.25.25 2.45.7 3.57a1 1 0 01-.24 1.01l-2.34 2.21z" /></svg>
-                                        </div>
-                                        <div>
-                                            <p className="text-sm font-bold text-gray-900">{call.status.toUpperCase()}</p>
-                                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{formatDate(call.createdAt)} • {call.duration || 0}s</p>
-                                        </div>
-                                    </div>
-                                    {call.recordingUrl && (
-                                        <a href={call.recordingUrl} target="_blank" rel="noopener noreferrer" className="p-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors">
-                                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                        </a>
-                                    )}
-                                </div>
-                            ))
-                        )}
-                    </div>
-                )}
                 {activeTab === 'info' && (
                     <div className="space-y-6">
                         <section>
@@ -311,64 +238,6 @@ export default function LeadDetailsDrawer({ lead, token, onClose, onStatusUpdate
                                     <span className="text-sm text-gray-500">Platform</span>
                                     <span className="text-sm font-bold text-gray-900">{lead.platform || 'N/A'}</span>
                                 </div>
-                            </div>
-                        </section>
-
-                        <section>
-                            <h4 className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-400 mb-2">Video Consultation</h4>
-                            <div className="bg-blue-50 rounded-2xl p-4 border border-blue-100 space-y-3">
-                                {videoLink ? (
-                                    <>
-                                        <div className="text-xs text-blue-800 font-medium">Existing Room Link:</div>
-                                        <div className="bg-white p-2 rounded border border-blue-200 text-[10px] font-mono break-all text-blue-600">
-                                            {videoLink}
-                                        </div>
-                                        <div className="flex gap-2">
-                                            <button 
-                                                onClick={() => window.open(videoLink, '_blank')}
-                                                className="flex-1 py-2 bg-blue-600 text-white rounded-lg text-xs font-bold hover:bg-blue-700 transition-colors"
-                                            >
-                                                Open Room
-                                            </button>
-                                            <button 
-                                                onClick={() => {
-                                                    navigator.clipboard.writeText(videoLink);
-                                                    alert('Link copied to clipboard!');
-                                                }}
-                                                className="px-3 py-2 bg-white text-blue-600 border border-blue-200 rounded-lg text-xs font-bold hover:bg-blue-50 transition-colors"
-                                            >
-                                                Copy
-                                            </button>
-                                        </div>
-                                        <div className="grid grid-cols-2 gap-2 mt-2">
-                                            <button 
-                                                onClick={() => handleSendVideoLink('email')}
-                                                disabled={sendingLink !== null}
-                                                className="py-2 bg-blue-50 text-blue-700 rounded-lg text-xs font-bold hover:bg-blue-100 transition-colors flex items-center justify-center gap-2"
-                                            >
-                                                {sendingLink === 'email' ? 'Sending...' : 'Send Email'}
-                                            </button>
-                                            <button 
-                                                onClick={() => handleSendVideoLink('whatsapp')}
-                                                disabled={sendingLink !== null}
-                                                className="py-2 bg-green-50 text-green-700 rounded-lg text-xs font-bold hover:bg-green-100 transition-colors flex items-center justify-center gap-2"
-                                            >
-                                                {sendingLink === 'whatsapp' ? 'Sending...' : 'Send WhatsApp'}
-                                            </button>
-                                        </div>
-                                    </>
-                                ) : (
-                                    <div className="text-center space-y-3">
-                                        <p className="text-xs text-blue-700 italic">No video room generated yet for this buyer.</p>
-                                        <button 
-                                            onClick={handleGenerateVideoRoom}
-                                            disabled={generatingLink}
-                                            className="w-full py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 disabled:bg-blue-300 transition-all shadow-md shadow-blue-100"
-                                        >
-                                            {generatingLink ? 'Generating...' : 'Generate Video Room Link'}
-                                        </button>
-                                    </div>
-                                )}
                             </div>
                         </section>
                     </div>

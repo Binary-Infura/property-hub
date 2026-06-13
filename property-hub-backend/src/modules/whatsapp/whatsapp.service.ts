@@ -54,20 +54,6 @@ export class WhatsappService {
         }
     }
 
-    /**
-     * Specialized function to send video call invitation
-     */
-    async sendVideoCallLink(phoneNumber: string, leadName: string, videoCallLink: string) {
-        const message = `Hi ${leadName},\n\nYou are invited to a video call based on your property inquiry. Please join using the following link:\n\n${videoCallLink}\n\nThank you!`;
-
-        const result = await this.sendMessage(phoneNumber, message);
-
-        if (!result.success) {
-            throw new InternalServerErrorException(result.error);
-        }
-
-        return result;
-    }
 
     private formatPhoneNumber(phoneNumber: string): string {
         let cleanPhone = phoneNumber.replace(/[^0-9]/g, '');

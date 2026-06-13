@@ -1,23 +1,18 @@
-import { Injectable, NotFoundException, BadRequestException, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../database/prisma.service';
-import { CreateLeadDto, UpdateLeadDto, SendVideoCallLinkDto } from './leads.dto';
+import { CreateLeadDto, UpdateLeadDto } from './leads.dto';
 import { Lead } from '@prisma/client';
 import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface';
 import { UserRole } from '../../common/enums/role.enum';
-import { CallingService } from '../calling/calling.service';
-import { ConfigService } from '@nestjs/config';
 import { WhatsappService } from '../whatsapp/whatsapp.service';
 import { MailService } from '../mail/mail.service';
 import { ActivityLogsService } from '../activity-logs/activity-logs.service';
 import { OtpService } from '../otp/otp.service';
-import axios from 'axios';
 
 @Injectable()
 export class LeadsService {
     constructor(
         private prisma: PrismaService,
-        private callingService: CallingService,
-        private configService: ConfigService,
         private whatsappService: WhatsappService,
         private mailService: MailService,
         private activityLogsService: ActivityLogsService,
@@ -66,64 +61,6 @@ export class LeadsService {
         });
     }
 
-    async getCallLogs(user: AuthenticatedUser, leadId?: string, consultantId?: string, projectId?: string) {
-        const isCentralAuthority = user.roles.includes(UserRole.CENTRAL_AUTHORITY);
-
-        // 1. Fetch incomplete calls for this user/lead
-        // For central authority, they can see everything unless they filter.
-        // For others, they only see their own calls.
-        const incompleteCalls = await this.prisma.callLog.findMany({
-            where: {
-                ...(isCentralAuthority ? (consultantId ? { consultantId } : {}) : {  }),
-                ...(leadId ? { leadId } : {}),
-                ...(projectId ? { lead: { projectId } } : {}),
-                OR: [{ status: 'queued' }, { status: 'in-progress' }, { status: null }]
-            }
-        });
-
-        // 2. Sync them with Exotel API
-        if (incompleteCalls.length > 0) {
-            await Promise.all(incompleteCalls.map(async (call) => {
-                if (!call.sid) return;
-                try {
-                    const details = await this.callingService.syncCallDetails(call.sid);
-                    if (details && details.Status !== call.status) {
-                        await this.prisma.callLog.update({
-                            where: { id: call.id },
-                            data: {
-                                status: details.Status,
-                                recordingUrl: details.RecordingUrl || null,
-                                duration: details.Duration ? parseInt(details.Duration) : null,
-                                endTime: details.EndTime ? new Date(details.EndTime) : null,
-                            }
-                        });
-                    }
-                } catch (error) {
-                    // Log error and continue with other calls
-                    console.error(`Failed to sync call log ${call.sid}:`, error);
-                }
-            }));
-        }
-
-        // 3. Return the fully synced logs
-        return this.prisma.callLog.findMany({
-            where: {
-                ...(isCentralAuthority ? (consultantId ? { consultantId } : {}) : {  }),
-                ...(leadId ? { leadId } : {}),
-                ...(projectId ? { lead: { projectId } } : {}),
-            },
-            include: {
-                lead: {
-                    include: {
-                        project: true
-                    }
-                },
-
-            },
-            orderBy: { createdAt: 'desc' },
-        });
-    }
-
     async findOne(id: string, user: AuthenticatedUser): Promise<Lead> {
         const lead = await this.prisma.lead.findUnique({
             where: { id },
@@ -136,7 +73,7 @@ export class LeadsService {
             throw new NotFoundException(`Lead with ID ${id} not found`);
         }
 
-        // Authorization check: only central-authority, marketing-manager, and the assigned consultant can access the lead
+        // Authorization check: only central-authority and the assigned consultant can access the lead
         const isCentralAuthority = user.roles.includes(UserRole.CENTRAL_AUTHORITY);
         const isPropertyPartner = user.roles.includes(UserRole.PROPERTY_PARTNER);
         const isAssignedConsultant = lead.assignedTo === user.userId;
@@ -261,251 +198,5 @@ export class LeadsService {
         return this.prisma.lead.delete({
             where: { id },
         });
-    }
-
-    async initiateCall(id: string, user: AuthenticatedUser) {
-        try {
-            // Get the lead without authorization check (check separately for calls)
-            const lead = await this.prisma.lead.findUnique({
-                where: { id },
-                include: {
-                    project: true,
-                },
-            });
-
-            if (!lead) {
-                console.warn(`Lead not found: ${id}`);
-                throw new NotFoundException(`Lead with ID ${id} not found`);
-            }
-
-            // Authorization check specific to calls: consultants can call leads assigned to them or unassigned leads
-            const isCentralAuthority = user.roles?.includes(UserRole.CENTRAL_AUTHORITY);
-            const isConsultant = false;
-            const isAssignedConsultant = lead.assignedTo === user.userId;
-            const isUnassignedLead = !lead.assignedTo;
-
-            console.log(`Call authorization check - userId: ${user.userId}, roles: ${user.roles}, lead.assignedTo: ${lead.assignedTo}`);
-
-            // Only allow:
-            // 1. Central authority or marketing managers (any lead)
-            // 2. Assigned consultant (their assigned lead)
-            // 3. Any consultant calling an unassigned lead
-            if (!isCentralAuthority && !(isConsultant && (isAssignedConsultant || isUnassignedLead))) {
-                console.warn(`Authorization failed for user ${user.userId} calling lead ${id}`);
-                throw new NotFoundException(`Lead with ID ${id} not found`);
-            }
-
-            if (!lead.phone) {
-                throw new BadRequestException('Lead does not have a phone number');
-            }
-
-            // Get consultant phone from user profile (fallback to organization phone)
-            const consultant = await this.prisma.user.findUnique({
-                where: { id: user.userId },
-                include: { organization: true }
-            });
-
-            if (!consultant) {
-                console.error(`Consultant profile not found for user ${user.userId}`);
-                throw new InternalServerErrorException('Consultant profile not found');
-            }
-
-            const consultantPhone = consultant.phone || consultant.organization?.phone;
-
-            if (!consultantPhone) {
-                console.warn(`No phone number found for consultant ${user.userId}`);
-                throw new BadRequestException('Consultant does not have a phone number configured in their profile. Please update your profile.');
-            }
-
-            console.log(`Initiating call for lead ${id} from consultant ${user.userId}`);
-            return await this.callingService.initiateCall({
-                from: consultantPhone,
-                to: lead.phone,
-                leadId: lead.id,
-                
-            });
-        } catch (error) {
-            console.error('Call initiation error:', error);
-            // Re-throw if it's already an HTTP exception
-            if (error.status) {
-                throw error;
-            }
-            // Otherwise wrap in InternalServerErrorException
-            throw new InternalServerErrorException(`Failed to initiate call: ${error.message || 'Unknown error'}`);
-        }
-    }
-
-    async sendVideoCallLink(id: string, dto: SendVideoCallLinkDto, user: AuthenticatedUser) {
-        try {
-            // Get the lead
-            const lead = await this.prisma.lead.findUnique({
-                where: { id },
-                include: {
-                    project: true,
-                    assignedToUser: true,
-                },
-            });
-
-            if (!lead) {
-                throw new NotFoundException(`Lead with ID ${id} not found`);
-            }
-
-            // Authorization check
-            const isCentralAuthority = user.roles?.includes(UserRole.CENTRAL_AUTHORITY);
-            const isConsultant = false;
-            const isAssignedConsultant = lead.assignedTo === user.userId;
-            const isUnassignedLead = !lead.assignedTo;
-
-            if (!isCentralAuthority && !(isConsultant && (isAssignedConsultant || isUnassignedLead))) {
-                throw new NotFoundException(`Lead with ID ${id} not found`);
-            }
-
-            // Validate contact info
-            if (dto.channel === 'email' && !lead.email) {
-                throw new BadRequestException('Lead does not have an email address');
-            }
-            if (dto.channel === 'whatsapp' && !lead.phone) {
-                throw new BadRequestException('Lead does not have a phone number');
-            }
-
-            // Get consultant info
-            const consultant = await this.prisma.user.findUnique({
-                where: { id: user.userId },
-            });
-
-            if (!consultant) {
-                throw new InternalServerErrorException('Consultant profile not found');
-            }
-
-            // Strictly use leadId as the persistent room name
-            const videoRoomName = lead.id;
-            if (lead.videoCallRoom !== videoRoomName) {
-                // Update it in lead so it's consistent across all channels
-                await this.prisma.lead.update({
-                    where: { id },
-                    data: { videoCallRoom: videoRoomName }
-                });
-            }
-
-            const videoCallLink = `${this.configService.get('APP_URL') || 'http://localhost:3101'}/join-call/${videoRoomName}?leadName=${encodeURIComponent(lead.name || 'Guest')}`;
-
-            // Log the communication in Lead notes
-            await this.prisma.lead.update({
-                where: { id },
-                data: {
-                    notes: (lead.notes || '') + `\n[${new Date().toISOString()}] Video call link sent via ${dto.channel}: ${videoCallLink}`,
-                },
-            });
-
-            if (dto.channel === 'whatsapp' && lead.phone) {
-                const whatsappResponse = await this.whatsappService.sendVideoCallLink(
-                    lead.phone,
-                    lead.name || 'Guest',
-                    videoCallLink
-                );
-
-                if (!whatsappResponse.success) {
-                    throw new BadRequestException('Failed to send WhatsApp message');
-                }
-
-                // Log Activity
-                const log = await this.activityLogsService.log({
-                    userId: user.userId,
-                    type: 'info',
-                    action: 'Sent Video Call Link (WhatsApp)',
-                    target: lead.name,
-                    details: { channel: 'whatsapp', videoCallLink }
-                });
-
-                // Link to lead
-                await this.prisma.activityLog.update({
-                    where: { id: log.id },
-                    data: { leadId: lead.id }
-                });
-            }
-
-            if (dto.channel === 'email' && lead.email) {
-                const mailResponse = await this.mailService.sendVideoCallInvitation(
-                    lead.email,
-                    lead.name || 'Guest',
-                    videoCallLink
-                );
-
-                if (!mailResponse.success) {
-                    throw new BadRequestException(`Failed to send email: ${mailResponse.error}`);
-                }
-
-                 // Log Activity
-                 const log = await this.activityLogsService.log({
-                    userId: user.userId,
-                    type: 'info',
-                    action: 'Sent Video Call Link (Email)',
-                    target: lead.name,
-                    details: { channel: 'email', videoCallLink }
-                });
-
-                // Link to lead
-                await this.prisma.activityLog.update({
-                    where: { id: log.id },
-                    data: { leadId: lead.id }
-                });
-            }
-
-            return {
-                success: true,
-                message: `Video call link sent successfully for ${dto.channel}`,
-                videoCallLink: videoCallLink,
-            };
-        } catch (error) {
-            console.error('Send video call link error:', error);
-            if (error.status) {
-                throw error;
-            }
-            throw new InternalServerErrorException(
-                `Failed to send video call link: ${error.message || 'Unknown error'}`
-            );
-        }
-    }
-
-    async generateVideoCallRoom(id: string, user: AuthenticatedUser) {
-        const lead = await this.prisma.lead.findUnique({
-            where: { id },
-        });
-
-        if (!lead) {
-            throw new NotFoundException(`Lead with ID ${id} not found`);
-        }
-
-        // Strictly use leadId as the persistent room name
-        const videoRoomName = lead.id;
-        if (lead.videoCallRoom !== videoRoomName) {
-            // Save it to lead
-            await this.prisma.lead.update({
-                where: { id },
-                data: { videoCallRoom: videoRoomName }
-            });
-        }
-
-        const videoCallLink = `${this.configService.get('APP_URL') || 'http://localhost:3101'}/join-call/${videoRoomName}?leadName=${encodeURIComponent(lead.name || 'Guest')}`;
-
-        // Log Activity
-        const log = await this.activityLogsService.log({
-            userId: user.userId,
-            type: 'info',
-            action: 'Generated Video Call Room',
-            target: lead.name,
-            details: { videoCallLink }
-        });
-
-        await this.prisma.activityLog.update({
-            where: { id: log.id },
-            data: { leadId: lead.id }
-        });
-
-        return {
-            success: true,
-            videoRoomName,
-            videoCallLink
-        };
     }
 }
