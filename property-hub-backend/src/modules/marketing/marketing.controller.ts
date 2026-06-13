@@ -17,14 +17,14 @@ export class MarketingController {
     constructor(private readonly marketingService: MarketingService) { }
 
     @Post()
-    @RequireRoles(UserRole.GROWTH_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.PROPERTY_PARTNER)
+    @RequireRoles( UserRole.CENTRAL_AUTHORITY, UserRole.PROPERTY_PARTNER)
     @ApiOperation({ summary: 'Create a new marketing campaign' })
     create(@Body() createCampaignDto: CreateCampaignDto) {
         return this.marketingService.create(createCampaignDto);
     }
 
     @Get()
-    @RequireRoles(UserRole.GROWTH_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.PROPERTY_PARTNER)
+    @RequireRoles( UserRole.CENTRAL_AUTHORITY, UserRole.PROPERTY_PARTNER)
     @ApiOperation({ summary: 'Get all marketing campaigns' })
     findAll() {
         return this.marketingService.findAll();
@@ -38,21 +38,21 @@ export class MarketingController {
     }
 
     @Get(':id')
-    @RequireRoles(UserRole.GROWTH_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.PROPERTY_PARTNER)
+    @RequireRoles( UserRole.CENTRAL_AUTHORITY, UserRole.PROPERTY_PARTNER)
     @ApiOperation({ summary: 'Get a marketing campaign by id' })
     findOne(@Param('id') id: string) {
         return this.marketingService.findOne(id);
     }
 
     @Patch(':id')
-    @RequireRoles(UserRole.GROWTH_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.PROPERTY_PARTNER)
+    @RequireRoles( UserRole.CENTRAL_AUTHORITY, UserRole.PROPERTY_PARTNER)
     @ApiOperation({ summary: 'Update a marketing campaign' })
     update(@Param('id') id: string, @Body() updateCampaignDto: UpdateCampaignDto) {
         return this.marketingService.update(id, updateCampaignDto);
     }
 
     @Delete(':id')
-    @RequireRoles(UserRole.GROWTH_PARTNER, UserRole.CENTRAL_AUTHORITY, UserRole.PROPERTY_PARTNER)
+    @RequireRoles( UserRole.CENTRAL_AUTHORITY, UserRole.PROPERTY_PARTNER)
     @ApiOperation({ summary: 'Delete a marketing campaign' })
     remove(@Param('id') id: string) {
         return this.marketingService.remove(id);

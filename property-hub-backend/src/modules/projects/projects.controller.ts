@@ -21,7 +21,7 @@ import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface
 
 @Controller('api/projects')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.PROPERTY_PARTNER, UserRole.BUYER, UserRole.LOAN_PARTNER)
+@RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.PROPERTY_PARTNER, UserRole.BUYER, UserRole.LOAN_PARTNER)
 export class ProjectsController {
     constructor(private readonly projectsService: ProjectsService) { }
 
@@ -39,7 +39,7 @@ export class ProjectsController {
 
     @Get()
     @Public()
-    findAll(
+    async findAll(
         @CurrentUser() user: AuthenticatedUser,
         @Query('city') city?: string,
         @Query('status') status?: string,
@@ -47,7 +47,12 @@ export class ProjectsController {
         @Query('limit') limit: string = '10',
         @Query('search') search?: string,
     ) {
-        return this.projectsService.findAll(user, false, city, status, Number(page), Number(limit), search);
+        try {
+            return await this.projectsService.findAll(user, false, city, status, Number(page), Number(limit), search);
+        } catch (e) {
+            console.error("FINDALL ERROR:", e);
+            throw e;
+        }
     }
 
     @Get(':id')

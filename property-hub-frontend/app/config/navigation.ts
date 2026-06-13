@@ -17,18 +17,8 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Wallet', href: '/dashboard/wallet', icon: 'money' },
         { name: 'Property Partners', href: '/dashboard/property-partners', icon: 'building' },
         { name: 'Loan Partners', href: '/dashboard/loan-partners', icon: 'bank' },
-        { name: 'Growth Partners', href: '/dashboard/growth-partners', icon: 'megaphone' },
 
         { name: 'Team Members', href: '/dashboard/team-members', icon: 'users' },
-        { name: 'Reviews', href: '/dashboard/reviews', icon: 'star' },
-    ],
-    'GROWTH_PARTNER': [
-        { name: 'Dashboard', href: '/dashboard', icon: 'dashboard' },
-        { name: 'Campaigns', href: '/dashboard/campaigns', icon: 'megaphone' },
-        { name: 'Campaign Leads', href: '/dashboard/leads', icon: 'users' },
-        { name: 'Ads Requests', href: '/dashboard/ads-requests', icon: 'note' },
-        { name: 'Budget & Performance', href: '/dashboard/budget', icon: 'money' },
-        { name: 'Reports', href: '/dashboard/reports', icon: 'chart' },
         { name: 'Reviews', href: '/dashboard/reviews', icon: 'star' },
     ],
 
@@ -42,7 +32,6 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Wallet', href: '/dashboard/wallet', icon: 'money' },
 
         { name: 'Reels', href: '/dashboard/reels', icon: 'video' },
-        { name: 'Growth Marketplace', href: '/property-partner/growth-marketplace', icon: 'megaphone' },
         { name: 'Reviews', href: '/dashboard/reviews', icon: 'star' },
     ],
     'LOAN_PARTNER': [

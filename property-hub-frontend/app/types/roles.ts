@@ -1,7 +1,6 @@
 export type UserRole =
     | 'CENTRAL_AUTHORITY'
     | 'PROPERTY_PARTNER'
-    | 'GROWTH_PARTNER'
     | 'LOAN_PARTNER'
     | 'BUYER';
 
@@ -26,8 +25,7 @@ export const ROLES: Record<UserRole, RoleDefinition> = {
         description: 'Platform-wide administrator with full access',
         permissions: [
             { resource: '*', actions: ['create', 'read', 'update', 'delete', 'approve', 'override'] }
-        ],
-        canCreateRoles: ['GROWTH_PARTNER']
+        ]
     },
 
 
@@ -51,16 +49,5 @@ export const ROLES: Record<UserRole, RoleDefinition> = {
         description: 'End user looking for properties',
         permissions: []
     },
-    'GROWTH_PARTNER': {
-        role: 'GROWTH_PARTNER',
-        label: 'Growth Partner',
-        description: 'Lead generation specialist managing campaigns, social media, and promotions',
-        permissions: [
-            { resource: 'marketing-campaigns', actions: ['create', 'read', 'update', 'delete', 'approve'] },
-            { resource: 'marketing-budget', actions: ['create', 'read', 'update', 'approve'] },
-            { resource: 'marketing-analytics', actions: ['read'] },
-            { resource: 'properties', actions: ['read'] },
-            { resource: 'projects', actions: ['read'] }
-        ]
-    },
+
 };

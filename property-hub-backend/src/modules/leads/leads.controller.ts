@@ -40,7 +40,7 @@ export class LeadsController {
     }
 
     @Get(':id/calls')
-    @RequireRoles( UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER)
+    @RequireRoles( UserRole.CENTRAL_AUTHORITY)
     getLeadCallLogs(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
@@ -50,7 +50,7 @@ export class LeadsController {
 
 
     @Get(':id')
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     findOne(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser
@@ -85,7 +85,7 @@ export class LeadsController {
     }
 
     @Get()
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.PROPERTY_PARTNER, UserRole.BUYER)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.PROPERTY_PARTNER, UserRole.BUYER)
     findAll(
         @CurrentUser() user: AuthenticatedUser
     ) {
@@ -93,7 +93,7 @@ export class LeadsController {
     }
 
     @Post()
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.PROPERTY_PARTNER)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.PROPERTY_PARTNER)
     create(
         @Body() createLeadDto: CreateLeadDto
     ) {
@@ -109,7 +109,7 @@ export class LeadsController {
     }
 
     @Post('bulk')
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     bulkCreate(
         @Body() bulkCreateLeadsDto: { leads: CreateLeadDto[] }
     ) {
@@ -117,7 +117,7 @@ export class LeadsController {
     }
 
     @Patch(':id')
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.PROPERTY_PARTNER)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.PROPERTY_PARTNER)
     update(
         @Param('id') id: string,
         @Body() updateLeadDto: UpdateLeadDto,
@@ -127,7 +127,7 @@ export class LeadsController {
     }
 
     @Delete(':id')
-    @RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER)
+    @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     remove(
         @Param('id') id: string,
         @CurrentUser() user: AuthenticatedUser

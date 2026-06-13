@@ -11,7 +11,6 @@ const INCOMPATIBLE_MAP: Record<UserRole, UserRole[]> = {
   [UserRole.PROPERTY_PARTNER]: [
     UserRole.CENTRAL_AUTHORITY,
     UserRole.LOAN_PARTNER,
-    UserRole.GROWTH_PARTNER,
   ],
   [UserRole.CENTRAL_AUTHORITY]: [
     UserRole.PROPERTY_PARTNER,
@@ -22,9 +21,8 @@ const INCOMPATIBLE_MAP: Record<UserRole, UserRole[]> = {
   [UserRole.LOAN_PARTNER]: [
     UserRole.PROPERTY_PARTNER,
     UserRole.CENTRAL_AUTHORITY,
-    UserRole.GROWTH_PARTNER,
   ],
-  [UserRole.GROWTH_PARTNER]: [UserRole.PROPERTY_PARTNER, UserRole.LOAN_PARTNER],
+
   [UserRole.BUYER]: [UserRole.CENTRAL_AUTHORITY],
   // Others have no restrictions
 };

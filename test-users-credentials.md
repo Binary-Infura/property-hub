@@ -20,7 +20,6 @@ All test users share the same common password:
 | **Buyer** | `buyer@propertyhub.com` |
 | **Consultant** | `consultant@propertyhub.com` |
 | **Loan Partner** | `loan_partner@propertyhub.com` |
-| **Growth Partner** | `growth_partner@propertyhub.com` |
 | **Broker** | `broker@propertyhub.com` |
 | **Visit Executive** | `visit_executive@propertyhub.com` |
 

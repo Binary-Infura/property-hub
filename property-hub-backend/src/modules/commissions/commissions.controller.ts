@@ -19,7 +19,7 @@ import { AuthenticatedUser } from '../../common/interfaces/jwt-payload.interface
 
 @Controller('api/commissions')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER, UserRole.PROPERTY_PARTNER)
+@RequireRoles(UserRole.CENTRAL_AUTHORITY, UserRole.PROPERTY_PARTNER)
 export class CommissionsController {
     constructor(private readonly commissionsService: CommissionsService) { }
 

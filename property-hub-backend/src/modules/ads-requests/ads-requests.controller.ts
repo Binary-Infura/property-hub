@@ -17,7 +17,7 @@ export class AdsRequestsController {
     constructor(private readonly adsRequestsService: AdsRequestsService) { }
 
     @Post()
-    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.GROWTH_PARTNER, UserRole.CENTRAL_AUTHORITY)
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY)
     @ApiOperation({ summary: 'Create a new ads request' })
     create(
         @Body() createAdsRequestDto: CreateAdsRequestDto,
@@ -27,21 +27,21 @@ export class AdsRequestsController {
     }
 
     @Get()
-    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.GROWTH_PARTNER, UserRole.CENTRAL_AUTHORITY)
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY)
     @ApiOperation({ summary: 'Get all ads requests' })
     findAll(@CurrentUser() user: AuthenticatedUser) {
         return this.adsRequestsService.findAll(user.roles, user.userId);
     }
 
     @Get(':id')
-    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.GROWTH_PARTNER, UserRole.CENTRAL_AUTHORITY)
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY)
     @ApiOperation({ summary: 'Get an ads request by id' })
     findOne(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
         return this.adsRequestsService.findOne(id, user.roles, user.userId);
     }
 
     @Patch(':id')
-    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.GROWTH_PARTNER, UserRole.CENTRAL_AUTHORITY)
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY)
     @ApiOperation({ summary: 'Update an ads request' })
     update(
         @Param('id') id: string,
@@ -52,7 +52,7 @@ export class AdsRequestsController {
     }
 
     @Delete(':id')
-    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.GROWTH_PARTNER, UserRole.CENTRAL_AUTHORITY)
+    @RequireRoles(UserRole.PROPERTY_PARTNER, UserRole.CENTRAL_AUTHORITY)
     @ApiOperation({ summary: 'Delete an ads request' })
     remove(@Param('id') id: string, @CurrentUser() user: AuthenticatedUser) {
         return this.adsRequestsService.remove(id, user.roles, user.userId);

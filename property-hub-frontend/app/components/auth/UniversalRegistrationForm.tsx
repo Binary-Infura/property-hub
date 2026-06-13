@@ -45,7 +45,6 @@ export default function UniversalRegistrationForm({ mode, token, initialRole }: 
     branchId: '',
     branchName: '',
     termsAccepted: false,
-    partnerType: '', // specific for Growth Partners
   });
 
   const [activeBanks, setActiveBanks] = useState<Bank[]>([]);
@@ -60,7 +59,6 @@ export default function UniversalRegistrationForm({ mode, token, initialRole }: 
 
   const AVAILABLE_PARTNER_ROLES = [
     { id: 'PROPERTY_PARTNER', label: 'Property Partner' },
-    { id: 'GROWTH_PARTNER', label: 'Growth Partner' },
     { id: 'LOAN_PARTNER', label: 'Loan Partner' },
   ];
 
@@ -259,7 +257,6 @@ export default function UniversalRegistrationForm({ mode, token, initialRole }: 
           cityId: formData.cityId || undefined,
           cityName: formData.cityName || undefined,
           stateName: selectedState?.name || undefined,
-          partnerType: formData.partnerType || undefined,
         });
         setSuccess(result.message || 'Signup successful! Please check your email for verification.');
         // Don't redirect immediately so they can see the success message
@@ -350,27 +347,6 @@ export default function UniversalRegistrationForm({ mode, token, initialRole }: 
             </div>
           )}
 
-          {formData.selectedRole === 'GROWTH_PARTNER' && (
-            <div className="space-y-4 pt-4 border-t border-gray-100 animate-in fade-in duration-300">
-              <label className="block text-sm font-bold text-slate-700 ml-1">Select Partner Type *</label>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                {['Influencer', 'Freelancer', 'Agency'].map((type) => (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => setFormData({ ...formData, partnerType: type })}
-                    className={`px-4 py-3 rounded-2xl text-[11px] font-black uppercase tracking-widest transition-all border-2 ${
-                      formData.partnerType === type
-                        ? 'bg-purple-600 border-purple-600 text-white shadow-lg shadow-purple-200 scale-[1.02]'
-                        : 'bg-white border-gray-100 text-gray-400 hover:border-purple-200 hover:text-purple-500'
-                    }`}
-                  >
-                    {type}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
@@ -452,7 +428,7 @@ export default function UniversalRegistrationForm({ mode, token, initialRole }: 
           </div>
 
           {/* Business Information Section */}
-          {isThirdParty && (formData.selectedRole !== 'GROWTH_PARTNER' || formData.partnerType === 'Agency') && (
+          {isThirdParty && (
             <div className="space-y-4 rounded-3xl border border-blue-100 bg-blue-50/40 p-6 animate-in slide-in-from-top-4 duration-500">
               <p className="text-xs font-bold text-blue-600 uppercase tracking-widest flex items-center gap-2">
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

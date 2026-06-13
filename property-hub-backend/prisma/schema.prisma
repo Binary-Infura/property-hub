@@ -697,7 +697,6 @@ enum UserRole {
   CENTRAL_AUTHORITY
   PROPERTY_PARTNER
   BUYER
-  GROWTH_PARTNER
   LOAN_PARTNER
 }
 
@@ -713,7 +712,6 @@ enum UserStatus {
 enum OrganizationType {
   PLATFORM
   PROPERTY_PARTNER
-  GROWTH_PARTNER
   LOAN_PARTNER
 }
 

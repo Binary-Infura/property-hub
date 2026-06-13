@@ -26,11 +26,6 @@ const CHAT_PERMISSION_RULES: Record<string, ChatPermissionRule> = {
         canChatWith: [UserRole.BUYER],
         canViewChatsOf: 'self'
     },
-
-    [UserRole.GROWTH_PARTNER]: {
-        canChatWith: [],
-        canViewChatsOf: 'self'
-    },
 };
 
 @Injectable()

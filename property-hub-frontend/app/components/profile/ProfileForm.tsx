@@ -24,12 +24,7 @@ export default function ProfileForm() {
         budgetMin: 0,
         budgetMax: 0,
         preferredLocations: [],
-        // Growth Partner
-        campaignBudgetLimit: 0,
-        socialMediaLinks: {},
-        reach: 0,
-        niche: '',
-        partnerType: 'Influencer',
+
         companyName: '',
         companyAddress: '',
         taxId: '',
@@ -50,7 +45,7 @@ export default function ProfileForm() {
 
         const co = profileStatus['CONSULTANT']?.profileData || {};
         const bu = profileStatus['BUYER']?.profileData || {};
-        const gp = profileStatus['GROWTH_PARTNER']?.profileData || {};
+
         const ca = profileStatus['CENTRAL_AUTHORITY']?.profileData || {};
 
         const org = user.organization || {};
@@ -68,25 +63,19 @@ export default function ProfileForm() {
             budgetMin: bu.budgetMin || 0,
             budgetMax: bu.budgetMax || 0,
             preferredLocations: bu.preferredLocations || [],
-            // Growth Partner
-            socialMediaLinks: gp.socialMediaLinks || {},
-            reach: gp.reach || 0,
-            niche: gp.niche || '',
-            campaignBudgetLimit: gp.campaignBudgetLimit || 0,
-            partnerType: gp.partnerType || 'Influencer',
-            
+
             // Centralized Organization Fields
-            companyName: org.name || pp.companyName || gp.companyName || user.agencyName || '',
-            companyAddress: org.address || pp.companyAddress || gp.companyAddress || '',
-            taxId: org.taxId || pp.taxId || gp.taxId || '',
-            licenseNumber: org.licenseNumber || pp.licenseNumber || gp.licenseNumber || '',
-            tagline: org.tagline || pp.tagline || gp.tagline || '',
-            about: org.about || pp.about || gp.about || '',
-            website: org.websiteUrl || pp.website || gp.website || '',
-            industry: org.industry || pp.industry || gp.industry || '',
-            companySize: org.companySize || pp.companySize || gp.companySize || '',
-            foundedYear: org.foundedYear || pp.foundedYear || gp.foundedYear || '',
-            specialties: org.specialties || pp.specialties || gp.specialties || [],
+            companyName: org.name || pp.companyName || user.agencyName || '',
+            companyAddress: org.address || pp.companyAddress || '',
+            taxId: org.taxId || pp.taxId || '',
+            licenseNumber: org.licenseNumber || pp.licenseNumber || '',
+            tagline: org.tagline || pp.tagline || '',
+            about: org.about || pp.about || '',
+            website: org.websiteUrl || pp.website || '',
+            industry: org.industry || pp.industry || '',
+            companySize: org.companySize || pp.companySize || '',
+            foundedYear: org.foundedYear || pp.foundedYear || '',
+            specialties: org.specialties || pp.specialties || [],
         });
     }, [user, profileStatus]);
 
@@ -246,229 +235,7 @@ export default function ProfileForm() {
                     </div>
                 </div>
 
-                {/* Section: Growth Partner */}
-                <div className={`grid transition-all duration-700 ease-in-out ${userRoles.includes('GROWTH_PARTNER') ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                    <div className="overflow-hidden">
-                        <div className="flex items-center gap-3 mb-6 pt-6 border-t border-gray-100">
-                            <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <h3 className="text-lg font-black text-gray-900 tracking-tight">Growth Partner Profile</h3>
-                            </div>
-                        </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 bg-purple-50/30 p-6 rounded-2xl border border-purple-100/50 animate-in fade-in slide-in-from-top-4 duration-700 delay-100 fill-mode-both">
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Partner Type</label>
-                                <select
-                                    value={formData.partnerType}
-                                    onChange={(e) => setFormData({ ...formData, partnerType: e.target.value })}
-                                    className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium shadow-sm"
-                                >
-                                    <option value="Influencer">Influencer</option>
-                                    <option value="Freelancer">Freelancer</option>
-                                    <option value="Agency">Agency</option>
-                                </select>
-                            </div>
-
-                            <div className={`grid md:col-span-2 transition-all duration-700 ease-in-out ${formData.partnerType === 'Agency' ? 'grid-rows-[1fr] opacity-100 mt-4' : 'grid-rows-[0fr] opacity-0'}`}>
-                                <div className="overflow-hidden space-y-10">
-                                    <div className="pt-8 border-t border-purple-100/50">
-                                        {/* Branding Section */}
-                                        <div className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-700 delay-100 fill-mode-both">
-                                            <h4 className="text-[10px] font-black text-purple-900 uppercase tracking-widest flex items-center gap-2">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
-                                                Agency Branding
-                                            </h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <div className="space-y-2 md:col-span-2">
-                                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Company / Agency Name</label>
-                                                    <input
-                                                        type="text"
-                                                        value={formData.companyName}
-                                                        onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                                                        className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium shadow-sm"
-                                                        placeholder="Creative Studios LLC"
-                                                        required={formData.partnerType === 'Agency'}
-                                                    />
-                                                </div>
-                                                <div className="space-y-2 md:col-span-2">
-                                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Tagline</label>
-                                                    <input
-                                                        type="text"
-                                                        value={formData.tagline}
-                                                        onChange={(e) => setFormData({ ...formData, tagline: e.target.value })}
-                                                        className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium shadow-sm"
-                                                        placeholder="Innovation in Digital Marketing"
-                                                    />
-                                                </div>
-                                                <div className="space-y-2 md:col-span-2">
-                                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">About the Agency</label>
-                                                    <textarea
-                                                        value={formData.about}
-                                                        onChange={(e) => setFormData({ ...formData, about: e.target.value })}
-                                                        className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium shadow-sm min-h-[120px]"
-                                                        placeholder="Tell us about your agency's mission and services..."
-                                                    />
-                                                </div>
-                                                <div className="space-y-2 md:col-span-2">
-                                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Office Address</label>
-                                                    <textarea
-                                                        value={formData.companyAddress}
-                                                        onChange={(e) => setFormData({ ...formData, companyAddress: e.target.value })}
-                                                        className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium shadow-sm min-h-[80px]"
-                                                        placeholder="Agency headquarters address"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Agency Details Section */}
-                                        <div className="space-y-6 mt-10 animate-in fade-in slide-in-from-top-4 duration-700 delay-300 fill-mode-both">
-                                            <h4 className="text-[10px] font-black text-purple-900 uppercase tracking-widest flex items-center gap-2">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
-                                                Agency Details
-                                            </h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <div className="space-y-2">
-                                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Website URL</label>
-                                                    <input
-                                                        type="url"
-                                                        value={formData.website}
-                                                        onChange={(e) => setFormData({ ...formData, website: e.target.value })}
-                                                        className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium shadow-sm"
-                                                        placeholder="https://creativestudios.com"
-                                                    />
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Industry</label>
-                                                    <select
-                                                        value={formData.industry}
-                                                        onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
-                                                        className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium shadow-sm"
-                                                    >
-                                                        <option value="">Select Industry</option>
-                                                        <option value="Marketing">Marketing</option>
-                                                        <option value="Advertising">Advertising</option>
-                                                        <option value="Real Estate">Real Estate</option>
-                                                        <option value="Technology">Technology</option>
-                                                        <option value="Other">Other</option>
-                                                    </select>
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Company Size</label>
-                                                    <select
-                                                        value={formData.companySize}
-                                                        onChange={(e) => setFormData({ ...formData, companySize: e.target.value })}
-                                                        className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium shadow-sm"
-                                                    >
-                                                        <option value="">Select Size</option>
-                                                        <option value="1-10">1-10 employees</option>
-                                                        <option value="11-50">11-50 employees</option>
-                                                        <option value="51-200">51-200 employees</option>
-                                                        <option value="201-500">201-500 employees</option>
-                                                        <option value="500+">500+ employees</option>
-                                                    </select>
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Founded Year</label>
-                                                    <input
-                                                        type="number"
-                                                        value={formData.foundedYear}
-                                                        onChange={(e) => setFormData({ ...formData, foundedYear: e.target.value })}
-                                                        className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium shadow-sm"
-                                                        placeholder="2015"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        {/* Verification & Specialties Section */}
-                                        <div className="space-y-6 mt-10 animate-in fade-in slide-in-from-top-4 duration-700 delay-500 fill-mode-both">
-                                            <h4 className="text-[10px] font-black text-purple-900 uppercase tracking-widest flex items-center gap-2">
-                                                <div className="w-1.5 h-1.5 rounded-full bg-purple-500"></div>
-                                                Verification & Specialties
-                                            </h4>
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                <div className="space-y-2">
-                                                    <label className="text-xs font-bold text-purple-800 uppercase tracking-widest ml-1">Tax ID / PAN</label>
-                                                    <input
-                                                        type="text"
-                                                        value={formData.taxId}
-                                                        onChange={(e) => setFormData({ ...formData, taxId: e.target.value })}
-                                                        className="w-full px-5 py-3.5 bg-white border border-purple-100 rounded-2xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium shadow-sm"
-                                                        placeholder="ABCDE1234F"
-                                                    />
-                                                </div>
-                                                <div className="space-y-2">
-                                                    <label className="text-xs font-bold text-purple-800 uppercase tracking-widest ml-1">License No.</label>
-                                                    <input
-                                                        type="text"
-                                                        value={formData.licenseNumber}
-                                                        onChange={(e) => setFormData({ ...formData, licenseNumber: e.target.value })}
-                                                        className="w-full px-5 py-3.5 bg-white border border-purple-100 rounded-2xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium shadow-sm"
-                                                        placeholder="LIC123456"
-                                                    />
-                                                </div>
-                                                <div className="space-y-3 md:col-span-2">
-                                                    <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Agency Specialties (Comma separated)</label>
-                                                    <input
-                                                        type="text"
-                                                        value={formData.specialties.join(', ')}
-                                                        onChange={(e) => setFormData({ ...formData, specialties: e.target.value.split(',').map((s: string) => s.trim()).filter(Boolean) })}
-                                                        className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium shadow-sm"
-                                                        placeholder="SEO, Content Creation, Lead Gen"
-                                                    />
-                                                    <div className="flex flex-wrap gap-2 mt-2">
-                                                        {formData.specialties.map((tag: string, i: number) => (
-                                                            <span key={i} className="px-3 py-1 bg-purple-50 text-purple-600 text-[10px] font-black uppercase tracking-wider rounded-full border border-purple-100 italic">
-                                                                # {tag}
-                                                            </span>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Campaign Budget Limit (&#8377;)</label>
-                                <input
-                                    type="number"
-                                    value={formData.campaignBudgetLimit}
-                                    onChange={(e) => setFormData({ ...formData, campaignBudgetLimit: parseFloat(e.target.value) || 0 })}
-                                    className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium shadow-sm"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Niche</label>
-                                <input
-                                    type="text"
-                                    value={formData.niche}
-                                    onChange={(e) => setFormData({ ...formData, niche: e.target.value })}
-                                    className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium shadow-sm"
-                                    placeholder="Lifestyle, Real Estate"
-                                />
-                            </div>
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Reach (Followers)</label>
-                                <input
-                                    type="number"
-                                    value={formData.reach}
-                                    onChange={(e) => setFormData({ ...formData, reach: parseInt(e.target.value) || 0 })}
-                                    className="w-full px-5 py-3.5 bg-white border border-gray-200 rounded-2xl focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 transition-all text-sm font-medium shadow-sm"
-                                />
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
 
                 {/* Section: Property Partner Organization Information */}
                 <div className={`grid transition-all duration-700 ease-in-out ${userRoles.includes('PROPERTY_PARTNER') ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>

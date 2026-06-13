@@ -105,21 +105,6 @@ async function main() {
         }
     });
 
-    const growthOrg = await prisma.organization.upsert({
-        where: { id: 'growth-partner-org-id' },
-        update: {},
-        create: {
-            id: 'growth-partner-org-id',
-            name: 'Growth Partners',
-            type: OrganizationType.GROWTH_PARTNER,
-            email: 'contact@growthpartners.com',
-            phone: '+919988776655',
-            address: 'Innovation Hub, Pune',
-            isActive: true,
-            isPremium: true,
-            subscriptionMode: SubscriptionMode.PAID,
-        }
-    });
 
     // --- 4. Users ---
     console.log('   Creating Users based on test-users-credentials.md...');
@@ -129,7 +114,7 @@ async function main() {
     const superUser = await prisma.user.upsert({
         where: { email: 'superuser@propertyhub.com' },
         update: { 
-            roles: [UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER], 
+            roles: [UserRole.CENTRAL_AUTHORITY], 
             activeRole: UserRole.CENTRAL_AUTHORITY, 
             organizationId: platformOrg.id,
             passwordHash
@@ -138,7 +123,7 @@ async function main() {
             email: 'superuser@propertyhub.com',
             firstName: 'Super',
             lastName: 'Admin',
-            roles: [UserRole.CENTRAL_AUTHORITY, UserRole.GROWTH_PARTNER],
+            roles: [UserRole.CENTRAL_AUTHORITY],
             activeRole: UserRole.CENTRAL_AUTHORITY,
             status: UserStatus.ACTIVE,
             passwordHash,
@@ -157,7 +142,6 @@ async function main() {
         { role: UserRole.PROPERTY_PARTNER, email: 'property_partner@propertyhub.com', f: 'Property', l: 'Partner', orgId: prestigeOrg.id },
         { role: UserRole.BUYER, email: 'buyer@propertyhub.com', f: 'Test', l: 'Buyer' },
         { role: UserRole.LOAN_PARTNER, email: 'loan_partner@propertyhub.com', f: 'Loan', l: 'Partner' },
-        { role: UserRole.GROWTH_PARTNER, email: 'growth_partner@propertyhub.com', f: 'Growth', l: 'Partner', orgId: growthOrg.id },
         { role: UserRole.BROKER, email: 'broker@propertyhub.com', f: 'Test', l: 'Broker' },
         { role: UserRole.VISIT_EXECUTIVE, email: 'visit_executive@propertyhub.com', f: 'Visit', l: 'Executive' },
         { role: UserRole.CENTRAL_AUTHORITY, email: 'onboarding_manager@propertyhub.com', f: 'Onboarding', l: 'Manager' },

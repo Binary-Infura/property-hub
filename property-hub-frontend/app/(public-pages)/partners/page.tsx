@@ -21,21 +21,6 @@ export default function PartnersPage() {
             ]
         },
         {
-            id: 'GROWTH_PARTNER',
-            title: 'Growth Partner',
-            subtitle: 'For Influencers & Marketers',
-            description: 'Monetize your network by promoting premium properties and collaborating on high-impact marketing campaigns.',
-            icon: '📈',
-            color: 'from-purple-600 to-pink-600',
-            benefits: [
-                'High Affiliate Commissions',
-                'Sponsored Content Opportunities',
-                'Exclusive Early Project Access',
-                'Dedicated Support Team',
-                'Real-time Earnings Dashboard'
-            ]
-        },
-        {
             id: 'LOAN_PARTNER',
             title: 'Loan Partner',
             subtitle: 'For Banks & Financial Institutions',
@@ -91,7 +76,7 @@ export default function PartnersPage() {
                         <p className="mt-4 text-lg text-slate-600">Click on any role to start your journey with us.</p>
                     </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
                         {partnerRoles.map((role) => (
                             <div key={role.id} className="group flex flex-col bg-white rounded-3xl p-8 shadow-sm hover:shadow-2xl transition-all duration-300 border border-slate-100 h-full">
                                 <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${role.color} text-white flex items-center justify-center text-3xl mb-6 shadow-lg group-hover:scale-110 transition-transform`}>

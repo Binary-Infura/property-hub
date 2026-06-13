@@ -166,7 +166,7 @@ export class UsersService {
         let branchId = dto.branchId ?? null;
 
         const isLoanPartner = dto.roles.includes(UserRole.LOAN_PARTNER as UserRole);
-        const needsOrg = dto.roles.includes(UserRole.PROPERTY_PARTNER) || dto.roles.includes(UserRole.GROWTH_PARTNER as UserRole) || isLoanPartner;
+        const needsOrg = dto.roles.includes(UserRole.PROPERTY_PARTNER) || isLoanPartner;
         const hasBusinessInfo = dto.companyName;
 
         if (isLoanPartner) {
@@ -256,8 +256,7 @@ export class UsersService {
                 }
             }
         } else if (needsOrg && hasBusinessInfo && !organizationId) {
-            let orgType = OrganizationType.GROWTH_PARTNER;
-            if (dto.roles.includes(UserRole.PROPERTY_PARTNER)) orgType = OrganizationType.PROPERTY_PARTNER;
+            let orgType = OrganizationType.PROPERTY_PARTNER;
             const org = await this.prisma.organization.create({
                 data: {
                     name: dto.companyName as string,
@@ -284,7 +283,6 @@ export class UsersService {
                 branchId,
                 onboardedById,
                 profileData: (dto.roles.includes(UserRole.PROPERTY_PARTNER) || 
-                             dto.roles.includes(UserRole.GROWTH_PARTNER as UserRole) || 
                              dto.roles.includes(UserRole.LOAN_PARTNER as UserRole)) ? {
                     companyName: dto.companyName,
                     companyAddress: dto.companyAddress,
@@ -435,7 +433,7 @@ export class UsersService {
             
             // Check if profile is considered 'complete' (basic heuristic)
             let hasProfile = false;
-            if (role === 'PROPERTY_PARTNER' || role === 'GROWTH_PARTNER' || role === 'LOAN_PARTNER') {
+            if (role === 'PROPERTY_PARTNER' || role === 'LOAN_PARTNER') {
                 hasProfile = !!user.organizationId;
             } else if (role === 'BUYER') {
                 hasProfile = true; // Buyers usually don't need much
@@ -501,8 +499,8 @@ export class UsersService {
             }
         });
 
-        // Property Partner & Growth Partner & Loan Partner — sync key fields to Organization as well
-        if (normalizedRoles.includes(UserRole.PROPERTY_PARTNER) || normalizedRoles.includes(UserRole.GROWTH_PARTNER) || normalizedRoles.includes(UserRole.LOAN_PARTNER)) {
+        // Property Partner & Loan Partner — sync key fields to Organization as well
+        if (normalizedRoles.includes(UserRole.PROPERTY_PARTNER) || normalizedRoles.includes(UserRole.LOAN_PARTNER)) {
             const orgData: any = {};
             
             // Extract from incoming profile data
@@ -520,8 +518,7 @@ export class UsersService {
 
             // Deciding if we need to sync with Organization
             const needsSync = user.organizationId || 
-                             normalizedRoles.includes(UserRole.PROPERTY_PARTNER) || 
-                             (normalizedRoles.includes(UserRole.GROWTH_PARTNER) && incoming.partnerType === 'Agency');
+                             normalizedRoles.includes(UserRole.PROPERTY_PARTNER);
 
             if (Object.keys(orgData).length > 0 && needsSync) {
                 if (user.organizationId) {
@@ -531,8 +528,7 @@ export class UsersService {
                     });
                 } else if (!normalizedRoles.includes(UserRole.LOAN_PARTNER)) {
                     // Only auto-create org for non-Loan Partners. Bank linkage required for LPs.
-                    let orgType = OrganizationType.GROWTH_PARTNER;
-                    if (normalizedRoles.includes(UserRole.PROPERTY_PARTNER)) orgType = OrganizationType.PROPERTY_PARTNER;
+                    let orgType = OrganizationType.PROPERTY_PARTNER;
                     
                     const org = await this.prisma.organization.create({
                         data: { 

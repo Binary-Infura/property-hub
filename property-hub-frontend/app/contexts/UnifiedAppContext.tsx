@@ -8,7 +8,6 @@ import { useAuth } from './AuthContext';
 // ---------------------------------------------------------------------------
 export type RoleId =
     | 'CENTRAL_AUTHORITY'
-    | 'GROWTH_PARTNER'
     | 'PROPERTY_PARTNER'
     | 'LOAN_PARTNER'
     | 'BUYER';
@@ -52,12 +51,7 @@ export const KNOWN_ROLES: Record<RoleId, UserRole> = {
         permissionHint: 'Platform-wide administrator',
         dashboardUrl: '/dashboard',
     },
-    GROWTH_PARTNER: {
-        id: 'GROWTH_PARTNER',
-        name: 'Growth Partner',
-        permissionHint: 'Lead generation, campaigns & promotions',
-        dashboardUrl: '/dashboard',
-    },
+
     PROPERTY_PARTNER: {
         id: 'PROPERTY_PARTNER',
         name: 'Property Partner',
