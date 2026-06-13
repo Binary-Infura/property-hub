@@ -14,7 +14,6 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Organizations', href: '/dashboard/organizations', icon: 'building' },
         { name: 'Cities', href: '/dashboard/cities', icon: 'pin' },
         { name: 'All Projects', href: '/central-authority/listing-requests', icon: 'clipboard' },
-        { name: 'Wallet', href: '/dashboard/wallet', icon: 'money' },
         { name: 'Property Partners', href: '/dashboard/property-partners', icon: 'building' },
         { name: 'Loan Partners', href: '/dashboard/loan-partners', icon: 'bank' },
 
@@ -29,7 +28,6 @@ export const NAVIGATION_CONFIG: Record<RoleId, NavItem[]> = {
         { name: 'Bank Approvals', href: '/property-partner/bank-approvals', icon: 'bank' },
 
         { name: 'Buyer Leads', href: '/dashboard/leads', icon: 'clipboard' },
-        { name: 'Wallet', href: '/dashboard/wallet', icon: 'money' },
 
         { name: 'Reels', href: '/dashboard/reels', icon: 'video' },
         { name: 'Reviews', href: '/dashboard/reviews', icon: 'star' },

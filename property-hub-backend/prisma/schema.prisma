@@ -33,12 +33,9 @@ model Organization {
   instagramConnectedAt DateTime?
   createdAt            DateTime         @default(now())
   updatedAt            DateTime         @updatedAt
-  walletBalance        Decimal          @default(0.00) @db.Decimal(15, 2)
   members              User[]
   bank                 Bank?
   bankBranches         BankBranch[]
-  walletTransactions   WalletTransaction[] @relation("OrgWalletTransactions")
-  paymentOrders        PaymentOrder[]      @relation("OrgPaymentOrders")
 
   @@index([type])
   @@index([name])
@@ -75,7 +72,6 @@ model User {
   activityLogs      ActivityLog[]
   adsRequests       AdsRequest[]
 
-  walletTransactions WalletTransaction[] @relation("UserWalletTransactions")
   following         Follow[]            @relation("UserFollowers")
   followers         Follow[]            @relation("UserFollowing")
   authoredNotes     LeadNote[]          @relation("AuthorNotes")
@@ -91,7 +87,6 @@ model User {
   campaignsAssigned          MarketingCampaign[]      @relation("CampaignToUser")
   assignedProjects           Project[]                @relation("ProjectAssignment")
   invitationsSent            Invitation[]             @relation("UserInvites")
-  paymentOrders              PaymentOrder[]           @relation("UserPaymentOrders")
   submittedLeads             Lead[]                   @relation("BuyerLeads")
   assignedBuyerLoans         BuyerLoanApplication[]   @relation("AssignedBuyerLoanPartner")
   assignedProjectLoans       ProjectLoanApplication[] @relation("AssignedProjectLoanPartner")
@@ -628,27 +623,6 @@ enum InvitationType {
   THIRD_PARTY
 }
 
-model PaymentOrder {
-  id                String   @id @default(uuid())
-  userId            String
-  organizationId    String?
-  amount            Decimal  @db.Decimal(15, 2)
-  currency          String   @default("INR")
-  status            String   @default("PENDING") // PENDING, SUCCESS, FAILED
-  razorpayOrderId   String?  @unique
-  razorpayPaymentId String?  @unique
-  razorpaySignature String?
-  receipt           String?
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
-  user              User     @relation("UserPaymentOrders", fields: [userId], references: [id])
-  organization      Organization? @relation("OrgPaymentOrders", fields: [organizationId], references: [id])
-
-  @@index([userId])
-  @@index([organizationId])
-  @@index([status])
-  @@map("payment_orders")
-}
 
 enum UserRole {
   CENTRAL_AUTHORITY
@@ -782,25 +756,7 @@ model Address {
 }
 
 
-model WalletTransaction {
-  id              String   @id @default(uuid())
-  userId          String?
-  organizationId  String?
-  amount          Decimal  @db.Decimal(15, 2)
-  type            String   // RECHARGE, CALL_COST, OTHER
-  status          String   @default("COMPLETED") // COMPLETED, PENDING, FAILED
-  referenceId     String?  // PaymentOrder ID or Call ID
-  description     String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  user            User?    @relation("UserWalletTransactions", fields: [userId], references: [id])
-  organization    Organization? @relation("OrgWalletTransactions", fields: [organizationId], references: [id])
 
-  @@index([userId])
-  @@index([organizationId])
-  @@index([status])
-  @@map("wallet_transactions")
-}
 
 model OneTimePassword {
   id        String   @id @default(uuid())

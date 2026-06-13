@@ -31,7 +31,6 @@ import { ReviewsModule } from './modules/reviews/reviews.module';
 import { WhatsappModule } from './modules/whatsapp/whatsapp.module';
 import { MailModule } from './modules/mail/mail.module';
 import { InvitationsModule } from './modules/invitations/invitations.module';
-import { PaymentsModule } from './modules/payments/payments.module';
 import { TowersModule } from './modules/towers/towers.module';
 import { OtpModule } from './modules/otp/otp.module';
 import { BankBranchesModule } from './modules/bank-branches/bank-branches.module';
@@ -75,7 +74,6 @@ import { join } from 'path';
         WhatsappModule,
         MailModule,
         InvitationsModule,
-        PaymentsModule,
         TowersModule,
         OtpModule,
         BankBranchesModule,
