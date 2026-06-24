@@ -134,7 +134,11 @@ export class ProjectsService {
         ]);
 
         const stats = statsRaw.reduce((acc, curr) => {
-            acc[curr.status.toLowerCase()] = curr._count.id;
+            if (curr.status) {
+                acc[curr.status.toLowerCase()] = curr._count.id;
+            } else {
+                acc['unknown'] = curr._count.id;
+            }
             return acc;
         }, {} as Record<string, number>);
 
