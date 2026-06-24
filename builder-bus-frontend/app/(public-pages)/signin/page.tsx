@@ -115,12 +115,12 @@ export default function SignInPage() {
                     <div className="flex flex-col items-center">
                         <Link href="/" className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity">
                             <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
-                            <span className="font-bold text-2xl text-gray-900">PropertyHub</span>
+                            <span className="font-bold text-2xl text-gray-900">BuilderBus</span>
                         </Link>
                     </div>
 
                     <p className="mt-2 text-sm text-gray-500 font-medium">
-                        Access your PropertyHub workspace
+                        Access your BuilderBus workspace
                     </p>
                 </div>
 
@@ -249,7 +249,7 @@ export default function SignInPage() {
 
                 <div className="mt-8 text-center">
                     <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">
-                        Secure system • PropertyHub v2.0
+                        Secure system • BuilderBus v2.0
                     </p>
                 </div>
             </div>

@@ -181,7 +181,7 @@ export default function Home() {
             >
               <h2 className="text-4xl md:text-6xl font-bold text-gray-900 mb-10 leading-tight">
                 Why Homebuyers <br />
-                <span className="text-blue-600 italic">Trust PropertyHub</span>
+                <span className="text-blue-600 italic">Trust BuilderBus</span>
               </h2>
               <div className="grid gap-8">
                 {[
@@ -311,7 +311,7 @@ export default function Home() {
             <div className="col-span-2">
               <div className="flex items-center gap-4 mb-8">
                 <div className="w-12 h-12 bg-blue-600 rounded-2xl shadow-xl shadow-blue-100" />
-                <span className="font-black text-3xl text-gray-900 tracking-tighter uppercase">PropertyHub</span>
+                <span className="font-black text-3xl text-gray-900 tracking-tighter uppercase">BuilderBus</span>
               </div>
               <p className="text-gray-500 text-lg leading-relaxed font-light max-w-sm">
                 Redefining the real estate experience with expert intelligence and 3D visualization.
@@ -341,7 +341,7 @@ export default function Home() {
             </div>
           </div>
           <div className="border-t border-gray-100 pt-16 flex flex-col md:flex-row justify-between items-center gap-8 text-gray-400 text-sm font-light">
-            <p>&copy; 2024 PropertyHub Global. All rights reserved.</p>
+            <p>&copy; 2024 BuilderBus Global. All rights reserved.</p>
             <div className="flex gap-8">
               <span className="hover:text-gray-900 cursor-pointer transition-colors">Instagram</span>
               <span className="hover:text-gray-900 cursor-pointer transition-colors">LinkedIn</span>

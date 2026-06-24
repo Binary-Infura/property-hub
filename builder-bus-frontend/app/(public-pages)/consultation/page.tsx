@@ -120,7 +120,7 @@ export default function ConsultationPage() {
           <div className="flex justify-between items-center h-16">
             <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-900 hover:text-blue-600">
               <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
-              PropertyHub
+              BuilderBus
             </Link>
             <Link href="/" className="text-gray-600 hover:text-gray-900 text-sm font-medium">
               Back to Home

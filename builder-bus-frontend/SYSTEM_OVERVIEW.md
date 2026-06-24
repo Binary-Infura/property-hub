@@ -1,8 +1,8 @@
-# PropertyHub Platform - Complete System Overview
+# BuilderBus Platform - Complete System Overview
 
 ## Platform Architecture
 
-PropertyHub is a trust-focused property consulting platform with three main user roles:
+BuilderBus is a trust-focused property consulting platform with three main user roles:
 
 1. **Buyers/Homebuyers** - Use the main platform to find properties
 2. **Builders** - Submit properties via the builder dashboard
@@ -421,4 +421,4 @@ interface LeadCaptureData {
 
 **Last Updated**: December 2024  
 **Version**: 1.0  
-**Maintainer**: PropertyHub Development Team
+**Maintainer**: BuilderBus Development Team

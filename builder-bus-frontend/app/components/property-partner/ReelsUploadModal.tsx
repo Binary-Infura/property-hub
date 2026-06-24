@@ -51,7 +51,7 @@ export default function ReelsUploadModal({ isOpen, onClose, token, onSuccess }: 
     }, [selectedProjectId, projects]);
 
     const generateCaption = (project: any) => {
-        const hashtags = ['#PropertyHub', '#RealEstate', '#PropertyInvesting', '#DreamHome', '#PropertyDeal'];
+        const hashtags = ['#BuilderBus', '#RealEstate', '#PropertyInvesting', '#DreamHome', '#PropertyDeal'];
         const hashtag = hashtags[Math.floor(Math.random() * hashtags.length)];
         
         return `✨ Check out this amazing property! 
@@ -60,7 +60,7 @@ export default function ReelsUploadModal({ isOpen, onClose, token, onSuccess }: 
 💰 ${project.price ? `₹${project.price.toLocaleString()}` : 'Price on Request'}
 🏠 ${project.bedrooms || 'N/A'} BHK | 📐 ${project.area || 'N/A'} sqft
 
-🔗 Explore more on PropertyHub!
+🔗 Explore more on BuilderBus!
 
 ${hashtag}`;
     };
@@ -227,10 +227,10 @@ ${hashtag}`;
                             </div>
                         </div>
 
-                        {/* Toggle 1: PropertyHub Official Instagram */}
+                        {/* Toggle 1: BuilderBus Official Instagram */}
                         <div className="flex items-center justify-between p-4 bg-white rounded-xl border border-gray-100 hover:border-purple-200 transition-colors">
                             <div className="flex-1">
-                                <p className="font-bold text-gray-900 text-sm">Request to publish on PropertyHub Official Instagram</p>
+                                <p className="font-bold text-gray-900 text-sm">Request to publish on BuilderBus Official Instagram</p>
                                 <p className="text-xs text-gray-500 font-medium mt-1">Send for admin review and approval before posting</p>
                             </div>
                             <button

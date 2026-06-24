@@ -180,7 +180,7 @@ export default function RoleSwitchTransition({ isVisible, roleName, roleId }: Ro
                         transition={{ delay: 0.5 }}
                     >
                         <div className="w-5 h-5 bg-white rounded-md" />
-                        <span className="text-white text-sm font-bold tracking-wide">PropertyHub</span>
+                        <span className="text-white text-sm font-bold tracking-wide">BuilderBus</span>
                     </motion.div>
                 </motion.div>
             )}

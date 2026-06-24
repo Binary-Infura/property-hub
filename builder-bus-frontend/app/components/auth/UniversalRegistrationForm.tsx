@@ -299,7 +299,7 @@ export default function UniversalRegistrationForm({ mode, token, initialRole }: 
       <div className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-2xl p-8 md:p-12 border border-white/20">
         <div className="text-center mb-10">
           <h1 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-indigo-600 mb-3">
-            {mode === 'PUBLIC' ? 'Join PropertyHub' : 'Complete Your Registration'}
+            {mode === 'PUBLIC' ? 'Join BuilderBus' : 'Complete Your Registration'}
           </h1>
           <p className="text-lg text-gray-600">
             {mode === 'PUBLIC' 
@@ -616,7 +616,7 @@ export default function UniversalRegistrationForm({ mode, token, initialRole }: 
           </button>
 
           <p className="text-center text-gray-400 text-xs mt-8">
-            PropertyHub &copy; {new Date().getFullYear()} - Advanced Real Estate Ecosystem
+            BuilderBus &copy; {new Date().getFullYear()} - Advanced Real Estate Ecosystem
           </p>
         </form>
       </div>

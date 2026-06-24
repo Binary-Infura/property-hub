@@ -33,7 +33,7 @@ jobs:
       - name: Get Backend Version
         id: backend_version
         run: |
-          VERSION=$(jq -r .version property-hub-backend/package.json)
+          VERSION=$(jq -r .version builder-bus-backend/package.json)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Extract metadata (tags, labels) for Backend
@@ -48,7 +48,7 @@ jobs:
       - name: Build and push Backend image
         uses: docker/build-push-action@v5
         with:
-          context: ./property-hub-backend
+          context: ./builder-bus-backend
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta-backend.outputs.tags }}
           labels: ${{ steps.meta-backend.outputs.labels }}
@@ -58,7 +58,7 @@ jobs:
       - name: Get Frontend Version
         id: frontend_version
         run: |
-          VERSION=$(jq -r .version property-hub-frontend/package.json)
+          VERSION=$(jq -r .version builder-bus-frontend/package.json)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Extract metadata (tags, labels) for Frontend
@@ -73,7 +73,7 @@ jobs:
       - name: Build and push Frontend image
         uses: docker/build-push-action@v5
         with:
-          context: ./property-hub-frontend
+          context: ./builder-bus-frontend
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta-frontend.outputs.tags }}
           labels: ${{ steps.meta-frontend.outputs.labels }}
@@ -83,7 +83,7 @@ jobs:
       - name: Get Scraper Version
         id: scraper_version
         run: |
-          VERSION=$(jq -r .version property-hub-scraper/package.json)
+          VERSION=$(jq -r .version builder-bus-scraper/package.json)
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Extract metadata (tags, labels) for Scraper
@@ -98,7 +98,7 @@ jobs:
       - name: Build and push Scraper image
         uses: docker/build-push-action@v5
         with:
-          context: ./property-hub-scraper
+          context: ./builder-bus-scraper
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta-scraper.outputs.tags }}
           labels: ${{ steps.meta-scraper.outputs.labels }}

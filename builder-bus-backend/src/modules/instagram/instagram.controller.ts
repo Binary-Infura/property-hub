@@ -123,7 +123,7 @@ export class InstagramController {
     @Post('reels/:reelId/request-official-publish')
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
-    @ApiOperation({ summary: 'Request to publish reel on PropertyHub official Instagram' })
+    @ApiOperation({ summary: 'Request to publish reel on BuilderBus official Instagram' })
     async requestOfficialPublishing(@Param('reelId') reelId: string) {
         await this.instagramService.requestOfficialInstagramPublishing(reelId);
         return {
@@ -136,7 +136,7 @@ export class InstagramController {
     @UseGuards(JwtAuthGuard)
     @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     @ApiBearerAuth()
-    @ApiOperation({ summary: 'Approve and publish reel to PropertyHub official Instagram' })
+    @ApiOperation({ summary: 'Approve and publish reel to BuilderBus official Instagram' })
     async approveOfficialPublishing(
         @Param('reelId') reelId: string,
         @Body() body: { videoUrl: string; caption: string },
@@ -150,7 +150,7 @@ export class InstagramController {
 
             return {
                 success: true,
-                message: 'Reel approved and published to PropertyHub official Instagram',
+                message: 'Reel approved and published to BuilderBus official Instagram',
                 postUrl: result.postUrl,
                 mediaId: result.mediaId,
             };
@@ -166,7 +166,7 @@ export class InstagramController {
     @UseGuards(JwtAuthGuard)
     @RequireRoles(UserRole.CENTRAL_AUTHORITY)
     @ApiBearerAuth()
-    @ApiOperation({ summary: 'Reject reel from PropertyHub official Instagram' })
+    @ApiOperation({ summary: 'Reject reel from BuilderBus official Instagram' })
     async rejectOfficialPublishing(
         @Param('reelId') reelId: string,
         @Body() body: { reason: string },

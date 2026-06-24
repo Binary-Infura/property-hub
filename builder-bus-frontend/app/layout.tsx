@@ -21,12 +21,12 @@ export const viewport = {
 };
 
 export const metadata: Metadata = {
-  title: "PropertyHub - Expert-Guided Home Buying",
+  title: "BuilderBus - Expert-Guided Home Buying",
   description: "Find your perfect home with expert consultants. Curated properties, personalized guidance, and complete support from search to possession.",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "PropertyHub",
+    title: "BuilderBus",
   },
   icons: {
     apple: "/apple-icon.png",

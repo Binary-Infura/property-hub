@@ -60,7 +60,7 @@ export default function AllInvitationsPage() {
             <div className="flex justify-between items-center">
                 <div>
                     <h1 className="text-3xl font-bold text-gray-900">Platform Invitations</h1>
-                    <p className="text-gray-600 mt-2">Manage all invitations sent across the property hub platform.</p>
+                    <p className="text-gray-600 mt-2">Manage all invitations sent across the builder bus platform.</p>
                 </div>
                 <Link 
                     href="/dashboard"

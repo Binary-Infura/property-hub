@@ -69,7 +69,7 @@ export class ReraController {
     }
 
     @Post('import/:id')
-    @ApiOperation({ summary: 'Import a RERA project into Property Hub' })
+    @ApiOperation({ summary: 'Import a RERA project into Builder Bus' })
     async importProject(
         @Param('id') projectId: string,
         @CurrentUser() user: AuthenticatedUser

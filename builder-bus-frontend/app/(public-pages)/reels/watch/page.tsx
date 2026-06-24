@@ -149,7 +149,7 @@ function ReelsViewer() {
                     <div className="w-9 h-9 bg-blue-600 rounded-xl mb-3 flex items-center justify-center">
                         <div className="w-4 h-4 bg-white rounded-sm opacity-90" />
                     </div>
-                    <p className="text-white font-black text-lg leading-tight">PropertyHub</p>
+                    <p className="text-white font-black text-lg leading-tight">BuilderBus</p>
                     <p className="text-white/40 text-xs font-bold uppercase tracking-widest mt-0.5">Reels</p>
                     <p className="text-white/20 text-[10px] font-medium mt-4 leading-relaxed max-w-[120px]">
                         Scroll to explore property reels

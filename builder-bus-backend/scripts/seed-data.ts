@@ -76,7 +76,7 @@ async function main() {
         update: {},
         create: {
             id: 'platform-org-id',
-            name: 'Property Hub Platform',
+            name: 'Builder Bus Platform',
             type: OrganizationType.PLATFORM,
             email: 'admin@propertyhub.com',
             phone: '+912200001111',

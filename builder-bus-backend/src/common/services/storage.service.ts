@@ -26,7 +26,7 @@ export class StorageService implements OnModuleInit {
         const fpsHeader = this.configService.get<string>('S3_FORCE_PATH_STYLE');
         const forcePathStyle = String(fpsHeader) === 'true';
 
-        this.bucket = this.configService.get<string>('S3_BUCKET') || 'property-hub-documents';
+        this.bucket = this.configService.get<string>('S3_BUCKET') || 'builder-bus-documents';
 
         this.logger.log(`Initializing S3 client with endpoint: ${endpoint}, bucket: ${this.bucket}, region: ${region}, forcePathStyle: ${forcePathStyle}`);
 

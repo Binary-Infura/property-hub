@@ -56,7 +56,7 @@ export default function SubscriptionPage() {
                 key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || 'rzp_test_RENvNtOLr6vA5o',
                 amount: orderData.amount,
                 currency: orderData.currency,
-                name: 'PropertyHub Premium',
+                name: 'BuilderBus Premium',
                 description: 'Upgrade to Property Partner Premium',
                 order_id: orderData.id,
                 handler: async function (response: any) {

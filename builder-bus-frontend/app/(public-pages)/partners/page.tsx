@@ -116,7 +116,7 @@ export default function PartnersPage() {
                         <div>
                             <span className="text-blue-600 font-black tracking-widest text-xs uppercase">Platform Benefits</span>
                             <h2 className="text-3xl md:text-5xl font-black text-slate-900 mt-4 mb-6 leading-tight">
-                                Why Industry Leaders <br /> Prefer PropertyHub
+                                Why Industry Leaders <br /> Prefer BuilderBus
                             </h2>
                             <p className="text-slate-600 text-lg mb-10 leading-relaxed">
                                 Our platform is built by real estate professionals for real estate professionals. We've eliminated the friction in the ecosystem to help you focus on what you do best.
@@ -200,12 +200,12 @@ export default function PartnersPage() {
 
             <footer className="py-12 border-t border-slate-100 bg-slate-50">
                 <div className="max-w-7xl mx-auto px-6 lg:px-8 flex flex-col md:flex-row items-center justify-between gap-6">
-                    <div className="font-black text-2xl text-slate-800 tracking-tight">PropertyHub</div>
+                    <div className="font-black text-2xl text-slate-800 tracking-tight">BuilderBus</div>
                     <div className="flex gap-8 text-sm text-slate-400">
                         <Link href="/privacy" className="hover:text-blue-600 transition-colors">Privacy</Link>
                         <Link href="/terms" className="hover:text-blue-600 transition-colors">Terms</Link>
                     </div>
-                    <p className="text-slate-400 text-sm">© {new Date().getFullYear()} PropertyHub. All rights reserved.</p>
+                    <p className="text-slate-400 text-sm">© {new Date().getFullYear()} BuilderBus. All rights reserved.</p>
                 </div>
             </footer>
         </div>

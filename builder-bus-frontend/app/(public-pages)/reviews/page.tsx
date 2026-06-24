@@ -31,7 +31,7 @@ export default function AllReviewsPage() {
                         <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black shadow-lg shadow-blue-200 group-hover:scale-110 transition-transform">
                             P
                         </div>
-                        <span className="text-xl font-black text-slate-900 tracking-tight">PropertyHub</span>
+                        <span className="text-xl font-black text-slate-900 tracking-tight">BuilderBus</span>
                     </Link>
                     <Link href="/" className="text-sm font-bold text-gray-500 hover:text-blue-600 transition-colors">
                         ← Back to Home

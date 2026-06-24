@@ -51,7 +51,7 @@ export default function DashboardHeader({
                     {showLogo && (
                         <Link href="/" className="flex items-center gap-2 font-bold text-xl text-gray-900 mr-2 shrink-0">
                             <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
-                            <span className="hidden sm:inline">PropertyHub</span>
+                            <span className="hidden sm:inline">BuilderBus</span>
                         </Link>
                     )}
 

@@ -299,7 +299,7 @@ export class ReelsService {
     private generateInstagramCaption(project: any): string {
         if (!project) return '';
 
-        const hashtags = ['#PropertyHub', '#RealEstate', '#PropertyInvesting', '#DreamHome', '#PropertyDeal', '#RealEstateMarket', '#PropertyPartner'];
+        const hashtags = ['#BuilderBus', '#RealEstate', '#PropertyInvesting', '#DreamHome', '#PropertyDeal', '#RealEstateMarket', '#PropertyPartner'];
         const hashtag = hashtags[Math.floor(Math.random() * hashtags.length)];
 
         return `✨ Check out this amazing property! 
@@ -308,7 +308,7 @@ export class ReelsService {
 💰 ${project.price ? `Price: ₹${project.price.toLocaleString()}` : ''}
 🏠 ${project.bedrooms || 'N/A'} BHK | 📐 ${project.area || 'N/A'} sqft
 
-🔗 Explore more on PropertyHub!
+🔗 Explore more on BuilderBus!
 
 ${hashtag}`;
     }

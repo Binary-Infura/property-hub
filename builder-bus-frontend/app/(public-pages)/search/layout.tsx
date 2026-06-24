@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Navbar from '@/app/components/Navbar';
 
 export const metadata = {
-  title: 'Search Properties - PropertyHub',
+  title: 'Search Properties - BuilderBus',
   description: 'Search and compare properties based on your preferences',
 };
 

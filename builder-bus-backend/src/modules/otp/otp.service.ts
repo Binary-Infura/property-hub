@@ -51,16 +51,16 @@ export class OtpService {
             const results = [];
 
             if (dto.phone) {
-                const message = `Your Property Hub verification code is: ${code}. Valid for 5 minutes.`;
+                const message = `Your Builder Bus verification code is: ${code}. Valid for 5 minutes.`;
                 const whatsappResult = await this.whatsappService.sendMessage(dto.phone, message);
                 results.push({ type: 'whatsapp', success: whatsappResult.success });
             }
 
             if (dto.email) {
-                const subject = 'Your Property Hub Verification Code';
+                const subject = 'Your Builder Bus Verification Code';
                 const html = `
                     <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 20px; border: 1px solid #eee; border-radius: 10px;">
-                        <h2 style="color: #2563eb;">Property Hub Verification</h2>
+                        <h2 style="color: #2563eb;">Builder Bus Verification</h2>
                         <p>Use the following code to verify your identity:</p>
                         <div style="font-size: 32px; font-weight: bold; letter-spacing: 5px; text-align: center; padding: 20px; background: #f8fafc; border-radius: 8px; color: #1e293b;">
                             ${code}

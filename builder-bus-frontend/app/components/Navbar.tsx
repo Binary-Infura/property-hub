@@ -36,7 +36,7 @@ export default function Navbar() {
                 <div className="flex justify-between items-center h-16">
                     <Link href="/" className="flex items-center gap-2 hover:opacity-80 transition-opacity">
                         <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
-                        <span className="font-bold text-lg text-gray-900">PropertyHub</span>
+                        <span className="font-bold text-lg text-gray-900">BuilderBus</span>
                     </Link>
                     <div className="hidden md:flex gap-8">
                         <Link href="/#how" className="text-gray-600 hover:text-gray-900 text-sm font-medium">How It Works</Link>

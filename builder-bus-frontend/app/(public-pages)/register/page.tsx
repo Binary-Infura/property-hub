@@ -29,7 +29,7 @@ export default function RegisterPage() {
       <nav className="max-w-7xl mx-auto mb-12">
         <Link href="/" className="flex items-center gap-2 font-black text-2xl text-slate-800 hover:opacity-80 transition-opacity">
           <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl shadow-lg ring-4 ring-white"></div>
-          PropertyHub
+          BuilderBus
         </Link>
       </nav>
       

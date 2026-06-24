@@ -1,6 +1,6 @@
 /**
  * Society Types
- * Defines interfaces for Society management in PropertyHub
+ * Defines interfaces for Society management in BuilderBus
  */
 
 // Possession status of the project

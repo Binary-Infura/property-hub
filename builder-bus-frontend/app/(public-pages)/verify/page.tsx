@@ -91,7 +91,7 @@ export default function VerifyPage() {
       <nav className="mb-12">
         <Link href="/" className="flex items-center gap-2 font-black text-3xl text-slate-800 hover:opacity-80 transition-opacity">
           <div className="w-12 h-12 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-2xl shadow-lg ring-4 ring-white"></div>
-          PropertyHub
+          BuilderBus
         </Link>
       </nav>
 

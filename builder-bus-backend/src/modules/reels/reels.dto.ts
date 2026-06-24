@@ -27,7 +27,7 @@ export class CreateReelDto {
     @IsNotEmpty()
     projectId: string;
 
-    @ApiProperty({ required: false, default: false, description: "Request to publish on PropertyHub Official Instagram" })
+    @ApiProperty({ required: false, default: false, description: "Request to publish on BuilderBus Official Instagram" })
     @IsBoolean()
     @IsOptional()
     publishToOfficialInstagram?: boolean;

@@ -1,7 +1,7 @@
 {
-  "name": "property-hub-backend",
+  "name": "builder-bus-backend",
   "version": "1.0.0",
-  "description": "Property Hub NestJS Backend API",
+  "description": "Builder Bus NestJS Backend API",
   "author": "",
   "private": true,
   "license": "ISC",

@@ -1,20 +1,20 @@
-# Property Hub
+# Builder Bus
 
-Property Hub is a multi-package monorepo for a real estate platform, including:
+Builder Bus is a multi-package monorepo for a real estate platform, including:
 
-- `property-hub-backend` — NestJS API server with Keycloak authentication, Prisma ORM, and PostgreSQL support.
-- `property-hub-frontend` — Next.js web application for buyers, partners, and authority users.
-- `property-hub-mobile` — Expo React Native mobile application.
-- `property-hub-scraper` — Next.js scraper/worker codebase for background scraping and automation.
+- `builder-bus-backend` — NestJS API server with Keycloak authentication, Prisma ORM, and PostgreSQL support.
+- `builder-bus-frontend` — Next.js web application for buyers, partners, and authority users.
+- `builder-bus-mobile` — Expo React Native mobile application.
+- `builder-bus-scraper` — Next.js scraper/worker codebase for background scraping and automation.
 
 ## Repository structure
 
 ```
-property-hub/
-├── property-hub-backend/    # NestJS backend API + database scripts
-├── property-hub-frontend/   # Next.js frontend application
-├── property-hub-mobile/     # Expo mobile application
-├── property-hub-scraper/    # Scraper / worker app
+builder-bus/
+├── builder-bus-backend/    # NestJS backend API + database scripts
+├── builder-bus-frontend/   # Next.js frontend application
+├── builder-bus-mobile/     # Expo mobile application
+├── builder-bus-scraper/    # Scraper / worker app
 ├── nginx.conf
 ├── FULL_SYSTEM_DOCUMENTATION.md
 └── test-users-credentials.md
@@ -35,12 +35,12 @@ property-hub/
 
 Each package manages its own dependencies and scripts. From the repository root, change into the package folder first.
 
-## Backend (`property-hub-backend`)
+## Backend (`builder-bus-backend`)
 
 ### Install dependencies
 
 ```bash
-cd property-hub-backend
+cd builder-bus-backend
 npm install
 ```
 
@@ -71,12 +71,12 @@ npm run start:dev
 - `npm run prisma:studio` — launch Prisma Studio
 - `npm run seed` — run seed scripts
 
-## Frontend (`property-hub-frontend`)
+## Frontend (`builder-bus-frontend`)
 
 ### Install dependencies
 
 ```bash
-cd property-hub-frontend
+cd builder-bus-frontend
 npm install
 ```
 
@@ -95,12 +95,12 @@ npm run build
 npm run start
 ```
 
-## Scraper (`property-hub-scraper`)
+## Scraper (`builder-bus-scraper`)
 
 ### Install dependencies
 
 ```bash
-cd property-hub-scraper
+cd builder-bus-scraper
 npm install
 ```
 
@@ -118,12 +118,12 @@ npm run dev:worker
 
 The scraper app runs by default on `http://localhost:3103`.
 
-## Mobile app (`property-hub-mobile`)
+## Mobile app (`builder-bus-mobile`)
 
 ### Install dependencies
 
 ```bash
-cd property-hub-mobile
+cd builder-bus-mobile
 npm install
 ```
 
@@ -150,6 +150,6 @@ npm run web
 
 ## References
 
-- `property-hub-backend/README.md`
-- `property-hub-frontend/README.md`
-- `property-hub-scraper/README.md`
+- `builder-bus-backend/README.md`
+- `builder-bus-frontend/README.md`
+- `builder-bus-scraper/README.md`

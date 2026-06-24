@@ -1,4 +1,4 @@
-const CACHE_NAME = 'property-hub-cache-v1';
+const CACHE_NAME = 'builder-bus-cache-v1';
 const ASSETS_TO_CACHE = [
     '/',
     '/manifest.webmanifest',

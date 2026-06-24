@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
     return {
-        name: 'PropertyHub',
-        short_name: 'PropertyHub',
+        name: 'BuilderBus',
+        short_name: 'BuilderBus',
         description: 'Find your perfect home with expert consultants. Curated properties, personalized guidance, and complete support.',
         start_url: '/',
         display: 'standalone',

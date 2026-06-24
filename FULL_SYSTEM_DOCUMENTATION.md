@@ -1,27 +1,27 @@
-# PropertyHub - Complete System Documentation
+# BuilderBus - Complete System Documentation
 
-This document provides a comprehensive overview of the PropertyHub platform, including its architecture, data models, user roles, core features, and technical stack. This document is designed to give an AI (like ChatGPT) a complete understanding of the system.
+This document provides a comprehensive overview of the BuilderBus platform, including its architecture, data models, user roles, core features, and technical stack. This document is designed to give an AI (like ChatGPT) a complete understanding of the system.
 
 ---
 
 ## 🏗️ System Architecture
 
-PropertyHub is a full-stack platform consisting of several key components:
+BuilderBus is a full-stack platform consisting of several key components:
 
-1.  **Backend (property-hub-backend)**:
+1.  **Backend (builder-bus-backend)**:
     - **Framework**: NestJS built on Fastify for high performance.
     - **ORM**: Prisma for type-safe database access.
     - **Database**: PostgreSQL.
     - **Task Queue**: BullMQ for handling background jobs (notifications, scraping).
     - **API**: RESTful API with Swagger documentation.
 
-2.  **Frontend (property-hub-frontend)**:
+2.  **Frontend (builder-bus-frontend)**:
     - **Framework**: Next.js (App Router).
     - **Styling**: Tailwind CSS 4.
     - **Real-time**: LiveKit for video consultations and real-time features.
 
 3.  **Specialized Components**:
-    - **RERA Scraper (property-hub-rera-scraper)**: A dedicated service for scraping and syncing RERA (Real Estate Regulatory Authority) data.
+    - **RERA Scraper (builder-bus-rera-scraper)**: A dedicated service for scraping and syncing RERA (Real Estate Regulatory Authority) data.
     - **Integrations**: 
         - **Exotel**: For telephonic integrations and call logging.
         - **Razorpay**: For payment gateway and subscriptions.
@@ -140,7 +140,7 @@ graph TD
 
 ```text
 /
-├── property-hub-backend/      # NestJS API
+├── builder-bus-backend/      # NestJS API
 │   ├── src/
 │   │   ├── modules/           # Domain-driven modules (leads, projects, users, etc.)
 │   │   ├── common/            # Global filters, interceptors, etc.
@@ -149,11 +149,11 @@ graph TD
 │   │   └── schema.prisma      # Database definition
 │   └── scripts/
 │       └── seed-data.ts       # Test data seeding
-├── property-hub-frontend/     # Next.js Application
+├── builder-bus-frontend/     # Next.js Application
 │   ├── app/                   # App router pages (dashboard/, admin/, etc.)
 │   ├── components/            # Shared UI components
 │   └── lib/                   # Utilities and configuration
-└── property-hub-rera-scraper/ # Dedicated scraping service
+└── builder-bus-rera-scraper/ # Dedicated scraping service
 ```
 
 ---

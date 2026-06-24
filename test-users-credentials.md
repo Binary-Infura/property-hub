@@ -1,4 +1,4 @@
-# Property Hub Test Users
+# Builder Bus Test Users
 
 This document contains the credentials for the testing users seeded in the database. 
 

@@ -21,11 +21,11 @@ export default function TermsPage() {
   const sections = [
     {
       title: "1. Acceptance of Terms",
-      content: `By accessing or using the PropertyHub platform ("Platform"), including our website and mobile applications, you ("User", "you", or "your") agree to be bound by these Terms and Conditions ("Terms"). If you do not agree to these Terms, please do not use our services. These Terms constitute a legally binding agreement between you and PropertyHub Global.`
+      content: `By accessing or using the BuilderBus platform ("Platform"), including our website and mobile applications, you ("User", "you", or "your") agree to be bound by these Terms and Conditions ("Terms"). If you do not agree to these Terms, please do not use our services. These Terms constitute a legally binding agreement between you and BuilderBus Global.`
     },
     {
       title: "2. Description of Service",
-      content: `PropertyHub provides an online platform that connects property seekers with expert real estate consultants, developers, and property owners. We offer property listings, 3D visualization tools, consultation services, and a network of partners to facilitate home buying and real estate transactions. PropertyHub is a facilitator and does not own the properties listed unless explicitly stated.`
+      content: `BuilderBus provides an online platform that connects property seekers with expert real estate consultants, developers, and property owners. We offer property listings, 3D visualization tools, consultation services, and a network of partners to facilitate home buying and real estate transactions. BuilderBus is a facilitator and does not own the properties listed unless explicitly stated.`
     },
     {
       title: "3. User Eligibility",
@@ -37,15 +37,15 @@ export default function TermsPage() {
     },
     {
       title: "5. Property Listings & Information",
-      content: `While we strive for accuracy, PropertyHub does not guarantee the completeness or accuracy of property listings, floor plans, 3D models, or pricing information. Users are encouraged to conduct their own due diligence and site visits before making any financial commitments. All property information is subject to change without notice.`
+      content: `While we strive for accuracy, BuilderBus does not guarantee the completeness or accuracy of property listings, floor plans, 3D models, or pricing information. Users are encouraged to conduct their own due diligence and site visits before making any financial commitments. All property information is subject to change without notice.`
     },
     {
       title: "6. Professional Consultation",
-      content: `Consultants on our platform are independent experts or representatives of our network. Their advice is based on their professional judgment and current market trends. PropertyHub is not liable for any decisions made based on such consultations, although we do vet our partners for quality and reliability.`
+      content: `Consultants on our platform are independent experts or representatives of our network. Their advice is based on their professional judgment and current market trends. BuilderBus is not liable for any decisions made based on such consultations, although we do vet our partners for quality and reliability.`
     },
     {
       title: "7. Intellectual Property",
-      content: `All content on this Platform, including logo, text, graphics, 3D models, code, and software, is the property of PropertyHub or its licensors and is protected by copyright and intellectual property laws. You may not reproduce, distribute, or modify any part of the Platform without prior written consent.`
+      content: `All content on this Platform, including logo, text, graphics, 3D models, code, and software, is the property of BuilderBus or its licensors and is protected by copyright and intellectual property laws. You may not reproduce, distribute, or modify any part of the Platform without prior written consent.`
     },
     {
       title: "8. Prohibited Activities",
@@ -58,11 +58,11 @@ export default function TermsPage() {
     },
     {
       title: "9. Limitation of Liability",
-      content: `To the maximum extent permitted by law, PropertyHub shall not be liable for any indirect, incidental, special, or consequential damages arising out of or in connection with your use of the Platform. We do not guarantee that the Platform will be error-free or uninterrupted.`
+      content: `To the maximum extent permitted by law, BuilderBus shall not be liable for any indirect, incidental, special, or consequential damages arising out of or in connection with your use of the Platform. We do not guarantee that the Platform will be error-free or uninterrupted.`
     },
     {
       title: "10. Indemnification",
-      content: `You agree to indemnify and hold PropertyHub and its affiliates harmless from any claims, losses, or damages, including legal fees, resulting from your violation of these Terms or your use of the Platform.`
+      content: `You agree to indemnify and hold BuilderBus and its affiliates harmless from any claims, losses, or damages, including legal fees, resulting from your violation of these Terms or your use of the Platform.`
     },
     {
       title: "11. Governing Law",
@@ -70,7 +70,7 @@ export default function TermsPage() {
     },
     {
       title: "12. Modifications to Terms",
-      content: `PropertyHub reserves the right to modify these Terms at any time. Changes will be effective immediately upon posting on the Platform. Your continued use of the Platform following any changes constitutes your acceptance of the new Terms.`
+      content: `BuilderBus reserves the right to modify these Terms at any time. Changes will be effective immediately upon posting on the Platform. Your continued use of the Platform following any changes constitutes your acceptance of the new Terms.`
     },
     {
       title: "13. Contact Us",
@@ -134,7 +134,7 @@ export default function TermsPage() {
       <footer className="bg-gray-50 border-t border-gray-100 py-12 relative z-10">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-gray-400 text-sm">
-            &copy; 2024 PropertyHub Global. All rights reserved.
+            &copy; 2024 BuilderBus Global. All rights reserved.
           </p>
         </div>
       </footer>

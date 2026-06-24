@@ -65,7 +65,7 @@ export class WhatsappService {
 
     async sendInvitationWhatsApp(phoneNumber: string, roles: string[], inviteLink: string) {
         const rolesList = roles.map(r => r.replace(/_/g, ' ')).join(', ');
-        const message = `Welcome to Property Hub!\n\nYou have been invited to join the platform as ${rolesList}. Please complete your registration using the link below:\n\n${inviteLink}\n\nThis link will expire in 48 hours.\n\nThank you!`;
+        const message = `Welcome to Builder Bus!\n\nYou have been invited to join the platform as ${rolesList}. Please complete your registration using the link below:\n\n${inviteLink}\n\nThis link will expire in 48 hours.\n\nThank you!`;
 
         const result = await this.sendMessage(phoneNumber, message);
 

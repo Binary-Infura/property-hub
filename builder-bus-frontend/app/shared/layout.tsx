@@ -9,7 +9,7 @@ export default function SharedDashboardLayout({
   children: React.ReactNode;
 }) {
   return (
-    <UnifiedDashboardLayout requiredRole={undefined} title="Property Hub Dashboard">
+    <UnifiedDashboardLayout requiredRole={undefined} title="Builder Bus Dashboard">
       {children}
     </UnifiedDashboardLayout>
   );

@@ -1,6 +1,6 @@
-# Property Hub Backend
+# Builder Bus Backend
 
-NestJS backend application for Property Hub with Keycloak authentication.
+NestJS backend application for Builder Bus with Keycloak authentication.
 
 ## Features
 
@@ -74,7 +74,7 @@ NestJS backend application for Property Hub with Keycloak authentication.
 The backend uses Keycloak JWT tokens for authentication. Tokens must include:
 
 - **Realm Roles** (`realm_access.roles`): Authority levels (e.g., `central-authority`)
-- **Client Roles** (`resource_access.property-hub-frontend.roles`): Region flags (e.g., `region:mumbai_south`, `region:pune_west`)
+- **Client Roles** (`resource_access.builder-bus-frontend.roles`): Region flags (e.g., `region:mumbai_south`, `region:pune_west`)
 
 ### Example Token Structure
 
@@ -86,7 +86,7 @@ The backend uses Keycloak JWT tokens for authentication. Tokens must include:
     "roles": ["central-authority"]
   },
   "resource_access": {
-    "property-hub-frontend": {
+    "builder-bus-frontend": {
       "roles": ["region:mumbai_south", "region:pune_west"]
     }
   }
@@ -152,7 +152,7 @@ npx prisma studio
 | `PORT` | Server port | `3001` |
 | `NODE_ENV` | Environment mode | `development` |
 | `KEYCLOAK_REALM_URL` | Keycloak realm URL | - |
-| `KEYCLOAK_CLIENT_ID` | Keycloak client ID | `property-hub-frontend` |
+| `KEYCLOAK_CLIENT_ID` | Keycloak client ID | `builder-bus-frontend` |
 | `JWT_SECRET` | Fallback JWT secret | - |
 | `CORS_ORIGIN` | Allowed CORS origin | `http://localhost:5173` |
 

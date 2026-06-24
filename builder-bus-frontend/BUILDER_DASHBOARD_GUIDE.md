@@ -1,7 +1,7 @@
-# PropertyHub Builder Dashboard Guide
+# BuilderBus Builder Dashboard Guide
 
 ## Overview
-The PropertyHub Builder Dashboard is a dedicated portal for invited builders to manage property listings. It allows builders to create property drafts, upload images and brochures, and submit properties for admin approval.
+The BuilderBus Builder Dashboard is a dedicated portal for invited builders to manage property listings. It allows builders to create property drafts, upload images and brochures, and submit properties for admin approval.
 
 ## Accessing the Dashboard
 - URL: `/dashboard/builder`
@@ -98,7 +98,7 @@ This opens the property details form where you'll provide:
 - Resubmit for approval
 
 **If Approved:**
-- Property appears on PropertyHub platform
+- Property appears on BuilderBus platform
 - Visible to consultants and buyers
 - Listed in the "Approved" tab
 
@@ -156,7 +156,7 @@ The dashboard header shows real-time statistics:
 
 For help with the dashboard:
 - Check the "Why We Recommend This" section for property-specific guidance
-- Contact the PropertyHub support team through the main website
+- Contact the BuilderBus support team through the main website
 - Email: support@propertyhub.com
 - Phone: +91 8000 812 345
 
@@ -164,7 +164,7 @@ For help with the dashboard:
 
 Your property information is:
 - Encrypted during transmission
-- Stored securely on PropertyHub servers
+- Stored securely on BuilderBus servers
 - Only accessible to authorized admin team
 - Never shared without your consent
 - Compliant with data protection regulations

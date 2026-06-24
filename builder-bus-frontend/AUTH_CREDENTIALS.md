@@ -1,4 +1,4 @@
-# Property Hub - Development Authentication
+# Builder Bus - Development Authentication
 
 This project has migrated from Keycloak to a local authentication system.
 
@@ -20,7 +20,7 @@ For development and testing, you can use the following credentials. All accounts
 
 ## How to run Seeder
 
-To populate the database with these users, run the following command in the `property-hub-backend` directory:
+To populate the database with these users, run the following command in the `builder-bus-backend` directory:
 
 ```bash
 npm run seed

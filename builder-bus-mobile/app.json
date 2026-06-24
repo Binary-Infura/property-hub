@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "property-hub-mobile",
-    "slug": "property-hub-mobile",
+    "name": "builder-bus-mobile",
+    "slug": "builder-bus-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",

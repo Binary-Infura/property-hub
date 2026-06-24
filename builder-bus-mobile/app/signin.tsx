@@ -84,7 +84,7 @@ export default function SignInScreen() {
               <View className="w-16 h-16 bg-primary rounded-3xl items-center justify-center mb-6 shadow-2xl shadow-primary/40">
                 <ShieldCheck color="white" size={32} />
               </View>
-              <Text className="text-3xl font-black text-slate-900 tracking-tighter">PropertyHub</Text>
+              <Text className="text-3xl font-black text-slate-900 tracking-tighter">BuilderBus</Text>
               <Text className="text-sm font-semibold text-slate-400 mt-2 text-center max-w-[80%]">
                 Your premium portal for property management and analytics.
               </Text>

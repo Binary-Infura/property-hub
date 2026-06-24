@@ -155,7 +155,7 @@ export default function BuyerDashboard() {
           </TouchableOpacity>
           
           <Text className="text-center text-[10px] text-slate-400 font-bold mt-12 mb-8 uppercase tracking-[0.1em]">
-            PropertyHub Mobile • Version 1.0.0
+            BuilderBus Mobile • Version 1.0.0
           </Text>
         </View>
       </ScrollView>

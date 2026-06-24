@@ -36,8 +36,8 @@ async function bootstrap() {
 
     // Swagger API documentation
     const config = new DocumentBuilder()
-        .setTitle('Property Hub API')
-        .setDescription('Property Hub Backend API')
+        .setTitle('Builder Bus API')
+        .setDescription('Builder Bus Backend API')
         .setVersion('1.0')
         .addBearerAuth()
         .build();

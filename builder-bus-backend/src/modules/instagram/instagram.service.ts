@@ -256,7 +256,7 @@ export class InstagramService {
     }
 
     /**
-     * Request publishing to PropertyHub official Instagram (queues for approval)
+     * Request publishing to BuilderBus official Instagram (queues for approval)
      */
     async requestOfficialInstagramPublishing(reelId: string): Promise<void> {
         await this.prisma.reel.update({
@@ -268,7 +268,7 @@ export class InstagramService {
     }
 
     /**
-     * Approve reel for PropertyHub official Instagram publishing
+     * Approve reel for BuilderBus official Instagram publishing
      */
     async approveReelForOfficialPublishing(
         reelId: string,
@@ -286,7 +286,7 @@ export class InstagramService {
             }
 
             // Step 1: Create media on official account
-            console.log(`Creating media on PropertyHub official Instagram...`);
+            console.log(`Creating media on BuilderBus official Instagram...`);
             const mediaResponse = await axios.post(
                 `${this.instagramGraphUrl}/${this.instagramApiVersion}/${officialInstagramUserId}/media`,
                 {
@@ -306,7 +306,7 @@ export class InstagramService {
             console.log(`Media created on official account: ${mediaId}`);
 
             // Step 2: Publish the media
-            console.log(`Publishing to PropertyHub official Instagram...`);
+            console.log(`Publishing to BuilderBus official Instagram...`);
             const publishResponse = await axios.post(
                 `${this.instagramGraphUrl}/${this.instagramApiVersion}/${mediaId}/publish`,
                 {
@@ -354,7 +354,7 @@ export class InstagramService {
     }
 
     /**
-     * Reject reel from PropertyHub official Instagram publishing
+     * Reject reel from BuilderBus official Instagram publishing
      */
     async rejectReelFromOfficialPublishing(
         reelId: string,

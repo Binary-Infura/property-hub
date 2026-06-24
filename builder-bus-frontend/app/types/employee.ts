@@ -1,6 +1,6 @@
 /**
  * Employee Management Types
- * Defines interfaces for Employee management in PropertyHub Property Partner Module
+ * Defines interfaces for Employee management in BuilderBus Property Partner Module
  */
 
 // Department types

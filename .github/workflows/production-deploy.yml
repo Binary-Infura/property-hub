@@ -9,7 +9,7 @@ env:
   BACKEND_IMAGE: ghcr.io/${{ github.repository }}-backend
   FRONTEND_IMAGE: ghcr.io/${{ github.repository }}-frontend
   SCRAPER_IMAGE: ghcr.io/${{ github.repository }}-scraper
-  DOKS_CLUSTER_NAME: property-hub-cluster # Update with your cluster name
+  DOKS_CLUSTER_NAME: builder-bus-cluster # Update with your cluster name
 
 jobs:
   deploy:
@@ -30,16 +30,16 @@ jobs:
           apiVersion: apps/v1
           kind: Deployment
           metadata:
-            name: property-hub-backend
+            name: builder-bus-backend
           spec:
             replicas: 2
             selector:
               matchLabels:
-                app: property-hub-backend
+                app: builder-bus-backend
             template:
               metadata:
                 labels:
-                  app: property-hub-backend
+                  app: builder-bus-backend
               spec:
                 containers:
                 - name: backend
@@ -48,15 +48,15 @@ jobs:
                   - containerPort: 3102
                   envFrom:
                   - secretRef:
-                      name: property-hub-secrets
+                      name: builder-bus-secrets
           ---
           apiVersion: v1
           kind: Service
           metadata:
-            name: property-hub-backend
+            name: builder-bus-backend
           spec:
             selector:
-              app: property-hub-backend
+              app: builder-bus-backend
             ports:
             - port: 3102
               targetPort: 3102
@@ -67,16 +67,16 @@ jobs:
           apiVersion: apps/v1
           kind: Deployment
           metadata:
-            name: property-hub-frontend
+            name: builder-bus-frontend
           spec:
             replicas: 2
             selector:
               matchLabels:
-                app: property-hub-frontend
+                app: builder-bus-frontend
             template:
               metadata:
                 labels:
-                  app: property-hub-frontend
+                  app: builder-bus-frontend
               spec:
                 containers:
                 - name: frontend
@@ -85,15 +85,15 @@ jobs:
                   - containerPort: 3101
                   envFrom:
                   - secretRef:
-                      name: property-hub-secrets
+                      name: builder-bus-secrets
           ---
           apiVersion: v1
           kind: Service
           metadata:
-            name: property-hub-frontend
+            name: builder-bus-frontend
           spec:
             selector:
-              app: property-hub-frontend
+              app: builder-bus-frontend
             ports:
             - port: 3101
               targetPort: 3101
@@ -104,26 +104,26 @@ jobs:
           apiVersion: apps/v1
           kind: Deployment
           metadata:
-            name: property-hub-scraper
+            name: builder-bus-scraper
           spec:
             replicas: 1
             selector:
               matchLabels:
-                app: property-hub-scraper
+                app: builder-bus-scraper
             template:
               metadata:
                 labels:
-                  app: property-hub-scraper
+                  app: builder-bus-scraper
               spec:
                 containers:
                 - name: scraper
                   image: ${{ env.SCRAPER_IMAGE }}:${{ github.event.release.tag_name }}
                   envFrom:
                   - secretRef:
-                      name: property-hub-secrets
+                      name: builder-bus-secrets
           EOF
 
           # Verify deployment
-          kubectl rollout status deployment/property-hub-backend
-          kubectl rollout status deployment/property-hub-frontend
-          kubectl rollout status deployment/property-hub-scraper
+          kubectl rollout status deployment/builder-bus-backend
+          kubectl rollout status deployment/builder-bus-frontend
+          kubectl rollout status deployment/builder-bus-scraper

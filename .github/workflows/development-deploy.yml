@@ -33,19 +33,19 @@ jobs:
             docker pull ${{ env.SCRAPER_IMAGE }}
             
             # Create network if it doesn't exist
-            docker network create property-hub-dev-net || true
+            docker network create builder-bus-dev-net || true
             
             # Stop and remove existing containers
-            docker stop property-hub-backend property-hub-frontend property-hub-scraper property-hub-nginx || true
-            docker rm property-hub-backend property-hub-frontend property-hub-scraper property-hub-nginx || true
+            docker stop builder-bus-backend builder-bus-frontend builder-bus-scraper builder-bus-nginx || true
+            docker rm builder-bus-backend builder-bus-frontend builder-bus-scraper builder-bus-nginx || true
             
             # Navigate to project dir for config files (nginx.conf, .env)
-            cd ~/property-hub || mkdir -p ~/property-hub && cd ~/property-hub
+            cd ~/builder-bus || mkdir -p ~/builder-bus && cd ~/builder-bus
 
             # Run Backend
             docker run -d \
-              --name property-hub-backend \
-              --network property-hub-dev-net \
+              --name builder-bus-backend \
+              --network builder-bus-dev-net \
               --restart always \
               -p 3102:3102 \
               --env-file .env \
@@ -53,8 +53,8 @@ jobs:
 
             # Run Frontend
             docker run -d \
-              --name property-hub-frontend \
-              --network property-hub-dev-net \
+              --name builder-bus-frontend \
+              --network builder-bus-dev-net \
               --restart always \
               -p 3101:3101 \
               --env-file .env \
@@ -62,16 +62,16 @@ jobs:
 
             # Run Scraper
             docker run -d \
-              --name property-hub-scraper \
-              --network property-hub-dev-net \
+              --name builder-bus-scraper \
+              --network builder-bus-dev-net \
               --restart always \
               --env-file .env \
               ${{ env.SCRAPER_IMAGE }}
 
             # Run Nginx
             docker run -d \
-              --name property-hub-nginx \
-              --network property-hub-dev-net \
+              --name builder-bus-nginx \
+              --network builder-bus-dev-net \
               --restart always \
               -p 80:80 \
               -p 443:443 \

@@ -28,7 +28,7 @@ export default function PrivacyPage() {
     },
     {
       title: "2. How We Use Your Information",
-      content: `PropertyHub uses the collected data for various purposes:
+      content: `BuilderBus uses the collected data for various purposes:
       - To provide and maintain our Platform.
       - To notify you about changes to our service.
       - To allow you to participate in interactive features.
@@ -76,7 +76,7 @@ export default function PrivacyPage() {
     },
     {
       title: "10. Contact Us",
-      content: `If you have any questions about this Privacy Policy, please contact our Data Protection Officer at privacy@propertyhub.com or visit our office at PropertyHub HQ, Mumbai.`
+      content: `If you have any questions about this Privacy Policy, please contact our Data Protection Officer at privacy@propertyhub.com or visit our office at BuilderBus HQ, Mumbai.`
     }
   ];
 
@@ -135,7 +135,7 @@ export default function PrivacyPage() {
       <footer className="bg-gray-50 border-t border-gray-100 py-12 relative z-10">
         <div className="max-w-7xl mx-auto px-4 text-center">
           <p className="text-gray-400 text-sm">
-            &copy; 2024 PropertyHub Global. All rights reserved.
+            &copy; 2024 BuilderBus Global. All rights reserved.
           </p>
         </div>
       </footer>

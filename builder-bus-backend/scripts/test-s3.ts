@@ -20,7 +20,7 @@ async function test() {
 
     try {
         const result = await client.send(new PutObjectCommand({
-            Bucket: process.env.S3_BUCKET || 'property-hub-documents',
+            Bucket: process.env.S3_BUCKET || 'builder-bus-documents',
             Key: 'test-file.txt',
             Body: 'Hello Cloudflare R2!',
             ContentType: 'text/plain',

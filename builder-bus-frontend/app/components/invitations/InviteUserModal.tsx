@@ -192,7 +192,7 @@ export default function InviteUserModal({
                       : 'text-gray-400 hover:text-gray-600'
                   }`}
                 >
-                  Property Hub Platform
+                  Builder Bus Platform
                 </button>
                 <button
                   type="button"

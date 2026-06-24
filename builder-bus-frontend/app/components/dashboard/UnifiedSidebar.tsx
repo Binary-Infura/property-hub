@@ -59,7 +59,7 @@ export default function UnifiedSidebar({ isOpen, onClose }: UnifiedSidebarProps)
                     <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center shadow-lg shadow-blue-500/30">
                         <div className="w-3 h-3 bg-white rounded-sm rotate-45"></div>
                     </div>
-                    <span className={isDarkSidebar ? 'text-white' : 'text-gray-900'}>PropertyHub</span>
+                    <span className={isDarkSidebar ? 'text-white' : 'text-gray-900'}>BuilderBus</span>
                 </Link>
                 <button className="md:hidden text-gray-400 hover:text-gray-900 transition-colors" onClick={onClose}>
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>

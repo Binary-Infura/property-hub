@@ -1,7 +1,7 @@
-# PropertyHub Admin Interface Guide
+# BuilderBus Admin Interface Guide
 
 ## Overview
-The PropertyHub Admin Interface is a dedicated control panel for administrators to review, approve, reject, and manage builder-submitted properties. It provides complete oversight of all property submissions and publication workflow.
+The BuilderBus Admin Interface is a dedicated control panel for administrators to review, approve, reject, and manage builder-submitted properties. It provides complete oversight of all property submissions and publication workflow.
 
 ## Accessing the Admin Dashboard
 - **URL**: `/dashboard/admin`
@@ -173,7 +173,7 @@ Once a property is "Approved" (but not yet live), it can be published to the pla
 5. Cannot be unpublished (design limitation)
 
 ### What Happens When Published:
-- ✓ Listed in PropertyHub marketplace
+- ✓ Listed in BuilderBus marketplace
 - ✓ Visible to all registered buyers
 - ✓ Can be matched by consultants
 - ✓ Appears in property recommendations
@@ -321,4 +321,4 @@ The dashboard provides these key metrics:
 
 **Last Updated**: December 2024  
 **Version**: 1.0  
-**Document Owner**: PropertyHub Admin Team
+**Document Owner**: BuilderBus Admin Team

@@ -135,7 +135,7 @@ export default function ForgotPasswordPage() {
                     <div className="flex flex-col items-center">
                         <Link href="/" className="flex items-center gap-2 mb-4 hover:opacity-80 transition-opacity">
                             <div className="w-8 h-8 bg-blue-600 rounded-lg"></div>
-                            <span className="font-bold text-2xl text-gray-900">PropertyHub</span>
+                            <span className="font-bold text-2xl text-gray-900">BuilderBus</span>
                         </Link>
                     </div>
                     <h2 className="text-xl font-black text-gray-900 uppercase tracking-tight">
@@ -270,7 +270,7 @@ export default function ForgotPasswordPage() {
 
                 <div className="mt-8 text-center border-t border-slate-50 pt-8">
                     <p className="text-[10px] font-black text-slate-300 uppercase tracking-[0.2em]">
-                        Secure system • PropertyHub v2.0
+                        Secure system • BuilderBus v2.0
                     </p>
                 </div>
             </div>

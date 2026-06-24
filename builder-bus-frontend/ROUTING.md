@@ -1,8 +1,8 @@
-# PropertyHub Routing Architecture
+# BuilderBus Routing Architecture
 
 ## Overview
 
-PropertyHub uses a **buyer-first, role-based routing architecture** where:
+BuilderBus uses a **buyer-first, role-based routing architecture** where:
 - **Buyers** use the shortest and cleanest dashboard URL: `/dashboard`
 - **All other roles** use role-based root routes: `/{role}/dashboard`
 - **One role = one dashboard route** (no shared dashboards)
