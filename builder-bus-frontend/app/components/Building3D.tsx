@@ -10,6 +10,114 @@ import {
 } from "@react-three/drei";
 import * as THREE from "three";
 
+const AnimatedBus = ({ color, speed, startX, zOffset, direction }: { color: string, speed: number, startX: number, zOffset: number, direction: number }) => {
+  const group = useRef<THREE.Group>(null);
+  const busMesh = useRef<THREE.Group>(null);
+  const directionRef = useRef(direction);
+  
+  useFrame((state, delta) => {
+    if (group.current && busMesh.current) {
+      // Move bus horizontally based on the direction it's currently facing
+      group.current.position.x += Math.sin(busMesh.current.rotation.y) * speed * delta;
+      
+      // Trigger U-turn at boundaries
+      if (directionRef.current > 0 && group.current.position.x > 7) {
+        directionRef.current = -1;
+      } else if (directionRef.current < 0 && group.current.position.x < -7) {
+        directionRef.current = 1;
+      }
+      
+      // Smoothly rotate the bus model towards the target direction
+      const targetRotation = directionRef.current > 0 ? Math.PI / 2 : -Math.PI / 2;
+      busMesh.current.rotation.y += (targetRotation - busMesh.current.rotation.y) * delta * 3;
+    }
+  });
+
+  return (
+    <group ref={group} position={[startX, 0.9, zOffset]}>
+      <group ref={busMesh} rotation={[0, direction > 0 ? Math.PI/2 : -Math.PI/2, 0]}>
+        {/* Bus Body */}
+        <mesh castShadow>
+          <boxGeometry args={[1.2, 1.4, 3.5]} />
+          <meshStandardMaterial color={color} />
+        </mesh>
+        
+        {/* Windows - Side */}
+        <mesh position={[0, 0.2, 0]} castShadow>
+          <boxGeometry args={[1.25, 0.5, 3]} />
+          <meshStandardMaterial color="#1e293b" />
+        </mesh>
+
+        {/* Windshield */}
+        <mesh position={[0, 0.2, 1.76]} castShadow>
+          <planeGeometry args={[1.1, 0.6]} />
+          <meshStandardMaterial color="#1e293b" />
+        </mesh>
+
+        {/* Headlights */}
+        <mesh position={[0.4, -0.4, 1.76]}>
+          <circleGeometry args={[0.1, 16]} />
+          <meshStandardMaterial color="#fbbf24" emissive="#fbbf24" emissiveIntensity={2} />
+        </mesh>
+        <mesh position={[-0.4, -0.4, 1.76]}>
+          <circleGeometry args={[0.1, 16]} />
+          <meshStandardMaterial color="#fbbf24" emissive="#fbbf24" emissiveIntensity={2} />
+        </mesh>
+
+        {/* Taillights */}
+        <mesh position={[0.4, -0.4, -1.76]} rotation={[0, Math.PI, 0]}>
+          <circleGeometry args={[0.1, 16]} />
+          <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={2} />
+        </mesh>
+        <mesh position={[-0.4, -0.4, -1.76]} rotation={[0, Math.PI, 0]}>
+          <circleGeometry args={[0.1, 16]} />
+          <meshStandardMaterial color="#ef4444" emissive="#ef4444" emissiveIntensity={2} />
+        </mesh>
+
+        {/* Wheels */}
+        {[-1.1, 1.1].map((z, i) => (
+          <React.Fragment key={i}>
+            <Wheel position={[-0.6, -0.6, z]} speed={speed} />
+            <Wheel position={[0.6, -0.6, z]} speed={speed} />
+          </React.Fragment>
+        ))}
+      </group>
+    </group>
+  );
+};
+
+const Wheel = ({ position, speed }: { position: [number, number, number], speed: number }) => {
+  const meshRef = useRef<THREE.Group>(null);
+  
+  useFrame((state, delta) => {
+    if (meshRef.current) {
+      // Roll the wheel based on bus speed and wheel radius (0.3)
+      meshRef.current.rotation.x += (speed / 0.3) * delta;
+    }
+  });
+
+  return (
+    <group position={position}>
+      <group ref={meshRef}>
+        {/* Tyre */}
+        <mesh rotation={[0, 0, Math.PI/2]} castShadow>
+          <cylinderGeometry args={[0.3, 0.3, 0.22, 24]} />
+          <meshStandardMaterial color="#0f172a" roughness={0.9} />
+        </mesh>
+        {/* Hubcaps (hexagon to make rotation visible) */}
+        <mesh rotation={[0, 0, Math.PI/2]} position={[0.12, 0, 0]} castShadow>
+          <cylinderGeometry args={[0.18, 0.18, 0.05, 6]} />
+          <meshStandardMaterial color="#94a3b8" metalness={0.6} roughness={0.2} />
+        </mesh>
+        <mesh rotation={[0, 0, Math.PI/2]} position={[-0.12, 0, 0]} castShadow>
+          <cylinderGeometry args={[0.18, 0.18, 0.05, 6]} />
+          <meshStandardMaterial color="#94a3b8" metalness={0.6} roughness={0.2} />
+        </mesh>
+      </group>
+    </group>
+  );
+};
+
 const HouseModel = () => {
   const group = useRef<THREE.Group>(null);
 
@@ -69,17 +177,8 @@ const HouseModel = () => {
         </mesh>
       </group>
 
-      {/* Decorative Tree / Low-poly Greenery */}
-      <group position={[-3, 1, 3]}>
-        <mesh castShadow>
-          <cylinderGeometry args={[0.1, 0.2, 2]} />
-          <meshStandardMaterial color="#78350f" />
-        </mesh>
-        <mesh position={[0, 1.5, 0]} castShadow>
-          <sphereGeometry args={[1, 8, 8]} />
-          <meshStandardMaterial color="#10b981" />
-        </mesh>
-      </group>
+      {/* Animated Busses */}
+      <AnimatedBus color="#3b82f6" speed={1.5} startX={5} zOffset={4.5} direction={-1} />
 
       {/* Distant Abstract Buildings for Depth */}
       <group position={[-10, 0, -10]}>
