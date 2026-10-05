@@ -51,7 +51,7 @@
     "class-validator": "^0.14.0",
     "dotenv": "^16.3.1",
     "fastify": "^4.29.1",
-    "nodemailer": "^8.0.2",
+    "nodemailer": "^10.0.9",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
     "playwright": "^1.58.2",
